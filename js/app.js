@@ -1,4 +1,5 @@
 let currentBannerIdx = 0;
+let currentHeroIdx = 0;
 
 function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
@@ -12,6 +13,55 @@ function startBannerTicker() {
             bannerEl.style.opacity = '1';
         }, 400);
     }, 4000);
+}
+
+// Hero Banner Slider Engine
+function renderHeroSlider() {
+    const container = document.getElementById('hero-slider-container');
+    const dotsContainer = document.getElementById('hero-slider-dots');
+    
+    if (!container || heroSlides.length === 0) return;
+
+    const currentSlide = heroSlides[currentHeroIdx];
+
+    container.innerHTML = `
+        <div class="space-y-6 text-right">
+            <h1 class="text-4xl md:text-6xl font-black leading-tight">
+                ${currentSlide.title}
+            </h1>
+            <p class="text-lg text-gray-300 font-light leading-relaxed">
+                ${currentSlide.desc}
+            </p>
+            <button onclick="filterCategory('الجميع')" class="px-8 py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition">
+                تسوقي الآن <i class="fa-solid fa-arrow-left mr-2"></i>
+            </button>
+        </div>
+        <div class="flex justify-center">
+            <div class="w-64 h-64 md:w-80 md:h-80 rounded-3xl gold-gradient p-1 shadow-2xl overflow-hidden">
+                <div class="w-full h-full bg-[#121212] rounded-3xl flex items-center justify-center overflow-hidden p-2">
+                    <img src="${currentSlide.image}" class="w-full h-full object-cover rounded-2xl" alt="Hero Banner">
+                </div>
+            </div>
+        </div>
+    `;
+
+    dotsContainer.innerHTML = heroSlides.map((_, idx) => `
+        <button onclick="setHeroSlide(${idx})" class="w-3 h-3 rounded-full transition-all ${idx === currentHeroIdx ? 'bg-[#D4AF37] w-8' : 'bg-gray-600'}"></button>
+    `).join('');
+}
+
+function setHeroSlide(idx) {
+    currentHeroIdx = idx;
+    renderHeroSlider();
+}
+
+function startHeroAutoSlider() {
+    setInterval(() => {
+        if (heroSlides.length > 1) {
+            currentHeroIdx = (currentHeroIdx + 1) % heroSlides.length;
+            renderHeroSlider();
+        }
+    }, 5000);
 }
 
 function showPage(pageId) {
@@ -42,11 +92,11 @@ function filterCategory(catName) {
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     return `
-        <div class="bg-white rounded-2xl border p-4 text-right flex flex-col justify-between shadow-sm">
-            <div class="h-44 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer" onclick="openLandingPage(${p.id})">
-                <img src="${displayImg}" class="max-h-full object-contain">
-            </div>
+        <div class="bg-white rounded-2xl border p-4 text-right flex flex-col justify-between shadow-sm hover:shadow-md transition">
             <div>
+                <div class="h-44 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer" onclick="openLandingPage(${p.id})">
+                    <img src="${displayImg}" class="max-h-full object-contain">
+                </div>
                 <span class="text-[10px] bg-gold-500/10 text-[#B8860B] font-bold px-2 py-0.5 rounded">${p.category}</span>
                 <h3 class="font-bold text-sm my-1 truncate">${p.name}</h3>
                 <div class="font-black text-[#B8860B] mb-3">${p.price.toLocaleString()} دج</div>
@@ -60,7 +110,6 @@ function updateAppHeaderInfo() {
     document.getElementById('site-title').innerText = storeSettings.name + ' | المتجر الفاخر';
     document.getElementById('store-name-display').innerText = storeSettings.name;
     document.getElementById('store-slogan-display').innerText = `"${storeSettings.slogan}"`;
-    document.getElementById('hero-slogan-display').innerText = `"${storeSettings.slogan}"`;
     
     if (storeSettings.logoUrl) {
         document.getElementById('store-logo-img').src = storeSettings.logoUrl;
@@ -68,16 +117,18 @@ function updateAppHeaderInfo() {
         document.getElementById('store-logo-icon').classList.add('hidden');
     }
 
-    // Dynamic Header Categories Links
+    // Dynamic Header Categories
     const navEl = document.getElementById('header-nav');
     navEl.innerHTML = `<button onclick="filterCategory('الرئيسية')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>` +
         categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
 
-    // Home Category Cards
+    // Dynamic Categories Grid (تنسيق أنيق جداً بحجم صور وأسماء متناسق)
     document.getElementById('home-category-cards').innerHTML = categories.map(c => `
-        <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-between">
-            <img src="${c.image}" class="w-20 h-20 object-cover rounded-xl mb-3 border border-[#D4AF37]/20">
-            <h3 class="text-white font-bold text-sm">${c.name}</h3>
+        <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-5 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-3 shadow-lg">
+            <div class="w-16 h-16 rounded-2xl p-1 gold-gradient overflow-hidden shadow-md">
+                <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black">
+            </div>
+            <h3 class="text-white font-black text-base md:text-lg tracking-wide">${c.name}</h3>
         </div>
     `).join('');
 }
@@ -119,5 +170,7 @@ function renderCart() {
 
 // Initial Run Sequence
 updateAppHeaderInfo();
+renderHeroSlider();
+startHeroAutoSlider();
 renderProducts();
 startBannerTicker();
