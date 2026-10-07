@@ -11,27 +11,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#F8F9FA]">
+<body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f]">
 
     <!-- Sticky Top Yellow Banner Ticker -->
-    <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2.5 px-4 shadow-md overflow-hidden">
+    <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
             🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام
         </span>
     </div>
 
     <!-- Main Header Navigation -->
-    <header class="bg-black text-white sticky top-9 z-40 border-b border-[#D4AF37]/30 shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 h-24 flex items-center justify-between">
+    <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
             <!-- Logo & Store Title -->
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
-                <div class="w-12 h-12 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
+                <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
                     <img id="store-logo-img" class="w-full h-full object-cover hidden">
                     <i id="store-logo-icon" class="fa-solid fa-crown text-xl"></i>
                 </div>
                 <div>
-                    <span id="store-name-display" class="text-2xl md:text-3xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
-                    <span id="store-slogan-display" class="text-[11px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سينام سعيداً اليوم"</span>
+                    <span id="store-name-display" class="text-xl md:text-2xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
+                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سينام سعيداً اليوم"</span>
                 </div>
             </div>
 
@@ -53,39 +53,108 @@
 
         <!-- 1. HOME PAGE VIEW -->
         <div id="page-home" class="page-sec active">
-            
-            <!-- Hero Slider Banner Section (البانر الإعلاني المتحرك) -->
-            <section class="bg-black text-white py-12 md:py-16 border-b border-[#D4AF37]/20 relative overflow-hidden">
-                <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center min-h-[320px]" id="hero-slider-container">
-                    <!-- Dynamic Hero Slide Content -->
-                </div>
-                <!-- Slider Controls -->
-                <div class="flex justify-center gap-2 mt-6" id="hero-slider-dots"></div>
+            <!-- Hero Slider Banner Section -->
+            <section class="bg-black text-white py-10 md:py-14 border-b border-[#D4AF37]/20 relative overflow-hidden">
+                <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center min-h-[300px]" id="hero-slider-container"></div>
+                <div class="flex justify-center gap-2 mt-4" id="hero-slider-dots"></div>
             </section>
 
-            <!-- Category Cards Section (أقسام المتجر المنسقة) -->
-            <section class="bg-black py-10 border-b border-[#D4AF37]/20">
+            <!-- Category Cards Section -->
+            <section class="bg-black py-8 border-b border-[#D4AF37]/20">
                 <div class="max-w-7xl mx-auto px-4">
-                    <h2 class="text-white text-center text-2xl font-black mb-8 gold-text">أقسام المتجر</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="home-category-cards"></div>
+                    <h2 class="text-white text-center text-xl font-black mb-6 gold-text">أقسام المتجر</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-5" id="home-category-cards"></div>
                 </div>
             </section>
 
             <!-- Best Sellers Section -->
-            <section class="py-12 max-w-7xl mx-auto px-4">
-                <h2 class="text-2xl font-black text-center mb-8">🔥 الأكثر مبيعاً</h2>
+            <section class="py-10 max-w-7xl mx-auto px-4">
+                <h2 class="text-2xl font-black text-center text-white mb-8">🔥 الأكثر مبيعاً</h2>
                 <div id="home-products" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
             </section>
         </div>
 
-        <!-- 2. CATALOG PAGE VIEW -->
+        <!-- 2. ADVANCED CATALOG PAGE VIEW (صفحة تصفية النتائج الاحترافية المطابقة للصورة) -->
         <div id="page-catalog" class="page-sec">
-            <div class="max-w-7xl mx-auto px-4 py-8">
-                <div class="flex justify-between items-center mb-6 border-b pb-4">
-                    <h1 id="catalog-category-title" class="text-2xl font-black text-right">جميع المنتجات والمكياج</h1>
-                    <button onclick="filterCategory('الجميع')" class="text-xs bg-gray-200 px-3 py-1.5 rounded-lg font-bold">عرض الكل</button>
+            <div class="max-w-7xl mx-auto px-4 py-6">
+                
+                <!-- Breadcrumbs & Bar -->
+                <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
+                    <div id="catalog-breadcrumb" class="flex items-center gap-2">
+                        <span class="text-[#D4AF37] font-bold cursor-pointer" onclick="showPage('home')">الرئيسية</span>
+                        <i class="fa-solid fa-angle-left text-[10px]"></i>
+                        <span id="breadcrumb-current" class="text-gray-200 font-bold">المكياج</span>
+                    </div>
                 </div>
-                <div id="catalog-products" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+
+                <!-- Main Layout: Sidebar Filter + Products Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    
+                    <!-- Sidebar Filter Column (تصفية النتائج) -->
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                            <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> تصفية النتائج
+                            </h3>
+                            <button onclick="resetFilters()" class="text-[11px] text-gray-400 hover:text-white underline">إعادة ضبط</button>
+                        </div>
+
+                        <!-- Category Filter -->
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-xs text-gray-300">الفئة</h4>
+                            <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
+                        </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- Price Range Filter -->
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-xs text-gray-300">السعر</h4>
+                            <input type="range" id="filter-price-range" min="500" max="10000" step="100" value="10000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
+                            <div class="flex justify-between text-xs text-[#D4AF37] font-bold">
+                                <span>500 دج</span>
+                                <span id="price-range-val">10,000 دج</span>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- Brand Filter -->
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
+                            <div class="space-y-2 text-xs text-gray-400">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="Maybelline" class="brand-checkbox accent-[#D4AF37]"> Maybelline</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="L'Oréal" class="brand-checkbox accent-[#D4AF37]"> L'Oréal</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="NYX" class="brand-checkbox accent-[#D4AF37]"> NYX</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="Essence" class="brand-checkbox accent-[#D4AF37]"> Essence</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Display Area -->
+                    <div class="lg:col-span-3 space-y-4">
+                        
+                        <!-- Top Filter Controls Bar -->
+                        <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-xl p-4 flex flex-wrap justify-between items-center text-white gap-4">
+                            <span class="text-xs font-bold text-gray-300">
+                                إجمالي المنتجات (<span id="products-count-badge" class="text-[#D4AF37]">0</span>)
+                            </span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs text-gray-400 font-bold">ترتيب حسب:</span>
+                                <select id="sort-select" onchange="applyFilters()" class="bg-black border border-gray-700 text-xs text-white p-2 rounded-lg outline-none cursor-pointer">
+                                    <option value="best">الأكثر مبيعاً</option>
+                                    <option value="low">السعر: من الأقل للأعلى</option>
+                                    <option value="high">السعر: من الأعلى للأقل</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Catalog Grid -->
+                        <div id="catalog-products" class="grid grid-cols-2 md:grid-cols-3 gap-5"></div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
 
@@ -110,7 +179,7 @@
                     </div>
                 </div>
 
-                <!-- Fast Order Checkout Form -->
+                <!-- Order Checkout Form -->
                 <div id="order-form-section" class="bg-white rounded-3xl border shadow-xl p-6 md:p-10 text-right space-y-6">
                     <h2 class="text-2xl font-black text-gray-900 border-b pb-4">استمارة الطلب السريع</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,7 +228,7 @@
         <!-- 4. CART VIEW -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
-                <h1 class="text-2xl font-black mb-8 text-right">سلة التسوق والدفع</h1>
+                <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div id="cart-list" class="lg:col-span-2 bg-white rounded-2xl border p-6 space-y-4"></div>
                     <div class="bg-white rounded-2xl border p-6 h-fit text-right space-y-4">
@@ -175,23 +244,23 @@
 
         <!-- 5. ADMIN DASHBOARD VIEW -->
         <div id="page-admin" class="page-sec">
-            <div class="max-w-7xl mx-auto px-4 py-8 text-right">
-                <div class="flex justify-between items-center mb-8 border-b pb-4">
+            <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
+                <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
                     <h1 class="text-2xl font-black">⚙️ لوحة تحكم المتجر المتطورة</h1>
                     <button onclick="showPage('home')" class="bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
                 </div>
 
-                <div class="flex gap-2 border-b mb-8 overflow-x-auto pb-2">
+                <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-2">
                     <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات</button>
-                    <button onclick="switchAdminTab('hero')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-hero">🖼️ البانرات الإعلانية</button>
-                    <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-products">🛍️ المنتجات</button>
-                    <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-categories">📂 الفئات والصور</button>
-                    <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
-                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
+                    <button onclick="switchAdminTab('hero')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-hero">🖼️ البانرات الإعلانية</button>
+                    <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-products">🛍️ المنتجات والتوافر</button>
+                    <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
+                    <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
+                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
                 </div>
 
                 <!-- TAB: SALES -->
-                <div id="admin-tab-analytics" class="tab-content active space-y-6">
+                <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات</span><span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span></div>
                         <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">عدد الطلبات</span><span id="stat-orders-count" class="text-2xl font-black">0</span></div>
@@ -201,33 +270,46 @@
                     <div class="bg-white p-6 rounded-2xl border"><h3 class="font-bold text-lg mb-4">سجل الطلبيات التفصيلي</h3><div id="admin-orders-log" class="space-y-3"></div></div>
                 </div>
 
-                <!-- TAB: HERO SLIDER MANAGEMENT (إدارة البانرات الإعلانية المتحركة) -->
-                <div id="admin-tab-hero" class="tab-content space-y-6">
+                <!-- TAB: HERO SLIDES -->
+                <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة إعلان جديد للبانر الرئيسي</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="hero-title-input" placeholder="عنوان الإعلان الرئيسي (مثال: اكتشفي لمستك الخاصة) *" required class="border p-3 rounded-xl text-sm">
+                            <input type="text" id="hero-title-input" placeholder="عنوان الإعلان الرئيسي *" required class="border p-3 rounded-xl text-sm">
                             <input type="text" id="hero-desc-input" placeholder="وصف الإعلان القصير *" required class="border p-3 rounded-xl text-sm">
                             <input type="url" id="hero-img-input" placeholder="رابط صورة الإعلان (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
-                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-2">إضافة الإعلان للبانر</button>
+                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-2">إضافة الإعلان</button>
                         </form>
                     </div>
                     <div class="bg-white p-6 rounded-2xl border">
-                        <h3 class="font-bold text-lg mb-4">الإعلانات المعروضة حالياً في البانر</h3>
+                        <h3 class="font-bold text-lg mb-4">الإعلانات المعروضة حالياً</h3>
                         <div id="admin-hero-slides-list" class="space-y-3"></div>
                     </div>
                 </div>
 
                 <!-- TAB: PRODUCTS -->
-                <div id="admin-tab-products" class="tab-content space-y-6">
+                <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
-                        <h3 class="font-bold text-lg mb-4">إضافة / تعديل منتج (مع 5 صور)</h3>
+                        <h3 class="font-bold text-lg mb-4">إضافة / تعديل منتج (مع حالة التوفر والماركة)</h3>
                         <form onsubmit="handleSaveProduct(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
+                            
                             <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white"></select>
                             
+                            <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white">
+                                <option value="Maybelline">Maybelline</option>
+                                <option value="L'Oréal">L'Oréal</option>
+                                <option value="NYX">NYX</option>
+                                <option value="Essence">Essence</option>
+                            </select>
+
+                            <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
+                                <option value="true">متوفر في المخزون 🟢</option>
+                                <option value="false">غير متوفر 🔴</option>
+                            </select>
+
                             <input type="url" id="prod-img-main" placeholder="1. رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
                             <input type="url" id="prod-img-2" placeholder="2. رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm">
                             <input type="url" id="prod-img-3" placeholder="3. رابط الصورة الثالثة (URL)" class="border p-3 rounded-xl text-sm">
@@ -247,6 +329,7 @@
                                     <th class="p-4">اسم المنتج</th>
                                     <th class="p-4">الفئة</th>
                                     <th class="p-4">السعر</th>
+                                    <th class="p-4">التوفر</th>
                                     <th class="p-4">الإجراءات</th>
                                 </tr>
                             </thead>
@@ -256,7 +339,7 @@
                 </div>
 
                 <!-- TAB: CATEGORIES -->
-                <div id="admin-tab-categories" class="tab-content space-y-6">
+                <div id="admin-tab-categories" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة فئة جديدة</h3>
                         <form onsubmit="handleSaveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -272,7 +355,7 @@
                 </div>
 
                 <!-- TAB: SHIPPING -->
-                <div id="admin-tab-shipping" class="tab-content space-y-6">
+                <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
                         <form onsubmit="handleSaveWilaya(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -291,7 +374,7 @@
                 </div>
 
                 <!-- TAB: SETTINGS -->
-                <div id="admin-tab-settings" class="tab-content space-y-6">
+                <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
                         <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
                         <div class="flex gap-3">
