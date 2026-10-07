@@ -1,17 +1,21 @@
 let logoClickCount = 0;
 let logoClickTimer = null;
 
-// Triple Click Security Trigger
-document.getElementById('logo-trigger').addEventListener('click', () => {
+function handleLogoClick(event) {
     logoClickCount++;
     if (logoClickCount === 1) {
-        logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1200);
+        logoClickTimer = setTimeout(() => {
+            if (logoClickCount < 3) {
+                showPage('home');
+            }
+            logoClickCount = 0;
+        }, 800);
     } else if (logoClickCount === 3) {
         clearTimeout(logoClickTimer);
         logoClickCount = 0;
         document.getElementById('admin-auth-modal').style.display = 'flex';
     }
-});
+}
 
 function checkAdminPassword() {
     const pass = document.getElementById('admin-pass-input').value;
@@ -54,10 +58,35 @@ function renderAdminDashboard() {
             </div>
         `).join('');
 
+    // Render Banner Messages list in admin
+    document.getElementById('banner-texts-list').innerHTML = bannerMessages.map((msg, idx) => `
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
+            <span>${msg}</span>
+            <button onclick="removeBannerText(${idx})" class="text-red-500 font-bold hover:text-red-700">حذف</button>
+        </div>
+    `).join('');
+
+    document.getElementById('prod-category-select').innerHTML = categories.filter(c => c !== 'الرئيسية').map(c => `<option value="${c}">${c}</option>`).join('');
     document.getElementById('set-store-name').value = storeSettings.name;
+    document.getElementById('set-store-slogan').value = storeSettings.slogan;
     document.getElementById('set-logo-url').value = storeSettings.logoUrl;
-    document.getElementById('set-email').value = storeSettings.email;
     document.getElementById('set-pass').value = storeSettings.pass;
+}
+
+function addBannerText() {
+    const txt = document.getElementById('new-banner-text').value;
+    if (txt) {
+        bannerMessages.push(txt);
+        localStorage.setItem('lb_banners', JSON.stringify(bannerMessages));
+        document.getElementById('new-banner-text').value = '';
+        renderAdminDashboard();
+    }
+}
+
+function removeBannerText(idx) {
+    bannerMessages.splice(idx, 1);
+    localStorage.setItem('lb_banners', JSON.stringify(bannerMessages));
+    renderAdminDashboard();
 }
 
 function handleSaveProduct(e) {
@@ -67,7 +96,7 @@ function handleSaveProduct(e) {
         name: document.getElementById('prod-name').value,
         price: parseFloat(document.getElementById('prod-price').value),
         oldPrice: parseFloat(document.getElementById('prod-old-price').value) || null,
-        category: 'المنتجات',
+        category: document.getElementById('prod-category-select').value,
         image: document.getElementById('prod-img').value,
         desc: document.getElementById('prod-desc').value
     };
@@ -81,9 +110,10 @@ function handleSaveProduct(e) {
 function handleSaveSettings(e) {
     e.preventDefault();
     storeSettings.name = document.getElementById('set-store-name').value;
+    storeSettings.slogan = document.getElementById('set-store-slogan').value;
     storeSettings.logoUrl = document.getElementById('set-logo-url').value;
-    storeSettings.email = document.getElementById('set-email').value;
     storeSettings.pass = document.getElementById('set-pass').value;
     localStorage.setItem('lb_settings', JSON.stringify(storeSettings));
+    updateAppHeaderInfo();
     alert('تم حفظ الإعدادات بنجاح!');
 }
