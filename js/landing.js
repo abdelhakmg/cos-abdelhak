@@ -49,15 +49,21 @@ function calculateLandingTotal() {
     document.getElementById('sum-prod-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
     document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
     document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
+    document.getElementById('sticky-bar-price').innerText = grandTotal.toLocaleString() + ' دج';
+}
+
+function scrollToOrderForm() {
+    document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 function submitLandingOrder() {
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
     const wilayaCode = document.getElementById('cust-wilaya').value;
+    const commune = document.getElementById('cust-commune').value;
 
     if (!name || !phone || !wilayaCode) {
-        alert('يرجى ملء كافة معلومات الاستمارة!');
+        alert('يرجى ملء كافة معلومات الاستمارة الضرورية!');
         return;
     }
 
@@ -70,6 +76,7 @@ function submitLandingOrder() {
         customer: name,
         phone: phone,
         wilaya: wilaya.name,
+        commune: commune,
         product: currentLandingProduct.name,
         total: currentLandingProduct.price + shipCost,
         date: new Date().toLocaleDateString('ar-DZ')
@@ -77,6 +84,6 @@ function submitLandingOrder() {
 
     orders.push(newOrder);
     localStorage.setItem('lb_orders', JSON.stringify(orders));
-    alert('تم إرسال الطلب بنجاح!');
+    alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
     showPage('home');
 }
