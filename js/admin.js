@@ -1,7 +1,7 @@
 let logoClickCount = 0;
 let logoClickTimer = null;
 
-// Triple Click Detection
+// Triple Click Security Trigger
 document.getElementById('logo-trigger').addEventListener('click', () => {
     logoClickCount++;
     if (logoClickCount === 1) {
@@ -20,7 +20,7 @@ function checkAdminPassword() {
         document.getElementById('admin-pass-input').value = '';
         showPage('admin');
     } else {
-        alert('كلمة المرور خاطئة!');
+        alert('كلمة المرور غير صحيحة!');
     }
 }
 
@@ -41,16 +41,22 @@ function renderAdminDashboard() {
     const totalSales = orders.reduce((sum, o) => sum + o.total, 0);
     document.getElementById('stat-total-sales').innerText = totalSales.toLocaleString() + ' دج';
     document.getElementById('stat-orders-count').innerText = orders.length;
+    document.getElementById('stat-avg-order').innerText = orders.length ? Math.round(totalSales / orders.length).toLocaleString() + ' دج' : '0 دج';
 
-    document.getElementById('admin-orders-log').innerHTML = orders.length === 0 ? '<p class="text-gray-400">لا توجد طلبات</p>' : 
+    document.getElementById('admin-orders-log').innerHTML = orders.length === 0 ? '<p class="text-gray-400">لا توجد طلبات واردة بعد</p>' : 
         orders.map(o => `
-            <div class="border-b pb-2 flex justify-between text-sm">
-                <div><strong>${o.customer}</strong> (${o.phone}) - ${o.product}</div>
-                <div class="text-[#B8860B] font-bold">${o.total.toLocaleString()} دج</div>
+            <div class="border-b pb-3 flex justify-between items-center text-sm">
+                <div>
+                    <div class="font-bold">${o.customer} (${o.phone})</div>
+                    <div class="text-xs text-gray-500">${o.wilaya} - ${o.commune} | ${o.product}</div>
+                </div>
+                <div class="text-left"><span class="font-black text-[#B8860B]">${o.total.toLocaleString()} دج</span><span class="block text-[10px] text-gray-400">${o.date}</span></div>
             </div>
         `).join('');
 
     document.getElementById('set-store-name').value = storeSettings.name;
+    document.getElementById('set-logo-url').value = storeSettings.logoUrl;
+    document.getElementById('set-email').value = storeSettings.email;
     document.getElementById('set-pass').value = storeSettings.pass;
 }
 
@@ -60,6 +66,7 @@ function handleSaveProduct(e) {
         id: Date.now(),
         name: document.getElementById('prod-name').value,
         price: parseFloat(document.getElementById('prod-price').value),
+        oldPrice: parseFloat(document.getElementById('prod-old-price').value) || null,
         category: 'المنتجات',
         image: document.getElementById('prod-img').value,
         desc: document.getElementById('prod-desc').value
@@ -68,13 +75,15 @@ function handleSaveProduct(e) {
     localStorage.setItem('lb_products', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
-    alert('تم حفظ المنتج!');
+    alert('تم حفظ المنتج بنجاح!');
 }
 
 function handleSaveSettings(e) {
     e.preventDefault();
     storeSettings.name = document.getElementById('set-store-name').value;
+    storeSettings.logoUrl = document.getElementById('set-logo-url').value;
+    storeSettings.email = document.getElementById('set-email').value;
     storeSettings.pass = document.getElementById('set-pass').value;
     localStorage.setItem('lb_settings', JSON.stringify(storeSettings));
-    alert('تم حفظ الإعدادات!');
+    alert('تم حفظ الإعدادات بنجاح!');
 }
