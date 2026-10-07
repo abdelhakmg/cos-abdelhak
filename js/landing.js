@@ -4,16 +4,35 @@ function openLandingPage(productId) {
     currentLandingProduct = products.find(p => p.id === productId);
     if (!currentLandingProduct) return;
 
-    document.getElementById('landing-img').src = currentLandingProduct.image;
+    // Load Main Image and Category Details
+    const mainImg = currentLandingProduct.images[0] || 'https://via.placeholder.com/500';
+    document.getElementById('landing-main-img').src = mainImg;
     document.getElementById('landing-title').innerText = currentLandingProduct.name;
     document.getElementById('landing-category').innerText = currentLandingProduct.category;
     document.getElementById('landing-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc;
 
+    // Render 4 Thumbnails on the right side
+    const thumbsContainer = document.getElementById('landing-thumbnails-list');
+    thumbsContainer.innerHTML = currentLandingProduct.images.slice(0, 5).map((imgUrl, idx) => `
+        <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-200 hover:border-[#D4AF37] p-1 cursor-pointer bg-white overflow-hidden shadow-sm">
+            <img src="${imgUrl}" class="w-full h-full object-contain">
+        </div>
+    `).join('');
+
     populateWilayas();
     calculateLandingTotal();
     showPage('landing');
+}
+
+function swapLandingMainImage(newUrl) {
+    const mainImg = document.getElementById('landing-main-img');
+    mainImg.style.opacity = '0.3';
+    setTimeout(() => {
+        mainImg.src = newUrl;
+        mainImg.style.opacity = '1';
+    }, 150);
 }
 
 function populateWilayas() {
