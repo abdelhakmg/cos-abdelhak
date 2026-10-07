@@ -1,5 +1,5 @@
 // Wilayas Data Engine
-let WILAYAS = JSON.parse(localStorage.getItem('lb_wilayas_v3')) || [
+let WILAYAS = JSON.parse(localStorage.getItem('lb_wilayas_v4')) || [
     { code: '16', name: 'الجزائر العاصمة', communes: ['سيدي امحمد', 'باب الوادي', 'الشراقة', 'بئر خادم'], homeCost: 400, officeCost: 200 },
     { code: '31', name: 'وهران', communes: ['وهران', 'بئر الجير', 'السانية'], homeCost: 600, officeCost: 300 },
     { code: '19', name: 'سطيف', communes: ['سطيف', 'العلمة', 'عين أرنات'], homeCost: 600, officeCost: 300 },
@@ -7,15 +7,29 @@ let WILAYAS = JSON.parse(localStorage.getItem('lb_wilayas_v3')) || [
     { code: '17', name: 'الجلفة', communes: ['الجلفة', 'عين وسارة', 'مسعد'], homeCost: 700, officeCost: 400 }
 ];
 
-// Banner Messages
-let bannerMessages = JSON.parse(localStorage.getItem('lb_banners_v3')) || [
+// Top Yellow Banner Messages
+let bannerMessages = JSON.parse(localStorage.getItem('lb_banners_v4')) || [
     "🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام 100% مضمون",
     "✨ عروض حصريّة وخاصة هذا الأسبوع - كوسمتيك عبد الحق",
     "❤️ يبدو أن أحدهم سينام سعيداً اليوم..."
 ];
 
-// Settings Store
-let storeSettings = JSON.parse(localStorage.getItem('lb_settings_v3')) || {
+// Hero Slider Ads List (بيانات إعلانات البانر الرئيسي)
+let heroSlides = JSON.parse(localStorage.getItem('lb_hero_slides_v4')) || [
+    {
+        title: "اكتشفي لمستك الخاصة",
+        desc: "عطور • جمال • هدايا • عناية ... كل ما تحتاجينه لإطلالة ساحرة ومثالية",
+        image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500"
+    },
+    {
+        title: "مجموعة العطور الفاخرة",
+        desc: "أرقى تشكيلة من العطور العالمية الأصلية بأسعار استثنائية",
+        image: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=500"
+    }
+];
+
+// Store Settings
+let storeSettings = JSON.parse(localStorage.getItem('lb_settings_v4')) || {
     name: 'كوسمتيك عبد الحق',
     slogan: 'يبدو أن أحدهم سينام سعيداً اليوم',
     logoUrl: '',
@@ -23,14 +37,14 @@ let storeSettings = JSON.parse(localStorage.getItem('lb_settings_v3')) || {
 };
 
 // Categories Store
-let categories = JSON.parse(localStorage.getItem('lb_categories_v3')) || [
+let categories = JSON.parse(localStorage.getItem('lb_categories_v4')) || [
     { name: 'العطور', image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=300' },
     { name: 'المكياج', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=300' },
     { name: 'الهدايا', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300' }
 ];
 
-// Default Products Base
-let products = JSON.parse(localStorage.getItem('lb_products_v3')) || [
+// Products Base
+let products = JSON.parse(localStorage.getItem('lb_products_v4')) || [
     { 
         id: 1, 
         name: 'عطر ميس ديور أو دو بارفان', 
@@ -56,5 +70,5 @@ let products = JSON.parse(localStorage.getItem('lb_products_v3')) || [
     }
 ];
 
-let orders = JSON.parse(localStorage.getItem('lb_orders_v3')) || [];
+let orders = JSON.parse(localStorage.getItem('lb_orders_v4')) || [];
 let cart = [];
