@@ -40,10 +40,11 @@ function filterCategory(catName) {
 }
 
 function renderSingleProductCard(p) {
+    const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     return `
         <div class="bg-white rounded-2xl border p-4 text-right flex flex-col justify-between shadow-sm">
             <div class="h-44 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer" onclick="openLandingPage(${p.id})">
-                <img src="${p.image}" class="max-h-full object-contain">
+                <img src="${displayImg}" class="max-h-full object-contain">
             </div>
             <div>
                 <span class="text-[10px] bg-gold-500/10 text-[#B8860B] font-bold px-2 py-0.5 rounded">${p.category}</span>
@@ -59,6 +60,7 @@ function updateAppHeaderInfo() {
     document.getElementById('site-title').innerText = storeSettings.name + ' | المتجر الفاخر';
     document.getElementById('store-name-display').innerText = storeSettings.name;
     document.getElementById('store-slogan-display').innerText = `"${storeSettings.slogan}"`;
+    document.getElementById('hero-slogan-display').innerText = `"${storeSettings.slogan}"`;
     
     if (storeSettings.logoUrl) {
         document.getElementById('store-logo-img').src = storeSettings.logoUrl;
@@ -66,16 +68,16 @@ function updateAppHeaderInfo() {
         document.getElementById('store-logo-icon').classList.add('hidden');
     }
 
-    // Dynamic Header Categories
-    document.getElementById('header-nav').innerHTML = categories.map(c => 
-        `<button onclick="filterCategory('${c}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c}</button>`
-    ).join('');
+    // Dynamic Header Categories Links
+    const navEl = document.getElementById('header-nav');
+    navEl.innerHTML = `<button onclick="filterCategory('الرئيسية')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>` +
+        categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
 
     // Home Category Cards
-    document.getElementById('home-category-cards').innerHTML = categories.filter(c => c !== 'الرئيسية').map(c => `
-        <div onclick="filterCategory('${c}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-xl p-5 text-center cursor-pointer hover:border-[#D4AF37] transition">
-            <i class="fa-solid fa-sparkles text-2xl text-[#D4AF37] mb-2"></i>
-            <h3 class="text-white font-bold text-sm">${c}</h3>
+    document.getElementById('home-category-cards').innerHTML = categories.map(c => `
+        <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-between">
+            <img src="${c.image}" class="w-20 h-20 object-cover rounded-xl mb-3 border border-[#D4AF37]/20">
+            <h3 class="text-white font-bold text-sm">${c.name}</h3>
         </div>
     `).join('');
 }
@@ -96,10 +98,11 @@ function renderCart() {
     let subtotal = 0;
     container.innerHTML = cart.map((item, idx) => {
         subtotal += item.price;
+        const img = (item.images && item.images.length > 0) ? item.images[0] : '';
         return `
             <div class="flex items-center justify-between border-b pb-4">
                 <div class="flex items-center gap-4">
-                    <img src="${item.image}" class="w-16 h-16 object-cover rounded-lg border">
+                    <img src="${img}" class="w-16 h-16 object-cover rounded-lg border">
                     <div class="text-right">
                         <h4 class="font-bold text-sm">${item.name}</h4>
                         <span class="text-xs text-[#B8860B] font-bold">${item.price.toLocaleString()} دج</span>
@@ -114,7 +117,7 @@ function renderCart() {
     document.getElementById('cart-badge').innerText = cart.length;
 }
 
-// Initial Run
+// Initial Run Sequence
 updateAppHeaderInfo();
 renderProducts();
 startBannerTicker();
