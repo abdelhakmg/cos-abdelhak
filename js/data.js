@@ -1,4 +1,3 @@
-// Firebase Configuration extracted directly from your project credentials
 const firebaseConfig = {
     apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
     authDomain: "cos-abdelhak.firebaseapp.com",
@@ -17,10 +16,11 @@ let WILAYAS = [];
 let bannerMessages = [];
 let heroSlides = [];
 let categories = [];
+let brands = [];
 let products = [];
 let orders = [];
-let cart = JSON.parse(localStorage.getItem('lb_cart_v6')) || [];
-let favorites = JSON.parse(localStorage.getItem('lb_favs_v6')) || [];
+let cart = JSON.parse(localStorage.getItem('lb_cart_v7')) || [];
+let favorites = JSON.parse(localStorage.getItem('lb_favs_v7')) || [];
 
 let storeSettings = {
     name: 'كوسمتيك عبد الحق',
@@ -29,9 +29,8 @@ let storeSettings = {
     pass: 'admin123'
 };
 
-// Realtime Firebase Listeners (التزامن اللحظي بين كافة الأجهزة)
+// Realtime Firebase Listeners
 function initFirebaseRealtime() {
-    // Products Realtime
     db.collection("products").onSnapshot((snapshot) => {
         products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (typeof renderProducts === 'function') renderProducts();
@@ -39,39 +38,39 @@ function initFirebaseRealtime() {
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // Categories Realtime
     db.collection("categories").onSnapshot((snapshot) => {
         categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // Orders Realtime
+    db.collection("brands").onSnapshot((snapshot) => {
+        brands = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (typeof updateBrandsListUI === 'function') updateBrandsListUI();
+        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+    });
+
     db.collection("orders").onSnapshot((snapshot) => {
         orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // Top Banners Realtime
     db.collection("banners").onSnapshot((snapshot) => {
         bannerMessages = snapshot.docs.map(doc => doc.data().text);
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // Hero Slides Realtime
     db.collection("heroSlides").onSnapshot((snapshot) => {
         heroSlides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (typeof renderHeroSlider === 'function') renderHeroSlider();
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // Wilayas Realtime
     db.collection("wilayas").onSnapshot((snapshot) => {
         WILAYAS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // Settings Realtime
     db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists) {
             storeSettings = doc.data();
