@@ -5,9 +5,7 @@ function handleLogoClick(event) {
     logoClickCount++;
     if (logoClickCount === 1) {
         logoClickTimer = setTimeout(() => {
-            if (logoClickCount < 3) {
-                showPage('home');
-            }
+            if (logoClickCount < 3) showPage('home');
             logoClickCount = 0;
         }, 800);
     } else if (logoClickCount === 3) {
@@ -42,35 +40,153 @@ function switchAdminTab(tabName) {
 }
 
 function renderAdminDashboard() {
+    // Analytics
     const totalSales = orders.reduce((sum, o) => sum + o.total, 0);
     document.getElementById('stat-total-sales').innerText = totalSales.toLocaleString() + ' دج';
     document.getElementById('stat-orders-count').innerText = orders.length;
     document.getElementById('stat-avg-order').innerText = orders.length ? Math.round(totalSales / orders.length).toLocaleString() + ' دج' : '0 دج';
 
-    document.getElementById('admin-orders-log').innerHTML = orders.length === 0 ? '<p class="text-gray-400">لا توجد طلبات واردة بعد</p>' : 
+    document.getElementById('admin-orders-log').innerHTML = orders.length === 0 ? '<p class="text-gray-400">لا توجد طلبات بعد</p>' : 
         orders.map(o => `
             <div class="border-b pb-3 flex justify-between items-center text-sm">
                 <div>
                     <div class="font-bold">${o.customer} (${o.phone})</div>
                     <div class="text-xs text-gray-500">${o.wilaya} - ${o.commune} | ${o.product}</div>
                 </div>
-                <div class="text-left"><span class="font-black text-[#B8860B]">${o.total.toLocaleString()} دج</span><span class="block text-[10px] text-gray-400">${o.date}</span></div>
+                <div class="text-left"><span class="font-black text-[#B8860B]">${o.total.toLocaleString()} دج</span></div>
             </div>
         `).join('');
 
-    // Render Banner Messages list in admin
-    document.getElementById('banner-texts-list').innerHTML = bannerMessages.map((msg, idx) => `
-        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
-            <span>${msg}</span>
-            <button onclick="removeBannerText(${idx})" class="text-red-500 font-bold hover:text-red-700">حذف</button>
+    // Categories Select in Product Form
+    document.getElementById('prod-category-select').innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+
+    // Products List Table
+    document.getElementById('admin-products-tbody').innerHTML = products.map((p, idx) => `
+        <tr class="border-b">
+            <td class="p-3"><img src="${p.images[0]}" class="w-10 h-10 object-cover rounded-lg"></td>
+            <td class="p-3 font-bold">${p.name}</td>
+            <td class="p-3 text-xs text-gray-500">${p.category}</td>
+            <td class="p-3 font-bold text-[#B8860B]">${p.price.toLocaleString()} دج</td>
+            <td class="p-3">
+                <button onclick="deleteProduct(${p.id})" class="bg-red-500 text-white text-xs px-3 py-1 rounded-lg">حذف</button>
+            </td>
+        </tr>
+    `).join('');
+
+    // Categories Cards List in Admin
+    document.getElementById('admin-categories-list').innerHTML = categories.map((c, idx) => `
+        <div class="bg-gray-50 rounded-xl border p-3 text-center space-y-2">
+            <img src="${c.image}" class="h-20 w-full object-cover rounded-lg">
+            <div class="font-bold text-sm">${c.name}</div>
+            <button onclick="deleteCategory(${idx})" class="text-red-500 text-xs font-bold">حذف</button>
         </div>
     `).join('');
 
-    document.getElementById('prod-category-select').innerHTML = categories.filter(c => c !== 'الرئيسية').map(c => `<option value="${c}">${c}</option>`).join('');
+    // Wilayas List in Admin
+    document.getElementById('admin-wilayas-list').innerHTML = WILAYAS.map((w, idx) => `
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
+            <div>
+                <span class="font-bold">${w.code} - ${w.name}</span>
+                <span class="text-xs text-gray-500 block">منزل: ${w.homeCost} دج | مكتب: ${w.officeCost} دج</span>
+            </div>
+            <button onclick="deleteWilaya(${idx})" class="text-red-500 font-bold">حذف</button>
+        </div>
+    `).join('');
+
+    // Banners List
+    document.getElementById('banner-texts-list').innerHTML = bannerMessages.map((msg, idx) => `
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
+            <span>${msg}</span>
+            <button onclick="removeBannerText(${idx})" class="text-red-500 font-bold">حذف</button>
+        </div>
+    `).join('');
+
+    // Load Form Values
     document.getElementById('set-store-name').value = storeSettings.name;
     document.getElementById('set-store-slogan').value = storeSettings.slogan;
     document.getElementById('set-logo-url').value = storeSettings.logoUrl;
     document.getElementById('set-pass').value = storeSettings.pass;
+    document.getElementById('set-phone').value = storeSettings.phone;
+    document.getElementById('set-whatsapp').value = storeSettings.whatsapp;
+    document.getElementById('set-instagram').value = storeSettings.instagram;
+    document.getElementById('set-facebook').value = storeSettings.facebook;
+}
+
+// Save Product with 5 images
+function handleSaveProduct(e) {
+    e.preventDefault();
+    const imgs = [
+        document.getElementById('prod-img-main').value,
+        document.getElementById('prod-img-2').value,
+        document.getElementById('prod-img-3').value,
+        document.getElementById('prod-img-4').value,
+        document.getElementById('prod-img-5').value
+    ].filter(url => url.trim() !== '');
+
+    const newP = {
+        id: Date.now(),
+        name: document.getElementById('prod-name').value,
+        price: parseFloat(document.getElementById('prod-price').value),
+        oldPrice: parseFloat(document.getElementById('prod-old-price').value) || null,
+        category: document.getElementById('prod-category-select').value,
+        images: imgs,
+        desc: document.getElementById('prod-desc').value
+    };
+
+    products.push(newP);
+    localStorage.setItem('lb_products_v2', JSON.stringify(products));
+    renderProducts();
+    renderAdminDashboard();
+    alert('تم حفظ المنتج بـ 5 صور بنجاح!');
+}
+
+function deleteProduct(id) {
+    products = products.filter(p => p.id !== id);
+    localStorage.setItem('lb_products_v2', JSON.stringify(products));
+    renderProducts();
+    renderAdminDashboard();
+}
+
+// Categories Management
+function handleSaveCategory(e) {
+    e.preventDefault();
+    const name = document.getElementById('cat-name-input').value;
+    const img = document.getElementById('cat-img-input').value;
+
+    categories.push({ name, image: img });
+    localStorage.setItem('lb_categories_v2', JSON.stringify(categories));
+    updateAppHeaderInfo();
+    renderAdminDashboard();
+    alert('تم حفظ الفئة بالصورة بنجاح!');
+}
+
+function deleteCategory(idx) {
+    categories.splice(idx, 1);
+    localStorage.setItem('lb_categories_v2', JSON.stringify(categories));
+    updateAppHeaderInfo();
+    renderAdminDashboard();
+}
+
+// Shipping & Wilayas Management
+function handleSaveWilaya(e) {
+    e.preventDefault();
+    const code = document.getElementById('wilaya-code').value;
+    const name = document.getElementById('wilaya-name').value;
+    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value);
+    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value);
+    const communesInput = document.getElementById('wilaya-communes-input').value;
+    const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [name];
+
+    WILAYAS.push({ code, name, communes, homeCost, officeCost });
+    localStorage.setItem('lb_wilayas', JSON.stringify(WILAYAS));
+    renderAdminDashboard();
+    alert('تم إضافة الولاية والتسعيرات بنجاح!');
+}
+
+function deleteWilaya(idx) {
+    WILAYAS.splice(idx, 1);
+    localStorage.setItem('lb_wilayas', JSON.stringify(WILAYAS));
+    renderAdminDashboard();
 }
 
 function addBannerText() {
@@ -89,31 +205,18 @@ function removeBannerText(idx) {
     renderAdminDashboard();
 }
 
-function handleSaveProduct(e) {
-    e.preventDefault();
-    const newP = {
-        id: Date.now(),
-        name: document.getElementById('prod-name').value,
-        price: parseFloat(document.getElementById('prod-price').value),
-        oldPrice: parseFloat(document.getElementById('prod-old-price').value) || null,
-        category: document.getElementById('prod-category-select').value,
-        image: document.getElementById('prod-img').value,
-        desc: document.getElementById('prod-desc').value
-    };
-    products.push(newP);
-    localStorage.setItem('lb_products', JSON.stringify(products));
-    renderProducts();
-    renderAdminDashboard();
-    alert('تم حفظ المنتج بنجاح!');
-}
-
 function handleSaveSettings(e) {
     e.preventDefault();
     storeSettings.name = document.getElementById('set-store-name').value;
     storeSettings.slogan = document.getElementById('set-store-slogan').value;
     storeSettings.logoUrl = document.getElementById('set-logo-url').value;
     storeSettings.pass = document.getElementById('set-pass').value;
+    storeSettings.phone = document.getElementById('set-phone').value;
+    storeSettings.whatsapp = document.getElementById('set-whatsapp').value;
+    storeSettings.instagram = document.getElementById('set-instagram').value;
+    storeSettings.facebook = document.getElementById('set-facebook').value;
+
     localStorage.setItem('lb_settings', JSON.stringify(storeSettings));
     updateAppHeaderInfo();
-    alert('تم حفظ الإعدادات بنجاح!');
+    alert('تم حفظ جميع الإعدادات بنجاح!');
 }
