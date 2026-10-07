@@ -30,12 +30,12 @@ function switchAdminTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
         b.classList.remove('bg-black', 'text-white');
-        b.classList.add('bg-gray-200', 'text-gray-700');
+        b.classList.add('bg-gray-800', 'text-gray-300');
     });
 
     document.getElementById('admin-tab-' + tabName).classList.add('active');
     const btn = document.getElementById('tab-btn-' + tabName);
-    btn.classList.remove('bg-gray-200', 'text-gray-700');
+    btn.classList.remove('bg-gray-800', 'text-gray-300');
     btn.classList.add('bg-black', 'text-white');
 }
 
@@ -57,7 +57,7 @@ function renderAdminDashboard() {
             </div>
         `).join('');
 
-    // Hero Slides List in Admin
+    // Hero Slides List
     document.getElementById('admin-hero-slides-list').innerHTML = heroSlides.map((slide, idx) => `
         <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
             <div class="flex items-center gap-3">
@@ -67,20 +67,21 @@ function renderAdminDashboard() {
                     <div class="text-xs text-gray-500 truncate max-w-xs">${slide.desc}</div>
                 </div>
             </div>
-            <button onclick="deleteHeroSlide(${idx})" class="text-red-500 font-bold text-xs bg-red-50 px-3 py-1.5 rounded-lg">حذف الإعلان</button>
+            <button onclick="deleteHeroSlide(${idx})" class="text-red-500 font-bold text-xs bg-red-50 px-3 py-1.5 rounded-lg">حذف</button>
         </div>
     `).join('');
 
     // Select Categories
     document.getElementById('prod-category-select').innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
-    // Products List
+    // Products List in Admin
     document.getElementById('admin-products-tbody').innerHTML = products.map((p) => `
         <tr class="border-b">
             <td class="p-3"><img src="${p.images[0]}" class="w-10 h-10 object-cover rounded-lg"></td>
             <td class="p-3 font-bold">${p.name}</td>
             <td class="p-3 text-xs text-gray-500">${p.category}</td>
             <td class="p-3 font-bold text-[#B8860B]">${p.price.toLocaleString()} دج</td>
+            <td class="p-3 font-bold text-xs">${p.inStock ? '🟢 متوفر' : '🔴 غير متوفر'}</td>
             <td class="p-3">
                 <button onclick="deleteProduct(${p.id})" class="bg-red-500 text-white text-xs px-3 py-1 rounded-lg">حذف</button>
             </td>
@@ -115,14 +116,13 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
-    // Settings Values
+    // Settings
     document.getElementById('set-store-name').value = storeSettings.name;
     document.getElementById('set-store-slogan').value = storeSettings.slogan;
     document.getElementById('set-logo-url').value = storeSettings.logoUrl;
     document.getElementById('set-pass').value = storeSettings.pass;
 }
 
-// Hero Slide Save & Delete
 function handleSaveHeroSlide(e) {
     e.preventDefault();
     const newSlide = {
@@ -131,7 +131,7 @@ function handleSaveHeroSlide(e) {
         image: document.getElementById('hero-img-input').value
     };
     heroSlides.push(newSlide);
-    localStorage.setItem('lb_hero_slides_v4', JSON.stringify(heroSlides));
+    localStorage.setItem('lb_hero_slides_v5', JSON.stringify(heroSlides));
     renderHeroSlider();
     renderAdminDashboard();
     alert('تم إضافة الإعلان للبانر بنجاح!');
@@ -139,7 +139,7 @@ function handleSaveHeroSlide(e) {
 
 function deleteHeroSlide(idx) {
     heroSlides.splice(idx, 1);
-    localStorage.setItem('lb_hero_slides_v4', JSON.stringify(heroSlides));
+    localStorage.setItem('lb_hero_slides_v5', JSON.stringify(heroSlides));
     renderHeroSlider();
     renderAdminDashboard();
 }
@@ -160,12 +160,14 @@ function handleSaveProduct(e) {
         price: parseFloat(document.getElementById('prod-price').value),
         oldPrice: parseFloat(document.getElementById('prod-old-price').value) || null,
         category: document.getElementById('prod-category-select').value,
+        brand: document.getElementById('prod-brand-select').value,
+        inStock: document.getElementById('prod-in-stock').value === 'true',
         images: imgs,
         desc: document.getElementById('prod-desc').value
     };
 
     products.push(newP);
-    localStorage.setItem('lb_products_v4', JSON.stringify(products));
+    localStorage.setItem('lb_products_v5', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
     alert('تم حفظ المنتج بنجاح!');
@@ -173,7 +175,7 @@ function handleSaveProduct(e) {
 
 function deleteProduct(id) {
     products = products.filter(p => p.id !== id);
-    localStorage.setItem('lb_products_v4', JSON.stringify(products));
+    localStorage.setItem('lb_products_v5', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
 }
@@ -184,7 +186,7 @@ function handleSaveCategory(e) {
     const img = document.getElementById('cat-img-input').value;
 
     categories.push({ name, image: img });
-    localStorage.setItem('lb_categories_v4', JSON.stringify(categories));
+    localStorage.setItem('lb_categories_v5', JSON.stringify(categories));
     updateAppHeaderInfo();
     renderAdminDashboard();
     alert('تم حفظ الفئة بنجاح!');
@@ -192,7 +194,7 @@ function handleSaveCategory(e) {
 
 function deleteCategory(idx) {
     categories.splice(idx, 1);
-    localStorage.setItem('lb_categories_v4', JSON.stringify(categories));
+    localStorage.setItem('lb_categories_v5', JSON.stringify(categories));
     updateAppHeaderInfo();
     renderAdminDashboard();
 }
@@ -207,14 +209,14 @@ function handleSaveWilaya(e) {
     const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [name];
 
     WILAYAS.push({ code, name, communes, homeCost, officeCost });
-    localStorage.setItem('lb_wilayas_v4', JSON.stringify(WILAYAS));
+    localStorage.setItem('lb_wilayas_v5', JSON.stringify(WILAYAS));
     renderAdminDashboard();
     alert('تم إضافة الولاية بنجاح!');
 }
 
 function deleteWilaya(idx) {
     WILAYAS.splice(idx, 1);
-    localStorage.setItem('lb_wilayas_v4', JSON.stringify(WILAYAS));
+    localStorage.setItem('lb_wilayas_v5', JSON.stringify(WILAYAS));
     renderAdminDashboard();
 }
 
@@ -222,7 +224,7 @@ function addBannerText() {
     const txt = document.getElementById('new-banner-text').value;
     if (txt) {
         bannerMessages.push(txt);
-        localStorage.setItem('lb_banners_v4', JSON.stringify(bannerMessages));
+        localStorage.setItem('lb_banners_v5', JSON.stringify(bannerMessages));
         document.getElementById('new-banner-text').value = '';
         renderAdminDashboard();
     }
@@ -230,7 +232,7 @@ function addBannerText() {
 
 function removeBannerText(idx) {
     bannerMessages.splice(idx, 1);
-    localStorage.setItem('lb_banners_v4', JSON.stringify(bannerMessages));
+    localStorage.setItem('lb_banners_v5', JSON.stringify(bannerMessages));
     renderAdminDashboard();
 }
 
@@ -241,7 +243,7 @@ function handleSaveSettings(e) {
     storeSettings.logoUrl = document.getElementById('set-logo-url').value;
     storeSettings.pass = document.getElementById('set-pass').value;
 
-    localStorage.setItem('lb_settings_v4', JSON.stringify(storeSettings));
+    localStorage.setItem('lb_settings_v5', JSON.stringify(storeSettings));
     updateAppHeaderInfo();
     alert('تم حفظ الإعدادات بنجاح!');
 }
