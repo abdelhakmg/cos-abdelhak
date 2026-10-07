@@ -4,8 +4,10 @@ function openLandingPage(productId) {
     currentLandingProduct = products.find(p => p.id === productId);
     if (!currentLandingProduct) return;
 
-    // Load Main Image and Category Details
-    const mainImg = currentLandingProduct.images[0] || 'https://via.placeholder.com/500';
+    const mainImg = currentLandingProduct.images && currentLandingProduct.images.length > 0 
+        ? currentLandingProduct.images[0] 
+        : 'https://via.placeholder.com/500';
+        
     document.getElementById('landing-main-img').src = mainImg;
     document.getElementById('landing-title').innerText = currentLandingProduct.name;
     document.getElementById('landing-category').innerText = currentLandingProduct.category;
@@ -13,9 +15,13 @@ function openLandingPage(productId) {
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc;
 
-    // Render 4 Thumbnails on the right side
+    // Render Thumbnails
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
-    thumbsContainer.innerHTML = currentLandingProduct.images.slice(0, 5).map((imgUrl, idx) => `
+    const imagesList = currentLandingProduct.images && currentLandingProduct.images.length > 0 
+        ? currentLandingProduct.images 
+        : [mainImg];
+
+    thumbsContainer.innerHTML = imagesList.map((imgUrl) => `
         <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-200 hover:border-[#D4AF37] p-1 cursor-pointer bg-white overflow-hidden shadow-sm">
             <img src="${imgUrl}" class="w-full h-full object-contain">
         </div>
@@ -102,7 +108,7 @@ function submitLandingOrder() {
     };
 
     orders.push(newOrder);
-    localStorage.setItem('lb_orders', JSON.stringify(orders));
+    localStorage.setItem('lb_orders_v3', JSON.stringify(orders));
     alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
     showPage('home');
 }
