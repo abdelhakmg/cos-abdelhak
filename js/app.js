@@ -1,3 +1,19 @@
+let currentBannerIdx = 0;
+
+function startBannerTicker() {
+    const bannerEl = document.getElementById('top-announcement-text');
+    if (!bannerEl || bannerMessages.length === 0) return;
+    
+    setInterval(() => {
+        bannerEl.style.opacity = '0';
+        setTimeout(() => {
+            currentBannerIdx = (currentBannerIdx + 1) % bannerMessages.length;
+            bannerEl.innerText = bannerMessages[currentBannerIdx];
+            bannerEl.style.opacity = '1';
+        }, 400);
+    }, 4000);
+}
+
 function showPage(pageId) {
     document.querySelectorAll('.page-sec').forEach(el => el.classList.remove('active'));
     document.getElementById('page-' + pageId).classList.add('active');
@@ -6,11 +22,25 @@ function showPage(pageId) {
     if (pageId === 'cart') renderCart();
 }
 
-function renderProducts() {
-    const grid = document.getElementById('home-products');
+function filterCategory(catName) {
+    if (catName === 'الرئيسية' || catName === 'الجميع') {
+        showPage('home');
+        return;
+    }
+    
+    document.getElementById('catalog-category-title').innerText = 'قسم: ' + catName;
+    const filtered = products.filter(p => p.category === catName);
+    
     const catGrid = document.getElementById('catalog-products');
+    catGrid.innerHTML = filtered.length === 0 ? 
+        '<p class="col-span-full text-center text-gray-400 py-10">لا توجد منتجات في هذه الفئة حالياً</p>' : 
+        filtered.map(p => renderSingleProductCard(p)).join('');
+    
+    showPage('catalog');
+}
 
-    const html = products.map(p => `
+function renderSingleProductCard(p) {
+    return `
         <div class="bg-white rounded-2xl border p-4 text-right flex flex-col justify-between shadow-sm">
             <div class="h-44 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer" onclick="openLandingPage(${p.id})">
                 <img src="${p.image}" class="max-h-full object-contain">
@@ -22,15 +52,37 @@ function renderProducts() {
             </div>
             <button onclick="openLandingPage(${p.id})" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md">اطلب الآن 🔥</button>
         </div>
-    `).join('');
+    `;
+}
 
-    if (grid) grid.innerHTML = html;
-    if (catGrid) catGrid.innerHTML = html;
+function updateAppHeaderInfo() {
+    document.getElementById('site-title').innerText = storeSettings.name + ' | المتجر الفاخر';
+    document.getElementById('store-name-display').innerText = storeSettings.name;
+    document.getElementById('store-slogan-display').innerText = `"${storeSettings.slogan}"`;
+    
+    if (storeSettings.logoUrl) {
+        document.getElementById('store-logo-img').src = storeSettings.logoUrl;
+        document.getElementById('store-logo-img').classList.remove('hidden');
+        document.getElementById('store-logo-icon').classList.add('hidden');
+    }
 
-    // Render Navigation Categories
+    // Dynamic Header Categories
     document.getElementById('header-nav').innerHTML = categories.map(c => 
-        `<button onclick="showPage('catalog')" class="text-gray-300 hover:text-[#D4AF37] transition">${c}</button>`
+        `<button onclick="filterCategory('${c}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c}</button>`
     ).join('');
+
+    // Home Category Cards
+    document.getElementById('home-category-cards').innerHTML = categories.filter(c => c !== 'الرئيسية').map(c => `
+        <div onclick="filterCategory('${c}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-xl p-5 text-center cursor-pointer hover:border-[#D4AF37] transition">
+            <i class="fa-solid fa-sparkles text-2xl text-[#D4AF37] mb-2"></i>
+            <h3 class="text-white font-bold text-sm">${c}</h3>
+        </div>
+    `).join('');
+}
+
+function renderProducts() {
+    const grid = document.getElementById('home-products');
+    if (grid) grid.innerHTML = products.map(p => renderSingleProductCard(p)).join('');
 }
 
 function renderCart() {
@@ -63,4 +115,6 @@ function renderCart() {
 }
 
 // Initial Run
+updateAppHeaderInfo();
 renderProducts();
+startBannerTicker();
