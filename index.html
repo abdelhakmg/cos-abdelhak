@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luxe Beauty - لوكس بيوتي الفاخرة</title>
+    <title>Luxe Beauty - المتجر ولوحة التحكم</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts (Cairo) -->
@@ -36,9 +36,7 @@
     </script>
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #F8F9FA; }
-        .gold-gradient {
-            background: linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #B8860B 100%);
-        }
+        .gold-gradient { background: linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #B8860B 100%); }
         .gold-text {
             background: linear-gradient(135deg, #E5C158 0%, #D4AF37 100%);
             -webkit-background-clip: text;
@@ -48,7 +46,7 @@
         .page-view.active { display: block; }
     </style>
 </head>
-<body class="text-gray-900 antialiased selection:bg-gold-500 selection:text-white">
+<body class="text-gray-900 antialiased">
 
     <!-- HEADER / NAVIGATION -->
     <header class="bg-dark-900 text-white sticky top-0 z-50 border-b border-gold-500/20 shadow-md">
@@ -68,26 +66,17 @@
 
                 <!-- Navigation Links -->
                 <nav class="hidden md:flex space-x-6 space-x-reverse font-semibold text-sm">
-                    <button onclick="switchPage('home')" class="nav-link text-gold-400 hover:text-gold-400 transition py-1">الرئيسية</button>
-                    <button onclick="switchPage('catalog')" class="nav-link text-gray-300 hover:text-gold-400 transition py-1">المنتجات</button>
-                    <button onclick="switchPage('catalog')" class="nav-link text-gray-300 hover:text-gold-400 transition py-1">العطور</button>
-                    <button onclick="switchPage('catalog')" class="nav-link text-gray-300 hover:text-gold-400 transition py-1">المكياج</button>
-                    <button onclick="switchPage('catalog')" class="nav-link text-gray-300 hover:text-gold-400 transition py-1">العناية</button>
-                    <button onclick="switchPage('gifts')" class="nav-link text-gray-300 hover:text-gold-400 transition py-1">الهدايا</button>
-                    <button class="text-gray-300 hover:text-gold-400 transition py-1">المدونة</button>
-                    <button class="text-gray-300 hover:text-gold-400 transition py-1">اتصل بنا</button>
+                    <button onclick="switchPage('home')" class="text-gray-300 hover:text-gold-400 transition py-1">الرئيسية</button>
+                    <button onclick="switchPage('catalog')" class="text-gray-300 hover:text-gold-400 transition py-1">المكياج والمنتجات</button>
+                    <button onclick="switchPage('gifts')" class="text-gray-300 hover:text-gold-400 transition py-1">الهدايا</button>
+                    <button onclick="switchPage('admin')" class="text-gold-400 font-bold border border-gold-500/40 px-3 py-1 rounded-lg hover:bg-gold-500 hover:text-dark-900 transition">⚙️ لوحة التحكم</button>
                 </nav>
 
-                <!-- Actions Icons -->
+                <!-- Cart Icon -->
                 <div class="flex items-center space-x-4 space-x-reverse">
-                    <button class="p-2 text-gray-300 hover:text-gold-400 transition"><i class="fa-solid fa-magnifying-glass text-lg"></i></button>
-                    <button class="p-2 text-gray-300 hover:text-gold-400 transition"><i class="fa-regular fa-user text-lg"></i></button>
-                    <button class="p-2 text-gray-300 hover:text-gold-400 transition relative">
-                        <i class="fa-regular fa-heart text-lg"></i>
-                    </button>
                     <button onclick="switchPage('cart')" class="p-2 text-gray-300 hover:text-gold-400 transition relative">
-                        <i class="fa-solid fa-bag-shopping text-lg"></i>
-                        <span id="cart-count" class="absolute -top-1 -right-1 bg-gold-500 text-dark-900 font-bold text-xs w-4 h-4 rounded-full flex items-center justify-center">3</span>
+                        <i class="fa-solid fa-bag-shopping text-xl"></i>
+                        <span id="cart-count" class="absolute -top-1 -right-1 bg-gold-500 text-dark-900 font-bold text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
                     </button>
                 </div>
 
@@ -97,360 +86,273 @@
 
     <!-- ================= 1. HOME PAGE ================= -->
     <div id="page-home" class="page-view active">
-        <!-- Hero Section -->
-        <section class="relative bg-dark-900 text-white overflow-hidden py-16 md:py-24 border-b border-gold-500/10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div class="text-center md:text-right space-y-6">
-                        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
-                            اكتشفي <span class="gold-text">لمستك الخاصة</span>
-                        </h1>
-                        <p class="text-xl text-gray-300 font-light">
-                            عطور • جمال • هدايا • عناية ... <br>
-                            <span class="text-gray-400 text-base">كل ما تحتاجينه في مكان واحد</span>
-                        </p>
-                        <div class="pt-4">
-                            <button onclick="switchPage('catalog')" class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-bold rounded-lg text-dark-900 gold-gradient hover:opacity-90 shadow-lg shadow-gold-500/20 transition">
-                                تسوقي الآن <i class="fa-solid fa-arrow-left mr-3"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="relative flex justify-center">
-                        <div class="w-80 h-80 md:w-96 md:h-96 rounded-full gold-gradient p-1 opacity-90 shadow-2xl shadow-gold-500/20">
-                            <div class="w-full h-full bg-dark-800 rounded-full flex items-center justify-center p-6">
-                                <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=600" alt="Perfume Luxury" class="max-h-full object-contain rounded-xl">
-                            </div>
-                        </div>
-                    </div>
+        <section class="relative bg-dark-900 text-white py-20 border-b border-gold-500/10">
+            <div class="max-w-7xl mx-auto px-4 text-center md:text-right grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">اكتشفي <span class="gold-text">لمستك الخاصة</span></h1>
+                    <p class="text-gray-300 text-lg mb-6">عطور • جمال • هدايا • عناية ... كل ما تحتاجينه في مكان واحد</p>
+                    <button onclick="switchPage('catalog')" class="px-8 py-3.5 gold-gradient text-dark-900 font-bold rounded-lg hover:opacity-90 transition">تسوقي الآن ←</button>
+                </div>
+                <div class="flex justify-center">
+                    <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=500" class="max-h-80 object-contain rounded-2xl shadow-2xl">
                 </div>
             </div>
         </section>
 
-        <!-- Category Shortcuts -->
-        <section class="bg-dark-900 py-10 border-b border-gold-500/20">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div onclick="switchPage('catalog')" class="bg-dark-800 border border-gold-500/30 rounded-xl p-5 text-center hover:border-gold-400 transition cursor-pointer">
-                        <i class="fa-solid fa-coins text-gold-400 text-2xl mb-2"></i>
-                        <h3 class="text-white font-bold text-sm">أقل من 3000 دج</h3>
-                    </div>
-                    <div onclick="switchPage('catalog')" class="bg-dark-800 border border-gold-500/30 rounded-xl p-5 text-center hover:border-gold-400 transition cursor-pointer">
-                        <i class="fa-regular fa-heart text-gold-400 text-2xl mb-2"></i>
-                        <h3 class="text-white font-bold text-sm">أريد شيئاً لنفسي</h3>
-                    </div>
-                    <div onclick="switchPage('catalog')" class="bg-dark-800 border border-gold-500/30 rounded-xl p-5 text-center hover:border-gold-400 transition cursor-pointer">
-                        <i class="fa-solid fa-wand-magic-sparkles text-gold-400 text-2xl mb-2"></i>
-                        <h3 class="text-white font-bold text-sm">أريد إطلالة كاملة</h3>
-                    </div>
-                    <div onclick="switchPage('gifts')" class="bg-dark-800 border border-gold-500/30 rounded-xl p-5 text-center hover:border-gold-400 transition cursor-pointer">
-                        <i class="fa-solid fa-gift text-gold-400 text-2xl mb-2"></i>
-                        <h3 class="text-white font-bold text-sm">أريد هدية</h3>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Store Features -->
-        <section class="bg-white py-6 shadow-sm border-b">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                    <div class="flex items-center justify-center space-x-3 space-x-reverse">
-                        <i class="fa-solid fa-shield-halved text-gold-500 text-2xl"></i>
-                        <div class="text-right">
-                            <h4 class="font-bold text-sm">منتجات أصلية</h4>
-                            <p class="text-xs text-gray-500">100% مضمونة</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-center space-x-3 space-x-reverse">
-                        <i class="fa-solid fa-box-open text-gold-500 text-2xl"></i>
-                        <div class="text-right">
-                            <h4 class="font-bold text-sm">تغليف هدايا</h4>
-                            <p class="text-xs text-gray-500">بشكل أنيق ومميز</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-center space-x-3 space-x-reverse">
-                        <i class="fa-solid fa-lock text-gold-500 text-2xl"></i>
-                        <div class="text-right">
-                            <h4 class="font-bold text-sm">دفع آمن</h4>
-                            <p class="text-xs text-gray-500">بجميع طرق الدفع</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-center space-x-3 space-x-reverse">
-                        <i class="fa-solid fa-truck-fast text-gold-500 text-2xl"></i>
-                        <div class="text-right">
-                            <h4 class="font-bold text-sm">توصيل سريع</h4>
-                            <p class="text-xs text-gray-500">إلى جميع الولايات</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Featured Products -->
-        <section class="py-12 bg-gray-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-10">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">🔥 الأكثر مبيعاً</h2>
-                    <div class="w-16 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <!-- Item -->
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 p-4 text-right">
-                        <div class="h-44 bg-gray-50 rounded-lg mb-3 flex items-center justify-center cursor-pointer" onclick="switchPage('product')">
-                            <img src="https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&q=80&w=300" class="max-h-full object-contain">
-                        </div>
-                        <h3 class="font-bold text-sm mb-1">أحمر شفاه مايبيلين</h3>
-                        <div class="text-xs text-amber-500 mb-2">★★★★★ (25)</div>
-                        <div class="font-bold text-gold-600 mb-3">1,900 دج</div>
-                        <button onclick="addToCart('أحمر شفاه مايبيلين', 1900, 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&q=80&w=300')" class="w-full py-2 bg-dark-900 text-white rounded-lg text-xs font-bold hover:bg-gold-500 hover:text-dark-900 transition">أضف إلى السلة</button>
-                    </div>
-                    <!-- Item -->
-                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 p-4 text-right">
-                        <div class="h-44 bg-gray-50 rounded-lg mb-3 flex items-center justify-center cursor-pointer" onclick="switchPage('product')">
-                            <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=300" class="max-h-full object-contain">
-                        </div>
-                        <h3 class="font-bold text-sm mb-1">عطر ميس ديور</h3>
-                        <div class="text-xs text-amber-500 mb-2">★★★★★ (32)</div>
-                        <div class="font-bold text-gold-600 mb-3">5,900 دج</div>
-                        <button onclick="addToCart('عطر ميس ديور', 5900, 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=300')" class="w-full py-2 bg-dark-900 text-white rounded-lg text-xs font-bold hover:bg-gold-500 hover:text-dark-900 transition">أضف إلى السلة</button>
-                    </div>
-                </div>
-            </div>
+        <!-- Dynamic Featured Products Section -->
+        <section class="py-12 max-w-7xl mx-auto px-4">
+            <h2 class="text-2xl font-bold mb-6 text-center">🔥 الأكثر مبيعاً</h2>
+            <div id="home-products-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
         </section>
     </div>
 
-    <!-- ================= 2. CATALOG PAGE (المكياج/المنتجات) ================= -->
+    <!-- ================= 2. CATALOG PAGE ================= -->
     <div id="page-catalog" class="page-view">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-xs text-gray-500 mb-4">الرئيسية > <span class="text-gray-900 font-bold">المكياج</span></div>
-            <h1 class="text-2xl font-bold mb-6">المكياج - جمالك يبدأ من هنا</h1>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Sidebar Filters -->
-                <div class="bg-white p-6 rounded-xl border border-gray-200 h-fit space-y-6">
-                    <h3 class="font-bold border-b pb-2">تصفية النتائج</h3>
-                    
-                    <div>
-                        <h4 class="text-sm font-bold mb-2">الفئة</h4>
-                        <div class="space-y-2 text-sm text-gray-600">
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox" checked> <span>مكياج الوجه</span></label>
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox"> <span>مكياج العيون</span></label>
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox"> <span>مكياج الشفاه</span></label>
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox"> <span>مستحضرات التجميل</span></label>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-sm font-bold mb-2">السعر</h4>
-                        <input type="range" min="500" max="5000" class="w-full accent-gold-500">
-                        <div class="flex justify-between text-xs text-gray-500 mt-1"><span>500 دج</span><span>5000 دج</span></div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-sm font-bold mb-2">العلامة التجارية</h4>
-                        <div class="space-y-2 text-sm text-gray-600">
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox"> <span>Maybelline</span></label>
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox"> <span>L'Oréal</span></label>
-                            <label class="flex items-center space-x-2 space-x-reverse"><input type="checkbox"> <span>NYX</span></label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Grid -->
-                <div class="md:col-span-3">
-                    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl border border-gray-100">
-                        <span class="text-sm text-gray-500">إجمالي المنتجات (24)</span>
-                        <select class="border rounded-lg text-xs p-2 bg-white"><option>الأكثر مبيعاً</option><option>الأقل سعراً</option></select>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                        <!-- Product Item -->
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                            <div class="h-44 bg-gray-50 rounded-lg mb-3 flex items-center justify-center cursor-pointer" onclick="switchPage('product')">
-                                <img src="https://images.unsplash.com/photo-1599733589046-10c005739ef9?auto=format&fit=crop&q=80&w=300" class="max-h-full object-contain">
-                            </div>
-                            <h3 class="font-bold text-sm mb-1">كريم أساس لوريال باريس</h3>
-                            <div class="text-xs text-amber-500 mb-2">★★★★★ (31)</div>
-                            <div class="font-bold text-gold-600 mb-3">2,890 دج</div>
-                            <button onclick="addToCart('كريم أساس لوريال باريس', 2890, 'https://images.unsplash.com/photo-1599733589046-10c005739ef9?auto=format&fit=crop&q=80&w=300')" class="w-full py-2 bg-dark-900 text-white rounded-lg text-xs font-bold hover:bg-gold-500 hover:text-dark-900 transition">أضف إلى السلة</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <h1 class="text-2xl font-bold mb-6">جميع المنتجات والمكياج</h1>
+            <div id="catalog-products-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
         </div>
     </div>
 
-    <!-- ================= 3. PRODUCT DETAIL PAGE (تفاصيل المنتج) ================= -->
-    <div id="page-product" class="page-view">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-xs text-gray-500 mb-6">الرئيسية > العطور > <span class="text-gray-900 font-bold">عطر ميس ديور أو دو بارفان</span></div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                <!-- Gallery -->
-                <div class="flex gap-4">
-                    <div class="space-y-3">
-                        <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=100" class="w-16 h-16 rounded-lg border border-gold-500 object-cover cursor-pointer">
-                    </div>
-                    <div class="flex-1 bg-pink-50/30 rounded-2xl p-6 flex items-center justify-center relative">
-                        <span class="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">-14%</span>
-                        <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=500" class="max-h-80 object-contain">
-                    </div>
-                </div>
-
-                <!-- Info -->
-                <div class="space-y-6 text-right">
-                    <div>
-                        <span class="text-xs text-gray-400 font-bold">Dior</span>
-                        <h1 class="text-3xl font-extrabold text-gray-900 mt-1">عطر ميس ديور أو دو بارفان</h1>
-                        <div class="text-xs text-amber-500 mt-2">★★★★★ <span class="text-gray-400">(32 تقييم)</span></div>
-                    </div>
-
-                    <div class="flex items-center space-x-4 space-x-reverse">
-                        <span class="text-3xl font-extrabold text-gray-900">5,900 دج</span>
-                        <span class="text-sm text-gray-400 line-through">6,900 دج</span>
-                    </div>
-
-                    <p class="text-sm text-gray-600 leading-relaxed">عطر أنثوي فاخر يجمع بين نفحات الزهور والفاكهة مع لمسة من المسك. يمنحك إحساساً بالأنوثة والجاذبية طوال اليوم.</p>
-
-                    <div class="text-xs font-bold text-green-600 flex items-center gap-1">● متوفر في المخزون</div>
-
-                    <div class="flex gap-4">
-                        <div class="flex items-center border border-gray-300 rounded-lg">
-                            <button class="px-3 py-2 text-gray-600 font-bold">-</button>
-                            <span class="px-4 font-bold text-sm">1</span>
-                            <button class="px-3 py-2 text-gray-600 font-bold">+</button>
-                        </div>
-                        <button onclick="addToCart('عطر ميس ديور أو دو بارفان', 5900, 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=500')" class="flex-1 gold-gradient text-dark-900 font-bold rounded-lg py-3 hover:opacity-90 transition shadow-lg shadow-gold-500/20">
-                            <i class="fa-solid fa-bag-shopping ml-2"></i> أضف إلى السلة
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= 4. GIFTS PAGE (صفحة الهدايا) ================= -->
+    <!-- ================= 3. GIFTS PAGE ================= -->
     <div id="page-gifts" class="page-view">
-        <section class="bg-dark-900 text-white py-12 text-center border-b border-gold-500/20">
-            <h1 class="text-3xl font-bold gold-text">🎁 الهدايا</h1>
-            <p class="text-sm text-gray-400 mt-2">لأن كل مناسبة تستحق هدية مميزة</p>
-        </section>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Helper Sidebar -->
-                <div class="bg-amber-50/50 p-6 rounded-2xl border border-gold-500/30 text-right space-y-4">
-                    <h3 class="font-bold text-gray-900">اختر هديتك حسب المناسبة</h3>
-                    <div class="space-y-2 text-sm">
-                        <button class="w-full text-right p-2 rounded-lg bg-white shadow-sm hover:border-gold-500 border border-transparent">🎂 عيد ميلاد</button>
-                        <button class="w-full text-right p-2 rounded-lg bg-white shadow-sm hover:border-gold-500 border border-transparent">💍 الذكرى السنوية</button>
-                        <button class="w-full text-right p-2 rounded-lg bg-white shadow-sm hover:border-gold-500 border border-transparent">❤️ عيد الحب</button>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-gray-100 text-center mt-6">
-                        <h4 class="font-bold text-xs text-gold-600 mb-1">مساعد اختيار الهدايا</h4>
-                        <p class="text-[11px] text-gray-500 mb-3">أجب عن 3 أسئلة وسنقتح لك الهدية المثالية</p>
-                        <button class="w-full py-2 bg-dark-900 text-white text-xs font-bold rounded-lg">ابدأ الآن</button>
-                    </div>
-                </div>
-
-                <!-- Gift Sets -->
-                <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm text-right">
-                        <div class="h-48 bg-gray-50 rounded-lg mb-3 flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=300" class="max-h-full object-contain">
-                        </div>
-                        <h3 class="font-bold text-sm">بوكس مكياج فاخر</h3>
-                        <div class="font-bold text-gold-600 my-2">8,500 دج</div>
-                        <button onclick="addToCart('بوكس مكياج فاخر', 8500, 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=300')" class="w-full py-2 bg-dark-900 text-white text-xs font-bold rounded-lg">أضف إلى السلة</button>
-                    </div>
-                </div>
-            </div>
+        <div class="max-w-7xl mx-auto px-4 py-12 text-center">
+            <h1 class="text-3xl font-bold gold-text mb-4">🎁 قسم الهدايا والأطقم الفاخرة</h1>
+            <p class="text-gray-600 mb-8">اختر أفضل المجموعات الجاهزة للتغليف والإهداء</p>
+            <div id="gifts-products-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <!-- ================= 5. CART & CHECKOUT PAGE (السلة والدفع) ================= -->
+    <!-- ================= 4. CART & CHECKOUT PAGE ================= -->
     <div id="page-cart" class="page-view">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <h1 class="text-2xl font-bold mb-8">سلة التسوق والدفع</h1>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Cart Items List -->
-                <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4" id="cart-items-container">
-                    <!-- Items rendered dynamically -->
+        <div class="max-w-4xl mx-auto px-4 py-10">
+            <h1 class="text-2xl font-bold mb-6">سلة التسوق وإتمام الطلب</h1>
+            <div id="cart-items" class="bg-white p-6 rounded-2xl shadow-sm border mb-6 space-y-4"></div>
+            
+            <!-- Order Form -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
+                <h3 class="font-bold text-lg border-b pb-2">معلومات التوصيل والطلب</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="order-name" placeholder="الاسم الكامل" class="border p-3 rounded-lg text-sm w-full">
+                    <input type="tel" id="order-phone" placeholder="رقم الهاتف" class="border p-3 rounded-lg text-sm w-full">
+                    <input type="text" id="order-wilaya" placeholder="الولاية" class="border p-3 rounded-lg text-sm w-full">
+                    <input type="text" id="order-address" placeholder="العنوان الشخصي" class="border p-3 rounded-lg text-sm w-full">
                 </div>
-
-                <!-- Order Summary -->
-                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm h-fit space-y-4 text-right">
-                    <h3 class="font-bold border-b pb-3">ملخص الطلب</h3>
-                    <div class="flex justify-between text-sm"><span class="text-gray-500">المجموع الفرعي</span><span id="subtotal">10,700 دج</span></div>
-                    <div class="flex justify-between text-sm"><span class="text-gray-500">رسوم التوصيل</span><span>500 دج</span></div>
-                    <div class="flex justify-between text-sm text-red-500 font-bold"><span>الخصم</span><span>1,000 دج-</span></div>
-                    <div class="border-t pt-3 flex justify-between font-extrabold text-lg"><span>المجموع الكلي</span><span id="total-price" class="text-gold-600">10,200 دج</span></div>
-                    
-                    <button class="w-full py-3.5 gold-gradient text-dark-900 font-extrabold rounded-xl shadow-lg shadow-gold-500/20 hover:opacity-90 transition">إتمام الطلب</button>
-                    <div class="text-center text-xs text-gray-400 mt-2">طرق الدفع الآمنة: VISA • PayPal • الدفع عند الاستلام</div>
+                <div class="flex justify-between items-center pt-4 border-t">
+                    <span class="font-bold text-lg">المجموع الكلي: <span id="cart-total" class="text-gold-600">0 دج</span></span>
+                    <button onclick="submitOrder()" class="px-8 py-3 gold-gradient text-dark-900 font-bold rounded-lg shadow-lg hover:opacity-90 transition">تأكيد الطلب الآن</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Dynamic Cart JavaScript -->
+    <!-- ================= 5. ADMIN DASHBOARD ================= -->
+    <div id="page-admin" class="page-view">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="flex justify-between items-center mb-8 border-b pb-4">
+                <h1 class="text-3xl font-extrabold text-gray-900">⚙️ لوحة تحكم المتجر (الإدارة)</h1>
+                <span class="bg-gold-500/20 text-gold-600 font-bold px-3 py-1 rounded-lg text-sm">وضع المسؤول</span>
+            </div>
+
+            <!-- Add Product Form -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border mb-10">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">إضافة منتج جديد للمتجر</h3>
+                <form id="add-product-form" onsubmit="handleAddProduct(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" id="p-name" placeholder="اسم المنتج" required class="border p-3 rounded-lg text-sm">
+                    <input type="number" id="p-price" placeholder="السعر (دج)" required class="border p-3 rounded-lg text-sm">
+                    <input type="text" id="p-category" placeholder="الفئة (مكياج / عطور / هدايا)" required class="border p-3 rounded-lg text-sm">
+                    <input type="url" id="p-image" placeholder="رابط صورة المنتج (URL)" required class="border p-3 rounded-lg text-sm md:col-span-2">
+                    <button type="submit" class="bg-dark-900 text-white font-bold py-3 rounded-lg hover:bg-gold-500 hover:text-dark-900 transition">+ إضافة المنتج</button>
+                </form>
+            </div>
+
+            <!-- Existing Products Management -->
+            <h3 class="font-bold text-xl mb-4">المنتجات المعروضة حالياً</h3>
+            <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-gray-100 border-b">
+                        <tr>
+                            <th class="p-4">الصورة</th>
+                            <th class="p-4">اسم المنتج</th>
+                            <th class="p-4">الفئة</th>
+                            <th class="p-4">السعر</th>
+                            <th class="p-4">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-products-table"></tbody>
+                </table>
+            </div>
+
+            <!-- Orders Log -->
+            <h3 class="font-bold text-xl my-6">طلبات الزبائن الواردة</h3>
+            <div class="bg-white rounded-2xl shadow-sm border p-4" id="admin-orders-list"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
     <script>
-        let cart = [
-            { name: 'عطر ميس ديور أو دو بارفان', price: 5900, qty: 1, img: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=100' },
-            { name: 'أحمر شفاه مايبيلين', price: 1950, qty: 1, img: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&q=80&w=100' },
-            { name: 'كريم أساس لوريال باريس', price: 2850, qty: 1, img: 'https://images.unsplash.com/photo-1599733589046-10c005739ef9?auto=format&fit=crop&q=80&w=100' }
+        // Store Data State
+        let products = JSON.parse(localStorage.getItem('products')) || [
+            { id: 1, name: 'عطر ميس ديور أو دو بارفان', price: 5900, category: 'عطور', image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&q=80&w=400' },
+            { id: 2, name: 'أحمر شفاه مايبيلين', price: 1900, category: 'مكياج', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?auto=format&fit=crop&q=80&w=400' },
+            { id: 3, name: 'كريم أساس لوريال باريس', price: 2890, category: 'مكياج', image: 'https://images.unsplash.com/photo-1599733589046-10c005739ef9?auto=format&fit=crop&q=80&w=400' },
+            { id: 4, name: 'بوكس مكياج فاخر', price: 8500, category: 'هدايا', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=400' }
         ];
+
+        let cart = [];
+        let orders = JSON.parse(localStorage.getItem('orders')) || [];
+
+        function saveProducts() {
+            localStorage.setItem('products', JSON.stringify(products));
+            renderAll();
+        }
+
+        function saveOrders() {
+            localStorage.setItem('orders', JSON.stringify(orders));
+            renderAdminOrders();
+        }
 
         function switchPage(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + pageId).classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            if (pageId === 'cart') renderCart();
+            renderAll();
         }
 
-        function addToCart(name, price, img) {
-            cart.push({ name, price, qty: 1, img });
-            updateCartCount();
-            alert('تمت إضافة المنتج إلى السلة بنجاح!');
+        function renderProductsGrid(containerId, productList) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = productList.map(p => `
+                <div class="bg-white rounded-xl shadow-sm border p-4 text-right">
+                    <img src="${p.image}" class="h-40 w-full object-contain mb-3 bg-gray-50 rounded-lg">
+                    <span class="text-[10px] text-gold-600 font-bold uppercase">${p.category}</span>
+                    <h3 class="font-bold text-sm mb-1 truncate">${p.name}</h3>
+                    <div class="font-extrabold text-gray-900 mb-3">${p.price.toLocaleString()} دج</div>
+                    <button onclick="addToCart(${p.id})" class="w-full py-2 bg-dark-900 text-white text-xs font-bold rounded-lg hover:bg-gold-500 hover:text-dark-900 transition">أضف إلى السلة</button>
+                </div>
+            `).join('');
         }
 
-        function updateCartCount() {
+        function addToCart(id) {
+            const item = products.find(p => p.id === id);
+            cart.push(item);
             document.getElementById('cart-count').innerText = cart.length;
+            alert(`تمت إضافة "${item.name}" إلى السلة!`);
         }
 
         function renderCart() {
-            const container = document.getElementById('cart-items-container');
-            container.innerHTML = '';
-            let subtotal = 0;
-
-            cart.forEach((item, index) => {
-                subtotal += item.price * item.qty;
-                container.innerHTML += `
-                    <div class="flex items-center justify-between border-b pb-4">
-                        <div class="flex items-center space-x-4 space-x-reverse">
-                            <img src="${item.img}" class="w-16 h-16 rounded-lg object-cover border">
+            const container = document.getElementById('cart-items');
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-6">السلة فارغة حالياً</p>';
+                document.getElementById('cart-total').innerText = '0 دج';
+                return;
+            }
+            let total = 0;
+            container.innerHTML = cart.map((item, index) => {
+                total += item.price;
+                return `
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <div class="flex items-center space-x-3 space-x-reverse">
+                            <img src="${item.image}" class="w-12 h-12 rounded object-cover">
                             <div>
                                 <h4 class="font-bold text-sm">${item.name}</h4>
-                                <span class="text-xs text-gold-600 font-bold">${item.price} دج</span>
+                                <span class="text-xs text-gold-600 font-bold">${item.price.toLocaleString()} دج</span>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-3 space-x-reverse">
-                            <button onclick="removeCartItem(${index})" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        <button onclick="cart.splice(${index},1); renderCart();" class="text-red-500 text-xs font-bold">حذف</button>
                     </div>
                 `;
-            });
-
-            document.getElementById('subtotal').innerText = subtotal.toLocaleString() + ' دج';
-            document.getElementById('total-price').innerText = (subtotal + 500 - 1000).toLocaleString() + ' دج';
-            updateCartCount();
+            }).join('');
+            document.getElementById('cart-total').innerText = total.toLocaleString() + ' دج';
+            document.getElementById('cart-count').innerText = cart.length;
         }
 
-        function removeCartItem(index) {
-            cart.splice(index, 1);
+        function submitOrder() {
+            const name = document.getElementById('order-name').value;
+            const phone = document.getElementById('order-phone').value;
+            if (!name || !phone || cart.length === 0) {
+                alert('يرجى ملء البيانات وإضافة منتجات للسلة أولاً');
+                return;
+            }
+            const newOrder = {
+                id: Date.now(),
+                name, phone,
+                wilaya: document.getElementById('order-wilaya').value,
+                address: document.getElementById('order-address').value,
+                items: [...cart],
+                date: new Date().toLocaleDateString('ar-DZ')
+            };
+            orders.push(newOrder);
+            saveOrders();
+            cart = [];
+            alert('تم إرسال طلبك بنجاح! سنتصل بك قريباً.');
+            switchPage('home');
+        }
+
+        function handleAddProduct(e) {
+            e.preventDefault();
+            const newProd = {
+                id: Date.now(),
+                name: document.getElementById('p-name').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                category: document.getElementById('p-category').value,
+                image: document.getElementById('p-image').value
+            };
+            products.push(newProd);
+            saveProducts();
+            document.getElementById('add-product-form').reset();
+            alert('تمت إضافة المنتج بنجاح إلى المتجر!');
+        }
+
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            saveProducts();
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-products-table');
+            if (!tbody) return;
+            tbody.innerHTML = products.map(p => `
+                <tr class="border-b">
+                    <td class="p-3"><img src="${p.image}" class="w-10 h-10 object-cover rounded"></td>
+                    <td class="p-3 font-bold">${p.name}</td>
+                    <td class="p-3 text-gray-500">${p.category}</td>
+                    <td class="p-3 font-bold text-gold-600">${p.price.toLocaleString()} دج</td>
+                    <td class="p-3"><button onclick="deleteProduct(${p.id})" class="bg-red-500 text-white text-xs px-3 py-1 rounded">حذف</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById('admin-orders-list');
+            if (!container) return;
+            if (orders.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">لا توجد طلبات جديدة</p>';
+                return;
+            }
+            container.innerHTML = orders.map(o => `
+                <div class="border-b pb-4 mb-4 text-right">
+                    <div class="flex justify-between font-bold text-sm">
+                        <span>الزبون: ${o.name} (${o.phone})</span>
+                        <span class="text-xs text-gray-400">${o.date}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">العنوان: ${o.wilaya} - ${o.address}</div>
+                    <div class="text-xs font-bold text-gold-600 mt-2">المنتجات: ${o.items.map(i => i.name).join(', ')}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderAll() {
+            renderProductsGrid('home-products-grid', products);
+            renderProductsGrid('catalog-products-grid', products);
+            renderProductsGrid('gifts-products-grid', products.filter(p => p.category === 'هدايا'));
             renderCart();
+            renderAdminTable();
+            renderAdminOrders();
         }
+
+        // Initial Load
+        renderAll();
     </script>
 </body>
 </html>
