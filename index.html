@@ -106,12 +106,7 @@
 
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
-                            <div class="space-y-2 text-xs text-gray-400">
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="Maybelline" class="brand-checkbox accent-[#D4AF37]"> Maybelline</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="L'Oréal" class="brand-checkbox accent-[#D4AF37]"> L'Oréal</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="NYX" class="brand-checkbox accent-[#D4AF37]"> NYX</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" onchange="applyFilters()" value="Essence" class="brand-checkbox accent-[#D4AF37]"> Essence</label>
-                            </div>
+                            <div id="filter-brands-list" class="space-y-2 text-xs text-gray-400"></div>
                         </div>
                     </div>
 
@@ -231,6 +226,7 @@
                     <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات</button>
                     <button onclick="switchAdminTab('hero')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-hero">🖼️ البانرات الإعلانية</button>
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-products">🛍️ المنتجات والتوافر</button>
+                    <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
                     <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
@@ -262,22 +258,23 @@
                     </div>
                 </div>
 
+                <!-- TAB: PRODUCTS WITH EDIT CAPABILITY -->
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
-                        <h3 class="font-bold text-lg mb-4">إضافة / تعديل منتج (مع حالة التوفر والماركة)</h3>
-                        <form onsubmit="handleSaveProduct(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex justify-between items-center mb-4 border-b pb-3">
+                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع حالة التوفر والماركة)</h3>
+                            <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
+                        </div>
+                        <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="hidden" id="editing-product-id">
+                            
                             <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
                             
                             <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white"></select>
                             
-                            <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white">
-                                <option value="Maybelline">Maybelline</option>
-                                <option value="L'Oréal">L'Oréal</option>
-                                <option value="NYX">NYX</option>
-                                <option value="Essence">Essence</option>
-                            </select>
+                            <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
 
                             <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
                                 <option value="true">متوفر في المخزون 🟢</option>
@@ -291,7 +288,7 @@
                             <input type="url" id="prod-img-5" placeholder="5. رابط الصورة الخامسة (URL)" class="border p-3 rounded-xl text-sm">
 
                             <textarea id="prod-desc" placeholder="وصف المنتج..." class="border p-3 rounded-xl text-sm md:col-span-3"></textarea>
-                            <button type="submit" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج</button>
+                            <button type="submit" id="save-product-btn" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج</button>
                         </form>
                     </div>
 
@@ -302,6 +299,7 @@
                                     <th class="p-4">الصورة</th>
                                     <th class="p-4">اسم المنتج</th>
                                     <th class="p-4">الفئة</th>
+                                    <th class="p-4">الماركة</th>
                                     <th class="p-4">السعر</th>
                                     <th class="p-4">التوفر</th>
                                     <th class="p-4">الإجراءات</th>
@@ -309,6 +307,21 @@
                             </thead>
                             <tbody id="admin-products-tbody"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- TAB: BRANDS MANAGEMENT -->
+                <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
+                    <div class="bg-white p-6 rounded-2xl border space-y-4">
+                        <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
+                        <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
+                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية (مثال: Dior, Chanel) *" required class="border p-3 rounded-xl text-sm flex-1">
+                            <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة الماركة</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h3 class="font-bold text-lg mb-4">العلامات التجارية المتاحة حالياً</h3>
+                        <div id="admin-brands-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                     </div>
                 </div>
 
