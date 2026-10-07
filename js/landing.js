@@ -15,7 +15,6 @@ function openLandingPage(productId) {
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc;
 
-    // Render Thumbnails
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
     const imagesList = currentLandingProduct.images && currentLandingProduct.images.length > 0 
         ? currentLandingProduct.images 
@@ -97,18 +96,18 @@ function submitLandingOrder() {
     const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
 
     const newOrder = {
-        id: Date.now(),
         customer: name,
         phone: phone,
         wilaya: wilaya.name,
         commune: commune,
         product: currentLandingProduct.name,
         total: currentLandingProduct.price + shipCost,
-        date: new Date().toLocaleDateString('ar-DZ')
+        date: new Date().toLocaleDateString('ar-DZ'),
+        createdAt: new Date()
     };
 
-    orders.push(newOrder);
-    localStorage.setItem('lb_orders_v3', JSON.stringify(orders));
-    alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
-    showPage('home');
+    db.collection("orders").add(newOrder).then(() => {
+        alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
+        showPage('home');
+    });
 }
