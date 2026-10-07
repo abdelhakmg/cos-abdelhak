@@ -1,0 +1,82 @@
+let currentLandingProduct = null;
+
+function openLandingPage(productId) {
+    currentLandingProduct = products.find(p => p.id === productId);
+    if (!currentLandingProduct) return;
+
+    document.getElementById('landing-img').src = currentLandingProduct.image;
+    document.getElementById('landing-title').innerText = currentLandingProduct.name;
+    document.getElementById('landing-category').innerText = currentLandingProduct.category;
+    document.getElementById('landing-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
+    document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
+    document.getElementById('landing-desc').innerText = currentLandingProduct.desc;
+
+    populateWilayas();
+    calculateLandingTotal();
+    showPage('landing');
+}
+
+function populateWilayas() {
+    const select = document.getElementById('cust-wilaya');
+    select.innerHTML = '<option value="">اختر الولاية...</option>' + 
+        WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
+}
+
+function handleWilayaChange() {
+    const code = document.getElementById('cust-wilaya').value;
+    const wilaya = WILAYAS.find(w => w.code === code);
+    const communeSelect = document.getElementById('cust-commune');
+    
+    if (wilaya) {
+        communeSelect.innerHTML = wilaya.communes.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('price-shipping-home').innerText = wilaya.homeCost + ' دج';
+        document.getElementById('price-shipping-office').innerText = wilaya.officeCost + ' دج';
+    } else {
+        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
+    }
+    calculateLandingTotal();
+}
+
+function calculateLandingTotal() {
+    if (!currentLandingProduct) return;
+    const code = document.getElementById('cust-wilaya').value;
+    const wilaya = WILAYAS.find(w => w.code === code);
+    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
+    
+    let shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 600;
+    let grandTotal = currentLandingProduct.price + shipCost;
+
+    document.getElementById('sum-prod-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
+    document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
+    document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
+}
+
+function submitLandingOrder() {
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
+    const wilayaCode = document.getElementById('cust-wilaya').value;
+
+    if (!name || !phone || !wilayaCode) {
+        alert('يرجى ملء كافة معلومات الاستمارة!');
+        return;
+    }
+
+    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const shipType = document.querySelector('input[name="shipping_type"]:checked').value;
+    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+
+    const newOrder = {
+        id: Date.now(),
+        customer: name,
+        phone: phone,
+        wilaya: wilaya.name,
+        product: currentLandingProduct.name,
+        total: currentLandingProduct.price + shipCost,
+        date: new Date().toLocaleDateString('ar-DZ')
+    };
+
+    orders.push(newOrder);
+    localStorage.setItem('lb_orders', JSON.stringify(orders));
+    alert('تم إرسال الطلب بنجاح!');
+    showPage('home');
+}
