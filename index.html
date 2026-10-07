@@ -1,15 +1,236 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Luxe Beauty | متجر لوكس بيوتي الفاخر</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & React DOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel Translator for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-[#F8F9FA] text-gray-900 font-['Cairo'] antialiased selection:bg-[#D4AF37] selection:text-black">
+
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #F8F9FA; }
+        .gold-gradient { background: linear-gradient(135deg, #E5C158 0%, #D4AF37 50%, #B8860B 100%); }
+        .gold-text {
+            background: linear-gradient(135deg, #E5C158 0%, #D4AF37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="text-gray-900 antialiased selection:bg-[#D4AF37] selection:text-black">
+
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+
+    <script type="text/babel">
+        const { useState, useEffect, createContext, useContext } = React;
+
+        // 1. Data Store
+        const PRODUCTS_DATABASE = [
+            { id: '1', name: 'عطر ميس ديور أو دو بارفان', brand: 'Dior', price: 5900, oldPrice: 6900, discount: '-14%', rating: 5, reviews: 32, category: 'العطور', image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500', desc: 'عطر أنثوي فاخر يجمع بين نفحات الزهور والفاكهة مع لمسة من المسك.' },
+            { id: '2', name: 'أحمر شفاه مايبيلين', brand: 'Maybelline', price: 1900, oldPrice: null, discount: null, rating: 5, reviews: 25, category: 'المكياج', image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=500', desc: 'لون ثابت ومظهر مخملي يناسب جميع الإطلالات.' },
+            { id: '3', name: 'كريم أساس لوريال باريس', brand: "L'Oréal", price: 2890, oldPrice: null, discount: null, rating: 4, reviews: 31, category: 'المكياج', image: 'https://images.unsplash.com/photo-1599733589046-10c005739ef9?w=500', desc: 'تغطية مثالية تدوم طوال اليوم لبشرة متألقة.' },
+            { id: '4', name: 'ماسكارا لانكوم', brand: 'Lancôme', price: 2690, oldPrice: null, discount: null, rating: 5, reviews: 42, category: 'المكياج', image: 'https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?w=500', desc: 'تكثيف وتطويل الرموش بشكل احترافي.' },
+            { id: '5', name: 'بودرة مضغوطة', brand: 'Essence', price: 1850, oldPrice: null, discount: null, rating: 4, reviews: 18, category: 'المكياج', image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=500', desc: 'لمسة نهائية خالية من اللمعان.' },
+            { id: '6', name: 'بوكس مكياج فاخر', brand: 'Luxe Beauty', price: 8500, oldPrice: 9500, discount: '-10%', rating: 5, reviews: 50, category: 'الهدايا', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=500', desc: 'مجموعة متكاملة من أرقى منتجات التجميل لتكون الهدية المثالية.' }
+        ];
+
+        // 2. Main Application Component
+        function App() {
+            const [currentPage, setCurrentPage] = useState('home');
+            const [selectedProduct, setSelectedProduct] = useState(PRODUCTS_DATABASE[0]);
+            const [cart, setCart] = useState([]);
+
+            const addToCart = (product) => {
+                setCart(prev => [...prev, product]);
+                alert(`تمت إضافة "${product.name}" إلى السلة بنجاح!`);
+            };
+
+            const removeFromCart = (index) => {
+                setCart(prev => prev.filter((_, i) => i !== index));
+            };
+
+            const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+            const shipping = cart.length > 0 ? 500 : 0;
+            const discount = cart.length > 0 ? 1000 : 0;
+            const total = Math.max(0, subtotal + shipping - discount);
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    
+                    {/* Header */}
+                    <header className="bg-black text-white sticky top-0 z-50 border-b border-[#D4AF37]/30 shadow-xl">
+                        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+                            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentPage('home')}>
+                                <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center text-black font-bold">
+                                    <i class="fa-solid fa-crown text-xl"></i>
+                                </div>
+                                <div>
+                                    <span className="text-2xl font-black gold-text block leading-tight">Luxe Beauty</span>
+                                    <span className="text-[9px] text-gray-400 block tracking-widest -mt-1">LUXURY STORE</span>
+                                </div>
+                            </div>
+
+                            <nav className="hidden md:flex items-center gap-6 font-semibold text-sm">
+                                <button onClick={() => setCurrentPage('home')} className={`hover:text-[#D4AF37] transition ${currentPage === 'home' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37] pb-1' : 'text-gray-300'}`}>الرئيسية</button>
+                                <button onClick={() => setCurrentPage('catalog')} className={`hover:text-[#D4AF37] transition ${currentPage === 'catalog' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37] pb-1' : 'text-gray-300'}`}>المنتجات</button>
+                                <button onClick={() => setCurrentPage('catalog')} className="text-gray-300 hover:text-[#D4AF37] transition">العطور</button>
+                                <button onClick={() => setCurrentPage('catalog')} className="text-gray-300 hover:text-[#D4AF37] transition">المكياج</button>
+                                <button onClick={() => setCurrentPage('gifts')} className={`hover:text-[#D4AF37] transition ${currentPage === 'gifts' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37] pb-1' : 'text-gray-300'}`}>الهدايا</button>
+                                <button className="text-gray-300 hover:text-[#D4AF37] transition">اتصل بنا</button>
+                            </nav>
+
+                            <div className="flex items-center gap-4">
+                                <button className="p-2 text-gray-300 hover:text-[#D4AF37]"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                <button className="p-2 text-gray-300 hover:text-[#D4AF37]"><i class="fa-regular fa-user"></i></button>
+                                <button onClick={() => setCurrentPage('cart')} className="p-2 text-gray-300 hover:text-[#D4AF37] relative">
+                                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                                    {cart.length > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-black font-bold text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                                            {cart.length}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Content Views */}
+                    <main className="flex-grow">
+                        
+                        {/* 1. Home View */}
+                        {currentPage === 'home' && (
+                            <div>
+                                <section className="bg-black text-white py-20 border-b border-[#D4AF37]/20 relative overflow-hidden">
+                                    <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+                                        <div className="space-y-6 text-right">
+                                            <h1 className="text-4xl md:text-6xl font-black leading-tight">
+                                                اكتشفي <span className="gold-text">لمستك الخاصة</span>
+                                            </h1>
+                                            <p className="text-xl text-gray-300 font-light">
+                                                عطور • جمال • هدايا • عناية ... <br/>
+                                                <span className="text-sm text-gray-400">كل ما تحتاجينه في مكان واحد</span>
+                                            </p>
+                                            <button onClick={() => setCurrentPage('catalog')} className="px-8 py-3.5 gold-gradient text-black font-extrabold rounded-lg hover:opacity-90 transition shadow-lg shadow-[#D4AF37]/20 flex items-center gap-3">
+                                                تسوقي الآن <i class="fa-solid fa-arrow-left mr-2"></i>
+                                            </button>
+                                        </div>
+                                        <div className="flex justify-center">
+                                            <div className="w-80 h-80 rounded-full gold-gradient p-1 shadow-2xl">
+                                                <div className="w-full h-full bg-[#121212] rounded-full flex items-center justify-center p-8">
+                                                    <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500" className="max-h-full object-contain" alt="Perfume" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Quick Shortcuts */}
+                                <section className="bg-black py-8 border-b border-[#D4AF37]/20">
+                                    <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[
+                                            { title: 'أقل من 3000 دج', icon: 'fa-coins' },
+                                            { title: 'أريد شيئاً لنفسي', icon: 'fa-heart' },
+                                            { title: 'أريد إطلالة كاملة', icon: 'fa-wand-magic-sparkles' },
+                                            { title: 'أريد هدية', icon: 'fa-gift' }
+                                        ].map((card, idx) => (
+                                            <div key={idx} onClick={() => setCurrentPage('catalog')} className="bg-[#121212] border border-[#D4AF37]/30 rounded-xl p-5 text-center cursor-pointer hover:border-[#D4AF37] transition group">
+                                                <i class={`fa-solid ${card.icon} text-2xl text-[#D4AF37] mb-2`}></i>
+                                                <h3 className="text-white font-bold text-sm group-hover:text-[#D4AF37]">{card.title}</h3>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+
+                                {/* Best Sellers */}
+                                <section className="py-12 max-w-7xl mx-auto px-4">
+                                    <h2 className="text-2xl font-black text-center mb-8">🔥 الأكثر مبيعاً</h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                        {PRODUCTS_DATABASE.slice(0, 4).map(prod => (
+                                            <div key={prod.id} className="bg-white rounded-xl border p-4 text-right flex flex-col justify-between">
+                                                <div className="h-44 bg-gray-50 rounded-lg p-2 mb-3 cursor-pointer flex items-center justify-center" onClick={() => { setSelectedProduct(prod); setCurrentPage('detail'); }}>
+                                                    <img src={prod.image} className="max-h-full object-contain" alt={prod.name} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-sm mb-1">{prod.name}</h3>
+                                                    <div className="text-amber-500 text-xs mb-2">★★★★★ ({prod.reviews})</div>
+                                                    <div className="font-extrabold text-[#B8860B] mb-3">{prod.price.toLocaleString()} دج</div>
+                                                </div>
+                                                <button onClick={() => addToCart(prod)} className="w-full py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-[#D4AF37] hover:text-black transition">أضف إلى السلة</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* 2. Catalog View */}
+                        {currentPage === 'catalog' && (
+                            <div className="max-w-7xl mx-auto px-4 py-8">
+                                <h1 className="text-2xl font-black mb-6 text-right">المكياج - جمالك يبدأ من هنا</h1>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    {PRODUCTS_DATABASE.map(prod => (
+                                        <div key={prod.id} className="bg-white rounded-xl border p-4 text-right flex flex-col justify-between">
+                                            <div className="h-44 bg-gray-50 rounded-lg p-2 mb-3 cursor-pointer flex items-center justify-center" onClick={() => { setSelectedProduct(prod); setCurrentPage('detail'); }}>
+                                                <img src={prod.image} className="max-h-full object-contain" alt={prod.name} />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-sm mb-1">{prod.name}</h3>
+                                                <div className="text-amber-500 text-xs mb-2">★★★★★ ({prod.reviews})</div>
+                                                <div className="font-extrabold text-[#B8860B] mb-3">{prod.price.toLocaleString()} دج</div>
+                                            </div>
+                                            <button onClick={() => addToCart(prod)} className="w-full py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-[#D4AF37] hover:text-black transition">أضف إلى السلة</button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3. Product Detail View */}
+                        {currentPage === 'detail' && selectedProduct && (
+                            <div className="max-w-7xl mx-auto px-4 py-10">
+                                <div className="bg-white p-8 rounded-2xl border grid md:grid-cols-2 gap-12 text-right">
+                                    <div className="bg-pink-50/30 rounded-2xl p-8 flex items-center justify-center relative">
+                                        {selectedProduct.discount && (
+                                            <span className="absolute top-4 right-4 bg-red-500 text-white font-bold text-xs px-3 py-1 rounded-full">{selectedProduct.discount}</span>
+                                        )}
+                                        <img src={selectedProduct.image} className="max-h-80 object-contain" alt={selectedProduct.name} />
+                                    </div>
+                                    <div className="space-y-6">
+                                        <span className="text-xs text-gray-400 font-bold uppercase">{selectedProduct.brand}</span>
+                                        <h1 className="text-3xl font-black text-gray-900">{selectedProduct.name}</h1>
+                                        <div className="text-amber-500 text-sm">★★★★★ ({selectedProduct.reviews} تقييم)</div>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-3xl font-black text-gray-900">{selectedProduct.price.toLocaleString()} دج</span>
+                                            {selectedProduct.oldPrice && <span className="text-sm text-gray-400 line-through">{selectedProduct.oldPrice.toLocaleString()} دج</span>}
+                                        </div>
+                                        <p className="text-gray-600 text-sm leading-relaxed">{selectedProduct.desc}</p>
+                                        <button onClick={() => addToCart(selectedProduct)} className="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition">
+                                            أضف إلى السلة
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 4. Cart View */}
+                        {currentPage === 'cart' && (
+                            <div className="max-w-7xl mx-auto px-4 py-10">
+                                <h1 className="text-2xl font-black mb-8 text-right">سلة التسوق والدفع</h1>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    <div className="lg:col-span-2 bg-white rounded-2xl border p-6 space-y-4">
+                                        {cart.length === 0 ? (
+                                            <p className="
