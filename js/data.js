@@ -7,15 +7,23 @@ const WILAYAS = [
     { code: '17', name: 'الجلفة', communes: ['الجلفة', 'عين وسارة', 'مسعد'], homeCost: 700, officeCost: 400 }
 ];
 
+// Dynamic Top Banner Lines
+let bannerMessages = JSON.parse(localStorage.getItem('lb_banners')) || [
+    "🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام 100% مضمون",
+    "✨ عروض حصريّة وخاصة هذا الأسبوع - كوسمتيك عبد الحق",
+    "❤️ يبدو أن أحدهم سينام سعيداً اليوم..."
+];
+
 // Persistent Settings State
 let storeSettings = JSON.parse(localStorage.getItem('lb_settings')) || {
-    name: 'Luxe Beauty',
+    name: 'كوسمتيك عبد الحق',
+    slogan: 'يبدو أن أحدهم سينام سعيداً اليوم',
     logoUrl: '',
-    email: 'contact@luxebeauty.com',
+    email: 'contact@abdelhak.com',
     pass: 'admin123'
 };
 
-let categories = JSON.parse(localStorage.getItem('lb_categories')) || ['الرئيسية', 'المنتجات', 'العطور', 'المكياج', 'الهدايا'];
+let categories = JSON.parse(localStorage.getItem('lb_categories')) || ['الرئيسية', 'العطور', 'المكياج', 'الهدايا'];
 
 let products = JSON.parse(localStorage.getItem('lb_products')) || [
     { id: 1, name: 'عطر ميس ديور أو دو بارفان', price: 5900, oldPrice: 6900, category: 'العطور', image: 'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=500', desc: 'عطر أنثوي فاخر يجمع بين نفحات الزهور والفاكهة مع لمسة من المسك.' },
