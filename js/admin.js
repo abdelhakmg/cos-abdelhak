@@ -57,6 +57,20 @@ function renderAdminDashboard() {
             </div>
         `).join('');
 
+    // Hero Slides List in Admin
+    document.getElementById('admin-hero-slides-list').innerHTML = heroSlides.map((slide, idx) => `
+        <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
+            <div class="flex items-center gap-3">
+                <img src="${slide.image}" class="w-12 h-12 object-cover rounded-lg border">
+                <div>
+                    <div class="font-bold">${slide.title}</div>
+                    <div class="text-xs text-gray-500 truncate max-w-xs">${slide.desc}</div>
+                </div>
+            </div>
+            <button onclick="deleteHeroSlide(${idx})" class="text-red-500 font-bold text-xs bg-red-50 px-3 py-1.5 rounded-lg">حذف الإعلان</button>
+        </div>
+    `).join('');
+
     // Select Categories
     document.getElementById('prod-category-select').innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
@@ -101,11 +115,33 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
-    // Load Settings
+    // Settings Values
     document.getElementById('set-store-name').value = storeSettings.name;
     document.getElementById('set-store-slogan').value = storeSettings.slogan;
     document.getElementById('set-logo-url').value = storeSettings.logoUrl;
     document.getElementById('set-pass').value = storeSettings.pass;
+}
+
+// Hero Slide Save & Delete
+function handleSaveHeroSlide(e) {
+    e.preventDefault();
+    const newSlide = {
+        title: document.getElementById('hero-title-input').value,
+        desc: document.getElementById('hero-desc-input').value,
+        image: document.getElementById('hero-img-input').value
+    };
+    heroSlides.push(newSlide);
+    localStorage.setItem('lb_hero_slides_v4', JSON.stringify(heroSlides));
+    renderHeroSlider();
+    renderAdminDashboard();
+    alert('تم إضافة الإعلان للبانر بنجاح!');
+}
+
+function deleteHeroSlide(idx) {
+    heroSlides.splice(idx, 1);
+    localStorage.setItem('lb_hero_slides_v4', JSON.stringify(heroSlides));
+    renderHeroSlider();
+    renderAdminDashboard();
 }
 
 function handleSaveProduct(e) {
@@ -129,7 +165,7 @@ function handleSaveProduct(e) {
     };
 
     products.push(newP);
-    localStorage.setItem('lb_products_v3', JSON.stringify(products));
+    localStorage.setItem('lb_products_v4', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
     alert('تم حفظ المنتج بنجاح!');
@@ -137,7 +173,7 @@ function handleSaveProduct(e) {
 
 function deleteProduct(id) {
     products = products.filter(p => p.id !== id);
-    localStorage.setItem('lb_products_v3', JSON.stringify(products));
+    localStorage.setItem('lb_products_v4', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
 }
@@ -148,15 +184,15 @@ function handleSaveCategory(e) {
     const img = document.getElementById('cat-img-input').value;
 
     categories.push({ name, image: img });
-    localStorage.setItem('lb_categories_v3', JSON.stringify(categories));
+    localStorage.setItem('lb_categories_v4', JSON.stringify(categories));
     updateAppHeaderInfo();
     renderAdminDashboard();
-    alert('تم حفظ الفئة بالصورة بنجاح!');
+    alert('تم حفظ الفئة بنجاح!');
 }
 
 function deleteCategory(idx) {
     categories.splice(idx, 1);
-    localStorage.setItem('lb_categories_v3', JSON.stringify(categories));
+    localStorage.setItem('lb_categories_v4', JSON.stringify(categories));
     updateAppHeaderInfo();
     renderAdminDashboard();
 }
@@ -171,14 +207,14 @@ function handleSaveWilaya(e) {
     const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [name];
 
     WILAYAS.push({ code, name, communes, homeCost, officeCost });
-    localStorage.setItem('lb_wilayas_v3', JSON.stringify(WILAYAS));
+    localStorage.setItem('lb_wilayas_v4', JSON.stringify(WILAYAS));
     renderAdminDashboard();
     alert('تم إضافة الولاية بنجاح!');
 }
 
 function deleteWilaya(idx) {
     WILAYAS.splice(idx, 1);
-    localStorage.setItem('lb_wilayas_v3', JSON.stringify(WILAYAS));
+    localStorage.setItem('lb_wilayas_v4', JSON.stringify(WILAYAS));
     renderAdminDashboard();
 }
 
@@ -186,7 +222,7 @@ function addBannerText() {
     const txt = document.getElementById('new-banner-text').value;
     if (txt) {
         bannerMessages.push(txt);
-        localStorage.setItem('lb_banners_v3', JSON.stringify(bannerMessages));
+        localStorage.setItem('lb_banners_v4', JSON.stringify(bannerMessages));
         document.getElementById('new-banner-text').value = '';
         renderAdminDashboard();
     }
@@ -194,7 +230,7 @@ function addBannerText() {
 
 function removeBannerText(idx) {
     bannerMessages.splice(idx, 1);
-    localStorage.setItem('lb_banners_v3', JSON.stringify(bannerMessages));
+    localStorage.setItem('lb_banners_v4', JSON.stringify(bannerMessages));
     renderAdminDashboard();
 }
 
@@ -205,7 +241,7 @@ function handleSaveSettings(e) {
     storeSettings.logoUrl = document.getElementById('set-logo-url').value;
     storeSettings.pass = document.getElementById('set-pass').value;
 
-    localStorage.setItem('lb_settings_v3', JSON.stringify(storeSettings));
+    localStorage.setItem('lb_settings_v4', JSON.stringify(storeSettings));
     updateAppHeaderInfo();
-    alert('تم حفظ جميع الإعدادات بنجاح!');
+    alert('تم حفظ الإعدادات بنجاح!');
 }
