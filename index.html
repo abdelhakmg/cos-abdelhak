@@ -13,17 +13,17 @@
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#F8F9FA]">
 
-    <!-- Sticky Top Banner (ينزل ويصعد مع التمرير) -->
+    <!-- Sticky Top Yellow Banner Ticker -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2.5 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
             🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام
         </span>
     </div>
 
-    <!-- Main Header -->
+    <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-9 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-24 flex items-center justify-between">
-            <!-- Logo & Store Name -->
+            <!-- Logo & Store Title -->
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
                 <div class="w-12 h-12 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
                     <img id="store-logo-img" class="w-full h-full object-cover hidden">
@@ -35,10 +35,10 @@
                 </div>
             </div>
 
-            <!-- Header Dynamic Navigation -->
+            <!-- Header Nav Links -->
             <nav id="header-nav" class="hidden md:flex items-center gap-6 font-bold text-sm"></nav>
 
-            <!-- Actions -->
+            <!-- Shopping Cart Badge -->
             <div class="flex items-center gap-4">
                 <button onclick="showPage('cart')" class="p-2 text-gray-300 hover:text-[#D4AF37] transition relative">
                     <i class="fa-solid fa-bag-shopping text-2xl"></i>
@@ -48,7 +48,7 @@
         </div>
     </header>
 
-    <!-- App Main Views -->
+    <!-- Main App Content -->
     <main class="flex-grow">
 
         <!-- 1. HOME PAGE VIEW -->
@@ -77,7 +77,7 @@
                 </div>
             </section>
 
-            <!-- Dynamic Category Cards Grid (مع الصور) -->
+            <!-- Category Cards Section -->
             <section class="bg-black py-10 border-b border-[#D4AF37]/20">
                 <div class="max-w-7xl mx-auto px-4">
                     <h2 class="text-white text-center text-xl font-bold mb-6">أقسام المتجر</h2>
@@ -85,7 +85,7 @@
                 </div>
             </section>
 
-            <!-- Products Grid -->
+            <!-- Best Sellers Section -->
             <section class="py-12 max-w-7xl mx-auto px-4">
                 <h2 class="text-2xl font-black text-center mb-8">🔥 الأكثر مبيعاً</h2>
                 <div id="home-products" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
@@ -103,24 +103,19 @@
             </div>
         </div>
 
-        <!-- 3. LANDING PAGE VIEW (مع المعرض الخماسي للصور) -->
+        <!-- 3. LANDING PAGE VIEW -->
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 
-                <!-- Product Overview with 5 Images Gallery -->
                 <div class="bg-white rounded-3xl border shadow-lg overflow-hidden p-6 md:p-10 mb-8 grid md:grid-cols-2 gap-8 text-right">
                     
-                    <!-- Images Gallery Section -->
                     <div class="flex flex-col-reverse md:flex-row gap-4">
-                        <!-- 4 Thumbnails Column -->
                         <div id="landing-thumbnails-list" class="flex md:flex-col gap-2 justify-center"></div>
-                        <!-- Main Big Image -->
                         <div class="bg-gray-50 rounded-2xl p-4 flex-1 flex items-center justify-center border h-80">
                             <img id="landing-main-img" class="max-h-full object-contain transition-all duration-300">
                         </div>
                     </div>
 
-                    <!-- Details Column -->
                     <div class="space-y-4">
                         <span id="landing-category" class="bg-gold-500/10 text-[#B8860B] text-xs font-bold px-3 py-1 rounded-full"></span>
                         <h1 id="landing-title" class="text-3xl font-black text-gray-900"></h1>
@@ -132,7 +127,7 @@
                     </div>
                 </div>
 
-                <!-- Order Checkout Form -->
+                <!-- Fast Order Checkout Form -->
                 <div id="order-form-section" class="bg-white rounded-3xl border shadow-xl p-6 md:p-10 text-right space-y-6">
                     <h2 class="text-2xl font-black text-gray-900 border-b pb-4">استمارة الطلب السريع</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,7 +162,7 @@
                 </div>
             </div>
 
-            <!-- Sticky Bottom Action Bar -->
+            <!-- Sticky Bottom Bar -->
             <div class="sticky-bottom-bar bg-black border-t border-[#D4AF37]/30 text-white p-4 flex items-center justify-between max-w-4xl mx-auto rounded-t-2xl">
                 <div class="text-right">
                     <span class="text-[10px] text-gray-400 block">السعر الإجمالي</span>
@@ -196,7 +191,7 @@
             </div>
         </div>
 
-        <!-- 5. SUPER ADMIN DASHBOARD VIEW (لوحة التحكم الاحترافية الشاملة) -->
+        <!-- 5. ADMIN DASHBOARD -->
         <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right">
                 <div class="flex justify-between items-center mb-8 border-b pb-4">
@@ -204,16 +199,14 @@
                     <button onclick="showPage('home')" class="bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
                 </div>
 
-                <!-- Admin Tabs Menu -->
                 <div class="flex gap-2 border-b mb-8 overflow-x-auto pb-2">
                     <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات</button>
-                    <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-products">🛍️ المنتجات (5 صور)</button>
+                    <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-products">🛍️ المنتجات</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-categories">📂 الفئات والصور</button>
                     <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-200 text-gray-700" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
                 </div>
 
-                <!-- TAB 1: ANALYTICS -->
                 <div id="admin-tab-analytics" class="tab-content active space-y-6">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات</span><span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span></div>
@@ -224,7 +217,6 @@
                     <div class="bg-white p-6 rounded-2xl border"><h3 class="font-bold text-lg mb-4">سجل الطلبيات التفصيلي</h3><div id="admin-orders-log" class="space-y-3"></div></div>
                 </div>
 
-                <!-- TAB 2: PRODUCTS WITH 5 IMAGES -->
                 <div id="admin-tab-products" class="tab-content space-y-6">
                     <div class="bg-white p-6 rounded-2xl border">
                         <h3 class="font-bold text-lg mb-4">إضافة / تعديل منتج (مع 5 صور)</h3>
@@ -234,24 +226,22 @@
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
                             <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white"></select>
                             
-                            <!-- 5 Image URLs -->
-                            <input type="url" id="prod-img-main" placeholder="1. رابط الصورة الرئيسية المكبرة (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
-                            <input type="url" id="prod-img-2" placeholder="2. رابط الصورة المصغرة الثانية (URL)" class="border p-3 rounded-xl text-sm">
-                            <input type="url" id="prod-img-3" placeholder="3. رابط الصورة المصغرة الثالثة (URL)" class="border p-3 rounded-xl text-sm">
-                            <input type="url" id="prod-img-4" placeholder="4. رابط الصورة المصغرة الرابعة (URL)" class="border p-3 rounded-xl text-sm">
-                            <input type="url" id="prod-img-5" placeholder="5. رابط الصورة المصغرة الخامسة (URL)" class="border p-3 rounded-xl text-sm">
+                            <input type="url" id="prod-img-main" placeholder="1. رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
+                            <input type="url" id="prod-img-2" placeholder="2. رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm">
+                            <input type="url" id="prod-img-3" placeholder="3. رابط الصورة الثالثة (URL)" class="border p-3 rounded-xl text-sm">
+                            <input type="url" id="prod-img-4" placeholder="4. رابط الصورة الرابعة (URL)" class="border p-3 rounded-xl text-sm">
+                            <input type="url" id="prod-img-5" placeholder="5. رابط الصورة الخامسة (URL)" class="border p-3 rounded-xl text-sm">
 
                             <textarea id="prod-desc" placeholder="وصف المنتج..." class="border p-3 rounded-xl text-sm md:col-span-3"></textarea>
-                            <button type="submit" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج بـ 5 صور</button>
+                            <button type="submit" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج</button>
                         </form>
                     </div>
 
-                    <!-- Products Table -->
                     <div class="bg-white rounded-2xl border overflow-x-auto">
                         <table class="w-full text-right text-sm">
                             <thead class="bg-gray-100 border-b">
                                 <tr>
-                                    <th class="p-4">الصورة الرئيسية</th>
+                                    <th class="p-4">الصورة</th>
                                     <th class="p-4">اسم المنتج</th>
                                     <th class="p-4">الفئة</th>
                                     <th class="p-4">السعر</th>
@@ -263,14 +253,13 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: CATEGORIES & CATEGORY IMAGES -->
                 <div id="admin-tab-categories" class="tab-content space-y-6">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
-                        <h3 class="font-bold text-lg border-b pb-3">إضافة / تعديل فئة مع الصورة</h3>
+                        <h3 class="font-bold text-lg border-b pb-3">إضافة فئة جديدة</h3>
                         <form onsubmit="handleSaveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input type="text" id="cat-name-input" placeholder="اسم الفئة *" required class="border p-3 rounded-xl text-sm">
                             <input type="url" id="cat-img-input" placeholder="رابط صورة الفئة (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
-                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-3">حفظ الفئة بالصورة</button>
+                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-3">حفظ الفئة</button>
                         </form>
                     </div>
                     <div class="bg-white p-6 rounded-2xl border">
@@ -279,16 +268,15 @@
                     </div>
                 </div>
 
-                <!-- TAB 4: SHIPPING & WILAYAS / COMMUNES PRICING -->
                 <div id="admin-tab-shipping" class="tab-content space-y-6">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
-                        <h3 class="font-bold text-lg border-b pb-3">إضافة / تعديل ولاية وأسعار الشحن</h3>
+                        <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
                         <form onsubmit="handleSaveWilaya(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input type="text" id="wilaya-code" placeholder="رمز الولاية (مثال: 16)" required class="border p-3 rounded-xl text-sm">
                             <input type="text" id="wilaya-name" placeholder="اسم الولاية (مثال: الجزائر)" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="wilaya-home-cost" placeholder="سعر التوصيل للمنزل (دج) *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="wilaya-office-cost" placeholder="سعر التوصيل للمكتب (دج) *" required class="border p-3 rounded-xl text-sm">
-                            <input type="text" id="wilaya-communes-input" placeholder="البلديات التابعة (افصل بينهم بـ فاصلة ,)" class="border p-3 rounded-xl text-sm md:col-span-2">
+                            <input type="text" id="wilaya-communes-input" placeholder="البلديات التابعة (افصل بينها بفاصلة ,)" class="border p-3 rounded-xl text-sm md:col-span-2">
                             <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-2">حفظ بيانات الولاية والتسعير</button>
                         </form>
                     </div>
@@ -298,7 +286,6 @@
                     </div>
                 </div>
 
-                <!-- TAB 5: STORE IDENTITY & SOCIAL CONTACTS -->
                 <div id="admin-tab-settings" class="tab-content space-y-6">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
                         <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
@@ -308,17 +295,13 @@
                         </div>
                         <div id="banner-texts-list" class="space-y-2"></div>
 
-                        <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والتواصل الكاملة</h3>
+                        <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">رقم الهاتف</label><input type="tel" id="set-phone" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">رقم الواتساب</label><input type="tel" id="set-whatsapp" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">رابط أو اسم حساب الإنستغرام</label><input type="text" id="set-instagram" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">رابط أو اسم حساب الفيسبوك</label><input type="text" id="set-facebook" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة بيانات الهوية والاتصالات</button>
+                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات</button>
                         </form>
                     </div>
                 </div>
@@ -346,7 +329,7 @@
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- JS Scripts -->
+    <!-- JS Scripts Loading Sequence -->
     <script src="js/data.js"></script>
     <script src="js/landing.js"></script>
     <script src="js/admin.js"></script>
