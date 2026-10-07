@@ -23,7 +23,6 @@
     <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-            <!-- Logo & Store Title -->
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
                 <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
                     <img id="store-logo-img" class="w-full h-full object-cover hidden">
@@ -35,10 +34,8 @@
                 </div>
             </div>
 
-            <!-- Header Nav Links -->
             <nav id="header-nav" class="hidden md:flex items-center gap-6 font-bold text-sm"></nav>
 
-            <!-- Shopping Cart Badge -->
             <div class="flex items-center gap-4">
                 <button onclick="showPage('cart')" class="p-2 text-gray-300 hover:text-[#D4AF37] transition relative">
                     <i class="fa-solid fa-bag-shopping text-2xl"></i>
@@ -48,18 +45,14 @@
         </div>
     </header>
 
-    <!-- Main App Content -->
     <main class="flex-grow">
-
-        <!-- 1. HOME PAGE VIEW -->
+        <!-- 1. HOME PAGE -->
         <div id="page-home" class="page-sec active">
-            <!-- Hero Slider Banner Section -->
             <section class="bg-black text-white py-10 md:py-14 border-b border-[#D4AF37]/20 relative overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center min-h-[300px]" id="hero-slider-container"></div>
                 <div class="flex justify-center gap-2 mt-4" id="hero-slider-dots"></div>
             </section>
 
-            <!-- Category Cards Section -->
             <section class="bg-black py-8 border-b border-[#D4AF37]/20">
                 <div class="max-w-7xl mx-auto px-4">
                     <h2 class="text-white text-center text-xl font-black mb-6 gold-text">أقسام المتجر</h2>
@@ -67,18 +60,15 @@
                 </div>
             </section>
 
-            <!-- Best Sellers Section -->
             <section class="py-10 max-w-7xl mx-auto px-4">
                 <h2 class="text-2xl font-black text-center text-white mb-8">🔥 الأكثر مبيعاً</h2>
                 <div id="home-products" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
             </section>
         </div>
 
-        <!-- 2. ADVANCED CATALOG PAGE VIEW (صفحة تصفية النتائج الاحترافية المطابقة للصورة) -->
+        <!-- 2. CATALOG PAGE -->
         <div id="page-catalog" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-6">
-                
-                <!-- Breadcrumbs & Bar -->
                 <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
                     <div id="catalog-breadcrumb" class="flex items-center gap-2">
                         <span class="text-[#D4AF37] font-bold cursor-pointer" onclick="showPage('home')">الرئيسية</span>
@@ -87,10 +77,7 @@
                     </div>
                 </div>
 
-                <!-- Main Layout: Sidebar Filter + Products Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    
-                    <!-- Sidebar Filter Column (تصفية النتائج) -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -99,7 +86,6 @@
                             <button onclick="resetFilters()" class="text-[11px] text-gray-400 hover:text-white underline">إعادة ضبط</button>
                         </div>
 
-                        <!-- Category Filter -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">الفئة</h4>
                             <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
@@ -107,7 +93,6 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- Price Range Filter -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر</h4>
                             <input type="range" id="filter-price-range" min="500" max="10000" step="100" value="10000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
@@ -119,7 +104,6 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- Brand Filter -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
                             <div class="space-y-2 text-xs text-gray-400">
@@ -131,10 +115,7 @@
                         </div>
                     </div>
 
-                    <!-- Products Display Area -->
                     <div class="lg:col-span-3 space-y-4">
-                        
-                        <!-- Top Filter Controls Bar -->
                         <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-xl p-4 flex flex-wrap justify-between items-center text-white gap-4">
                             <span class="text-xs font-bold text-gray-300">
                                 إجمالي المنتجات (<span id="products-count-badge" class="text-[#D4AF37]">0</span>)
@@ -149,16 +130,13 @@
                             </div>
                         </div>
 
-                        <!-- Catalog Grid -->
                         <div id="catalog-products" class="grid grid-cols-2 md:grid-cols-3 gap-5"></div>
                     </div>
-
                 </div>
-
             </div>
         </div>
 
-        <!-- 3. LANDING PAGE VIEW -->
+        <!-- 3. LANDING PAGE -->
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 <div class="bg-white rounded-3xl border shadow-lg overflow-hidden p-6 md:p-10 mb-8 grid md:grid-cols-2 gap-8 text-right">
@@ -179,7 +157,6 @@
                     </div>
                 </div>
 
-                <!-- Order Checkout Form -->
                 <div id="order-form-section" class="bg-white rounded-3xl border shadow-xl p-6 md:p-10 text-right space-y-6">
                     <h2 class="text-2xl font-black text-gray-900 border-b pb-4">استمارة الطلب السريع</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,7 +202,7 @@
             </div>
         </div>
 
-        <!-- 4. CART VIEW -->
+        <!-- 4. CART PAGE -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
@@ -242,7 +219,7 @@
             </div>
         </div>
 
-        <!-- 5. ADMIN DASHBOARD VIEW -->
+        <!-- 5. ADMIN DASHBOARD -->
         <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
                 <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
@@ -259,7 +236,6 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
                 </div>
 
-                <!-- TAB: SALES -->
                 <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات</span><span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span></div>
@@ -270,7 +246,6 @@
                     <div class="bg-white p-6 rounded-2xl border"><h3 class="font-bold text-lg mb-4">سجل الطلبيات التفصيلي</h3><div id="admin-orders-log" class="space-y-3"></div></div>
                 </div>
 
-                <!-- TAB: HERO SLIDES -->
                 <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة إعلان جديد للبانر الرئيسي</h3>
@@ -287,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- TAB: PRODUCTS -->
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <h3 class="font-bold text-lg mb-4">إضافة / تعديل منتج (مع حالة التوفر والماركة)</h3>
@@ -338,7 +312,6 @@
                     </div>
                 </div>
 
-                <!-- TAB: CATEGORIES -->
                 <div id="admin-tab-categories" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة فئة جديدة</h3>
@@ -354,7 +327,6 @@
                     </div>
                 </div>
 
-                <!-- TAB: SHIPPING -->
                 <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
@@ -373,7 +345,6 @@
                     </div>
                 </div>
 
-                <!-- TAB: SETTINGS -->
                 <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
                         <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
@@ -396,10 +367,9 @@
 
             </div>
         </div>
-
     </main>
 
-    <!-- Admin Password Auth Modal -->
+    <!-- Admin Auth Modal -->
     <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
@@ -417,7 +387,11 @@
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- JS Scripts Loading Sequence -->
+    <!-- Firebase SDK Compat Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- Application Scripts -->
     <script src="js/data.js"></script>
     <script src="js/landing.js"></script>
     <script src="js/admin.js"></script>
