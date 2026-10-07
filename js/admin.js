@@ -40,6 +40,7 @@ function switchAdminTab(tabName) {
 }
 
 function renderAdminDashboard() {
+    // Analytics
     const totalSales = orders.reduce((sum, o) => sum + o.total, 0);
     document.getElementById('stat-total-sales').innerText = totalSales.toLocaleString() + ' دج';
     document.getElementById('stat-orders-count').innerText = orders.length;
@@ -56,6 +57,7 @@ function renderAdminDashboard() {
             </div>
         `).join('');
 
+    // Hero Slides
     document.getElementById('admin-hero-slides-list').innerHTML = heroSlides.map((slide) => `
         <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
             <div class="flex items-center gap-3">
@@ -69,21 +71,43 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
+    // Select Categories
     document.getElementById('prod-category-select').innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
+    // Select Brands
+    document.getElementById('prod-brand-select').innerHTML = brands.length === 0 
+        ? '<option value="عامة">عامة</option>' 
+        : brands.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+
+    // Products List with Edit & Toggle Stock
     document.getElementById('admin-products-tbody').innerHTML = products.map((p) => `
         <tr class="border-b">
-            <td class="p-3"><img src="${p.images ? p.images[0] : ''}" class="w-10 h-10 object-cover rounded-lg"></td>
+            <td class="p-3"><img src="${p.images && p.images.length > 0 ? p.images[0] : ''}" class="w-10 h-10 object-cover rounded-lg"></td>
             <td class="p-3 font-bold">${p.name}</td>
             <td class="p-3 text-xs text-gray-500">${p.category}</td>
+            <td class="p-3 text-xs text-gray-500">${p.brand || 'عامة'}</td>
             <td class="p-3 font-bold text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
-            <td class="p-3 font-bold text-xs">${p.inStock ? '🟢 متوفر' : '🔴 غير متوفر'}</td>
             <td class="p-3">
-                <button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white text-xs px-3 py-1 rounded-lg">حذف</button>
+                <button onclick="toggleProductStock('${p.id}', ${!p.inStock})" class="font-bold text-xs px-2.5 py-1 rounded-lg border cursor-pointer ${p.inStock ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}">
+                    ${p.inStock ? '🟢 متوفر' : '🔴 غير متوفر'}
+                </button>
+            </td>
+            <td class="p-3 flex gap-2">
+                <button onclick="editProduct('${p.id}')" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold hover:bg-blue-700">تعديل</button>
+                <button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold hover:bg-red-600">حذف</button>
             </td>
         </tr>
     `).join('');
 
+    // Brands List
+    document.getElementById('admin-brands-list').innerHTML = brands.map((b) => `
+        <div class="bg-gray-50 rounded-xl border p-3 flex justify-between items-center text-sm font-bold">
+            <span>${b.name}</span>
+            <button onclick="deleteBrand('${b.id}')" class="text-red-500 text-xs">حذف</button>
+        </div>
+    `).join('');
+
+    // Categories List
     document.getElementById('admin-categories-list').innerHTML = categories.map((c) => `
         <div class="bg-gray-50 rounded-xl border p-3 text-center space-y-2">
             <img src="${c.image}" class="h-20 w-full object-cover rounded-lg">
@@ -92,6 +116,7 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
+    // Wilayas List
     document.getElementById('admin-wilayas-list').innerHTML = WILAYAS.map((w) => `
         <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
             <div>
@@ -102,37 +127,25 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
-    document.getElementById('banner-texts-list').innerHTML = bannerMessages.map((msg, idx) => `
+    // Banners List
+    document.getElementById('banner-texts-list').innerHTML = bannerMessages.map((msg) => `
         <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
             <span>${msg}</span>
             <button onclick="removeBannerText('${msg}')" class="text-red-500 font-bold">حذف</button>
         </div>
     `).join('');
 
+    // Settings
     document.getElementById('set-store-name').value = storeSettings.name || '';
     document.getElementById('set-store-slogan').value = storeSettings.slogan || '';
     document.getElementById('set-logo-url').value = storeSettings.logoUrl || '';
     document.getElementById('set-pass').value = storeSettings.pass || 'admin123';
 }
 
-function handleSaveHeroSlide(e) {
-    e.preventDefault();
-    const newSlide = {
-        title: document.getElementById('hero-title-input').value,
-        desc: document.getElementById('hero-desc-input').value,
-        image: document.getElementById('hero-img-input').value
-    };
-    db.collection("heroSlides").add(newSlide).then(() => {
-        alert('تم إضافة الإعلان وتزامنه بنجاح!');
-    });
-}
-
-function deleteHeroSlide(id) {
-    db.collection("heroSlides").doc(id).delete();
-}
-
+// Product Edit & Add Engine
 function handleSaveProduct(e) {
     e.preventDefault();
+    const editId = document.getElementById('editing-product-id').value;
     const imgs = [
         document.getElementById('prod-img-main').value,
         document.getElementById('prod-img-2').value,
@@ -141,7 +154,7 @@ function handleSaveProduct(e) {
         document.getElementById('prod-img-5').value
     ].filter(url => url && url.trim() !== '');
 
-    const newP = {
+    const pData = {
         name: document.getElementById('prod-name').value,
         price: parseFloat(document.getElementById('prod-price').value),
         oldPrice: parseFloat(document.getElementById('prod-old-price').value) || null,
@@ -150,16 +163,100 @@ function handleSaveProduct(e) {
         inStock: document.getElementById('prod-in-stock').value === 'true',
         images: imgs,
         desc: document.getElementById('prod-desc').value,
-        createdAt: new Date()
+        updatedAt: new Date()
     };
 
-    db.collection("products").add(newP).then(() => {
-        alert('تم حفظ المنتج في السحابة وتزامنه مع كافة الأجهزة! 🚀');
-    });
+    if (editId) {
+        // Update Existing Product
+        db.collection("products").doc(editId).update(pData).then(() => {
+            alert('تم تحديث المنتج بنجاح! ✏️');
+            resetProductForm();
+        });
+    } else {
+        // Add New Product
+        pData.createdAt = new Date();
+        db.collection("products").add(pData).then(() => {
+            alert('تم حفظ المنتج في السحابة وتزامنه بنجاح! 🚀');
+            resetProductForm();
+        });
+    }
+}
+
+function editProduct(id) {
+    const prod = products.find(p => p.id === id);
+    if (!prod) return;
+
+    document.getElementById('editing-product-id').value = prod.id;
+    document.getElementById('prod-name').value = prod.name || '';
+    document.getElementById('prod-price').value = prod.price || '';
+    document.getElementById('prod-old-price').value = prod.oldPrice || '';
+    document.getElementById('prod-category-select').value = prod.category || '';
+    document.getElementById('prod-brand-select').value = prod.brand || '';
+    document.getElementById('prod-in-stock').value = prod.inStock ? 'true' : 'false';
+    document.getElementById('prod-desc').value = prod.desc || '';
+
+    if (prod.images) {
+        document.getElementById('prod-img-main').value = prod.images[0] || '';
+        document.getElementById('prod-img-2').value = prod.images[1] || '';
+        document.getElementById('prod-img-3').value = prod.images[2] || '';
+        document.getElementById('prod-img-4').value = prod.images[3] || '';
+        document.getElementById('prod-img-5').value = prod.images[4] || '';
+    }
+
+    document.getElementById('product-form-title').innerText = 'تعديل بيانات المنتج ✏️';
+    document.getElementById('save-product-btn').innerText = 'تحديث بيانات المنتج ✏️';
+    document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+    window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
+}
+
+function resetProductForm() {
+    document.getElementById('editing-product-id').value = '';
+    document.getElementById('product-edit-form').reset();
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع حالة التوفر والماركة)';
+    document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
+    document.getElementById('cancel-edit-btn').classList.add('hidden');
+}
+
+function toggleProductStock(id, newStatus) {
+    db.collection("products").doc(id).update({ inStock: newStatus });
 }
 
 function deleteProduct(id) {
-    db.collection("products").doc(id).delete();
+    if (confirm('هل أنت تأكد من رغبتك في حذف هذا المنتج؟')) {
+        db.collection("products").doc(id).delete();
+    }
+}
+
+// Brand Management
+function handleSaveBrand(e) {
+    e.preventDefault();
+    const name = document.getElementById('brand-name-input').value;
+    db.collection("brands").add({ name }).then(() => {
+        document.getElementById('brand-name-input').value = '';
+        alert('تم إضافة العلامة التجارية بنجاح!');
+    });
+}
+
+function deleteBrand(id) {
+    db.collection("brands").doc(id).delete();
+}
+
+// Hero Slides & Categories
+function handleSaveHeroSlide(e) {
+    e.preventDefault();
+    const newSlide = {
+        title: document.getElementById('hero-title-input').value,
+        desc: document.getElementById('hero-desc-input').value,
+        image: document.getElementById('hero-img-input').value
+    };
+    db.collection("heroSlides").add(newSlide).then(() => {
+        alert('تم إضافة الإعلان بنجاح!');
+    });
+}
+
+function deleteHeroSlide(id) {
+    db.collection("heroSlides").doc(id).delete();
 }
 
 function handleSaveCategory(e) {
