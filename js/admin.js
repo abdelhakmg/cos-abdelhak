@@ -57,11 +57,11 @@ function renderAdminDashboard() {
             </div>
         `).join('');
 
-    // Categories Select in Product Form
+    // Select Categories
     document.getElementById('prod-category-select').innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
-    // Products List Table
-    document.getElementById('admin-products-tbody').innerHTML = products.map((p, idx) => `
+    // Products List
+    document.getElementById('admin-products-tbody').innerHTML = products.map((p) => `
         <tr class="border-b">
             <td class="p-3"><img src="${p.images[0]}" class="w-10 h-10 object-cover rounded-lg"></td>
             <td class="p-3 font-bold">${p.name}</td>
@@ -73,7 +73,7 @@ function renderAdminDashboard() {
         </tr>
     `).join('');
 
-    // Categories Cards List in Admin
+    // Categories List
     document.getElementById('admin-categories-list').innerHTML = categories.map((c, idx) => `
         <div class="bg-gray-50 rounded-xl border p-3 text-center space-y-2">
             <img src="${c.image}" class="h-20 w-full object-cover rounded-lg">
@@ -82,7 +82,7 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
-    // Wilayas List in Admin
+    // Wilayas List
     document.getElementById('admin-wilayas-list').innerHTML = WILAYAS.map((w, idx) => `
         <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-sm">
             <div>
@@ -101,18 +101,13 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
-    // Load Form Values
+    // Load Settings
     document.getElementById('set-store-name').value = storeSettings.name;
     document.getElementById('set-store-slogan').value = storeSettings.slogan;
     document.getElementById('set-logo-url').value = storeSettings.logoUrl;
     document.getElementById('set-pass').value = storeSettings.pass;
-    document.getElementById('set-phone').value = storeSettings.phone;
-    document.getElementById('set-whatsapp').value = storeSettings.whatsapp;
-    document.getElementById('set-instagram').value = storeSettings.instagram;
-    document.getElementById('set-facebook').value = storeSettings.facebook;
 }
 
-// Save Product with 5 images
 function handleSaveProduct(e) {
     e.preventDefault();
     const imgs = [
@@ -121,7 +116,7 @@ function handleSaveProduct(e) {
         document.getElementById('prod-img-3').value,
         document.getElementById('prod-img-4').value,
         document.getElementById('prod-img-5').value
-    ].filter(url => url.trim() !== '');
+    ].filter(url => url && url.trim() !== '');
 
     const newP = {
         id: Date.now(),
@@ -134,27 +129,26 @@ function handleSaveProduct(e) {
     };
 
     products.push(newP);
-    localStorage.setItem('lb_products_v2', JSON.stringify(products));
+    localStorage.setItem('lb_products_v3', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
-    alert('تم حفظ المنتج بـ 5 صور بنجاح!');
+    alert('تم حفظ المنتج بنجاح!');
 }
 
 function deleteProduct(id) {
     products = products.filter(p => p.id !== id);
-    localStorage.setItem('lb_products_v2', JSON.stringify(products));
+    localStorage.setItem('lb_products_v3', JSON.stringify(products));
     renderProducts();
     renderAdminDashboard();
 }
 
-// Categories Management
 function handleSaveCategory(e) {
     e.preventDefault();
     const name = document.getElementById('cat-name-input').value;
     const img = document.getElementById('cat-img-input').value;
 
     categories.push({ name, image: img });
-    localStorage.setItem('lb_categories_v2', JSON.stringify(categories));
+    localStorage.setItem('lb_categories_v3', JSON.stringify(categories));
     updateAppHeaderInfo();
     renderAdminDashboard();
     alert('تم حفظ الفئة بالصورة بنجاح!');
@@ -162,12 +156,11 @@ function handleSaveCategory(e) {
 
 function deleteCategory(idx) {
     categories.splice(idx, 1);
-    localStorage.setItem('lb_categories_v2', JSON.stringify(categories));
+    localStorage.setItem('lb_categories_v3', JSON.stringify(categories));
     updateAppHeaderInfo();
     renderAdminDashboard();
 }
 
-// Shipping & Wilayas Management
 function handleSaveWilaya(e) {
     e.preventDefault();
     const code = document.getElementById('wilaya-code').value;
@@ -178,14 +171,14 @@ function handleSaveWilaya(e) {
     const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [name];
 
     WILAYAS.push({ code, name, communes, homeCost, officeCost });
-    localStorage.setItem('lb_wilayas', JSON.stringify(WILAYAS));
+    localStorage.setItem('lb_wilayas_v3', JSON.stringify(WILAYAS));
     renderAdminDashboard();
-    alert('تم إضافة الولاية والتسعيرات بنجاح!');
+    alert('تم إضافة الولاية بنجاح!');
 }
 
 function deleteWilaya(idx) {
     WILAYAS.splice(idx, 1);
-    localStorage.setItem('lb_wilayas', JSON.stringify(WILAYAS));
+    localStorage.setItem('lb_wilayas_v3', JSON.stringify(WILAYAS));
     renderAdminDashboard();
 }
 
@@ -193,7 +186,7 @@ function addBannerText() {
     const txt = document.getElementById('new-banner-text').value;
     if (txt) {
         bannerMessages.push(txt);
-        localStorage.setItem('lb_banners', JSON.stringify(bannerMessages));
+        localStorage.setItem('lb_banners_v3', JSON.stringify(bannerMessages));
         document.getElementById('new-banner-text').value = '';
         renderAdminDashboard();
     }
@@ -201,7 +194,7 @@ function addBannerText() {
 
 function removeBannerText(idx) {
     bannerMessages.splice(idx, 1);
-    localStorage.setItem('lb_banners', JSON.stringify(bannerMessages));
+    localStorage.setItem('lb_banners_v3', JSON.stringify(bannerMessages));
     renderAdminDashboard();
 }
 
@@ -211,12 +204,8 @@ function handleSaveSettings(e) {
     storeSettings.slogan = document.getElementById('set-store-slogan').value;
     storeSettings.logoUrl = document.getElementById('set-logo-url').value;
     storeSettings.pass = document.getElementById('set-pass').value;
-    storeSettings.phone = document.getElementById('set-phone').value;
-    storeSettings.whatsapp = document.getElementById('set-whatsapp').value;
-    storeSettings.instagram = document.getElementById('set-instagram').value;
-    storeSettings.facebook = document.getElementById('set-facebook').value;
 
-    localStorage.setItem('lb_settings', JSON.stringify(storeSettings));
+    localStorage.setItem('lb_settings_v3', JSON.stringify(storeSettings));
     updateAppHeaderInfo();
     alert('تم حفظ جميع الإعدادات بنجاح!');
 }
