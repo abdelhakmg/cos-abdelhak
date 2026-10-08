@@ -108,21 +108,7 @@ function submitLandingOrder() {
     };
 
     db.collection("orders").add(newOrder).then(() => {
-        const msgEl = document.getElementById('success-modal-msg');
-        if (msgEl) {
-            msgEl.innerText = `شكراً لك أستاذ(ة) ${name}، تم استلام طلبك لمنتج (${currentLandingProduct.name}) بنجاح! سنتصل بك هاتفياً عبر الرقم (${phone}) لتأكيد التوصيل.`;
-        }
-        const modal = document.getElementById('order-success-modal');
-        if (modal) {
-            modal.style.display = 'flex';
-        }
+        alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
+        showPage('home');
     });
-}
-
-function closeSuccessModal() {
-    const modal = document.getElementById('order-success-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    showPage('home');
 }
