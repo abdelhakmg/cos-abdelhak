@@ -49,7 +49,7 @@ function renderAdminDashboard() {
     document.getElementById('stat-total-sales').innerText = totalSales.toLocaleString() + ' دج';
     document.getElementById('stat-orders-count').innerText = orders.length;
     document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
-    document.getElementById('stat-success-rate').innerText = successRate + '%';
+    document.getElementById('stat-[#success-rate]').innerText = successRate + '%';
     document.getElementById('orders-badge-count').innerText = orders.length;
 
     const ordersTbody = document.getElementById('admin-orders-log');
@@ -122,7 +122,6 @@ function renderAdminDashboard() {
     renderBannerTextsList();
 }
 
-// عرض قائمة جمل البانر العلوي في لوحة التحكم
 function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
@@ -142,7 +141,7 @@ function renderBannerTextsList() {
     `).join('');
 }
 
-// إضافة جملة جديدة للبانر وحفظها مباشرة في قاعدة البيانات
+// إضافة فورية مع المزامنة عبر الأجهزة
 function addBannerText() {
     const input = document.getElementById('new-banner-text');
     if (!input) return;
@@ -153,34 +152,27 @@ function addBannerText() {
         return;
     }
 
-    if (!Array.isArray(bannerMessages)) {
-        bannerMessages = [];
-    }
-
-    bannerMessages.push(newText);
-
-    db.collection("settings").doc("main").set({
-        bannerMessages: bannerMessages
-    }, { merge: true }).then(() => {
+    db.collection("settings").doc("main").update({
+        bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
+    }).then(() => {
         input.value = '';
-        renderBannerTextsList();
-        if (typeof startBannerTicker === 'function') startBannerTicker();
-        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء الحفظ: ' + err.message, false);
+        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها على كافة الأجهزة!', true);
+    }).catch(() => {
+        db.collection("settings").doc("main").set({
+            bannerMessages: [newText]
+        }, { merge: true });
     });
 }
 
-// حذف جملة من البانر
+// حذف فوري مع المزامنة عبر الأجهزة
 function removeBannerText(index) {
-    bannerMessages.splice(index, 1);
-    
-    db.collection("settings").doc("main").set({
-        bannerMessages: bannerMessages
-    }, { merge: true }).then(() => {
-        renderBannerTextsList();
-        if (typeof startBannerTicker === 'function') startBannerTicker();
-        showCustomAlert('تم الحذف', 'تم حذف الجملة من البانر العلوي.', true);
+    const targetText = bannerMessages[index];
+    if (!targetText) return;
+
+    db.collection("settings").doc("main").update({
+        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
+    }).then(() => {
+        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
     });
 }
 
