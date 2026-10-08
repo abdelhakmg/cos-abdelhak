@@ -2,20 +2,44 @@ let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'الجميع';
 
-// تشغيل البانر العلوي والتبديل بين الجمل كل 3 ثوانٍ (3000ms)
+// تشغيل المزامنة الفورية لشريط البانر مع قاعدة البيانات
+function initBannerRealtimeSync() {
+    const bannerEl = document.getElementById('top-announcement-text');
+    if (!bannerEl) return;
+
+    // الاستماع الفوري لبيانات البانر من Firestore عبر جميع الأجهزة
+    db.collection("settings").doc("main").onSnapshot((doc) => {
+        if (doc.exists && doc.data().bannerMessages && doc.data().bannerMessages.length > 0) {
+            bannerMessages = doc.data().bannerMessages;
+        } else {
+            bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
+        }
+
+        // إبقاء مؤشر العرض ضمن حدود المصفوفة الجديدة
+        if (currentBannerIdx >= bannerMessages.length) {
+            currentBannerIdx = 0;
+        }
+
+        bannerEl.innerText = bannerMessages[currentBannerIdx];
+        
+        // إعادة تشغيل المؤقت الزمني بـ 3 ثوانٍ
+        startBannerTicker();
+
+        // تحديث القائمة في لوحة التحكم إذا كانت مفتوحة
+        if (typeof renderBannerTextsList === 'function') {
+            renderBannerTextsList();
+        }
+    });
+}
+
+// التبديل الدوري كل 3 ثوانٍ
 function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
 
-    if (!bannerMessages || bannerMessages.length === 0) {
-        bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
-    }
-
     if (window.bannerTickerTimer) {
         clearInterval(window.bannerTickerTimer);
     }
-
-    bannerEl.innerText = bannerMessages[0];
 
     window.bannerTickerTimer = setInterval(() => {
         if (!bannerMessages || bannerMessages.length === 0) return;
@@ -208,8 +232,8 @@ function updateAppHeaderInfo() {
     }
 }
 
-// التشغيل الابتدائي للوظائف
+// التشغيل الابتدائي ومزامنة البانر
 updateAppHeaderInfo();
 renderHeroSlider();
 renderProducts();
-startBannerTicker();
+initBannerRealtimeSync();
