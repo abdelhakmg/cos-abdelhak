@@ -1,13 +1,12 @@
 let currentBannerIdx = 0;
 let currentHeroIdx = 0;
-let activeCategoryFilter = 'الجميع';
+let activeCategoryFilter = 'جميع المنتجات';
 
-// تشغيل المزامنة الفورية لشريط البانر مع قاعدة البيانات
+// المزامنة الفورية لشريط البانر
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
 
-    // الاستماع الفوري لبيانات البانر من Firestore عبر جميع الأجهزة
     db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists && doc.data().bannerMessages && doc.data().bannerMessages.length > 0) {
             bannerMessages = doc.data().bannerMessages;
@@ -15,24 +14,19 @@ function initBannerRealtimeSync() {
             bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
         }
 
-        // إبقاء مؤشر العرض ضمن حدود المصفوفة الجديدة
         if (currentBannerIdx >= bannerMessages.length) {
             currentBannerIdx = 0;
         }
 
         bannerEl.innerText = bannerMessages[currentBannerIdx];
-        
-        // إعادة تشغيل المؤقت الزمني بـ 3 ثوانٍ
         startBannerTicker();
 
-        // تحديث القائمة في لوحة التحكم إذا كانت مفتوحة
         if (typeof renderBannerTextsList === 'function') {
             renderBannerTextsList();
         }
     });
 }
 
-// التبديل الدوري كل 3 ثوانٍ
 function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
@@ -50,7 +44,7 @@ function startBannerTicker() {
             bannerEl.innerText = bannerMessages[currentBannerIdx];
             bannerEl.style.opacity = '1';
         }, 300);
-    }, 3000); // 3 ثوانٍ
+    }, 3000);
 }
 
 function renderHeroSlider() {
@@ -75,7 +69,7 @@ function renderHeroSlider() {
                 <p class="text-gray-200 text-sm md:text-lg font-medium max-w-2xl mb-6 drop-shadow-lg">
                     ${currentSlide.desc}
                 </p>
-                <button onclick="filterCategory('الجميع')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">
+                <button onclick="filterCategory('جميع المنتجات')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">
                     تسوقي الآن 🔥
                 </button>
             </div>
@@ -182,43 +176,111 @@ function addToCart(id) {
     }
 }
 
+// دالة تصفية المنتجات بمرونة تامة ونظافة مطابقة
 function filterCategory(catName) {
-    activeCategoryFilter = catName;
+    activeCategoryFilter = catName.trim();
     const breadcrumb = document.getElementById('breadcrumb-current');
-    if (breadcrumb) breadcrumb.innerText = catName;
-    if (typeof applyFilters === 'function') applyFilters();
+    if (breadcrumb) breadcrumb.innerText = activeCategoryFilter;
+    
+    applyFilters();
     showPage('catalog');
 }
 
+// تطبيق التصفية والفرز
+function applyFilters() {
+    let filtered = [...products];
+
+    // الفلترة حسب الفئة مع دعم الأحرف والمسافات
+    if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
+        filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
+    }
+
+    // الفلترة بالسعر
+    const priceRangeInput = document.getElementById('filter-price-range');
+    if (priceRangeInput) {
+        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
+        filtered = filtered.filter(p => p.price <= maxPrice);
+    }
+
+    // الترتيب
+    const sortSelect = document.getElementById('sort-select');
+    const sortVal = sortSelect ? sortSelect.value : 'best';
+
+    if (sortVal === 'low') {
+        filtered.sort((a, b) => a.price - b.price);
+    } else if (sortVal === 'high') {
+        filtered.sort((a, b) => b.price - a.price);
+    } else {
+        // الأكثر مبيعاً
+        filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
+    }
+
+    const catalogGrid = document.getElementById('catalog-products');
+    const badge = document.getElementById('products-count-badge');
+    
+    if (badge) badge.innerText = filtered.length;
+
+    if (catalogGrid) {
+        catalogGrid.innerHTML = filtered.length === 0 ? 
+            '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات متوفرة في هذا القسم حالياً.</p>' :
+            filtered.map(p => renderSingleProductCard(p)).join('');
+    }
+}
+
+function updatePriceFilter(val) {
+    const valEl = document.getElementById('price-range-val');
+    if (valEl) valEl.innerText = parseFloat(val).toLocaleString() + ' دج';
+    applyFilters();
+}
+
+function resetFilters() {
+    activeCategoryFilter = 'جميع المنتجات';
+    const priceRangeInput = document.getElementById('filter-price-range');
+    if (priceRangeInput) priceRangeInput.value = 20000;
+    updatePriceFilter(20000);
+}
+
+// عرض الأكثر مبيعاً الحقيقي بفرز الكميات أو الفرز المخصص
 function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
-    
-    const homeList = products.slice(0, 8);
+
+    let bestSellers = [...products];
+    bestSellers.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
+    const homeList = bestSellers.slice(0, 8);
+
     grid.innerHTML = homeList.length === 0 ? 
         '<p class="col-span-full text-center text-gray-400 py-12">جاري تحميل المنتجات...</p>' :
         homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
+// القائمة العلوية مع الخيارات الجديدة المحددة
 function updateAppHeaderInfo() {
     const titleEl = document.getElementById('site-title');
     if (titleEl) titleEl.innerText = storeSettings.name + ' | المتجر الفاخر';
-    
+
     const nameEl = document.getElementById('store-name-display');
     if (nameEl) nameEl.innerText = storeSettings.name;
 
+    // شريط القائمة العلوية المطور
     const navEl = document.getElementById('header-nav');
     if (navEl) {
-        navEl.innerHTML = `<button onclick="filterCategory('الجميع')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>` +
-            categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
+        navEl.innerHTML = `
+            <button onclick="showPage('home')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>
+            <button onclick="filterCategory('جميع المنتجات')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">جميع المنتجات</button>
+        ` + categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
 
+    // القائمة المنسدلة للهواتف
     const mobileListEl = document.getElementById('mobile-drawer-categories');
     if (mobileListEl) {
-        mobileListEl.innerHTML = `<button onclick="filterCategory('الجميع'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">الرئيسية</button>` +
-            categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
+        mobileListEl.innerHTML = `
+            <button onclick="showPage('home'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-[#D4AF37] font-bold mb-2">الرئيسية</button>
+            <button onclick="filterCategory('جميع المنتجات'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">جميع المنتجات</button>
+        ` + categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
     }
 
+    // بطاقات الأقسام في الصفحة الرئيسية
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
         homeCatGrid.innerHTML = categories.map(c => `
@@ -232,7 +294,6 @@ function updateAppHeaderInfo() {
     }
 }
 
-// التشغيل الابتدائي ومزامنة البانر
 updateAppHeaderInfo();
 renderHeroSlider();
 renderProducts();
