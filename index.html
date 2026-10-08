@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
-
+    
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <!-- Font Awesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-
+    
     <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/custom.css">
@@ -39,7 +39,8 @@
                 </div>
             </div>
 
-            <nav id="header-nav" class="hidden lg:flex items-center gap-6 font-bold text-sm text-gray-300"></nav>
+            <!-- القائمة العلوية المطورة -->
+            <nav id="header-nav" class="hidden lg:flex items-center gap-5 font-bold text-sm text-gray-300"></nav>
 
             <div class="flex items-center gap-3">
                 <button onclick="showPage('cart')" class="p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative">
@@ -109,7 +110,7 @@
                     <div id="catalog-breadcrumb" class="flex items-center gap-2">
                         <span class="text-[#D4AF37] font-bold cursor-pointer" onclick="showPage('home')">الرئيسية</span>
                         <i class="fa-solid fa-angle-left text-[10px]"></i>
-                        <span id="breadcrumb-current" class="text-gray-200 font-bold">الجميع</span>
+                        <span id="breadcrumb-current" class="text-gray-200 font-bold">جميع المنتجات</span>
                     </div>
                 </div>
 
@@ -126,14 +127,17 @@
                             <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
                         </div>
                         <hr class="border-gray-800">
+                        
+                        <!-- شريط تصفية السعر المعدل من 0 دج إلى 20,000 دج -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر</h4>
-                            <input type="range" id="filter-price-range" min="500" max="10000" step="100" value="10000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
+                            <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
                             <div class="flex justify-between text-xs text-[#D4AF37] font-bold">
-                                <span>500 دج</span>
-                                <span id="price-range-val">10,000 دج</span>
+                                <span>0 دج</span>
+                                <span id="price-range-val">20,000 دج</span>
                             </div>
                         </div>
+
                         <hr class="border-gray-800">
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
@@ -274,7 +278,6 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <!-- TAB: PRODUCTS WITH PREVENTED FORM REFRESH -->
                 <div id="admin-tab-products" class="tab-content active space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -295,7 +298,6 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- قسم رفع الصور المباشر الـ 5 -->
                             <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
                                 <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (يمكنك رفع الصورة مباشرة من جهازك أو لصق رابط):</h4>
 
@@ -363,7 +365,6 @@
                     </div>
                 </div>
 
-                <!-- TAB: BRANDS WITH PREVENTED REFRESH -->
                 <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
