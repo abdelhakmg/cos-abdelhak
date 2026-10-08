@@ -40,22 +40,76 @@ function switchAdminTab(tabName) {
 }
 
 function renderAdminDashboard() {
-    // Analytics
-    const totalSales = orders.reduce((sum, o) => sum + o.total, 0);
+    // حساب المبيعات والطلبيات المؤكدة والمكتملة
+    const confirmedOrders = orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
+    const totalSales = confirmedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const completedCount = orders.filter(o => o.status === 'مكتملاً').length;
+    const successRate = orders.length ? Math.round((completedCount / orders.length) * 100) : 0;
+
     document.getElementById('stat-total-sales').innerText = totalSales.toLocaleString() + ' دج';
     document.getElementById('stat-orders-count').innerText = orders.length;
-    document.getElementById('stat-avg-order').innerText = orders.length ? Math.round(totalSales / orders.length).toLocaleString() + ' دج' : '0 دج';
+    document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
+    document.getElementById('stat-success-rate').innerText = successRate + '%';
+    document.getElementById('orders-badge-count').innerText = orders.length;
 
-    document.getElementById('admin-orders-log').innerHTML = orders.length === 0 ? '<p class="text-gray-400">لا توجد طلبات بعد</p>' : 
-        orders.map(o => `
-            <div class="border-b pb-3 flex justify-between items-center text-sm">
-                <div>
-                    <div class="font-bold">${o.customer} (${o.phone})</div>
-                    <div class="text-xs text-gray-500">${o.wilaya} - ${o.commune} | ${o.product}</div>
-                </div>
-                <div class="text-left"><span class="font-black text-[#B8860B]">${o.total.toLocaleString()} دج</span></div>
-            </div>
-        `).join('');
+    // سجل الطلبيات المتقدم
+    const ordersTbody = document.getElementById('admin-orders-log');
+    if (ordersTbody) {
+        if (orders.length === 0) {
+            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات مسجلة بعد</td></tr>';
+        } else {
+            ordersTbody.innerHTML = orders.map(o => {
+                const status = o.status || 'جديد';
+                let statusBadgeClass = 'bg-yellow-100 text-yellow-800';
+                if (status === 'مؤكد') statusBadgeClass = 'bg-blue-100 text-blue-800';
+                if (status === 'قيد الشحن') statusBadgeClass = 'bg-purple-100 text-purple-800';
+                if (status === 'مكتملاً') statusBadgeClass = 'bg-green-100 text-green-800';
+                if (status === 'ملغى') statusBadgeClass = 'bg-red-100 text-red-800';
+
+                let cleanPhone = (o.phone || '').replace(/\s+/g, '');
+                if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
+
+                const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${storeSettings.name} لتأكيد طلبكم الخاص بـ: ${o.product}. المبلغ الإجمالي: ${o.total} دج.`);
+
+                return `
+                    <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3">
+                            <div class="font-bold text-gray-900">${o.customer}</div>
+                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
+                            <div class="text-[11px] text-gray-500">${o.commune || ''}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-bold text-xs text-gray-900">${o.product}</div>
+                            <div class="font-black text-xs text-[#B8860B]">${o.total ? o.total.toLocaleString() : 0} دج</div>
+                        </td>
+                        <td class="p-3">
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold p-1.5 rounded-lg border outline-none cursor-pointer ${statusBadgeClass}">
+                                <option value="جديد" ${status === 'جديد' ? 'selected' : ''}>🟡 جديد (قيد الانتظار)</option>
+                                <option value="مؤكد" ${status === 'مؤكد' ? 'selected' : ''}>🔵 تم التأكيد هاتفياً</option>
+                                <option value="قيد الشحن" ${status === 'قيد الشحن' ? 'selected' : ''}>🟣 قيد الشحن</option>
+                                <option value="مكتملاً" ${status === 'مكتملاً' ? 'selected' : ''}>🟢 تم التسليم والمبلغ</option>
+                                <option value="ملغى" ${status === 'ملغى' ? 'selected' : ''}>🔴 ملغى</option>
+                            </select>
+                        </td>
+                        <td class="p-3 flex items-center gap-2">
+                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1">
+                                📞 اتصال
+                            </a>
+                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600 flex items-center gap-1">
+                                💬 واتساب
+                            </a>
+                            <button onclick="deleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    }
 
     // Hero Slides
     document.getElementById('admin-hero-slides-list').innerHTML = heroSlides.map((slide) => `
@@ -71,15 +125,13 @@ function renderAdminDashboard() {
         </div>
     `).join('');
 
-    // Select Categories
+    // Select Categories & Brands
     document.getElementById('prod-category-select').innerHTML = categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-
-    // Select Brands
     document.getElementById('prod-brand-select').innerHTML = brands.length === 0 
         ? '<option value="عامة">عامة</option>' 
         : brands.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
 
-    // Products List with Edit & Toggle Stock
+    // Products List
     document.getElementById('admin-products-tbody').innerHTML = products.map((p) => `
         <tr class="border-b">
             <td class="p-3"><img src="${p.images && p.images.length > 0 ? p.images[0] : ''}" class="w-10 h-10 object-cover rounded-lg"></td>
@@ -142,7 +194,20 @@ function renderAdminDashboard() {
     document.getElementById('set-pass').value = storeSettings.pass || 'admin123';
 }
 
-// Product Edit & Add Engine
+// Order Management Actions
+function updateOrderStatus(id, newStatus) {
+    db.collection("orders").doc(id).update({ status: newStatus }).then(() => {
+        renderAdminDashboard();
+    });
+}
+
+function deleteOrder(id) {
+    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الطلبية؟')) {
+        db.collection("orders").doc(id).delete();
+    }
+}
+
+// Product Actions
 function handleSaveProduct(e) {
     e.preventDefault();
     const editId = document.getElementById('editing-product-id').value;
@@ -167,16 +232,14 @@ function handleSaveProduct(e) {
     };
 
     if (editId) {
-        // Update Existing Product
         db.collection("products").doc(editId).update(pData).then(() => {
             alert('تم تحديث المنتج بنجاح! ✏️');
             resetProductForm();
         });
     } else {
-        // Add New Product
         pData.createdAt = new Date();
         db.collection("products").add(pData).then(() => {
-            alert('تم حفظ المنتج في السحابة وتزامنه بنجاح! 🚀');
+            alert('تم حفظ المنتج وتزامنه بنجاح! 🚀');
             resetProductForm();
         });
     }
