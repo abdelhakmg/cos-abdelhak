@@ -2,18 +2,31 @@ let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'الجميع';
 
+// تشغيل البانر العلوي والتبديل بين الجمل كل 3 ثوانٍ (3000ms)
 function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
-    if (!bannerEl || !bannerMessages || bannerMessages.length === 0) return;
-    
-    setInterval(() => {
+    if (!bannerEl) return;
+
+    if (!bannerMessages || bannerMessages.length === 0) {
+        bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
+    }
+
+    if (window.bannerTickerTimer) {
+        clearInterval(window.bannerTickerTimer);
+    }
+
+    bannerEl.innerText = bannerMessages[0];
+
+    window.bannerTickerTimer = setInterval(() => {
+        if (!bannerMessages || bannerMessages.length === 0) return;
+
         bannerEl.style.opacity = '0';
         setTimeout(() => {
             currentBannerIdx = (currentBannerIdx + 1) % bannerMessages.length;
             bannerEl.innerText = bannerMessages[currentBannerIdx];
             bannerEl.style.opacity = '1';
-        }, 400);
-    }, 4000);
+        }, 300);
+    }, 3000); // 3 ثوانٍ
 }
 
 function renderHeroSlider() {
@@ -28,7 +41,6 @@ function renderHeroSlider() {
         <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
             <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Hero Banner">
             
-            <!-- الكتابة فوق البانر (تختفي عند مرور الماوس لتظهر الصورة صافية) -->
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12 transition-opacity duration-500 group-hover:opacity-0 pointer-events-none">
                 <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">
                     ✨ التشكيلة الحصرية 2026
@@ -80,7 +92,6 @@ function renderSingleProductCard(p) {
 
     return `
         <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
-            
             <button onclick="toggleFavorite('${p.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
@@ -141,7 +152,9 @@ function addToCart(id) {
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         const badge = document.getElementById('cart-badge');
         if (badge) badge.innerText = cart.length;
-        alert('تمت إضافة المنتج للسلة بنجاح! 🛍️');
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" إلى السلة بنجاح.`, true);
+        }
     }
 }
 
@@ -157,7 +170,6 @@ function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
     
-    // عرض 8 منتجات فقط في الصفحة الرئيسية لتتوسط الشاشة بوضوح
     const homeList = products.slice(0, 8);
     grid.innerHTML = homeList.length === 0 ? 
         '<p class="col-span-full text-center text-gray-400 py-12">جاري تحميل المنتجات...</p>' :
@@ -177,7 +189,6 @@ function updateAppHeaderInfo() {
             categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
 
-    // القائمة المنسدلة للهاتف
     const mobileListEl = document.getElementById('mobile-drawer-categories');
     if (mobileListEl) {
         mobileListEl.innerHTML = `<button onclick="filterCategory('الجميع'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">الرئيسية</button>` +
@@ -197,7 +208,7 @@ function updateAppHeaderInfo() {
     }
 }
 
-// تشغيل الأوامر
+// التشغيل الابتدائي للوظائف
 updateAppHeaderInfo();
 renderHeroSlider();
 renderProducts();
