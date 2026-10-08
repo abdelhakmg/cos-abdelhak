@@ -2,6 +2,56 @@ let logoClickCount = 0;
 let logoClickTimer = null;
 let pendingDeleteOrderId = null;
 
+// دالة معالجة وضغط الصور المرفوعة مباشرة من الهاتف أو الحاسوب
+function handleImageUpload(event, targetInputId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // إظهار تنبيه جاري المعالجة
+    if (typeof showCustomAlert === 'function') {
+        showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+            // ضغط أبعاد الصورة لتسريع تحميل المتجر
+            const canvas = document.createElement('canvas');
+            const maxDimension = 800; // أقصى عرض/ارتفاع 800 بكسل
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxDimension) {
+                    height *= maxDimension / width;
+                    width = maxDimension;
+                }
+            } else {
+                if (height > maxDimension) {
+                    width *= maxDimension / height;
+                    height = maxDimension;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // تحويل الصورة لنص خفيف الحجم ورسوب الصورة في الحقل المخصص
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+            document.getElementById(targetInputId).value = compressedDataUrl;
+
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المباشرة بنجاح.', true);
+            }
+        };
+    };
+    reader.readAsDataURL(file);
+}
+
 function handleLogoClick(event) {
     logoClickCount++;
     if (logoClickCount === 1) {
@@ -141,7 +191,6 @@ function renderBannerTextsList() {
     `).join('');
 }
 
-// إضافة فورية مع المزامنة عبر الأجهزة
 function addBannerText() {
     const input = document.getElementById('new-banner-text');
     if (!input) return;
@@ -164,7 +213,6 @@ function addBannerText() {
     });
 }
 
-// حذف فوري مع المزامنة عبر الأجهزة
 function removeBannerText(index) {
     const targetText = bannerMessages[index];
     if (!targetText) return;
