@@ -274,11 +274,11 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <!-- TAB: PRODUCTS -->
+                <!-- TAB: PRODUCTS WITH PROPER FILE UPLOAD LAYOUT -->
                 <div id="admin-tab-products" class="tab-content active space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع أزرار رفع الصور المباشرة)</h3>
+                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)</h3>
                             <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
                         </div>
                         <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -295,53 +295,53 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- حقول رفع الصور المباشرة الـ 5 (من الهاتف أو الحاسوب) -->
-                            <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border">
-                                <h4 class="font-bold text-xs text-[#B8860B]"><i class="fa-solid fa-images"></i> صور المنتج (يمكنك الاختيار المباشر من معرض الصور أو وضع رابط)</h4>
+                            <!-- قسم رفع الصور الـ 5 الأنيق والمحاذى بوضوح -->
+                            <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (يمكنك رفع الصورة مباشرة من جهازك أو لصق رابط):</h4>
                                 
-                                <!-- صورة 1 (الرئيسية) -->
-                                <div class="flex items-center gap-2">
-                                    <input type="file" id="prod-img-file-main" accept="image/*" onchange="handleImageUpload(event, 'prod-img-main')" class="hidden">
-                                    <button type="button" onclick="document.getElementById('prod-img-file-main').click()" class="bg-[#D4AF37] text-black font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 hover:opacity-90 transition shadow-sm">
-                                        <i class="fa-solid fa-[#upload]"></i> 1. اختر من جهازك *
+                                <!-- صورة 1 -->
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
+                                    <button type="button" onclick="document.getElementById('file-input-1').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 1. رفع الصورة الرئيسية *
                                     </button>
-                                    <input type="url" id="prod-img-main" placeholder="أو ضع رابط الصورة الرئيسية هنا *" required class="border p-3 rounded-xl text-sm flex-1 bg-white">
+                                    <input type="url" id="prod-img-main" placeholder="أو رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
                                 <!-- صورة 2 -->
-                                <div class="flex items-center gap-2">
-                                    <input type="file" id="prod-img-file-2" accept="image/*" onchange="handleImageUpload(event, 'prod-img-2')" class="hidden">
-                                    <button type="button" onclick="document.getElementById('prod-img-file-2').click()" class="bg-gray-200 text-gray-800 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-gray-300 transition">
-                                        <i class="fa-solid fa-camera"></i> 2. رفع
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-2" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-2')">
+                                    <button type="button" onclick="document.getElementById('file-input-2').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 2. رفع الصورة 2
                                     </button>
-                                    <input type="url" id="prod-img-2" placeholder="رابط الصورة الثانية (اختياري)" class="border p-2.5 rounded-xl text-sm flex-1 bg-white">
+                                    <input type="url" id="prod-img-2" placeholder="أو رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
                                 <!-- صورة 3 -->
-                                <div class="flex items-center gap-2">
-                                    <input type="file" id="prod-img-file-3" accept="image/*" onchange="handleImageUpload(event, 'prod-img-3')" class="hidden">
-                                    <button type="button" onclick="document.getElementById('prod-img-file-3').click()" class="bg-gray-200 text-gray-800 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-gray-300 transition">
-                                        <i class="fa-solid fa-camera"></i> 3. رفع
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-3" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-3')">
+                                    <button type="button" onclick="document.getElementById('file-input-3').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 3. رفع الصورة 3
                                     </button>
-                                    <input type="url" id="prod-img-3" placeholder="رابط الصورة الثالثة (اختياري)" class="border p-2.5 rounded-xl text-sm flex-1 bg-white">
+                                    <input type="url" id="prod-img-3" placeholder="أو رابط الصورة الثالثة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
                                 <!-- صورة 4 -->
-                                <div class="flex items-center gap-2">
-                                    <input type="file" id="prod-img-file-4" accept="image/*" onchange="handleImageUpload(event, 'prod-img-4')" class="hidden">
-                                    <button type="button" onclick="document.getElementById('prod-img-file-4').click()" class="bg-gray-200 text-gray-800 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-gray-300 transition">
-                                        <i class="fa-solid fa-camera"></i> 4. رفع
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-4" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-4')">
+                                    <button type="button" onclick="document.getElementById('file-input-4').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 4. رفع الصورة 4
                                     </button>
-                                    <input type="url" id="prod-img-4" placeholder="رابط الصورة الرابعة (اختياري)" class="border p-2.5 rounded-xl text-sm flex-1 bg-white">
+                                    <input type="url" id="prod-img-4" placeholder="أو رابط الصورة الرابعة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
                                 <!-- صورة 5 -->
-                                <div class="flex items-center gap-2">
-                                    <input type="file" id="prod-img-file-5" accept="image/*" onchange="handleImageUpload(event, 'prod-img-5')" class="hidden">
-                                    <button type="button" onclick="document.getElementById('prod-img-file-5').click()" class="bg-gray-200 text-gray-800 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-gray-300 transition">
-                                        <i class="fa-solid fa-camera"></i> 5. رفع
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-5" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-5')">
+                                    <button type="button" onclick="document.getElementById('file-input-5').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 5. رفع الصورة 5
                                     </button>
-                                    <input type="url" id="prod-img-5" placeholder="رابط الصورة الخامسة (اختياري)" class="border p-2.5 rounded-xl text-sm flex-1 bg-white">
+                                    <input type="url" id="prod-img-5" placeholder="أو رابط الصورة الخامسة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
                             </div>
 
@@ -368,7 +368,6 @@
                     </div>
                 </div>
 
-                <!-- باقي التبويبات الأخرى كما هي -->
                 <div id="admin-tab-analytics" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border shadow-sm">
