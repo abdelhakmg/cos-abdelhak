@@ -5,27 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
     
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Font Awesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/custom.css">
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
-    <!-- Sticky Top Yellow Banner Ticker -->
+    <div id="splash-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a] transition-opacity duration-700 ease-out">
+        <div class="flex flex-col items-center text-center px-4">
+            <div class="relative mb-5">
+                <div class="w-20 h-20 rounded-full gold-gradient flex items-center justify-center text-black text-3xl shadow-2xl shadow-[#D4AF37]/50 crown-pulse">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black gold-text mb-2 tracking-wide font-['Cairo']">كوسمتيك عبد الحق</h1>
+            <p class="text-xs text-[#D4AF37] font-semibold mb-8 tracking-widest uppercase">"يبدو أن أحدهم سيغدو سعيداً اليوم"</p>
+            <div class="w-52 h-1.5 bg-gray-800 rounded-full overflow-hidden relative shadow-inner">
+                <div id="splash-progress-bar" class="h-full gold-gradient rounded-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
             🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام
         </span>
     </div>
 
-    <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
@@ -39,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- القائمة العلوية المطورة -->
             <nav id="header-nav" class="hidden lg:flex items-center gap-5 font-bold text-sm text-gray-300"></nav>
 
             <div class="flex items-center gap-3">
@@ -54,7 +63,6 @@
         </div>
     </header>
 
-    <!-- Mobile Drawer -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
         <div class="fixed inset-y-0 right-0 w-[85%] max-w-sm bg-[#0A0A0A] border-l border-[#D4AF37]/30 shadow-2xl p-6 flex flex-col justify-between z-50 overflow-y-auto">
@@ -78,7 +86,6 @@
     </div>
 
     <main class="flex-grow">
-        <!-- 1. HOME PAGE -->
         <div id="page-home" class="page-sec active">
             <section class="bg-black py-6 md:py-8 border-b border-[#D4AF37]/20 relative overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4">
@@ -103,7 +110,6 @@
             </section>
         </div>
 
-        <!-- 2. CATALOG PAGE -->
         <div id="page-catalog" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-6">
                 <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
@@ -128,7 +134,6 @@
                         </div>
                         <hr class="border-gray-800">
                         
-                        <!-- شريط تصفية السعر المعدل من 0 دج إلى 20,000 دج -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر</h4>
                             <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
@@ -165,7 +170,6 @@
             </div>
         </div>
 
-        <!-- 3. LANDING PAGE -->
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 grid md:grid-cols-2 gap-8 text-right">
@@ -243,7 +247,6 @@
             </div>
         </div>
 
-        <!-- 4. CART PAGE -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
@@ -260,7 +263,6 @@
             </div>
         </div>
 
-        <!-- 5. ADMIN DASHBOARD -->
         <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
                 <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
@@ -505,7 +507,6 @@
         </div>
     </main>
 
-    <!-- Modals -->
     <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
             <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
@@ -545,16 +546,13 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- Firebase SDK Compat Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Application Scripts -->
     <script src="js/data.js"></script>
     <script src="js/landing.js"></script>
     <script src="js/admin.js"></script>
