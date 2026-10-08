@@ -28,8 +28,6 @@
     <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-            
-            <!-- اللوجو واسم المتجر -->
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
                 <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
                     <img id="store-logo-img" class="w-full h-full object-cover hidden" alt="Logo">
@@ -41,17 +39,13 @@
                 </div>
             </div>
 
-            <!-- القائمة العلوية للحواسيب -->
             <nav id="header-nav" class="hidden lg:flex items-center gap-6 font-bold text-sm text-gray-300"></nav>
 
-            <!-- أدوات السلة وزر الموبايل -->
             <div class="flex items-center gap-3">
                 <button onclick="showPage('cart')" class="p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative">
                     <i class="fa-solid fa-bag-shopping text-xl"></i>
                     <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-[#D4AF37] text-black font-black text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">0</span>
                 </button>
-
-                <!-- زر القائمة المنسدلة للهواتف -->
                 <button onclick="toggleMobileMenu()" class="lg:hidden p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
@@ -59,7 +53,7 @@
         </div>
     </header>
 
-    <!-- Mobile Menu Drawer (القائمة المنسدلة للهواتف) -->
+    <!-- Mobile Drawer -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
         <div class="fixed inset-y-0 right-0 w-[85%] max-w-sm bg-[#0A0A0A] border-l border-[#D4AF37]/30 shadow-2xl p-6 flex flex-col justify-between z-50 overflow-y-auto">
@@ -73,10 +67,8 @@
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
-                
                 <div id="mobile-drawer-categories" class="space-y-2"></div>
             </div>
-
             <div class="pt-6 border-t border-gray-800 text-xs text-gray-500 text-center space-y-2">
                 <p class="text-[#D4AF37] font-bold"><i class="fa-solid fa-phone"></i> خدمة الزبائن متوفرة 24/7</p>
                 <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة</p>
@@ -85,10 +77,8 @@
     </div>
 
     <main class="flex-grow">
-        
         <!-- 1. HOME PAGE -->
         <div id="page-home" class="page-sec active">
-            <!-- Hero Banner Container -->
             <section class="bg-black py-6 md:py-8 border-b border-[#D4AF37]/20 relative overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4">
                     <div id="hero-slider-container" class="hero-banner-container"></div>
@@ -96,7 +86,6 @@
                 </div>
             </section>
 
-            <!-- Categories Grid -->
             <section class="bg-black py-8 border-b border-[#D4AF37]/20">
                 <div class="max-w-7xl mx-auto px-4">
                     <h2 class="text-white text-center text-xl font-black mb-6 gold-text">أقسام المتجر</h2>
@@ -104,8 +93,7 @@
                 </div>
             </section>
 
-            <!-- Best Sellers (8 Products Grid) -->
-            <section className="py-10 max-w-7xl mx-auto px-4">
+            <section class="py-10 max-w-7xl mx-auto px-4">
                 <div class="text-center mb-8">
                     <h2 class="text-2xl font-black text-white">🔥 الأكثر مبيعاً</h2>
                     <div class="w-20 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
@@ -126,7 +114,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <!-- Filters Sidebar -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -134,14 +121,11 @@
                             </h3>
                             <button onclick="resetFilters()" class="text-[11px] text-gray-400 hover:text-white underline">إعادة ضبط</button>
                         </div>
-
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">الفئة</h4>
                             <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
                         </div>
-
                         <hr class="border-gray-800">
-
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر</h4>
                             <input type="range" id="filter-price-range" min="500" max="10000" step="100" value="10000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
@@ -150,16 +134,13 @@
                                 <span id="price-range-val">10,000 دج</span>
                             </div>
                         </div>
-
                         <hr class="border-gray-800">
-
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
                             <div id="filter-brands-list" class="space-y-2 text-xs text-gray-400"></div>
                         </div>
                     </div>
 
-                    <!-- Products Grid Container -->
                     <div class="lg:col-span-3 space-y-4">
                         <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-xl p-4 flex flex-wrap justify-between items-center text-white gap-4">
                             <span class="text-xs font-bold text-gray-300">
@@ -174,7 +155,6 @@
                                 </select>
                             </div>
                         </div>
-
                         <div id="catalog-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
                     </div>
                 </div>
@@ -202,7 +182,6 @@
                     </div>
                 </div>
 
-                <!-- Express Order Form -->
                 <div id="order-form-section" class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right space-y-6 shadow-2xl">
                     <h2 class="text-xl font-black text-white border-b border-gray-800 pb-4 gold-text">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -249,7 +228,6 @@
                 </div>
             </div>
 
-            <!-- Bottom Sticky Bar -->
             <div class="sticky-bottom-bar bg-black border-t border-[#D4AF37]/30 text-white p-4 flex items-center justify-between max-w-4xl mx-auto rounded-t-2xl">
                 <div class="text-right">
                     <span class="text-[10px] text-gray-400 block">السعر الإجمالي</span>
@@ -293,7 +271,7 @@
                     <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
                     <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
-                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
+                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
                 <!-- TAB: SALES AND ORDERS -->
@@ -365,7 +343,6 @@
                         </div>
                         <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input type="hidden" id="editing-product-id">
-                            
                             <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
@@ -457,7 +434,7 @@
                     </div>
                 </div>
 
-                <!-- TAB: SETTINGS -->
+                <!-- TAB: SETTINGS & CUSTOM MESSAGES -->
                 <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
                         <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
@@ -467,13 +444,26 @@
                         </div>
                         <div id="banner-texts-list" class="space-y-2"></div>
 
+                        <!-- قسم إعدادات النوافذ والتنبيهات المخصصة -->
+                        <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B]">💬 إعدادات الرسائل والتنبيهات المخصصة</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">رسالة تم استلام الطلب بنجاح (الترحيبية)</label>
+                                <textarea id="set-msg-success" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">رسالة تنبيه نقص البيانات</label>
+                                <textarea id="set-msg-warning" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="يرجى ملء كافة معلومات الاستمارة الضرورية!"></textarea>
+                            </div>
+                        </div>
+
                         <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات</button>
+                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والرسائل</button>
                         </form>
                     </div>
                 </div>
@@ -481,6 +471,35 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal 1: نافذة التنبيه المخصصة (النجاح / التحذير) -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
+            <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
+                <i id="alert-icon" class="fa-solid fa-check"></i>
+            </div>
+            <h3 id="alert-title" class="text-xl font-black text-white gold-text">تم الاستلام بنجاح!</h3>
+            <p id="alert-message" class="text-sm text-gray-300 leading-relaxed"></p>
+            <button onclick="closeCustomAlert()" class="w-full py-3.5 gold-gradient text-black font-black rounded-xl text-sm shadow-lg hover:opacity-90 transition">
+                حسناً 👍
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 2: نافذة تأكيد الحذف المخصصة -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-red-500/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
+            <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 text-2xl shadow-lg">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-xl font-black text-white">حذف الطلبية؟</h3>
+            <p id="confirm-message" class="text-sm text-gray-300 leading-relaxed">هل أنت تأكد من رغبتك في حذف هذه الطلبية نهائياً؟</p>
+            <div class="flex gap-3">
+                <button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-red-700 transition">نعم، حذف</button>
+                <button onclick="closeCustomConfirm()" class="flex-1 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-700 transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Admin Auth Modal -->
     <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
