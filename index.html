@@ -443,5 +443,42 @@
     <script src="js/landing.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/app.js"></script>
+    <!-- Success Order Confirmation Modal (نافذة إتمام الطلب الفاخرة) -->
+    <div id="order-success-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border-2 border-[#D4AF37] rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
+            <!-- Glowing Gold Effect -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#D4AF37]/20 rounded-full blur-2xl"></div>
+            
+            <!-- Success Icon -->
+            <div class="w-20 h-20 rounded-full gold-gradient mx-auto flex items-center justify-center text-black text-3xl font-black shadow-lg shadow-[#D4AF37]/30">
+                <i class="fa-solid fa-check"></i>
+            </div>
+
+            <!-- Title & Details -->
+            <div class="space-y-2">
+                <h3 class="text-2xl font-black gold-text">تم إرسال طلبك بنجاح! 🎉</h3>
+                <p class="text-gray-300 text-sm leading-relaxed" id="success-modal-msg">
+                    شكراً لك، تم استلام طلبك بنجاح. سنتصل بك هاتفياً في أقرب وقت لتأكيد التوصيل!
+                </p>
+            </div>
+
+            <!-- Highlights Box -->
+            <div class="bg-black/60 border border-[#D4AF37]/30 rounded-2xl p-4 text-xs text-gray-300 text-right space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400">حالة الطلب:</span>
+                    <span class="text-green-400 font-bold">🟢 مؤكد قيد التجهيز</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-gray-800 pt-2">
+                    <span class="text-gray-400">نوع الدفع:</span>
+                    <span class="font-bold text-[#D4AF37]">الدفع عند الاستلام 🚚</span>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="closeSuccessModal()" class="w-full py-3.5 gold-gradient text-black font-black text-base rounded-2xl shadow-xl hover:opacity-90 transition cursor-pointer">
+                متابعة التسوق 🛍️
+            </button>
+        </div>
+    </div>
 </body>
 </html>
