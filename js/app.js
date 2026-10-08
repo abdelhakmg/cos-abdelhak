@@ -2,6 +2,35 @@ let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'جميع المنتجات';
 
+// 🚀 تحكم الشاشة الافتتاحية التحميلية الفاخرة
+function handleSplashScreen() {
+    const splash = document.getElementById('splash-screen');
+    const progressBar = document.getElementById('splash-progress-bar');
+    if (!splash || !progressBar) return;
+
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 15;
+        progressBar.style.width = Math.min(progress, 100) + '%';
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                splash.classList.add('splash-fade-out');
+                setTimeout(() => {
+                    splash.remove();
+                }, 700);
+            }, 400);
+        }
+    }, 100);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handleSplashScreen);
+} else {
+    handleSplashScreen();
+}
+
 // المزامنة الفورية لشريط البانر
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
