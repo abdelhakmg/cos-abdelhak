@@ -129,8 +129,29 @@ function addToCart(id) {
         cart.push(prod);
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         document.getElementById('cart-badge').innerText = cart.length;
-        alert('تمت إضافة المنتج للسلة بنجاح! 🛍️');
+        
+        // إشعار غير مزعج بدلاً من نافذة alert
+        showToast('تمت إضافة المنتج للسلة بنجاح! 🛍️');
     }
+}
+
+function showToast(message) {
+    let toast = document.getElementById('app-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast';
+        toast.className = 'fixed bottom-5 right-5 bg-black text-[#D4AF37] border border-[#D4AF37]/40 px-5 py-3 rounded-xl shadow-2xl z-50 text-xs font-bold transition-all duration-300 transform translate-y-10 opacity-0 flex items-center gap-2';
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check text-green-400 text-sm"></i> <span>${message}</span>`;
+    
+    setTimeout(() => {
+        toast.classList.remove('translate-y-10', 'opacity-0');
+    }, 100);
+
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+    }, 2500);
 }
 
 function filterCategory(catName) {
