@@ -21,7 +21,7 @@ function openLandingPage(productId) {
         : [mainImg];
 
     thumbsContainer.innerHTML = imagesList.map((imgUrl) => `
-        <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-200 hover:border-[#D4AF37] p-1 cursor-pointer bg-white overflow-hidden shadow-sm">
+        <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
             <img src="${imgUrl}" class="w-full h-full object-contain">
         </div>
     `).join('');
@@ -80,19 +80,53 @@ function scrollToOrderForm() {
     document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
 }
 
+// دالة النافذة المخصصة للتنبيهات
+function showCustomAlert(title, message, isSuccess = true) {
+    const modal = document.getElementById('custom-alert-modal');
+    const iconBox = document.getElementById('alert-icon-box');
+    const icon = document.getElementById('alert-icon');
+    const titleEl = document.getElementById('alert-title');
+    const msgEl = document.getElementById('alert-message');
+
+    titleEl.innerText = title;
+    msgEl.innerText = message;
+
+    if (isSuccess) {
+        iconBox.className = "w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg";
+        icon.className = "fa-solid fa-check";
+    } else {
+        iconBox.className = "w-16 h-16 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center mx-auto text-amber-500 text-2xl shadow-lg";
+        icon.className = "fa-solid fa-circle-exclamation";
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeCustomAlert() {
+    const modal = document.getElementById('custom-alert-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// إرسال الطلب مع النوافذ المحدثة
 function submitLandingOrder() {
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
     const wilayaCode = document.getElementById('cust-wilaya').value;
     const commune = document.getElementById('cust-commune').value;
 
+    // الرسائل المخصصة المسجلة
+    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
+    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
+
     if (!name || !phone || !wilayaCode) {
-        alert('يرجى ملء كافة معلومات الاستمارة الضرورية!');
+        showCustomAlert('تنبيه هام!', warnMsg, false);
         return;
     }
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const shipType = document.querySelector('input[name="shipping_type"]:checked').value;
+    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
 
     const newOrder = {
@@ -102,13 +136,12 @@ function submitLandingOrder() {
         commune: commune,
         product: currentLandingProduct.name,
         total: currentLandingProduct.price + shipCost,
-        status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
     };
 
     db.collection("orders").add(newOrder).then(() => {
-        alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
+        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
         showPage('home');
     });
 }
