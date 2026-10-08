@@ -142,3 +142,24 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #B8860B;
 }
+
+/* --- 9. الشاشة الافتتاحية التحميلية الفاخرة (Splash Screen) --- */
+@keyframes crownPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 45px rgba(212, 175, 55, 0.8);
+    }
+}
+
+.crown-pulse {
+    animation: crownPulse 2s infinite ease-in-out;
+}
+
+.splash-fade-out {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
