@@ -7,7 +7,6 @@ function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // إظهار تنبيه جاري المعالجة
     if (typeof showCustomAlert === 'function') {
         showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
     }
@@ -17,9 +16,8 @@ function handleImageUpload(event, targetInputId) {
         const img = new Image();
         img.src = e.target.result;
         img.onload = function() {
-            // ضغط أبعاد الصورة لتسريع تحميل المتجر
             const canvas = document.createElement('canvas');
-            const maxDimension = 800; // أقصى عرض/ارتفاع 800 بكسل
+            const maxDimension = 800; // الأبعاد القصوى للصورة لتسريع تحميل المتجر
             let width = img.width;
             let height = img.height;
 
@@ -40,12 +38,11 @@ function handleImageUpload(event, targetInputId) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // تحويل الصورة لنص خفيف الحجم ورسوب الصورة في الحقل المخصص
             const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
             document.getElementById(targetInputId).value = compressedDataUrl;
 
             if (typeof showCustomAlert === 'function') {
-                showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المباشرة بنجاح.', true);
+                showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المرفوعة بنجاح في الحقل.', true);
             }
         };
     };
