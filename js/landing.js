@@ -80,7 +80,6 @@ function scrollToOrderForm() {
     document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-// إرسال الطلب وإظهار النافذة الفاخرة
 function submitLandingOrder() {
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
@@ -109,13 +108,21 @@ function submitLandingOrder() {
     };
 
     db.collection("orders").add(newOrder).then(() => {
-        // تخصيص الرسالة باسم الزبون
-        document.getElementById('success-modal-msg').innerText = `شكراً لك أستاذ(ة) ${name}، تم استلام طلبك لمنتج (${currentLandingProduct.name}) بنجاح! سنتصل بك هاتفياً عبر الرقم (${phone}) لتأكيد التوصيل.`;
-        document.getElementById('order-success-modal').style.display = 'flex';
+        const msgEl = document.getElementById('success-modal-msg');
+        if (msgEl) {
+            msgEl.innerText = `شكراً لك أستاذ(ة) ${name}، تم استلام طلبك لمنتج (${currentLandingProduct.name}) بنجاح! سنتصل بك هاتفياً عبر الرقم (${phone}) لتأكيد التوصيل.`;
+        }
+        const modal = document.getElementById('order-success-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
     });
 }
 
 function closeSuccessModal() {
-    document.getElementById('order-success-modal').style.display = 'none';
+    const modal = document.getElementById('order-success-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     showPage('home');
 }
