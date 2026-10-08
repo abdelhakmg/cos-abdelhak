@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
-    
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Font Awesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    
+
     <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/custom.css">
@@ -274,7 +274,7 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <!-- TAB: PRODUCTS WITH PROPER FILE UPLOAD LAYOUT -->
+                <!-- TAB: PRODUCTS WITH PREVENTED FORM REFRESH -->
                 <div id="admin-tab-products" class="tab-content active space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -286,8 +286,8 @@
                             <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
-                            
-                            <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white"></select>
+
+                            <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white" required></select>
                             <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
 
                             <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
@@ -295,11 +295,10 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- قسم رفع الصور الـ 5 الأنيق والمحاذى بوضوح -->
+                            <!-- قسم رفع الصور المباشر الـ 5 -->
                             <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
                                 <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (يمكنك رفع الصورة مباشرة من جهازك أو لصق رابط):</h4>
-                                
-                                <!-- صورة 1 -->
+
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
                                     <button type="button" onclick="document.getElementById('file-input-1').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm whitespace-nowrap">
@@ -308,7 +307,6 @@
                                     <input type="url" id="prod-img-main" placeholder="أو رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
-                                <!-- صورة 2 -->
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-2" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-2')">
                                     <button type="button" onclick="document.getElementById('file-input-2').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
@@ -317,7 +315,6 @@
                                     <input type="url" id="prod-img-2" placeholder="أو رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
-                                <!-- صورة 3 -->
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-3" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-3')">
                                     <button type="button" onclick="document.getElementById('file-input-3').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
@@ -326,7 +323,6 @@
                                     <input type="url" id="prod-img-3" placeholder="أو رابط الصورة الثالثة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
-                                <!-- صورة 4 -->
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-4" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-4')">
                                     <button type="button" onclick="document.getElementById('file-input-4').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
@@ -335,7 +331,6 @@
                                     <input type="url" id="prod-img-4" placeholder="أو رابط الصورة الرابعة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
 
-                                <!-- صورة 5 -->
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-5" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-5')">
                                     <button type="button" onclick="document.getElementById('file-input-5').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
@@ -368,6 +363,21 @@
                     </div>
                 </div>
 
+                <!-- TAB: BRANDS WITH PREVENTED REFRESH -->
+                <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
+                    <div class="bg-white p-6 rounded-2xl border space-y-4">
+                        <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
+                        <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
+                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية (مثال: Dior, Chanel) *" required class="border p-3 rounded-xl text-sm flex-1">
+                            <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة الماركة</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h3 class="font-bold text-lg mb-4">العلامات التجارية المتاحة حالياً</h3>
+                        <div id="admin-brands-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                    </div>
+                </div>
+
                 <div id="admin-tab-analytics" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border shadow-sm">
@@ -384,7 +394,7 @@
                         </div>
                         <div class="bg-white p-5 rounded-2xl border shadow-sm">
                             <span class="text-xs text-gray-400 font-bold block mb-1">نسبة النجاح / التوصيل</span>
-                            <span id="stat-[#success-rate]" class="text-2xl font-black text-green-600">0%</span>
+                            <span id="stat-success-rate" class="text-2xl font-black text-green-600">0%</span>
                         </div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
@@ -422,20 +432,6 @@
                     <div class="bg-white p-6 rounded-2xl border">
                         <h3 class="font-bold text-lg mb-4">الإعلانات المعروضة حالياً</h3>
                         <div id="admin-hero-slides-list" class="space-y-3"></div>
-                    </div>
-                </div>
-
-                <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
-                    <div class="bg-white p-6 rounded-2xl border space-y-4">
-                        <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
-                        <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
-                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية (مثال: Dior, Chanel) *" required class="border p-3 rounded-xl text-sm flex-1">
-                            <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة الماركة</button>
-                        </form>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl border">
-                        <h3 class="font-bold text-lg mb-4">العلامات التجارية المتاحة حالياً</h3>
-                        <div id="admin-brands-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                     </div>
                 </div>
 
