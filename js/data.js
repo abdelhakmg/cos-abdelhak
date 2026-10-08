@@ -1,3 +1,13 @@
+// حظر نوافذ alert البدائية وتحويلها تلقائياً إلى النافذة الاحترافية
+window.alert = function(msg) {
+    if (typeof showOrderSuccessModal === 'function' && (msg.includes('استلام') || msg.includes('طلبك'))) {
+        showOrderSuccessModal();
+    } else if (typeof showToast === 'function') {
+        showToast(msg);
+    } else {
+        console.log("Alert blocked:", msg);
+    }
+};
 const firebaseConfig = {
     apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
     authDomain: "cos-abdelhak.firebaseapp.com",
