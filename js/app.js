@@ -1,13 +1,3 @@
-// حظر نوافذ alert البدائية وتحويلها تلقائياً إلى النافذة الاحترافية
-window.alert = function(msg) {
-    if (typeof showOrderSuccessModal === 'function' && (msg.includes('استلام') || msg.includes('طلبك'))) {
-        showOrderSuccessModal();
-    } else if (typeof showToast === 'function') {
-        showToast(msg);
-    } else {
-        console.log("Alert blocked:", msg);
-    }
-};
 let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'الجميع';
