@@ -110,7 +110,6 @@ function renderAdminDashboard() {
         }
     }
 
-    // إعدادات الرسائل
     if (document.getElementById('set-store-name')) {
         document.getElementById('set-store-name').value = storeSettings.name || '';
         document.getElementById('set-store-slogan').value = storeSettings.slogan || '';
@@ -119,9 +118,72 @@ function renderAdminDashboard() {
         document.getElementById('set-msg-success').value = storeSettings.msgSuccess || '';
         document.getElementById('set-msg-warning').value = storeSettings.msgWarning || '';
     }
+
+    renderBannerTextsList();
 }
 
-// نافذة الحذف المخصصة
+// عرض قائمة جمل البانر العلوي في لوحة التحكم
+function renderBannerTextsList() {
+    const container = document.getElementById('banner-texts-list');
+    if (!container) return;
+
+    if (!bannerMessages || bannerMessages.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 py-2">لا توجد جمل مضافة للبانر حالياً.</p>';
+        return;
+    }
+
+    container.innerHTML = bannerMessages.map((msg, idx) => `
+        <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
+            <span class="font-bold text-gray-800">${msg}</span>
+            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">
+                <i class="fa-solid fa-trash-can"></i> حذف
+            </button>
+        </div>
+    `).join('');
+}
+
+// إضافة جملة جديدة للبانر وحفظها مباشرة في قاعدة البيانات
+function addBannerText() {
+    const input = document.getElementById('new-banner-text');
+    if (!input) return;
+
+    const newText = input.value.trim();
+    if (!newText) {
+        showCustomAlert('تنبيه', 'يرجى كتابة النص المراد إضافته للبانر العلوي!', false);
+        return;
+    }
+
+    if (!Array.isArray(bannerMessages)) {
+        bannerMessages = [];
+    }
+
+    bannerMessages.push(newText);
+
+    db.collection("settings").doc("main").set({
+        bannerMessages: bannerMessages
+    }, { merge: true }).then(() => {
+        input.value = '';
+        renderBannerTextsList();
+        if (typeof startBannerTicker === 'function') startBannerTicker();
+        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي بنجاح!', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء الحفظ: ' + err.message, false);
+    });
+}
+
+// حذف جملة من البانر
+function removeBannerText(index) {
+    bannerMessages.splice(index, 1);
+    
+    db.collection("settings").doc("main").set({
+        bannerMessages: bannerMessages
+    }, { merge: true }).then(() => {
+        renderBannerTextsList();
+        if (typeof startBannerTicker === 'function') startBannerTicker();
+        showCustomAlert('تم الحذف', 'تم حذف الجملة من البانر العلوي.', true);
+    });
+}
+
 function promptDeleteOrder(id) {
     pendingDeleteOrderId = id;
     const modal = document.getElementById('custom-confirm-modal');
