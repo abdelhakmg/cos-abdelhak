@@ -87,12 +87,12 @@ function submitLandingOrder() {
     const commune = document.getElementById('cust-commune').value;
 
     if (!name || !phone || !wilayaCode) {
-        alert('يرجى ملء كافة معلومات الاستمارة الضرورية!');
+        showToast('يرجى ملء كافة معلومات الاستمارة الضرورية!');
         return;
     }
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const shipType = document.querySelector('input[name="shipping_type"]:checked').value;
+    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
 
     const newOrder = {
@@ -107,7 +107,40 @@ function submitLandingOrder() {
     };
 
     db.collection("orders").add(newOrder).then(() => {
-        alert('تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.');
-        showPage('home');
+        showOrderSuccessModal();
     });
+}
+
+function showOrderSuccessModal() {
+    let modal = document.getElementById('order-success-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'order-success-modal';
+        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 text-center';
+        modal.innerHTML = `
+            <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl transform transition-all scale-100 space-y-4 text-right dir-rtl">
+                <div class="w-16 h-16 rounded-full gold-gradient p-0.5 mx-auto flex items-center justify-center shadow-lg">
+                    <div class="w-full h-full bg-black rounded-full flex items-center justify-center">
+                        <i class="fa-solid fa-circle-check text-[#D4AF37] text-3xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-xl font-black text-white text-center">تم استلام طلبك بنجاح!</h3>
+                <p class="text-xs text-gray-300 leading-relaxed text-center">
+                    شكراً لثقتك بنا. سنتصل بك هاتفياً لتأكيد التوصيل والتفاصيل في أقرب وقت.
+                </p>
+                <button onclick="closeOrderSuccessModal()" class="w-full py-3 gold-gradient text-black font-extrabold text-sm rounded-xl shadow-md hover:opacity-90 transition">
+                    متابعة التسوق ✨
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    } else {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeOrderSuccessModal() {
+    const modal = document.getElementById('order-success-modal');
+    if (modal) modal.classList.add('hidden');
+    showPage('home');
 }
