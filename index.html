@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
-    <!-- Tailwind CSS -->
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons & Google Fonts -->
+    
+    <!-- Font Awesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/custom.css">
 </head>
-<body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f]">
+<body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
     <!-- Sticky Top Yellow Banner Ticker -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
@@ -23,46 +28,89 @@
     <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            
+            <!-- اللوجو واسم المتجر -->
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
                 <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
-                    <img id="store-logo-img" class="w-full h-full object-cover hidden">
+                    <img id="store-logo-img" class="w-full h-full object-cover hidden" alt="Logo">
                     <i id="store-logo-icon" class="fa-solid fa-crown text-xl"></i>
                 </div>
                 <div>
                     <span id="store-name-display" class="text-xl md:text-2xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
-                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سينام سعيداً اليوم"</span>
+                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سيغدو سعيداً اليوم"</span>
                 </div>
             </div>
 
-            <nav id="header-nav" class="hidden md:flex items-center gap-6 font-bold text-sm"></nav>
+            <!-- القائمة العلوية للحواسيب -->
+            <nav id="header-nav" class="hidden lg:flex items-center gap-6 font-bold text-sm text-gray-300"></nav>
 
-            <div class="flex items-center gap-4">
-                <button onclick="showPage('cart')" class="p-2 text-gray-300 hover:text-[#D4AF37] transition relative">
-                    <i class="fa-solid fa-bag-shopping text-2xl"></i>
-                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-[#D4AF37] text-black font-black text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+            <!-- أدوات السلة وزر الموبايل -->
+            <div class="flex items-center gap-3">
+                <button onclick="showPage('cart')" class="p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative">
+                    <i class="fa-solid fa-bag-shopping text-xl"></i>
+                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-[#D4AF37] text-black font-black text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">0</span>
+                </button>
+
+                <!-- زر القائمة المنسدلة للهواتف -->
+                <button onclick="toggleMobileMenu()" class="lg:hidden p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
                 </button>
             </div>
         </div>
     </header>
 
+    <!-- Mobile Menu Drawer (القائمة المنسدلة للهواتف) -->
+    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
+        <div class="fixed inset-y-0 right-0 w-[85%] max-w-sm bg-[#0A0A0A] border-l border-[#D4AF37]/30 shadow-2xl p-6 flex flex-col justify-between z-50 overflow-y-auto">
+            <div>
+                <div class="flex justify-between items-center pb-4 border-b border-gray-800 mb-6">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-crown text-[#D4AF37]"></i>
+                        <span class="text-white font-bold text-lg gold-text">أقسام المتجر</span>
+                    </div>
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-xl bg-[#121212] text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                
+                <div id="mobile-drawer-categories" class="space-y-2"></div>
+            </div>
+
+            <div class="pt-6 border-t border-gray-800 text-xs text-gray-500 text-center space-y-2">
+                <p class="text-[#D4AF37] font-bold"><i class="fa-solid fa-phone"></i> خدمة الزبائن متوفرة 24/7</p>
+                <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة</p>
+            </div>
+        </div>
+    </div>
+
     <main class="flex-grow">
+        
         <!-- 1. HOME PAGE -->
         <div id="page-home" class="page-sec active">
-            <section class="bg-black text-white py-10 md:py-14 border-b border-[#D4AF37]/20 relative overflow-hidden">
-                <div class="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center min-h-[300px]" id="hero-slider-container"></div>
-                <div class="flex justify-center gap-2 mt-4" id="hero-slider-dots"></div>
-            </section>
-
-            <section class="bg-black py-8 border-b border-[#D4AF37]/20">
+            <!-- Hero Banner Container -->
+            <section class="bg-black py-6 md:py-8 border-b border-[#D4AF37]/20 relative overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4">
-                    <h2 class="text-white text-center text-xl font-black mb-6 gold-text">أقسام المتجر</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-5" id="home-category-cards"></div>
+                    <div id="hero-slider-container" class="hero-banner-container"></div>
+                    <div id="hero-slider-dots" class="flex justify-center gap-2 mt-4"></div>
                 </div>
             </section>
 
-            <section class="py-10 max-w-7xl mx-auto px-4">
-                <h2 class="text-2xl font-black text-center text-white mb-8">🔥 الأكثر مبيعاً</h2>
-                <div id="home-products" class="grid grid-cols-2 md:grid-cols-4 gap-6"></div>
+            <!-- Categories Grid -->
+            <section class="bg-black py-8 border-b border-[#D4AF37]/20">
+                <div class="max-w-7xl mx-auto px-4">
+                    <h2 class="text-white text-center text-xl font-black mb-6 gold-text">أقسام المتجر</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4" id="home-category-cards"></div>
+                </div>
+            </section>
+
+            <!-- Best Sellers (8 Products Grid) -->
+            <section className="py-10 max-w-7xl mx-auto px-4">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-black text-white">🔥 الأكثر مبيعاً</h2>
+                    <div class="w-20 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
+                </div>
+                <div id="home-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 justify-center"></div>
             </section>
         </div>
 
@@ -73,11 +121,12 @@
                     <div id="catalog-breadcrumb" class="flex items-center gap-2">
                         <span class="text-[#D4AF37] font-bold cursor-pointer" onclick="showPage('home')">الرئيسية</span>
                         <i class="fa-solid fa-angle-left text-[10px]"></i>
-                        <span id="breadcrumb-current" class="text-gray-200 font-bold">المكياج</span>
+                        <span id="breadcrumb-current" class="text-gray-200 font-bold">الجميع</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <!-- Filters Sidebar -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -110,6 +159,7 @@
                         </div>
                     </div>
 
+                    <!-- Products Grid Container -->
                     <div class="lg:col-span-3 space-y-4">
                         <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-xl p-4 flex flex-wrap justify-between items-center text-white gap-4">
                             <span class="text-xs font-bold text-gray-300">
@@ -125,7 +175,7 @@
                             </div>
                         </div>
 
-                        <div id="catalog-products" class="grid grid-cols-2 md:grid-cols-3 gap-5"></div>
+                        <div id="catalog-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
                     </div>
                 </div>
             </div>
@@ -134,58 +184,72 @@
         <!-- 3. LANDING PAGE -->
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
-                <div class="bg-white rounded-3xl border shadow-lg overflow-hidden p-6 md:p-10 mb-8 grid md:grid-cols-2 gap-8 text-right">
-                    <div class="flex flex-col-reverse md:flex-row gap-4">
-                        <div id="landing-thumbnails-list" class="flex md:flex-col gap-2 justify-center"></div>
-                        <div class="bg-gray-50 rounded-2xl p-4 flex-1 flex items-center justify-center border h-80">
+                <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 grid md:grid-cols-2 gap-8 text-right">
+                    <div>
+                        <div class="bg-black rounded-2xl p-4 flex items-center justify-center border border-gray-800 h-80">
                             <img id="landing-main-img" class="max-h-full object-contain transition-all duration-300">
                         </div>
+                        <div id="landing-thumbnails-list" class="flex gap-2 mt-4 overflow-x-auto pb-2 justify-center"></div>
                     </div>
                     <div class="space-y-4">
-                        <span id="landing-category" class="bg-gold-500/10 text-[#B8860B] text-xs font-bold px-3 py-1 rounded-full"></span>
-                        <h1 id="landing-title" class="text-3xl font-black text-gray-900"></h1>
+                        <span id="landing-category" class="bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-bold px-3 py-1 rounded-full border border-[#D4AF37]/40"></span>
+                        <h1 id="landing-title" class="text-3xl font-black text-white"></h1>
                         <div class="flex items-center gap-4">
-                            <span id="landing-price" class="text-3xl font-black text-[#B8860B]"></span>
-                            <span id="landing-old-price" class="text-sm text-gray-400 line-through"></span>
+                            <span id="landing-price" class="text-3xl font-black gold-text"></span>
+                            <span id="landing-old-price" class="text-sm text-gray-500 line-through"></span>
                         </div>
-                        <p id="landing-desc" class="text-gray-600 text-sm leading-relaxed"></p>
+                        <p id="landing-desc" class="text-gray-300 text-sm leading-relaxed"></p>
                     </div>
                 </div>
 
-                <div id="order-form-section" class="bg-white rounded-3xl border shadow-xl p-6 md:p-10 text-right space-y-6">
-                    <h2 class="text-2xl font-black text-gray-900 border-b pb-4">استمارة الطلب السريع</h2>
+                <!-- Express Order Form -->
+                <div id="order-form-section" class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right space-y-6 shadow-2xl">
+                    <h2 class="text-xl font-black text-white border-b border-gray-800 pb-4 gold-text">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-xs font-bold mb-2">الاسم واللقب *</label><input type="text" id="cust-name" placeholder="عبدالحق محمد" class="w-full border p-3.5 rounded-xl text-sm outline-none"></div>
-                        <div><label class="block text-xs font-bold mb-2">رقم الهاتف *</label><input type="tel" id="cust-phone" placeholder="06XXXXXXXX" class="w-full border p-3.5 rounded-xl text-sm outline-none"></div>
-                        <div><label class="block text-xs font-bold mb-2">الولاية *</label><select id="cust-wilaya" onchange="handleWilayaChange()" class="w-full border p-3.5 rounded-xl text-sm bg-white outline-none"></select></div>
-                        <div><label class="block text-xs font-bold mb-2">البلدية *</label><select id="cust-commune" onchange="calculateLandingTotal()" class="w-full border p-3.5 rounded-xl text-sm bg-white outline-none"></select></div>
+                        <div>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">الاسم واللقب *</label>
+                            <input type="text" id="cust-name" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">رقم الهاتف *</label>
+                            <input type="tel" id="cust-phone" placeholder="06XXXXXXXX" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">الولاية *</label>
+                            <select id="cust-wilaya" onchange="handleWilayaChange()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">البلدية *</label>
+                            <select id="cust-commune" onchange="calculateLandingTotal()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]"></select>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold mb-2">نوع التوصيل *</label>
+                        <label class="block text-xs font-bold mb-2 text-gray-300">نوع التوصيل *</label>
                         <div class="grid grid-cols-2 gap-4">
-                            <label class="border rounded-xl p-4 flex items-center justify-between cursor-pointer">
+                            <label class="border border-gray-800 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37] transition">
                                 <input type="radio" name="shipping_type" value="home" checked onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                <span class="text-xs font-bold">توصيل للمنزل</span>
-                                <span id="price-shipping-home" class="text-xs font-bold text-[#B8860B]">0 دج</span>
+                                <span class="text-xs font-bold text-white">توصيل للمنزل</span>
+                                <span id="price-shipping-home" class="text-xs font-bold text-[#D4AF37]">0 دج</span>
                             </label>
-                            <label class="border rounded-xl p-4 flex items-center justify-between cursor-pointer">
+                            <label class="border border-gray-800 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37] transition">
                                 <input type="radio" name="shipping_type" value="office" onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                <span class="text-xs font-bold">استلام من المكتب</span>
-                                <span id="price-shipping-office" class="text-xs font-bold text-[#B8860B]">0 دج</span>
+                                <span class="text-xs font-bold text-white">استلام من المكتب</span>
+                                <span id="price-shipping-office" class="text-xs font-bold text-[#D4AF37]">0 دج</span>
                             </label>
                         </div>
                     </div>
-                    <div class="bg-gray-50 p-5 rounded-2xl border space-y-3">
-                        <div class="flex justify-between text-sm"><span>سعر المنتج:</span><span id="sum-prod-price" class="font-bold">0 دج</span></div>
-                        <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold">0 دج</span></div>
-                        <div class="border-t pt-3 flex justify-between text-lg font-black"><span>المجموع الكلي:</span><span id="sum-total-price" class="text-[#B8860B]">0 دج</span></div>
+                    <div class="bg-black/60 p-5 rounded-2xl border border-gray-800 space-y-3 text-gray-300">
+                        <div class="flex justify-between text-sm"><span>سعر المنتج:</span><span id="sum-prod-price" class="font-bold text-white">0 دج</span></div>
+                        <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold text-[#D4AF37]">0 دج</span></div>
+                        <div class="border-t border-gray-800 pt-3 flex justify-between text-lg font-black"><span>المجموع الإجمالي:</span><span id="sum-total-price" class="gold-text">0 دج</span></div>
                     </div>
-                    <button onclick="submitLandingOrder()" class="w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition cursor-pointer">
-                        تأكيد الطلب الآن (الدفع عند الاستلام)
+                    <button onclick="submitLandingOrder()" class="w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition">
+                        تأكيد الطلب الآن (الدفع عند الاستلام) 🚚
                     </button>
                 </div>
             </div>
 
+            <!-- Bottom Sticky Bar -->
             <div class="sticky-bottom-bar bg-black border-t border-[#D4AF37]/30 text-white p-4 flex items-center justify-between max-w-4xl mx-auto rounded-t-2xl">
                 <div class="text-right">
                     <span class="text-[10px] text-gray-400 block">السعر الإجمالي</span>
@@ -202,12 +266,12 @@
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div id="cart-list" class="lg:col-span-2 bg-white rounded-2xl border p-6 space-y-4"></div>
-                    <div class="bg-white rounded-2xl border p-6 h-fit text-right space-y-4">
-                        <h3 class="font-bold border-b pb-3">ملخص الطلب</h3>
-                        <div class="flex justify-between text-sm"><span class="text-gray-500">المجموع الفرعي</span><span id="subtotal">0 دج</span></div>
-                        <div class="flex justify-between text-sm"><span class="text-gray-500">رسوم التوصيل</span><span>500 دج</span></div>
-                        <div class="border-t pt-3 flex justify-between font-black text-xl"><span>المجموع الكلي</span><span id="total" class="text-[#B8860B]">0 دج</span></div>
+                    <div id="cart-list" class="lg:col-span-2 bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 space-y-4 text-white"></div>
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 h-fit text-right space-y-4 text-white">
+                        <h3 class="font-bold border-b border-gray-800 pb-3 gold-text">ملخص الطلب</h3>
+                        <div class="flex justify-between text-sm"><span class="text-gray-400">المجموع الفرعي</span><span id="subtotal">0 دج</span></div>
+                        <div class="flex justify-between text-sm"><span class="text-gray-400">رسوم التوصيل</span><span>500 دج</span></div>
+                        <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-xl"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
                         <button onclick="alert('تم استلام طلبك بنجاح!')" class="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg">إتمام الطلب</button>
                     </div>
                 </div>
@@ -218,8 +282,8 @@
         <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
                 <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-                    <h1 class="text-2xl font-black">⚙️ لوحة تحكم المتجر المتطورة</h1>
-                    <button onclick="showPage('home')" class="bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
+                    <h1 class="text-2xl font-black gold-text">⚙️ لوحة تحكم المتجر المتطورة</h1>
+                    <button onclick="showPage('home')" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
                 </div>
 
                 <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-2">
@@ -258,7 +322,6 @@
                             <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
                             <span class="text-xs text-gray-500 font-bold">إجمالي الطلبات: <span id="orders-badge-count" class="text-[#B8860B]">0</span></span>
                         </div>
-                        
                         <div class="overflow-x-auto">
                             <table class="w-full text-right text-sm">
                                 <thead class="bg-gray-100 border-b text-gray-700">
@@ -276,6 +339,7 @@
                     </div>
                 </div>
 
+                <!-- TAB: HERO SLIDES -->
                 <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة إعلان جديد للبانر الرئيسي</h3>
@@ -292,7 +356,7 @@
                     </div>
                 </div>
 
-                <!-- TAB: PRODUCTS WITH EDIT CAPABILITY -->
+                <!-- TAB: PRODUCTS -->
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -307,7 +371,6 @@
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
                             
                             <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white"></select>
-                            
                             <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
 
                             <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
@@ -344,7 +407,7 @@
                     </div>
                 </div>
 
-                <!-- TAB: BRANDS MANAGEMENT -->
+                <!-- TAB: BRANDS -->
                 <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
@@ -359,6 +422,7 @@
                     </div>
                 </div>
 
+                <!-- TAB: CATEGORIES -->
                 <div id="admin-tab-categories" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة فئة جديدة</h3>
@@ -374,6 +438,7 @@
                     </div>
                 </div>
 
+                <!-- TAB: SHIPPING -->
                 <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
@@ -392,6 +457,7 @@
                     </div>
                 </div>
 
+                <!-- TAB: SETTINGS -->
                 <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
                         <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
@@ -418,7 +484,7 @@
 
     <!-- Admin Auth Modal -->
     <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
             <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none">
