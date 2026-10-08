@@ -223,7 +223,7 @@
                 </div>
 
                 <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-2">
-                    <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات</button>
+                    <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات والطلبات</button>
                     <button onclick="switchAdminTab('hero')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-hero">🖼️ البانرات الإعلانية</button>
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-products">🛍️ المنتجات والتوافر</button>
                     <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
@@ -232,14 +232,48 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والاتصالات</button>
                 </div>
 
+                <!-- TAB: SALES AND ORDERS -->
                 <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات</span><span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span></div>
-                        <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">عدد الطلبات</span><span id="stat-orders-count" class="text-2xl font-black">0</span></div>
-                        <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">متوسط قيمة الطلب</span><span id="stat-avg-order" class="text-2xl font-black text-blue-600">0 دج</span></div>
-                        <div class="bg-white p-5 rounded-2xl border"><span class="text-xs text-gray-400 font-bold block mb-1">نسبة التحويل</span><span class="text-2xl font-black text-green-600">4.8%</span></div>
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+                            <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات المؤكدة</span>
+                            <span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+                            <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي الطلبات</span>
+                            <span id="stat-orders-count" class="text-2xl font-black">0</span>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+                            <span class="text-xs text-gray-400 font-bold block mb-1">متوسط قيمة الطلب</span>
+                            <span id="stat-avg-order" class="text-2xl font-black text-blue-600">0 دج</span>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+                            <span class="text-xs text-gray-400 font-bold block mb-1">نسبة النجاح / التوصيل</span>
+                            <span id="stat-success-rate" class="text-2xl font-black text-green-600">0%</span>
+                        </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl border"><h3 class="font-bold text-lg mb-4">سجل الطلبيات التفصيلي</h3><div id="admin-orders-log" class="space-y-3"></div></div>
+
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                        <div class="flex justify-between items-center border-b pb-4">
+                            <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
+                            <span class="text-xs text-gray-500 font-bold">إجمالي الطلبات: <span id="orders-badge-count" class="text-[#B8860B]">0</span></span>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-gray-100 border-b text-gray-700">
+                                    <tr>
+                                        <th class="p-3">الزبون والهاتف</th>
+                                        <th class="p-3">العنوان (الولاية / البلدية)</th>
+                                        <th class="p-3">المنتج والمبلغ</th>
+                                        <th class="p-3">حالة الطلب</th>
+                                        <th class="p-3">الاتصال والإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-orders-log"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
