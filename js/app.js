@@ -4,7 +4,7 @@ let activeCategoryFilter = 'الجميع';
 
 function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
-    if (!bannerEl || bannerMessages.length === 0) return;
+    if (!bannerEl || !bannerMessages || bannerMessages.length === 0) return;
     
     setInterval(() => {
         bannerEl.style.opacity = '0';
@@ -20,34 +20,37 @@ function renderHeroSlider() {
     const container = document.getElementById('hero-slider-container');
     const dotsContainer = document.getElementById('hero-slider-dots');
     
-    if (!container || heroSlides.length === 0) return;
+    if (!container || !heroSlides || heroSlides.length === 0) return;
 
     const currentSlide = heroSlides[currentHeroIdx];
 
     container.innerHTML = `
-        <div class="space-y-6 text-right">
-            <h1 class="text-3xl md:text-5xl font-black leading-tight text-white">
-                ${currentSlide.title}
-            </h1>
-            <p class="text-sm md:text-base text-gray-300 font-light leading-relaxed">
-                ${currentSlide.desc}
-            </p>
-            <button onclick="filterCategory('الجميع')" class="px-8 py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition">
-                تسوقي الآن <i class="fa-solid fa-arrow-left mr-2"></i>
-            </button>
-        </div>
-        <div class="flex justify-center">
-            <div class="w-60 h-60 md:w-72 md:h-72 rounded-3xl gold-gradient p-1 shadow-2xl overflow-hidden">
-                <div class="w-full h-full bg-[#121212] rounded-3xl flex items-center justify-center overflow-hidden p-2">
-                    <img src="${currentSlide.image}" class="w-full h-full object-cover rounded-2xl" alt="Hero Banner">
-                </div>
+        <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
+            <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Hero Banner">
+            
+            <!-- الكتابة فوق البانر (تختفي عند مرور الماوس لتظهر الصورة صافية) -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12 transition-opacity duration-500 group-hover:opacity-0 pointer-events-none">
+                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">
+                    ✨ التشكيلة الحصرية 2026
+                </span>
+                <h1 class="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-2xl max-w-3xl leading-tight">
+                    ${currentSlide.title}
+                </h1>
+                <p class="text-gray-200 text-sm md:text-lg font-medium max-w-2xl mb-6 drop-shadow-lg">
+                    ${currentSlide.desc}
+                </p>
+                <button onclick="filterCategory('الجميع')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">
+                    تسوقي الآن 🔥
+                </button>
             </div>
         </div>
     `;
 
-    dotsContainer.innerHTML = heroSlides.map((_, idx) => `
-        <button onclick="setHeroSlide(${idx})" class="w-2.5 h-2.5 rounded-full transition-all ${idx === currentHeroIdx ? 'bg-[#D4AF37] w-6' : 'bg-gray-600'}"></button>
-    `).join('');
+    if (dotsContainer) {
+        dotsContainer.innerHTML = heroSlides.map((_, idx) => `
+            <button onclick="setHeroSlide(${idx})" class="h-2.5 rounded-full transition-all duration-300 ${idx === currentHeroIdx ? 'bg-[#D4AF37] w-8' : 'bg-gray-600 w-2.5'}"></button>
+        `).join('');
+    }
 }
 
 function setHeroSlide(idx) {
@@ -57,10 +60,18 @@ function setHeroSlide(idx) {
 
 function showPage(pageId) {
     document.querySelectorAll('.page-sec').forEach(el => el.classList.remove('active'));
-    document.getElementById('page-' + pageId).classList.add('active');
+    const targetPage = document.getElementById('page-' + pageId);
+    if (targetPage) targetPage.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (pageId === 'admin') renderAdminDashboard();
-    if (pageId === 'cart') renderCart();
+    if (pageId === 'admin' && typeof renderAdminDashboard === 'function') renderAdminDashboard();
+    if (pageId === 'cart' && typeof renderCart === 'function') renderCart();
+}
+
+function toggleMobileMenu() {
+    const drawer = document.getElementById('mobile-drawer');
+    if (drawer) {
+        drawer.classList.toggle('hidden');
+    }
 }
 
 function renderSingleProductCard(p) {
@@ -68,30 +79,30 @@ function renderSingleProductCard(p) {
     const isFav = favorites.includes(p.id);
 
     return `
-        <div class="bg-white rounded-2xl border p-4 text-right flex flex-col justify-between shadow-md relative hover:shadow-xl transition group">
+        <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
             
-            <button onclick="toggleFavorite('${p.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10">
+            <button onclick="toggleFavorite('${p.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
 
             <div>
-                <div class="h-44 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer overflow-hidden" onclick="openLandingPage('${p.id}')">
-                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-300">
+                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer overflow-hidden" onclick="openLandingPage('${p.id}')">
+                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500">
                 </div>
 
                 <div class="flex items-center gap-1.5 mb-1.5">
-                    <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500' : 'bg-red-500'}"></span>
+                    <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
                     <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
                 </div>
 
-                <h3 class="font-bold text-sm text-gray-900 truncate my-1 cursor-pointer" onclick="openLandingPage('${p.id}')">${p.name}</h3>
+                <h3 class="font-bold text-sm text-gray-900 truncate my-1 cursor-pointer group-hover:text-[#B8860B] transition" onclick="openLandingPage('${p.id}')">${p.name}</h3>
 
                 <div class="flex items-center gap-2 mb-1">
-                    <span class="font-black text-sm text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</span>
-                    ${p.oldPrice ? `<span class="text-[10px] text-gray-400 line-through">${p.oldPrice.toLocaleString()} دج</span>` : ''}
+                    <span class="font-black text-base text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</span>
+                    ${p.oldPrice ? `<span class="text-xs text-gray-400 line-through">${p.oldPrice.toLocaleString()} دج</span>` : ''}
                 </div>
 
-                <div class="flex items-center gap-1 text-[#D4AF37] text-xs mb-3">
+                <div class="flex items-center gap-1 text-amber-400 text-xs mb-3">
                     <i class="fa-solid fa-star"></i>
                     <i class="fa-solid fa-star"></i>
                     <i class="fa-solid fa-star"></i>
@@ -101,10 +112,10 @@ function renderSingleProductCard(p) {
             </div>
 
             <div class="space-y-2">
-                <button onclick="addToCart('${p.id}')" class="w-full py-2 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                <button onclick="addToCart('${p.id}')" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
                     <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
                 </button>
-                <button onclick="openLandingPage('${p.id}')" class="w-full py-2 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-sm hover:opacity-90 transition">
+                <button onclick="openLandingPage('${p.id}')" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
                     اطلب الآن 🔥
                 </button>
             </div>
@@ -119,7 +130,7 @@ function toggleFavorite(id) {
         favorites.push(id);
     }
     localStorage.setItem('lb_favs_v7', JSON.stringify(favorites));
-    applyFilters();
+    if (typeof applyFilters === 'function') applyFilters();
     renderProducts();
 }
 
@@ -128,180 +139,66 @@ function addToCart(id) {
     if (prod) {
         cart.push(prod);
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
-        document.getElementById('cart-badge').innerText = cart.length;
-        
-        // إشعار غير مزعج بدلاً من نافذة alert
-        showToast('تمت إضافة المنتج للسلة بنجاح! 🛍️');
+        const badge = document.getElementById('cart-badge');
+        if (badge) badge.innerText = cart.length;
+        alert('تمت إضافة المنتج للسلة بنجاح! 🛍️');
     }
-}
-
-function showToast(message) {
-    let toast = document.getElementById('app-toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'app-toast';
-        toast.className = 'fixed bottom-5 right-5 bg-black text-[#D4AF37] border border-[#D4AF37]/40 px-5 py-3 rounded-xl shadow-2xl z-50 text-xs font-bold transition-all duration-300 transform translate-y-10 opacity-0 flex items-center gap-2';
-        document.body.appendChild(toast);
-    }
-    toast.innerHTML = `<i class="fa-solid fa-circle-check text-green-400 text-sm"></i> <span>${message}</span>`;
-    
-    setTimeout(() => {
-        toast.classList.remove('translate-y-10', 'opacity-0');
-    }, 100);
-
-    setTimeout(() => {
-        toast.classList.add('translate-y-10', 'opacity-0');
-    }, 2500);
 }
 
 function filterCategory(catName) {
     activeCategoryFilter = catName;
-    document.getElementById('breadcrumb-current').innerText = catName;
-    applyFilters();
+    const breadcrumb = document.getElementById('breadcrumb-current');
+    if (breadcrumb) breadcrumb.innerText = catName;
+    if (typeof applyFilters === 'function') applyFilters();
     showPage('catalog');
-}
-
-function updatePriceFilter(val) {
-    document.getElementById('price-range-val').innerText = parseFloat(val).toLocaleString() + ' دج';
-    applyFilters();
-}
-
-function resetFilters() {
-    activeCategoryFilter = 'الجميع';
-    document.getElementById('filter-price-range').value = 10000;
-    document.getElementById('price-range-val').innerText = '10,000 دج';
-    document.querySelectorAll('.brand-checkbox').forEach(cb => cb.checked = false);
-    document.querySelectorAll('.cat-checkbox').forEach(cb => cb.checked = false);
-    applyFilters();
-}
-
-function updateBrandsListUI() {
-    const container = document.getElementById('filter-brands-list');
-    if (!container) return;
-
-    if (brands.length === 0) {
-        container.innerHTML = '<span class="text-gray-500 text-[11px]">لا توجد ماركات مضافة</span>';
-        return;
-    }
-
-    container.innerHTML = brands.map(b => `
-        <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" onchange="applyFilters()" value="${b.name}" class="brand-checkbox accent-[#D4AF37]">
-            ${b.name}
-        </label>
-    `).join('');
-}
-
-function applyFilters() {
-    let result = [...products];
-
-    // Category Filter
-    const selectedCats = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
-    if (selectedCats.length > 0) {
-        result = result.filter(p => selectedCats.includes(p.category));
-    } else if (activeCategoryFilter !== 'الجميع') {
-        result = result.filter(p => p.category === activeCategoryFilter);
-    }
-
-    // Price Filter
-    const maxPrice = parseFloat(document.getElementById('filter-price-range').value);
-    result = result.filter(p => (p.price || 0) <= maxPrice);
-
-    // Brand Filter
-    const selectedBrands = Array.from(document.querySelectorAll('.brand-checkbox:checked')).map(cb => cb.value);
-    if (selectedBrands.length > 0) {
-        result = result.filter(p => selectedBrands.includes(p.brand));
-    }
-
-    // Sorting
-    const sortVal = document.getElementById('sort-select').value;
-    if (sortVal === 'low') result.sort((a, b) => (a.price || 0) - (b.price || 0));
-    if (sortVal === 'high') result.sort((a, b) => (b.price || 0) - (a.price || 0));
-
-    // Update Catalog
-    document.getElementById('products-count-badge').innerText = result.length;
-    const catalogGrid = document.getElementById('catalog-products');
-    
-    catalogGrid.innerHTML = result.length === 0 ? 
-        '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات تطابق اختياراتك</p>' :
-        result.map(p => renderSingleProductCard(p)).join('');
-}
-
-function updateAppHeaderInfo() {
-    document.getElementById('site-title').innerText = storeSettings.name + ' | المتجر الفاخر';
-    document.getElementById('store-name-display').innerText = storeSettings.name;
-    document.getElementById('store-slogan-display').innerText = `"${storeSettings.slogan}"`;
-    
-    if (storeSettings.logoUrl) {
-        document.getElementById('store-logo-img').src = storeSettings.logoUrl;
-        document.getElementById('store-logo-img').classList.remove('hidden');
-        document.getElementById('store-logo-icon').classList.add('hidden');
-    }
-
-    // Header Links
-    const navEl = document.getElementById('header-nav');
-    navEl.innerHTML = `<button onclick="filterCategory('الجميع')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>` +
-        categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
-
-    // Filter Categories
-    document.getElementById('filter-categories-list').innerHTML = categories.map(c => `
-        <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" value="${c.name}" onchange="applyFilters()" class="cat-checkbox accent-[#D4AF37]">
-            ${c.name}
-        </label>
-    `).join('');
-
-    // Home Category Cards
-    document.getElementById('home-category-cards').innerHTML = categories.map(c => `
-        <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg">
-            <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md">
-                <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black">
-            </div>
-            <h3 class="text-white font-bold text-sm tracking-wide">${c.name}</h3>
-        </div>
-    `).join('');
-
-    updateBrandsListUI();
 }
 
 function renderProducts() {
     const grid = document.getElementById('home-products');
-    if (grid) grid.innerHTML = products.map(p => renderSingleProductCard(p)).join('');
+    if (!grid) return;
+    
+    // عرض 8 منتجات فقط في الصفحة الرئيسية لتتوسط الشاشة بوضوح
+    const homeList = products.slice(0, 8);
+    grid.innerHTML = homeList.length === 0 ? 
+        '<p class="col-span-full text-center text-gray-400 py-12">جاري تحميل المنتجات...</p>' :
+        homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
-function renderCart() {
-    const container = document.getElementById('cart-list');
-    if (cart.length === 0) {
-        container.innerHTML = '<p class="text-center text-gray-400 py-10">السلة فارغة حالياً</p>';
-        document.getElementById('subtotal').innerText = '0 دج';
-        document.getElementById('total').innerText = '0 دج';
-        return;
+function updateAppHeaderInfo() {
+    const titleEl = document.getElementById('site-title');
+    if (titleEl) titleEl.innerText = storeSettings.name + ' | المتجر الفاخر';
+    
+    const nameEl = document.getElementById('store-name-display');
+    if (nameEl) nameEl.innerText = storeSettings.name;
+
+    const navEl = document.getElementById('header-nav');
+    if (navEl) {
+        navEl.innerHTML = `<button onclick="filterCategory('الجميع')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>` +
+            categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
-    let subtotal = 0;
-    container.innerHTML = cart.map((item, idx) => {
-        subtotal += item.price || 0;
-        const img = (item.images && item.images.length > 0) ? item.images[0] : '';
-        return `
-            <div class="flex items-center justify-between border-b pb-4">
-                <div class="flex items-center gap-4">
-                    <img src="${img}" class="w-16 h-16 object-cover rounded-lg border">
-                    <div class="text-right">
-                        <h4 class="font-bold text-sm">${item.name}</h4>
-                        <span class="text-xs text-[#B8860B] font-bold">${item.price ? item.price.toLocaleString() : 0} دج</span>
-                    </div>
+
+    // القائمة المنسدلة للهاتف
+    const mobileListEl = document.getElementById('mobile-drawer-categories');
+    if (mobileListEl) {
+        mobileListEl.innerHTML = `<button onclick="filterCategory('الجميع'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">الرئيسية</button>` +
+            categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
+    }
+
+    const homeCatGrid = document.getElementById('home-category-cards');
+    if (homeCatGrid) {
+        homeCatGrid.innerHTML = categories.map(c => `
+            <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
+                <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
+                    <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black">
                 </div>
-                <button onclick="cart.splice(${idx},1); localStorage.setItem('lb_cart_v7', JSON.stringify(cart)); renderCart();" class="text-red-500 text-xs font-bold">حذف</button>
+                <h3 class="text-white font-bold text-sm tracking-wide group-hover:text-[#D4AF37]">${c.name}</h3>
             </div>
-        `;
-    }).join('');
-    document.getElementById('subtotal').innerText = subtotal.toLocaleString() + ' دج';
-    document.getElementById('total').innerText = Math.max(0, subtotal + 500 - 1000).toLocaleString() + ' دج';
-    document.getElementById('cart-badge').innerText = cart.length;
+        `).join('');
+    }
 }
 
-// Run Initializer
+// تشغيل الأوامر
 updateAppHeaderInfo();
 renderHeroSlider();
 renderProducts();
-applyFilters();
 startBannerTicker();
