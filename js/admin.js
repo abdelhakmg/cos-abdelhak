@@ -2,7 +2,6 @@ let logoClickCount = 0;
 let logoClickTimer = null;
 let pendingDeleteOrderId = null;
 
-// معالجة وضغط الصور المرفوعة من الجهاز
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
@@ -89,16 +88,13 @@ function switchAdminTab(tabName) {
     }
 }
 
-// تحديث وتعبئة الخيارات والبيانات في لوحة التحكم
 function populateAdminDropdowns() {
-    // تعبئة قائمة الأقسام في نموذج المنتج
     const catSelect = document.getElementById('prod-category-select');
     if (catSelect) {
         catSelect.innerHTML = '<option value="">-- اختر الفئة / القسم * --</option>' + 
             categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
 
-    // تعبئة قائمة الماركات في نموذج المنتج
     const brandSelect = document.getElementById('prod-brand-select');
     if (brandSelect) {
         const brandList = (typeof brands !== 'undefined' && brands.length > 0) ? brands : ["Dior", "Chanel", "Gucci", "Versace", "عام"];
@@ -106,7 +102,6 @@ function populateAdminDropdowns() {
             brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
     }
 
-    // عرض قائمة الماركات المتاحة حالياً
     const brandsListContainer = document.getElementById('admin-brands-list');
     if (brandsListContainer) {
         const brandList = (typeof brands !== 'undefined' && brands.length > 0) ? brands : [];
@@ -209,7 +204,6 @@ function renderAdminDashboard() {
     renderBannerTextsList();
 }
 
-// عرض جدول المنتجات في لوحة التحكم
 function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
     if (!tbody) return;
@@ -238,7 +232,6 @@ function renderAdminProductsTable() {
     }).join('');
 }
 
-// دالة حفظ الماركة بدون خروج من اللوحة
 function handleSaveBrand(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('brand-name-input');
@@ -266,7 +259,6 @@ function handleSaveBrand(e) {
     });
 }
 
-// دالة حذف الماركة
 function deleteBrand(index) {
     if (typeof brands !== 'undefined' && brands[index]) {
         brands.splice(index, 1);
@@ -279,7 +271,6 @@ function deleteBrand(index) {
     }
 }
 
-// دالة حفظ المنتج بدون خروج من لوحة التحكم
 function handleSaveProduct(e) {
     if (e) e.preventDefault();
 
@@ -473,5 +464,91 @@ function handleSaveSettings(e) {
 
     db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
         showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل المخصصة بنجاح!', true);
+    });
+}
+
+// ==========================================
+// 🚀 الدوال المعالجة المكملة لحفظ البانرات، الفئات والولايات
+// ==========================================
+
+function handleSaveHeroSlide(e) {
+    if (e) e.preventDefault();
+    const title = document.getElementById('hero-title-input').value.trim();
+    const desc = document.getElementById('hero-desc-input').value.trim();
+    const image = document.getElementById('hero-img-input').value.trim();
+
+    if (!title || !desc || !image) {
+        showCustomAlert('تنبيه', 'يرجى ملء كافة خانات الإعلان!', false);
+        return;
+    }
+
+    db.collection("heroSlides").add({
+        title: title,
+        desc: desc,
+        image: image,
+        createdAt: new Date()
+    }).then(() => {
+        document.getElementById('hero-title-input').value = '';
+        document.getElementById('hero-desc-input').value = '';
+        document.getElementById('hero-img-input').value = '';
+        showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ البانر: ' + err.message, false);
+    });
+}
+
+function handleSaveCategory(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('cat-name-input').value.trim();
+    const image = document.getElementById('cat-img-input').value.trim();
+
+    if (!name || !image) {
+        showCustomAlert('تنبيه', 'يرجى إدخال اسم الفئة ورابط الصورة!', false);
+        return;
+    }
+
+    db.collection("categories").add({
+        name: name,
+        image: image,
+        createdAt: new Date()
+    }).then(() => {
+        document.getElementById('cat-name-input').value = '';
+        document.getElementById('cat-img-input').value = '';
+        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ الفئة: ' + err.message, false);
+    });
+}
+
+function handleSaveWilaya(e) {
+    if (e) e.preventDefault();
+    const code = document.getElementById('wilaya-code').value.trim();
+    const name = document.getElementById('wilaya-name').value.trim();
+    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
+    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
+    const communesInput = document.getElementById('wilaya-communes-input').value.trim();
+
+    if (!code || !name) {
+        showCustomAlert('تنبيه', 'يرجى إدخال رمز واسم الولاية!', false);
+        return;
+    }
+
+    const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [];
+
+    db.collection("wilayas").doc(code).set({
+        code: code,
+        name: name,
+        homeCost: homeCost,
+        officeCost: officeCost,
+        communes: communes
+    }).then(() => {
+        document.getElementById('wilaya-code').value = '';
+        document.getElementById('wilaya-name').value = '';
+        document.getElementById('wilaya-home-cost').value = '';
+        document.getElementById('wilaya-office-cost').value = '';
+        document.getElementById('wilaya-communes-input').value = '';
+        showCustomAlert('تم الحفظ', 'تم حفظ بيانات التسعير والتوصيل للولاية بنجاح!', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ بيانات الولاية: ' + err.message, false);
     });
 }
