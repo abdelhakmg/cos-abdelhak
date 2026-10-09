@@ -29,40 +29,47 @@
 
     <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-2 md:gap-4">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
-                <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden">
+                <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden flex-shrink-0">
                     <img id="store-logo-img" class="w-full h-full object-cover hidden" alt="Logo">
                     <i id="store-logo-icon" class="fa-solid fa-crown text-xl"></i>
                 </div>
                 <div>
-                    <span id="store-name-display" class="text-lg md:text-2xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
+                    <span id="store-name-display" class="text-base md:text-xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
                     <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سيغدو سعيداً اليوم"</span>
                 </div>
             </div>
 
-            <!-- شريط البحث المباشر -->
-            <div class="flex-1 max-w-md mx-2 hidden md:block relative">
-                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" placeholder="ابحث عن منتج، قسم، أو ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2.5 px-4 pr-10 outline-none focus:border-[#D4AF37] transition">
-                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-[#D4AF37] text-xs"></i>
-                <div id="search-results-dropdown" class="absolute top-12 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
+            <!-- شريط البحث المباشر في الوسط -->
+            <div class="flex-1 max-w-sm hidden md:block relative mx-4">
+                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" placeholder="ابحث عن منتج، قسم، أو ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
+                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
+                <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
             </div>
 
-            <!-- القائمة العلوية المطورة -->
-            <nav id="header-nav" class="hidden lg:flex items-center gap-5 font-bold text-sm text-gray-300"></nav>
+            <!-- القائمة العلوية وأزرار التفاعل -->
+            <div class="flex items-center gap-2">
+                <div id="header-nav" class="hidden lg:flex items-center gap-4 font-bold text-xs text-gray-300"></div>
 
-            <div class="flex items-center gap-2 md:gap-3">
-                <button onclick="showPage('wishlist')" class="p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative" title="المفضلة">
-                    <i class="fa-solid fa-heart text-xl"></i>
-                    <span id="wishlist-badge" class="absolute -top-1.5 -right-1.5 bg-red-600 text-white font-black text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                <button onclick="showPage('wishlist')" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative" title="المفضلة">
+                    <i class="fa-solid fa-heart text-lg"></i>
+                    <span id="wishlist-badge" class="absolute -top-1.5 -right-1.5 bg-red-600 text-white font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
                 </button>
-                <button onclick="showPage('cart')" class="p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative" title="السلة">
-                    <i class="fa-solid fa-bag-shopping text-xl"></i>
-                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-[#D4AF37] text-black font-black text-xs w-5 h-5 rounded-full flex items-center justify-center animate-pulse">0</span>
+                <button onclick="showPage('cart')" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative" title="السلة">
+                    <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-[#D4AF37] text-black font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center animate-pulse">0</span>
                 </button>
-                <button onclick="toggleMobileMenu()" class="lg:hidden p-2.5 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition">
-                    <i class="fa-solid fa-bars text-xl"></i>
+                <button onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition">
+                    <i class="fa-solid fa-bars text-lg"></i>
                 </button>
+            </div>
+        </div>
+        <!-- شريط البحث للموبايل أسفل الهيدر مباشرة -->
+        <div class="px-4 pb-3 md:hidden">
+            <div class="relative">
+                <input type="text" oninput="handleLiveSearch(this.value)" placeholder="ابحث عن منتج..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
+                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
             </div>
         </div>
     </header>
@@ -81,13 +88,6 @@
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
-
-                <!-- البحث المباشر في الموبايل -->
-                <div class="relative mb-4 md:hidden">
-                    <input type="text" oninput="handleLiveSearch(this.value)" placeholder="ابحث في المتجر..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2.5 px-4 pr-10 outline-none">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-[#D4AF37] text-xs"></i>
-                </div>
-
                 <div id="mobile-drawer-categories" class="space-y-2"></div>
             </div>
             <div class="pt-6 border-t border-gray-800 text-xs text-gray-500 text-center space-y-2">
@@ -97,14 +97,14 @@
         </div>
     </div>
 
-    <!-- Social Proof Notification Popup -->
+    <!-- Social Proof Toast (الطلبات الحقيقية) -->
     <div id="social-proof-toast" class="fixed bottom-20 right-4 z-40 bg-[#121212] border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs">
         <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black font-black text-sm flex-shrink-0">
             <i class="fa-solid fa-bag-shopping"></i>
         </div>
         <div class="text-right">
-            <p id="sp-text" class="text-xs font-bold text-white">طلب جديد قبل قليل!</p>
-            <p id="sp-sub" class="text-[10px] text-gray-400">قام زبون بشراء هذا المنتج الآن ⚡</p>
+            <p id="sp-text" class="text-xs font-bold text-white">طلب جديد تم تأكيده!</p>
+            <p id="sp-sub" class="text-[10px] text-gray-400">من قائمة الطلبات الحقيقية للمتجر ⚡</p>
         </div>
     </div>
 
@@ -204,14 +204,14 @@
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 
-                <!-- عداد تنازلي للعرض الحصري -->
-                <div class="bg-gradient-to-r from-red-900/40 via-red-600/30 to-red-900/40 border border-red-500/50 rounded-2xl p-3 mb-6 text-center flex flex-wrap items-center justify-between gap-2 shadow-lg">
+                <!-- عداد تنازلي اختياري يظهر فقط إذا قام التاجر بتفعيله من لوحة التحكم -->
+                <div id="landing-countdown-box" class="bg-gradient-to-r from-red-900/40 via-red-600/30 to-red-900/40 border border-red-500/50 rounded-2xl p-3 mb-6 text-center flex flex-wrap items-center justify-between gap-2 shadow-lg hidden">
                     <span class="text-xs md:text-sm font-black text-red-400 flex items-center gap-1.5 mx-auto md:mx-0">
-                        <i class="fa-solid fa-clock text-base animate-spin"></i> سارع بالتسوق! ينتهي العرض الحصري خلال:
+                        <i class="fa-solid fa-clock text-base animate-spin"></i> سارع بالتسوق! ينتهي العرض خلال:
                     </span>
-                    <div id="countdown-timer" class="flex gap-2 font-black font-mono text-white text-sm mx-auto md:mx-0">
-                        <span id="cd-hours" class="bg-black px-2.5 py-1 rounded-lg border border-red-500/40">02</span>:
-                        <span id="cd-minutes" class="bg-black px-2.5 py-1 rounded-lg border border-red-500/40">15</span>:
+                    <div class="flex gap-2 font-black font-mono text-white text-sm mx-auto md:mx-0">
+                        <span id="cd-hours" class="bg-black px-2.5 py-1 rounded-lg border border-red-500/40">00</span>:
+                        <span id="cd-minutes" class="bg-black px-2.5 py-1 rounded-lg border border-red-500/40">00</span>:
                         <span id="cd-seconds" class="bg-black px-2.5 py-1 rounded-lg border border-red-500/40 text-red-400">00</span>
                     </div>
                 </div>
@@ -235,40 +235,10 @@
                     </div>
                 </div>
 
-                <!-- استمارة الطلب السريع مع تخفيضات الكمية -->
+                <!-- استمارة الطلب السريع العادية بدون تعقيد -->
                 <div id="order-form-section" class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right space-y-6 shadow-2xl">
                     <h2 class="text-xl font-black text-white border-b border-gray-800 pb-4 gold-text">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h2>
                     
-                    <!-- تخفيضات الكمية -->
-                    <div class="space-y-3">
-                        <label class="block text-xs font-bold text-gray-300">اختر العرض المناسب لك 🔥</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <label class="border-2 border-[#D4AF37] bg-[#1e1e1e] p-3.5 rounded-2xl flex items-center justify-between cursor-pointer group">
-                                <div class="flex items-center gap-2">
-                                    <input type="radio" name="qty_offer" value="1" checked onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                    <span class="text-xs font-bold text-white">قطعة واحدة</span>
-                                </div>
-                                <span class="text-[10px] text-gray-400">السعر العادي</span>
-                            </label>
-
-                            <label class="border border-gray-800 bg-black/40 hover:border-[#D4AF37] p-3.5 rounded-2xl flex items-center justify-between cursor-pointer group transition">
-                                <div class="flex items-center gap-2">
-                                    <input type="radio" name="qty_offer" value="2" onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                    <span class="text-xs font-bold text-white">قطعتين (2)</span>
-                                </div>
-                                <span class="text-[10px] bg-red-600/30 text-red-400 px-2 py-0.5 rounded-full font-bold">خصم 10% 🎁</span>
-                            </label>
-
-                            <label class="border border-gray-800 bg-black/40 hover:border-[#D4AF37] p-3.5 rounded-2xl flex items-center justify-between cursor-pointer group transition">
-                                <div class="flex items-center gap-2">
-                                    <input type="radio" name="qty_offer" value="3" onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                    <span class="text-xs font-bold text-white">3 قطع</span>
-                                </div>
-                                <span class="text-[10px] bg-green-600/30 text-green-400 px-2 py-0.5 rounded-full font-bold">شحن مجاني 🚚</span>
-                            </label>
-                        </div>
-                    </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold mb-2 text-gray-300">الاسم واللقب *</label>
@@ -303,7 +273,7 @@
                         </div>
                     </div>
                     <div class="bg-black/60 p-5 rounded-2xl border border-gray-800 space-y-3 text-gray-300">
-                        <div class="flex justify-between text-sm"><span>سعر المنتجات:</span><span id="sum-prod-price" class="font-bold text-white">0 دج</span></div>
+                        <div class="flex justify-between text-sm"><span>سعر المنتج:</span><span id="sum-prod-price" class="font-bold text-white">0 دج</span></div>
                         <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold text-[#D4AF37]">0 دج</span></div>
                         <div class="border-t border-gray-800 pt-3 flex justify-between text-lg font-black"><span>المجموع الإجمالي:</span><span id="sum-total-price" class="gold-text">0 دج</span></div>
                     </div>
@@ -312,10 +282,10 @@
                     </button>
                 </div>
 
-                <!-- قسم مراجعات الزبائن والتجارب -->
+                <!-- قسم مراجعات الزبائن -->
                 <div class="mt-12 bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 space-y-6">
                     <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-star text-amber-400"></i> آراء وتقييمات زبائننا الكرام</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="customer-reviews-container">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-right space-y-2">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-sm text-white">سارة - الجزائر العاصمة</span>
@@ -346,7 +316,7 @@
             </div>
         </div>
 
-        <!-- 4. WISHLIST PAGE (المفضلة) -->
+        <!-- 4. WISHLIST PAGE -->
         <div id="page-wishlist" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white"><i class="fa-solid fa-heart text-red-500"></i> قائمة المنتجات المفضلة</h1>
@@ -392,7 +362,7 @@
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)</h3>
+                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع رفع الصور والعد التنازلي)</h3>
                             <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
                         </div>
                         <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -409,8 +379,19 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
+                            <!-- خيارات العد التنازلي الاختياري -->
+                            <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+                                <h4 class="font-bold text-xs text-[#B8860B]">⏱️ إعدادات العد التنازلي للعرض (اختياري):</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <label class="flex items-center gap-2 text-xs font-bold">
+                                        <input type="checkbox" id="prod-has-countdown" class="w-4 h-4 accent-[#D4AF37]"> تفعيل العد التنازلي لهذا المنتج
+                                    </label>
+                                    <input type="number" id="prod-countdown-hours" placeholder="عدد ساعات العرض (مثال: 2)" class="border p-2 rounded-xl text-xs bg-white">
+                                </div>
+                            </div>
+
                             <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (يمكنك رفع الصورة مباشرة من جهازك أو لصق رابط):</h4>
+                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (رفع مباشر أو رابط):</h4>
 
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
@@ -515,7 +496,6 @@
                             <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
                             
                             <div class="flex items-center gap-2 flex-wrap">
-                                <!-- فلترة الطلبات حسب الحالة -->
                                 <select id="order-status-filter" onchange="renderAdminDashboard()" class="border p-2 rounded-xl text-xs font-bold outline-none bg-gray-50">
                                     <option value="الجميع">جميع الطلبيات 📋</option>
                                     <option value="جديد">🟡 الجديدة فقط</option>
@@ -525,7 +505,6 @@
                                     <option value="ملغى">🔴 الملغاة</option>
                                 </select>
 
-                                <!-- زر تصدير الطلبات إلى إكسل -->
                                 <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
                                     <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
                                 </button>
@@ -634,7 +613,7 @@
         </div>
     </main>
 
-    <!-- Lightbox Modal لتكبر الصور -->
+    <!-- Lightbox Modal -->
     <div id="image-lightbox-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
         <img id="lightbox-target-img" class="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl border border-[#D4AF37]/40 shadow-2xl">
     </div>
@@ -667,7 +646,7 @@
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
