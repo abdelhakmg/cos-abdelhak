@@ -46,7 +46,7 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
-// التحقق الآمن من كلمة السر المشفرة
+// التحقق الآمن من كلمة السر عبر الـ SHA-256 Hash
 async function checkAdminPassword() {
     const passInput = document.getElementById('admin-pass-input');
     if (!passInput) return;
