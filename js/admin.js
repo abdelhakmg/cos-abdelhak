@@ -1,6 +1,5 @@
 let pendingDeleteOrderId = null;
 
-// معالجة وضغط الصور المرفوعة من الجهاز
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
@@ -116,7 +115,6 @@ function populateAdminDropdowns() {
     }
 }
 
-// 📊 دالة تصدير الطلبات إلى Excel
 function exportOrdersToExcel() {
     if (!orders || orders.length === 0) {
         showCustomAlert('تنبيه', 'لا توجد طلبيات لتصديرها!', false);
@@ -128,7 +126,7 @@ function exportOrdersToExcel() {
         "رقم الهاتف": o.phone || '',
         "الولاية": o.wilaya || '',
         "البلدية": o.commune || '',
-        "المنتج والعرض": o.product || '',
+        "المنتج": o.product || '',
         "المبلغ الإجمالي (دج)": o.total || 0,
         "حالة الطلب": o.status || 'جديد',
         "التاريخ": o.date || ''
@@ -160,7 +158,7 @@ function renderAdminDashboard() {
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
         if (displayedOrders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات تطابق هذا التصفية</td></tr>';
+            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات تطابق هذه التصفية</td></tr>';
         } else {
             ordersTbody.innerHTML = displayedOrders.map(o => {
                 const status = o.status || 'جديد';
@@ -306,6 +304,8 @@ function handleSaveProduct(e) {
     const category = document.getElementById('prod-category-select').value;
     const brand = document.getElementById('prod-brand-select').value;
     const inStock = document.getElementById('prod-in-stock').value === 'true';
+    const hasCountdown = document.getElementById('prod-has-countdown').checked;
+    const countdownHours = parseFloat(document.getElementById('prod-countdown-hours').value) || 0;
     const desc = document.getElementById('prod-desc').value.trim();
 
     const img1 = document.getElementById('prod-img-main').value.trim();
@@ -328,6 +328,8 @@ function handleSaveProduct(e) {
         category: category,
         brand: brand,
         inStock: inStock,
+        hasCountdown: hasCountdown,
+        countdownHours: countdownHours,
         desc: desc,
         images: images,
         updatedAt: new Date()
@@ -352,7 +354,7 @@ function handleSaveProduct(e) {
 function resetProductForm() {
     document.getElementById('product-edit-form').reset();
     document.getElementById('editing-product-id').value = '';
-    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)';
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع رفع الصور والعد التنازلي)';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
     document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
 }
@@ -368,6 +370,8 @@ function editProduct(id) {
     document.getElementById('prod-category-select').value = p.category || '';
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
+    document.getElementById('prod-has-countdown').checked = p.hasCountdown || false;
+    document.getElementById('prod-countdown-hours').value = p.countdownHours || '';
     document.getElementById('prod-desc').value = p.desc || '';
 
     const imgs = p.images || [];
