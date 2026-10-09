@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
+    <title id="site-title">Luxe & Shine | المتجر الفاخر</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -17,16 +17,22 @@
 
     <div id="splash-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a] transition-opacity duration-700 ease-out">
         <div class="flex flex-col items-center text-center px-4">
-            <div class="relative mb-5">
-                <div class="w-20 h-20 rounded-full gold-gradient flex items-center justify-center text-black text-3xl shadow-2xl shadow-[#D4AF37]/50 crown-pulse">
-                    <i class="fa-solid fa-crown"></i>
+            <div class="relative mb-6">
+                <div class="crown-shimmer-wrapper relative w-24 h-24 rounded-full gold-gradient flex items-center justify-center text-black text-4xl shadow-2xl shadow-[#D4AF37]/50 crown-pulse overflow-hidden">
+                    <i class="fa-solid fa-crown relative z-10"></i>
+                    <div class="crown-shine-sweep"></div>
                 </div>
             </div>
-            <h1 class="text-2xl md:text-3xl font-black gold-text mb-2 tracking-wide font-['Cairo']">كوسمتيك عبد الحق</h1>
-            <p class="text-xs text-[#D4AF37] font-semibold mb-8 tracking-widest uppercase">"يبدو أن أحدهم سيغدو سعيداً اليوم"</p>
-            <div class="w-52 h-1.5 bg-gray-800 rounded-full overflow-hidden relative shadow-inner">
-                <div id="splash-progress-bar" class="h-full gold-gradient rounded-full w-0 transition-all duration-300"></div>
+
+            <h1 id="splash-store-name" class="text-3xl md:text-4xl font-black gold-text mb-3 tracking-wide font-['Cairo']">Luxe & Shine</h1>
+            <p id="splash-slogan-display" class="text-sm md:text-base text-[#D4AF37] font-extrabold mb-8 tracking-wide leading-relaxed font-['Cairo'] max-w-lg px-2">
+                "لمستكِ الفاخرة لأناقة لا تُنسى ✨"
+            </p>
+            
+            <div class="w-60 h-2 bg-gray-800/80 rounded-full overflow-hidden relative shadow-inner border border-[#D4AF37]/20">
+                <div id="splash-progress-bar" class="h-full gold-gradient rounded-full w-0 transition-all duration-300 shadow-[0_0_12px_#D4AF37]"></div>
             </div>
+            <span class="text-xs text-gray-400 mt-4 font-bold tracking-widest animate-pulse">جاري تجهيز التشكيلة الفاخرة... ✨</span>
         </div>
     </div>
 
@@ -44,8 +50,8 @@
                     <i id="store-logo-icon" class="fa-solid fa-crown text-xl"></i>
                 </div>
                 <div>
-                    <span id="store-name-display" class="text-xl md:text-2xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
-                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سيغدو سعيداً اليوم"</span>
+                    <span id="store-name-display" class="text-xl md:text-2xl font-black gold-text block leading-none font-['Cairo']">Luxe & Shine</span>
+                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"لمستكِ الفاخرة لأناقة لا تُنسى ✨"</span>
                 </div>
             </div>
 
@@ -80,7 +86,7 @@
             </div>
             <div class="pt-6 border-t border-gray-800 text-xs text-gray-500 text-center space-y-2">
                 <p class="text-[#D4AF37] font-bold"><i class="fa-solid fa-phone"></i> خدمة الزبائن متوفرة 24/7</p>
-                <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة</p>
+                <p>© 2026 Luxe & Shine - جميع الحقوق محفوظة</p>
             </div>
         </div>
     </div>
@@ -480,6 +486,14 @@
                         </div>
                         <div id="banner-texts-list" class="space-y-2"></div>
 
+                        <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B] flex items-center gap-2">
+                            <i class="fa-solid fa-crown"></i> تعديل المقولة الافتتاحية (شاشة البداية)
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 text-gray-700">المقولة التي تظهر تحت الشعار أثناء التحميل:</label>
+                            <input type="text" id="set-splash-slogan" class="w-full border p-3 rounded-xl text-sm focus:border-[#D4AF37] outline-none" placeholder="مثال: لمستكِ الفاخرة لأناقة لا تُنسى ✨">
+                        </div>
+
                         <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B]">💬 إعدادات الرسائل والتنبيهات المخصصة</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -495,7 +509,7 @@
                         <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
+                            <div><label class="block text-xs font-bold mb-1">المقولة / الشعار الفرعي</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
                             <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والرسائل</button>
@@ -547,7 +561,7 @@
     </div>
 
     <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
-        <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
+        <p>© 2026 Luxe & Shine - جميع الحقوق محفوظة.</p>
     </footer>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
