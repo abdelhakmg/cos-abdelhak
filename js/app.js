@@ -1,11 +1,11 @@
 // ==========================================
-// 🚀 التطبيق الرئيسي والتحكم بالشاشات والضغطات
+// 🚀 التطبيق الرئيسي والتحكم بالتنقل والضغطات
 // ==========================================
 
 let logoClickCount = 0;
 let logoClickTimer = null;
 
-// التفاعل عند الضغط على الشعار (3 ضغطات متتالية للدخول إلى لوحة التحكم)
+// التفاعل عند الضغط على الشعار (3 ضغطات متتالية لدخول لوحة التحكم)
 function handleLogoClick(e) {
     if (e) e.preventDefault();
     logoClickCount++;
@@ -13,7 +13,6 @@ function handleLogoClick(e) {
     clearTimeout(logoClickTimer);
     logoClickTimer = setTimeout(() => {
         if (logoClickCount < 3) {
-            // ضغطة عادية (نقرة واحدة أو اثنتين) تأخذك للصفحة الرئيسية
             showPage('home');
         }
         logoClickCount = 0;
@@ -26,7 +25,6 @@ function handleLogoClick(e) {
     }
 }
 
-// فتح نافذة كلمة مرور الأدمن
 function openAdminModal() {
     const modal = document.getElementById('admin-auth-modal');
     if (modal) {
@@ -40,7 +38,6 @@ function openAdminModal() {
     }
 }
 
-// إغلاق نافذة إدخال كلمة المرور
 function closeAdminAuthModal() {
     const modal = document.getElementById('admin-auth-modal');
     if (modal) {
@@ -49,7 +46,6 @@ function closeAdminAuthModal() {
     }
 }
 
-// التحقق من كلمة المرور
 function checkAdminPassword() {
     const passInp = document.getElementById('admin-pass-input');
     if (!passInp) return;
@@ -65,11 +61,10 @@ function checkAdminPassword() {
         }
         showCustomAlert('أهلاً بك 👋', 'تم تسجيل الدخول إلى لوحة التحكم بنجاح.');
     } else {
-        showCustomAlert('خطأ ❌', 'كلمة المرور غير صحيحة!');
+        showCustomAlert('خطأ ❌', 'كلمة المرور غير صحيحة!', true);
     }
 }
 
-// التبديل بين صفحات الموقع
 function showPage(pageId) {
     document.querySelectorAll('.page-sec').forEach(page => {
         page.classList.add('hidden');
@@ -88,32 +83,18 @@ function showPage(pageId) {
     }
 }
 
-// القائمة الجانبية في الهاتف
 function toggleMobileMenu() {
     const drawer = document.getElementById('mobile-drawer');
     if (drawer) drawer.classList.toggle('hidden');
 }
 
-// النوافذ المنبثقة للرائل والتأكيد
 function showCustomAlert(title, message, isError = false) {
     const modal = document.getElementById('custom-alert-modal');
     const titleEl = document.getElementById('alert-title');
     const msgEl = document.getElementById('alert-message');
-    const iconEl = document.getElementById('alert-icon');
-    const iconBox = document.getElementById('alert-icon-box');
 
     if (titleEl) titleEl.innerText = title;
     if (msgEl) msgEl.innerText = message;
-
-    if (iconEl && iconBox) {
-        if (isError) {
-            iconEl.className = 'fa-solid fa-triangle-exclamation';
-            iconBox.className = 'w-16 h-16 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center mx-auto text-2xl shadow-lg border border-red-500/30';
-        } else {
-            iconEl.className = 'fa-solid fa-check';
-            iconBox.className = 'w-16 h-16 rounded-full gold-gradient text-black flex items-center justify-center mx-auto text-2xl shadow-lg';
-        }
-    }
 
     if (modal) {
         modal.classList.remove('hidden');
@@ -158,3 +139,10 @@ function closeCustomConfirm() {
         modal.classList.remove('flex');
     }
 }
+
+// تهيئة أولية آمنة دون التسبب في خطأ في المتصفح
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof initBannerRealtimeSync === 'function') {
+        initBannerRealtimeSync();
+    }
+});
