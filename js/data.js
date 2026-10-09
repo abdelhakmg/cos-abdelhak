@@ -26,7 +26,13 @@ let storeSettings = {
     name: 'كوسمتيك عبد الحق',
     slogan: 'يبدو أن أحدهم سينام سعيداً اليوم',
     logoUrl: '',
-    pass: 'admin123'
+    pass: 'admin123',
+    socialFb: '',
+    socialIg: '',
+    socialWa: '',
+    socialPhone: '',
+    socialEmail: '',
+    metaPixel: ''
 };
 
 // Realtime Firebase Listeners
@@ -76,6 +82,7 @@ function initFirebaseRealtime() {
             storeSettings = doc.data();
             if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
             if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+            if (typeof injectMetaPixel === 'function') injectMetaPixel();
         }
     });
 }
