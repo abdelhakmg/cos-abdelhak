@@ -46,7 +46,7 @@ function initFirebaseRealtime() {
 
     db.collection("brands").onSnapshot((snapshot) => {
         brands = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof updateBrandsListUI === 'function') updateBrandsListUI();
+        if (typeof populateAdminDropdowns === 'function') populateAdminDropdowns();
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
