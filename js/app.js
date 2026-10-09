@@ -276,6 +276,16 @@ function addToCart(id) {
         cart.push(prod);
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         updateBadges();
+        
+        // تتبع إضافة المنتج إلى السلة في Meta Pixel
+        if (typeof trackPixelEvent === 'function') {
+            trackPixelEvent('AddToCart', {
+                content_name: prod.name,
+                value: prod.price,
+                currency: 'DZD'
+            });
+        }
+
         if (typeof showCustomAlert === 'function') {
             showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" إلى السلة بنجاح.`, true);
         }
