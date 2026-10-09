@@ -5,22 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
     
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Font Awesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/custom.css">
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
+    <!-- Sticky Top Yellow Banner Ticker -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
             🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام
         </span>
     </div>
 
+    <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
@@ -34,6 +39,7 @@
                 </div>
             </div>
 
+            <!-- القائمة العلوية المطورة -->
             <nav id="header-nav" class="hidden lg:flex items-center gap-5 font-bold text-sm text-gray-300"></nav>
 
             <div class="flex items-center gap-3">
@@ -48,6 +54,7 @@
         </div>
     </header>
 
+    <!-- Mobile Drawer -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
         <div class="fixed inset-y-0 right-0 w-[85%] max-w-sm bg-[#0A0A0A] border-l border-[#D4AF37]/30 shadow-2xl p-6 flex flex-col justify-between z-50 overflow-y-auto">
@@ -71,6 +78,7 @@
     </div>
 
     <main class="flex-grow">
+        <!-- 1. HOME PAGE -->
         <div id="page-home" class="page-sec active">
             <section class="bg-black py-6 md:py-8 border-b border-[#D4AF37]/20 relative overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4">
@@ -95,7 +103,8 @@
             </section>
         </div>
 
-        <div id="page-catalog" class="page-sec hidden">
+        <!-- 2. CATALOG PAGE -->
+        <div id="page-catalog" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-6">
                 <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
                     <div id="catalog-breadcrumb" class="flex items-center gap-2">
@@ -118,6 +127,8 @@
                             <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
                         </div>
                         <hr class="border-gray-800">
+                        
+                        <!-- شريط تصفية السعر المعدل من 0 دج إلى 20,000 دج -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر</h4>
                             <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
@@ -126,6 +137,7 @@
                                 <span id="price-range-val">20,000 دج</span>
                             </div>
                         </div>
+
                         <hr class="border-gray-800">
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
@@ -153,7 +165,8 @@
             </div>
         </div>
 
-        <div id="page-landing" class="page-sec hidden">
+        <!-- 3. LANDING PAGE -->
+        <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 grid md:grid-cols-2 gap-8 text-right">
                     <div>
@@ -230,7 +243,8 @@
             </div>
         </div>
 
-        <div id="page-cart" class="page-sec hidden">
+        <!-- 4. CART PAGE -->
+        <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -246,11 +260,12 @@
             </div>
         </div>
 
-        <div id="page-admin" class="page-sec hidden">
+        <!-- 5. ADMIN DASHBOARD -->
+        <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
                 <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
                     <h1 class="text-2xl font-black gold-text">⚙️ لوحة تحكم المتجر المتطورة</h1>
-                    <button onclick="showPage('home')" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-red-700 transition">تسجيل الخروج</button>
+                    <button onclick="showPage('home')" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
                 </div>
 
                 <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-2">
@@ -263,7 +278,108 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <div id="admin-tab-analytics" class="tab-content hidden space-y-6 text-gray-900">
+                <div id="admin-tab-products" class="tab-content active space-y-6 text-gray-900">
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <div class="flex justify-between items-center mb-4 border-b pb-3">
+                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)</h3>
+                            <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
+                        </div>
+                        <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="hidden" id="editing-product-id">
+                            <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
+                            <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
+                            <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
+
+                            <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white" required></select>
+                            <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
+
+                            <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
+                                <option value="true">متوفر في المخزون 🟢</option>
+                                <option value="false">غير متوفر 🔴</option>
+                            </select>
+
+                            <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (يمكنك رفع الصورة مباشرة من جهازك أو لصق رابط):</h4>
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
+                                    <button type="button" onclick="document.getElementById('file-input-1').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 1. رفع الصورة الرئيسية *
+                                    </button>
+                                    <input type="url" id="prod-img-main" placeholder="أو رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm flex-1 bg-white">
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-2" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-2')">
+                                    <button type="button" onclick="document.getElementById('file-input-2').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 2. رفع الصورة 2
+                                    </button>
+                                    <input type="url" id="prod-img-2" placeholder="أو رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-3" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-3')">
+                                    <button type="button" onclick="document.getElementById('file-input-3').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 3. رفع الصورة 3
+                                    </button>
+                                    <input type="url" id="prod-img-3" placeholder="أو رابط الصورة الثالثة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-4" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-4')">
+                                    <button type="button" onclick="document.getElementById('file-input-4').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 4. رفع الصورة 4
+                                    </button>
+                                    <input type="url" id="prod-img-4" placeholder="أو رابط الصورة الرابعة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input type="file" id="file-input-5" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-5')">
+                                    <button type="button" onclick="document.getElementById('file-input-5').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> 5. رفع الصورة 5
+                                    </button>
+                                    <input type="url" id="prod-img-5" placeholder="أو رابط الصورة الخامسة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
+                                </div>
+                            </div>
+
+                            <textarea id="prod-desc" placeholder="وصف المنتج..." class="border p-3 rounded-xl text-sm md:col-span-3"></textarea>
+                            <button type="submit" id="save-product-btn" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج</button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border overflow-x-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-gray-100 border-b">
+                                <tr>
+                                    <th class="p-4">الصورة</th>
+                                    <th class="p-4">اسم المنتج</th>
+                                    <th class="p-4">الفئة</th>
+                                    <th class="p-4">الماركة</th>
+                                    <th class="p-4">السعر</th>
+                                    <th class="p-4">التوفر</th>
+                                    <th class="p-4">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-products-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
+                    <div class="bg-white p-6 rounded-2xl border space-y-4">
+                        <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
+                        <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
+                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية (مثال: Dior, Chanel) *" required class="border p-3 rounded-xl text-sm flex-1">
+                            <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة الماركة</button>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h3 class="font-bold text-lg mb-4">العلامات التجارية المتاحة حالياً</h3>
+                        <div id="admin-brands-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                    </div>
+                </div>
+
+                <div id="admin-tab-analytics" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border shadow-sm">
                             <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات المؤكدة</span>
@@ -304,86 +420,9 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-products" class="tab-content hidden space-y-6 text-gray-900">
-                    <div class="bg-white p-6 rounded-2xl border">
-                        <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج</h3>
-                            <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
-                        </div>
-                        <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input type="hidden" id="editing-product-id">
-                            <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
-                            <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
-                            <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
-
-                            <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white" required></select>
-                            <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
-
-                            <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
-                                <option value="true">متوفر في المخزون 🟢</option>
-                                <option value="false">غير متوفر 🔴</option>
-                            </select>
-
-                            <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج:</h4>
-
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
-                                    <button type="button" onclick="document.getElementById('file-input-1').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm whitespace-nowrap">
-                                        <i class="fa-solid fa-upload"></i> 1. رفع الصورة الرئيسية *
-                                    </button>
-                                    <input type="url" id="prod-img-main" placeholder="أو رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm flex-1 bg-white">
-                                </div>
-
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <input type="file" id="file-input-2" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-2')">
-                                    <button type="button" onclick="document.getElementById('file-input-2').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
-                                        <i class="fa-solid fa-upload"></i> 2. رفع الصورة 2
-                                    </button>
-                                    <input type="url" id="prod-img-2" placeholder="أو رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
-                                </div>
-                            </div>
-
-                            <textarea id="prod-desc" placeholder="وصف المنتج..." class="border p-3 rounded-xl text-sm md:col-span-3"></textarea>
-                            <button type="submit" id="save-product-btn" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج</button>
-                        </form>
-                    </div>
-
-                    <div class="bg-white rounded-2xl border overflow-x-auto">
-                        <table class="w-full text-right text-sm">
-                            <thead class="bg-gray-100 border-b">
-                                <tr>
-                                    <th class="p-4">الصورة</th>
-                                    <th class="p-4">اسم المنتج</th>
-                                    <th class="p-4">الفئة</th>
-                                    <th class="p-4">الماركة</th>
-                                    <th class="p-4">السعر</th>
-                                    <th class="p-4">التوفر</th>
-                                    <th class="p-4">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-products-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="admin-tab-brands" class="tab-content hidden space-y-6 text-gray-900">
+                <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
-                        <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة جديدة</h3>
-                        <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
-                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية *" required class="border p-3 rounded-xl text-sm flex-1">
-                            <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة الماركة</button>
-                        </form>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl border">
-                        <h3 class="font-bold text-lg mb-4">العلامات التجارية المتاحة حالياً</h3>
-                        <div id="admin-brands-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-                    </div>
-                </div>
-
-                <div id="admin-tab-hero" class="tab-content hidden space-y-6 text-gray-900">
-                    <div class="bg-white p-6 rounded-2xl border space-y-4">
-                        <h3 class="font-bold text-lg border-b pb-3">إضافة إعلان جديد للبانر الرئيسية</h3>
+                        <h3 class="font-bold text-lg border-b pb-3">إضافة إعلان جديد للبانر الرئيسي</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input type="text" id="hero-title-input" placeholder="عنوان الإعلان الرئيسي *" required class="border p-3 rounded-xl text-sm">
                             <input type="text" id="hero-desc-input" placeholder="وصف الإعلان القصير *" required class="border p-3 rounded-xl text-sm">
@@ -397,7 +436,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-categories" class="tab-content hidden space-y-6 text-gray-900">
+                <div id="admin-tab-categories" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة فئة جديدة</h3>
                         <form onsubmit="handleSaveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -412,7 +451,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-shipping" class="tab-content hidden space-y-6 text-gray-900">
+                <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
                         <form onsubmit="handleSaveWilaya(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -430,14 +469,26 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-settings" class="tab-content hidden space-y-6 text-gray-900">
+                <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
-                        <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر</h3>
+                        <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
                         <div class="flex gap-3">
                             <input type="text" id="new-banner-text" placeholder="اكتب جملة إعلانية جديدة..." class="border p-3 rounded-xl text-sm flex-1">
                             <button onclick="addBannerText()" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة للبانر</button>
                         </div>
                         <div id="banner-texts-list" class="space-y-2"></div>
+
+                        <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B]">💬 إعدادات الرسائل والتنبيهات المخصصة</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1">رسالة تم استلام الطلب بنجاح (الترحيبية)</label>
+                                <textarea id="set-msg-success" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1">رسالة تنبيه نقص البيانات</label>
+                                <textarea id="set-msg-warning" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="يرجى ملء كافة معلومات الاستمارة الضرورية!"></textarea>
+                            </div>
+                        </div>
 
                         <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -454,53 +505,58 @@
         </div>
     </main>
 
-    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
-            <div id="alert-icon-box" class="w-14 h-14 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
+    <!-- Modals -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
+            <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
                 <i id="alert-icon" class="fa-solid fa-check"></i>
             </div>
-            <h3 id="alert-title" class="text-xl font-black text-white gold-text">تم بنجاح!</h3>
-            <p id="alert-message" class="text-sm text-gray-300"></p>
-            <button onclick="closeCustomAlert()" class="w-full py-3 gold-gradient text-black font-black rounded-xl text-sm shadow-lg">
+            <h3 id="alert-title" class="text-xl font-black text-white gold-text">تم الاستلام بنجاح!</h3>
+            <p id="alert-message" class="text-sm text-gray-300 leading-relaxed"></p>
+            <button onclick="closeCustomAlert()" class="w-full py-3.5 gold-gradient text-black font-black rounded-xl text-sm shadow-lg hover:opacity-90 transition">
                 حسناً 👍
             </button>
         </div>
     </div>
 
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-[#121212] border border-red-500/40 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
-            <h3 class="text-xl font-black text-white">تأكيد الإجراء</h3>
-            <p id="confirm-message" class="text-sm text-gray-300"></p>
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-red-500/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
+            <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 text-2xl shadow-lg">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-xl font-black text-white">حذف الطلبية؟</h3>
+            <p id="confirm-message" class="text-sm text-gray-300 leading-relaxed">هل أنت تأكد من رغبتك في حذف هذه الطلبية نهائياً؟</p>
             <div class="flex gap-3">
-                <button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl text-sm shadow-lg">تأكيد الحذف</button>
-                <button onclick="closeCustomConfirm()" class="flex-1 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl text-sm">إلغاء</button>
+                <button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-red-700 transition">نعم، حذف</button>
+                <button onclick="closeCustomConfirm()" class="flex-1 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-700 transition">إلغاء</button>
             </div>
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
-            <div class="w-12 h-12 bg-amber-100 text-[#B8860B] rounded-full flex items-center justify-center mx-auto text-xl font-black">
-                <i class="fa-solid fa-lock"></i>
-            </div>
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
-            <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بمسؤول المتجر</p>
-            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border border-gray-300 p-3.5 rounded-xl text-center outline-none focus:border-[#B8860B]" onkeyup="if(event.key==='Enter') checkAdminPassword()">
-            <div class="flex gap-3 pt-2">
-                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md hover:opacity-90 transition">دخول</button>
-                <button onclick="closeAdminAuthModal()" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 transition">إلغاء</button>
+            <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
+            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none">
+            <div class="flex gap-3">
+                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl">دخول</button>
+                <button onclick="document.getElementById('admin-auth-modal').style.display='none'" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
             </div>
         </div>
     </div>
 
+    <!-- Footer -->
     <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
+    <!-- Firebase SDK Compat Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+    <!-- Application Scripts -->
     <script src="js/data.js"></script>
+    <script src="js/landing.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/app.js"></script>
 </body>
