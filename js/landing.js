@@ -41,7 +41,6 @@ function openLandingPage(productId) {
     showPage('landing');
 }
 
-// حفظ واسترجاع بيانات الزبون تلقائياً
 function loadSavedCustomerData() {
     const savedName = localStorage.getItem('lb_cust_name');
     const savedPhone = localStorage.getItem('lb_cust_phone');
@@ -97,7 +96,7 @@ function swapLandingMainImage(newUrl) {
 function populateWilayas() {
     const select = document.getElementById('cust-wilaya');
     select.innerHTML = '<option value="">اختر الولاية...</option>' + 
-        WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
+        WILAYAS.map(w => `<option value="${w.code}">${w.code} -${w.name}</option>`).join('');
 }
 
 function handleWilayaChange() {
@@ -200,7 +199,6 @@ function submitLandingOrder() {
         return;
     }
 
-    // حفظ البيانات في localStorage للاستخدام التلقائي القادم
     localStorage.setItem('lb_cust_name', name);
     localStorage.setItem('lb_cust_phone', phone);
     localStorage.setItem('lb_cust_wilaya', wilayaCode);
