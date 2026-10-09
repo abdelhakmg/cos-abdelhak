@@ -10,10 +10,10 @@ function openLandingPage(productId) {
         
     document.getElementById('landing-main-img').src = mainImg;
     document.getElementById('landing-title').innerText = currentLandingProduct.name;
-    document.getElementById('landing-category').innerText = currentLandingProduct.category;
+    document.getElementById('landing-category').innerText = currentLandingProduct.category || 'عام';
     document.getElementById('landing-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
-    document.getElementById('landing-desc').innerText = currentLandingProduct.desc;
+    document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
     const imagesList = currentLandingProduct.images && currentLandingProduct.images.length > 0 
@@ -27,8 +27,28 @@ function openLandingPage(productId) {
     `).join('');
 
     populateWilayas();
+    startCountdownTimer();
     calculateLandingTotal();
     showPage('landing');
+}
+
+function openLightbox() {
+    const mainImg = document.getElementById('landing-main-img').src;
+    const lightboxModal = document.getElementById('image-lightbox-modal');
+    const lightboxTarget = document.getElementById('lightbox-target-img');
+    if (lightboxModal && lightboxTarget) {
+        lightboxTarget.src = mainImg;
+        lightboxModal.classList.remove('hidden');
+        lightboxModal.classList.add('flex');
+    }
+}
+
+function closeLightbox() {
+    const lightboxModal = document.getElementById('image-lightbox-modal');
+    if (lightboxModal) {
+        lightboxModal.classList.add('hidden');
+        lightboxModal.classList.remove('flex');
+    }
 }
 
 function swapLandingMainImage(newUrl) {
@@ -57,6 +77,8 @@ function handleWilayaChange() {
         document.getElementById('price-shipping-office').innerText = wilaya.officeCost + ' دج';
     } else {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
+        document.getElementById('price-shipping-home').innerText = 'حدد الولاية';
+        document.getElementById('price-shipping-office').innerText = 'حدد الولاية';
     }
     calculateLandingTotal();
 }
@@ -66,14 +88,49 @@ function calculateLandingTotal() {
     const code = document.getElementById('cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
+    const qtyOffer = parseInt(document.querySelector('input[name="qty_offer"]:checked')?.value || '1');
     
-    let shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 600;
-    let grandTotal = currentLandingProduct.price + shipCost;
+    let basePrice = currentLandingProduct.price * qtyOffer;
+    
+    // تطبيق الخصم حسب العرض
+    if (qtyOffer === 2) {
+        basePrice = basePrice * 0.90; // خصم 10%
+    }
 
-    document.getElementById('sum-prod-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
-    document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
-    document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
-    document.getElementById('sticky-bar-price').innerText = grandTotal.toLocaleString() + ' دج';
+    let shipCost = 0;
+    if (qtyOffer === 3) {
+        shipCost = 0; // شحن مجاني عند اختيار 3 قطع
+    } else {
+        shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 0;
+    }
+
+    let grandTotal = basePrice + shipCost;
+
+    document.getElementById('sum-prod-price').innerText = Math.round(basePrice).toLocaleString() + ' دج';
+    document.getElementById('sum-ship-price').innerText = shipCost === 0 && qtyOffer === 3 ? 'مجاني 🎉' : shipCost.toLocaleString() + ' دج';
+    document.getElementById('sum-total-price').innerText = Math.round(grandTotal).toLocaleString() + ' دج';
+    document.getElementById('sticky-bar-price').innerText = Math.round(grandTotal).toLocaleString() + ' دج';
+}
+
+function startCountdownTimer() {
+    let duration = 2 * 3600 + 15 * 60; // ساعتان و15 دقيقة
+    if (window.cdInterval) clearInterval(window.cdInterval);
+
+    window.cdInterval = setInterval(() => {
+        if (duration <= 0) {
+            clearInterval(window.cdInterval);
+            return;
+        }
+        duration--;
+
+        const h = Math.floor(duration / 3600);
+        const m = Math.floor((duration % 3600) / 60);
+        const s = duration % 60;
+
+        if (document.getElementById('cd-hours')) document.getElementById('cd-hours').innerText = String(h).padStart(2, '0');
+        if (document.getElementById('cd-minutes')) document.getElementById('cd-minutes').innerText = String(m).padStart(2, '0');
+        if (document.getElementById('cd-seconds')) document.getElementById('cd-seconds').innerText = String(s).padStart(2, '0');
+    }, 1000);
 }
 
 function scrollToOrderForm() {
@@ -113,6 +170,7 @@ function submitLandingOrder() {
     const phone = document.getElementById('cust-phone').value;
     const wilayaCode = document.getElementById('cust-wilaya').value;
     const commune = document.getElementById('cust-commune').value;
+    const qtyOffer = parseInt(document.querySelector('input[name="qty_offer"]:checked')?.value || '1');
 
     const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
     const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
@@ -124,15 +182,19 @@ function submitLandingOrder() {
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
-    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+    
+    let basePrice = currentLandingProduct.price * qtyOffer;
+    if (qtyOffer === 2) basePrice = basePrice * 0.90;
+    const shipCost = qtyOffer === 3 ? 0 : (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost);
 
     const newOrder = {
         customer: name,
         phone: phone,
         wilaya: wilaya.name,
         commune: commune,
-        product: currentLandingProduct.name,
-        total: currentLandingProduct.price + shipCost,
+        product: `${currentLandingProduct.name} (عدد القطع: ${qtyOffer})`,
+        total: Math.round(basePrice + shipCost),
+        status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
     };
