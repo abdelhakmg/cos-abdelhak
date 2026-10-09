@@ -2,30 +2,29 @@
 // ⚙️ إدارة لوحة التحكم (Admin Dashboard Management)
 // ==========================================
 
-// التبديل بين تبويبات لوحة التحكم
 function switchAdminTab(tabName) {
-    // إخفاء جميع التبويبات
     document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.add('hidden');
         tab.classList.remove('active');
     });
 
-    // إلغاء تفعيل كافة الأزرار
     document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.classList.remove('bg-black', 'text-white');
         btn.classList.add('bg-gray-800', 'text-gray-300');
     });
 
-    // تفعيل التبويب المختار
     const targetTab = document.getElementById(`admin-tab-${tabName}`);
     const targetBtn = document.getElementById(`tab-btn-${tabName}`);
 
-    if (targetTab) targetTab.classList.add('active');
+    if (targetTab) {
+        targetTab.classList.remove('hidden');
+        targetTab.classList.add('active');
+    }
     if (targetBtn) {
         targetBtn.classList.remove('bg-gray-800', 'text-gray-300');
         targetBtn.classList.add('bg-black', 'text-white');
     }
 
-    // عرض محتوى التبويب المختار
     if (tabName === 'analytics') renderAdminAnalyticsTab();
     if (tabName === 'hero') renderAdminHeroTab();
     if (tabName === 'products') renderAdminProductsTab();
@@ -35,15 +34,11 @@ function switchAdminTab(tabName) {
     if (tabName === 'settings') renderAdminSettingsTab();
 }
 
-// عرض الصفحة الرئيسية للوحة التحكم عند فتحها
 function renderAdminDashboard() {
-    renderAdminProductsTab();
-    renderAdminAnalyticsTab();
+    switchAdminTab('analytics');
 }
 
-// ------------------------------------------
-// 📊 1. تبويب المبيعات والتحليلات والطلبات
-// ------------------------------------------
+// 1. المبيعات والطلبات
 function renderAdminAnalyticsTab() {
     const totalSalesEl = document.getElementById('stat-total-sales');
     const ordersCountEl = document.getElementById('stat-orders-count');
@@ -54,16 +49,16 @@ function renderAdminAnalyticsTab() {
 
     let totalRevenue = 0;
     let deliveredCount = 0;
-    const totalOrdersCount = orders.length;
+    const totalOrdersCount = (typeof orders !== 'undefined') ? orders.length : 0;
 
-    orders.forEach(ord => {
-        if (ord.status === 'تم التوصيل' || ord.status === 'مؤكد') {
-            totalRevenue += parseFloat(ord.totalPrice || 0);
-        }
-        if (ord.status === 'تم التوصيل') {
-            deliveredCount++;
-        }
-    });
+    if (typeof orders !== 'undefined') {
+        orders.forEach(ord => {
+            if (ord.status === 'تم التوصيل' || ord.status === 'مؤكد') {
+                totalRevenue += parseFloat(ord.totalPrice || 0);
+            }
+            if (ord.status === 'تم التوصيل') deliveredCount++;
+        });
+    }
 
     if (totalSalesEl) totalSalesEl.innerText = totalRevenue.toLocaleString() + ' دج';
     if (ordersCountEl) ordersCountEl.innerText = totalOrdersCount;
@@ -76,7 +71,7 @@ function renderAdminAnalyticsTab() {
     if (successRateEl) successRateEl.innerText = rate + '%';
 
     if (ordersLogTbody) {
-        if (orders.length === 0) {
+        if (!orders || orders.length === 0) {
             ordersLogTbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400">لا توجد طلبات مسجلة حتى الآن.</td></tr>';
             return;
         }
@@ -96,7 +91,7 @@ function renderAdminAnalyticsTab() {
                     <div class="text-[11px] text-gray-500 truncate max-w-[150px]">${ord.productName || 'منتج'}</div>
                 </td>
                 <td class="p-3">
-                    <select onchange="updateOrderStatus('${ord.id}', this.value)" class="text-xs font-bold p-2 rounded-xl border outline-none cursor-pointer ${getStatusColorClass(ord.status)}">
+                    <select onchange="updateOrderStatus('${ord.id}', this.value)" class="text-xs font-bold p-2 rounded-xl border outline-none cursor-pointer">
                         <option value="جديد" ${ord.status === 'جديد' ? 'selected' : ''}>قيد الانتظار 🟡</option>
                         <option value="مؤكد" ${ord.status === 'مؤكد' ? 'selected' : ''}>مؤكد 🔵</option>
                         <option value="تم التوصيل" ${ord.status === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل 🟢</option>
@@ -118,49 +113,42 @@ function renderAdminAnalyticsTab() {
     }
 }
 
-function getStatusColorClass(status) {
-    if (status === 'مؤكد') return 'bg-blue-50 text-blue-800 border-blue-200';
-    if (status === 'تم التوصيل') return 'bg-green-50 text-green-800 border-green-200';
-    if (status === 'ملغي') return 'bg-red-50 text-red-800 border-red-200';
-    return 'bg-amber-50 text-amber-800 border-amber-200';
-}
-
 function updateOrderStatus(orderId, newStatus) {
-    db.collection("orders").doc(orderId).update({
-        status: newStatus
-    }).then(() => {
-        showCustomAlert('تم التحديث 👍', 'تم تعديل حالة الطلبية بنجاح.');
-        renderAdminAnalyticsTab();
-    });
+    if (typeof db !== 'undefined') {
+        db.collection("orders").doc(orderId).update({ status: newStatus }).then(() => {
+            showCustomAlert('تم التحديث 👍', 'تم تعديل حالة الطلبية بنجاح.');
+            renderAdminAnalyticsTab();
+        });
+    }
 }
 
 function confirmDeleteOrder(orderId) {
     showCustomConfirm('هل أنت تأكد من رغبتك في حذف هذه الطلبية نهائياً؟', () => {
-        db.collection("orders").doc(orderId).delete().then(() => {
-            showCustomAlert('تم الحذف 🗑️', 'تم حذف الطلبية بنجاح.');
-            renderAdminAnalyticsTab();
-        });
+        if (typeof db !== 'undefined') {
+            db.collection("orders").doc(orderId).delete().then(() => {
+                showCustomAlert('تم الحذف 🗑️', 'تم حذف الطلبية بنجاح.');
+                renderAdminAnalyticsTab();
+            });
+        }
     });
 }
 
-// ------------------------------------------
-// 🛍️ 2. تبويب إدارة المنتجات
-// ------------------------------------------
+// 2. إدارة المنتجات
 function renderAdminProductsTab() {
     const tbody = document.getElementById('admin-products-tbody');
     const catSelect = document.getElementById('prod-category-select');
     const brandSelect = document.getElementById('prod-brand-select');
 
-    if (catSelect) {
+    if (catSelect && typeof categories !== 'undefined') {
         catSelect.innerHTML = '<option value="">اختر الفئة *</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
 
-    if (brandSelect) {
+    if (brandSelect && typeof brands !== 'undefined') {
         brandSelect.innerHTML = '<option value="">اختر الماركة (اختياري)</option>' + brands.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
     }
 
     if (tbody) {
-        if (products.length === 0) {
+        if (!products || products.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">لا توجد منتجات حالياً. أضف أول منتج أعلاه!</td></tr>';
             return;
         }
@@ -169,9 +157,7 @@ function renderAdminProductsTab() {
             const img = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/60';
             return `
                 <tr class="border-b hover:bg-gray-50 transition">
-                    <td class="p-3">
-                        <img src="${img}" class="w-12 h-12 object-cover rounded-lg border bg-gray-100">
-                    </td>
+                    <td class="p-3"><img src="${img}" class="w-12 h-12 object-cover rounded-lg border bg-gray-100"></td>
                     <td class="p-3 font-bold text-gray-900">${p.name}</td>
                     <td class="p-3 text-xs text-gray-600">${p.category || '-'}</td>
                     <td class="p-3 text-xs text-gray-600">${p.brand || '-'}</td>
@@ -183,12 +169,8 @@ function renderAdminProductsTab() {
                     </td>
                     <td class="p-3">
                         <div class="flex items-center gap-2">
-                            <button onclick="editProduct('${p.id}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-xs font-bold">
-                                <i class="fa-solid fa-pen-to-square"></i> تعديل
-                            </button>
-                            <button onclick="deleteProduct('${p.id}')" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-xs font-bold">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                            <button onclick="editProduct('${p.id}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-xs font-bold"><i class="fa-solid fa-pen-to-square"></i> تعديل</button>
+                            <button onclick="deleteProduct('${p.id}')" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-xs font-bold"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -217,7 +199,7 @@ function handleSaveProduct(e) {
     const images = [img1, img2, img3, img4, img5].filter(url => url !== '');
 
     if (images.length === 0) {
-        showCustomAlert('تنبيه ⚠️', 'يرجى إدخال رابط صورة واحدة على الأقل للمنتج!');
+        showCustomAlert('تنبيه ⚠️', 'يرجى إدخال رابط صورة واحدة على الأقل للمنتج!', true);
         return;
     }
 
@@ -305,14 +287,12 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
-// ------------------------------------------
-// 🏷️ 3. تبويب العلامات التجارية (Brands)
-// ------------------------------------------
+// 3. العلامات التجارية (Brands)
 function renderAdminBrandsTab() {
     const listEl = document.getElementById('admin-brands-list');
     if (!listEl) return;
 
-    if (brands.length === 0) {
+    if (!brands || brands.length === 0) {
         listEl.innerHTML = '<p class="text-gray-400 text-xs col-span-full">لا توجد علامات تجارية مسجلة.</p>';
         return;
     }
@@ -347,9 +327,7 @@ function deleteBrand(id) {
     });
 }
 
-// ------------------------------------------
-// 🖼️ 4. تبويب البانرات الإعلانية (Hero Slides)
-// ------------------------------------------
+// 4. البانرات الإعلانية (Hero Slides)
 function renderAdminHeroTab() {
     const listEl = document.getElementById('admin-hero-slides-list');
     if (!listEl) return;
@@ -390,9 +368,7 @@ function deleteHeroSlide(id) {
     });
 }
 
-// ------------------------------------------
-// 📂 5. تبويب الفئات (Categories)
-// ------------------------------------------
+// 5. الفئات (Categories)
 function renderAdminCategoriesTab() {
     const listEl = document.getElementById('admin-categories-list');
     if (!listEl) return;
@@ -430,9 +406,7 @@ function deleteCategory(id) {
     });
 }
 
-// ------------------------------------------
-// 🚚 6. تبويب الولايات وأسعار التوصيل
-// ------------------------------------------
+// 6. أسعار التوصيل والولايات
 function renderAdminShippingTab() {
     const listEl = document.getElementById('admin-wilayas-list');
     if (!listEl) return;
@@ -482,9 +456,7 @@ function deleteWilaya(id) {
     });
 }
 
-// ------------------------------------------
-// ⚙️ 7. تبويب الهوية والمقولة الافتتاحية والرسائل
-// ------------------------------------------
+// 7. الإعدادات والهوية
 function renderAdminSettingsTab() {
     const storeNameInp = document.getElementById('set-store-name');
     const storeSloganInp = document.getElementById('set-store-slogan');
@@ -492,11 +464,13 @@ function renderAdminSettingsTab() {
     const logoUrlInp = document.getElementById('set-logo-url');
     const passInp = document.getElementById('set-pass');
 
-    if (storeNameInp) storeNameInp.value = storeSettings.name || '';
-    if (storeSloganInp) storeSloganInp.value = storeSettings.slogan || '';
-    if (splashSloganInp) splashSloganInp.value = storeSettings.splashSlogan || 'لمستكِ الفاخرة لأناقة لا تُنسى ✨';
-    if (logoUrlInp) logoUrlInp.value = storeSettings.logo || '';
-    if (passInp) passInp.value = storeSettings.adminPassword || 'admin123';
+    if (typeof storeSettings !== 'undefined') {
+        if (storeNameInp) storeNameInp.value = storeSettings.name || '';
+        if (storeSloganInp) storeSloganInp.value = storeSettings.slogan || '';
+        if (splashSloganInp) splashSloganInp.value = storeSettings.splashSlogan || 'لمستكِ الفاخرة لأناقة لا تُنسى ✨';
+        if (logoUrlInp) logoUrlInp.value = storeSettings.logo || '';
+        if (passInp) passInp.value = storeSettings.adminPassword || 'admin123';
+    }
 
     renderBannerTextsList();
 }
@@ -519,7 +493,6 @@ function handleSaveSettings(e) {
         adminPassword: pass
     }, { merge: true }).then(() => {
         showCustomAlert('تم الحفظ 👍', 'تم تحديث كافة الإعدادات والمقولة الافتتاحية بنجاح!');
-        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
     });
 }
 
