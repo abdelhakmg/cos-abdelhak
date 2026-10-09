@@ -150,7 +150,7 @@ function renderAdminDashboard() {
     if (document.getElementById('stat-avg-order')) document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
     if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
 
-    const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter'].value : 'الجميع';
+    const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     let displayedOrders = orders;
     if (filterVal && filterVal !== 'الجميع') {
         displayedOrders = orders.filter(o => (o.status || 'جديد') === filterVal);
@@ -178,7 +178,8 @@ function renderAdminDashboard() {
                     <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-3">
                             <div class="font-bold text-gray-900">${o.customer}</div>
-                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>${o.affiliateRef && o.affiliateRef !== 'مباشر' ? `<div class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded mt-1 font-bold">مسوق: ${o.affiliateRef}</div>` : ''}
+                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
+                            ${o.affiliateRef && o.affiliateRef !== 'مباشر' ? `<div class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded mt-1 font-bold">مسوق: ${o.affiliateRef}</div>` : ''}
                         </td>
                         <td class="p-3">
                             <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
@@ -214,7 +215,6 @@ function renderAdminDashboard() {
         }
     }
 
-    // إدارة التقييمات في لوحة التحكم
     const reviewsContainer = document.getElementById('admin-reviews-list');
     if (reviewsContainer) {
         if (!storeReviews || storeReviews.length === 0) {
@@ -233,7 +233,7 @@ function renderAdminDashboard() {
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="toggleReviewApproval('${r.id}',${!r.approved})" class="text-xs font-bold px-3 py-1.5 rounded-lg ${r.approved ? 'bg-amber-100 text-amber-700' : 'bg-green-600 text-white'}">
+                        <button onclick="toggleReviewApproval('${r.id}', ${!r.approved})" class="text-xs font-bold px-3 py-1.5 rounded-lg ${r.approved ? 'bg-amber-100 text-amber-700' : 'bg-green-600 text-white'}">
                             ${r.approved ? 'إلغاء النشر' : 'موافقة ونشر'}
                         </button>
                         <button onclick="deleteReview('${r.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg">حذف</button>
@@ -424,7 +424,7 @@ function editProduct(id) {
     const imgs = p.images || [];
     document.getElementById('prod-img-main').value = imgs[0] || '';
     document.getElementById('prod-img-2').value = imgs[1] || '';
-    document.getElementById('prod-img-3').value = imgs[2] || '';
+    document.getElementById('prod-img-3').value = imgs[3] || '';
     document.getElementById('prod-img-4').value = imgs[3] || '';
     document.getElementById('prod-img-5').value = imgs[4] || '';
 
@@ -455,4 +455,175 @@ function renderBannerTextsList() {
     container.innerHTML = bannerMessages.map((msg, idx) => `
         <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
             <span class="font-bold text-gray-800">${msg}</span>
-            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-
+            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">
+                <i class="fa-solid fa-trash-can"></i> حذف
+            </button>
+        </div>
+    `).join('');
+}
+
+function addBannerText() {
+    const input = document.getElementById('new-banner-text');
+    if (!input) return;
+
+    const newText = input.value.trim();
+    if (!newText) {
+        showCustomAlert('تنبيه', 'يرجى كتابة النص المراد إضافته للبانر العلوي!', false);
+        return;
+    }
+
+    db.collection("settings").doc("main").update({
+        bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
+    }).then(() => {
+        input.value = '';
+        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها على كافة الأجهزة!', true);
+    }).catch(() => {
+        db.collection("settings").doc("main").set({
+            bannerMessages: [newText]
+        }, { merge: true });
+    });
+}
+
+function removeBannerText(index) {
+    const targetText = bannerMessages[index];
+    if (!targetText) return;
+
+    db.collection("settings").doc("main").update({
+        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
+    }).then(() => {
+        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
+    });
+}
+
+function promptDeleteOrder(id) {
+    pendingDeleteOrderId = id;
+    const modal = document.getElementById('custom-confirm-modal');
+    document.getElementById('confirm-action-btn').onclick = function() {
+        confirmDeleteOrder();
+    };
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeCustomConfirm() {
+    const modal = document.getElementById('custom-confirm-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    pendingDeleteOrderId = null;
+}
+
+function confirmDeleteOrder() {
+    if (pendingDeleteOrderId) {
+        db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
+            closeCustomConfirm();
+            showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
+        });
+    }
+}
+
+function updateOrderStatus(id, newStatus) {
+    db.collection("orders").doc(id).update({ status: newStatus }).then(() => {
+        renderAdminDashboard();
+    });
+}
+
+// كود الحفظ المضمون لبيانات التواصل والإعدادات
+function handleSaveSettings(e) {
+    if (e) e.preventDefault();
+    
+    const settings = {
+        name: document.getElementById('set-store-name').value.trim(),
+        slogan: document.getElementById('set-store-slogan').value.trim(),
+        logoUrl: document.getElementById('set-logo-url').value.trim(),
+        pass: document.getElementById('set-pass').value.trim(),
+        socialFb: document.getElementById('set-social-fb').value.trim(),
+        socialIg: document.getElementById('set-social-ig').value.trim(),
+        socialWa: document.getElementById('set-social-wa').value.trim(),
+        socialMessenger: document.getElementById('set-social-messenger').value.trim(),
+        socialPhone: document.getElementById('set-social-phone').value.trim(),
+        socialEmail: document.getElementById('set-social-email').value.trim(),
+        metaPixel: document.getElementById('set-meta-pixel').value.trim()
+    };
+
+    db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
+        showCustomAlert('تم الحفظ بنجاح! 💾', 'تم حفظ وتحديث كافة بيانات الاتصال والروابط بنجاح على قاعدة البيانات.', true);
+    }).catch(err => {
+        showCustomAlert('خطأ في الحفظ', 'حدث خطأ أثناء الحفظ: ' + err.message, false);
+    });
+}
+
+function handleSaveHeroSlide(e) {
+    if (e) e.preventDefault();
+    const title = document.getElementById('hero-title-input').value.trim();
+    const desc = document.getElementById('hero-desc-input').value.trim();
+    const image = document.getElementById('hero-img-input').value.trim();
+
+    if (!title || !desc || !image) {
+        showCustomAlert('تنبيه', 'يرجى ملء كافة خانات الإعلان!', false);
+        return;
+    }
+
+    db.collection("heroSlides").add({
+        title: title,
+        desc: desc,
+        image: image,
+        createdAt: new Date()
+    }).then(() => {
+        document.getElementById('hero-title-input').value = '';
+        document.getElementById('hero-desc-input').value = '';
+        document.getElementById('hero-img-input').value = '';
+        showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
+    });
+}
+
+function handleSaveCategory(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('cat-name-input').value.trim();
+    const image = document.getElementById('cat-img-input').value.trim();
+
+    if (!name || !image) {
+        showCustomAlert('تنبيه', 'يرجى إدخال اسم الفئة ورابط الصورة!', false);
+        return;
+    }
+
+    db.collection("categories").add({
+        name: name,
+        image: image,
+        createdAt: new Date()
+    }).then(() => {
+        document.getElementById('cat-name-input').value = '';
+        document.getElementById('cat-img-input').value = '';
+        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
+    });
+}
+
+function handleSaveWilaya(e) {
+    if (e) e.preventDefault();
+    const code = document.getElementById('wilaya-code').value.trim();
+    const name = document.getElementById('wilaya-name').value.trim();
+    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
+    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
+    const communesInput = document.getElementById('wilaya-communes-input').value.trim();
+
+    if (!code || !name) {
+        showCustomAlert('تنبيه', 'يرجى إدخال رمز واسم الولاية!', false);
+        return;
+    }
+
+    const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [];
+
+    db.collection("wilayas").doc(code).set({
+        code: code,
+        name: name,
+        homeCost: homeCost,
+        officeCost: officeCost,
+        communes: communes
+    }).then(() => {
+        document.getElementById('wilaya-code').value = '';
+        document.getElementById('wilaya-name').value = '';
+        document.getElementById('wilaya-home-cost').value = '';
+        document.getElementById('wilaya-office-cost').value = '';
+        document.getElementById('wilaya-communes-input').value = '';
+        showCustomAlert('تم الحفظ', 'تم حفظ بيانات التسعير والتوصيل للولاية بنجاح!', true);
+    });
+}
