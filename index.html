@@ -17,6 +17,9 @@
 
     <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- Meta Pixel Dynamic Injector -->
+    <div id="meta-pixel-container"></div>
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
@@ -41,14 +44,16 @@
                 </div>
             </div>
 
-            <!-- شريط البحث المباشر في الوسط (كمبيوتر) -->
-            <div class="flex-1 max-w-sm hidden md:block relative mx-4">
-                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج، قسم، أو ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
-                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
-                <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
+            <!-- شريط البحث (كتابي + صوّتي) -->
+            <div class="flex-1 max-w-sm hidden md:flex items-center relative mx-4 bg-[#121212] border border-[#D4AF37]/30 rounded-full px-4 py-2 focus-within:border-[#D4AF37]">
+                <i class="fa-solid fa-magnifying-glass text-[#D4AF37] text-xs ml-2"></i>
+                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث كتابة أو اضغط الميكروفون للصوت..." class="w-full bg-transparent text-white text-xs outline-none">
+                <button type="button" onclick="startVoiceSearch()" class="text-[#D4AF37] hover:text-white transition ml-1" title="بحث صوتي">
+                    <i id="mic-icon" class="fa-solid fa-microphone text-sm"></i>
+                </button>
+                <div id="search-results-dropdown" class="absolute top-12 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
             </div>
 
-            <!-- القائمة والأزرار -->
             <div class="flex items-center gap-2">
                 <div id="header-nav" class="hidden lg:flex items-center gap-4 font-bold text-xs text-gray-300"></div>
 
@@ -67,9 +72,14 @@
         </div>
         <!-- شريط البحث للموبايل -->
         <div class="px-4 pb-3 md:hidden relative">
-            <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
-            <i class="fa-solid fa-magnifying-glass absolute right-7 top-2.5 text-[#D4AF37] text-xs"></i>
-            <div id="mobile-search-dropdown" class="absolute top-11 left-4 right-4 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-60 overflow-y-auto"></div>
+            <div class="flex items-center bg-[#121212] border border-[#D4AF37]/30 rounded-xl px-4 py-2">
+                <i class="fa-solid fa-magnifying-glass text-[#D4AF37] text-xs ml-2"></i>
+                <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث كتابة أو بالصوت..." class="w-full bg-transparent text-white text-xs outline-none">
+                <button type="button" onclick="startVoiceSearch()" class="text-[#D4AF37] hover:text-white transition ml-1">
+                    <i class="fa-solid fa-microphone text-sm"></i>
+                </button>
+            </div>
+            <div id="mobile-search-dropdown" class="absolute top-12 left-4 right-4 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-60 overflow-y-auto"></div>
         </div>
     </header>
 
@@ -96,7 +106,7 @@
         </div>
     </div>
 
-    <!-- Social Proof Toast (الطلبات الحقيقية بالاسم والولاية) -->
+    <!-- Social Proof Toast -->
     <div id="social-proof-toast" class="fixed bottom-20 right-4 z-40 bg-[#121212] border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs">
         <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black font-black text-sm flex-shrink-0">
             <i class="fa-solid fa-bag-shopping"></i>
@@ -135,6 +145,43 @@
                     <div class="w-20 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
                 </div>
                 <div id="home-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 justify-center"></div>
+            </section>
+
+            <!-- قسم تقييمات الصور للزبائن في أسفل الصفحة الرئيسية -->
+            <section class="py-12 bg-[#121212] border-t border-[#D4AF37]/30 my-8">
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="text-center mb-10">
+                        <span class="text-xs text-[#D4AF37] font-bold uppercase tracking-widest block mb-2">ثقة عملائنا سر نجاحنا</span>
+                        <h2 class="text-2xl md:text-3xl font-black text-white">📸 تقييمات وآراء زبائننا بالصور</h2>
+                        <div class="w-24 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-black/60 border border-[#D4AF37]/30 rounded-3xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">فاطمة الزهراء - وهران</span>
+                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            </div>
+                            <p class="text-xs text-gray-300 leading-relaxed">"المنتج وصلني أصلي ومغلف بإتقان شديد، شكراً على المصداقية والتوصيل السريع."</p>
+                            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=500&auto=format&fit=crop" class="w-full h-44 object-cover rounded-2xl border border-gray-800">
+                        </div>
+                        <div class="bg-black/60 border border-[#D4AF37]/30 rounded-3xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">إيمان - قسنطينة</span>
+                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            </div>
+                            <p class="text-xs text-gray-300 leading-relaxed">"أحسن متجر كوسمتيك تعاملت معه، الجودة فاخرة والريحة تبقي ثابتة طوال اليوم!"</p>
+                            <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&auto=format&fit=crop" class="w-full h-44 object-cover rounded-2xl border border-gray-800">
+                        </div>
+                        <div class="bg-black/60 border border-[#D4AF37]/30 rounded-3xl p-5 space-y-4 shadow-xl">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">سارة - الجزائر العاصمة</span>
+                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                            </div>
+                            <p class="text-xs text-gray-300 leading-relaxed">"الباكاجينغ راقي جداً ووصلني الطلب في غضون 48 ساعة فقط. أنصح الجميع بالطلب منه."</p>
+                            <img src="https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=500&auto=format&fit=crop" class="w-full h-44 object-cover rounded-2xl border border-gray-800">
+                        </div>
+                    </div>
+                </div>
             </section>
         </div>
 
@@ -234,7 +281,10 @@
                 </div>
 
                 <div id="order-form-section" class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right space-y-6 shadow-2xl">
-                    <h2 class="text-xl font-black text-white border-b border-gray-800 pb-4 gold-text">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h2>
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+                        <h2 class="text-xl font-black text-white gold-text">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h2>
+                        <button type="button" onclick="clearSavedCustomerData()" class="text-[11px] text-gray-400 hover:text-[#D4AF37] underline">تغيير معلومات الشخص / العنوان؟</button>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -278,27 +328,6 @@
                         تأكيد الطلب الآن (الدفع عند الاستلام) 🚚
                     </button>
                 </div>
-
-                <div class="mt-12 bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 space-y-6">
-                    <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-star text-amber-400"></i> آراء وتقييمات زبائننا الكرام</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-right space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-sm text-white">سارة - الجزائر العاصمة</span>
-                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                            </div>
-                            <p class="text-xs text-gray-300">"منتج رائع جداً والجودة ممتازة، التوصيل كان سريعاً في يومين فقط. شكراً كوسمتيك عبد الحق!"</p>
-                        </div>
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-right space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-sm text-white">أمينة - وهران</span>
-                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                            </div>
-                            <p class="text-xs text-gray-300">"أصلي 100% والتغليف فاخر، التعامل جد راقي والتوصيل للمكتب كان مريح."</p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
             <div class="sticky-bottom-bar bg-black border-t border-[#D4AF37]/30 text-white p-4 flex items-center justify-between max-w-4xl mx-auto rounded-t-2xl">
@@ -352,7 +381,7 @@
                     <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
                     <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
-                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
+                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الإعدادات والربط</button>
                 </div>
 
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
@@ -581,25 +610,25 @@
                         </div>
                         <div id="banner-texts-list" class="space-y-2"></div>
 
-                        <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B]">💬 إعدادات الرسائل والتنبيهات المخصصة</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold mb-1">رسالة تم استلام الطلب بنجاح (الترحيبية)</label>
-                                <textarea id="set-msg-success" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل."></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1">رسالة تنبيه نقص البيانات</label>
-                                <textarea id="set-msg-warning" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="يرجى ملء كافة معلومات الاستمارة الضرورية!"></textarea>
-                            </div>
-                        </div>
-
-                        <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
+                        <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B]">🔗 ربط وسائل التواصل الاجتماعي والـ Pixel</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والرسائل</button>
+                            
+                            <div><label class="block text-xs font-bold mb-1">رابط الفيسبوك (Facebook)</label><input type="url" id="set-social-fb" class="w-full border p-3 rounded-xl text-sm" placeholder="https://facebook.com/..."></div>
+                            <div><label class="block text-xs font-bold mb-1">رابط الانستغرام (Instagram)</label><input type="url" id="set-social-ig" class="w-full border p-3 rounded-xl text-sm" placeholder="https://instagram.com/..."></div>
+                            <div><label class="block text-xs font-bold mb-1">رابط الواتساب (WhatsApp Link)</label><input type="url" id="set-social-wa" class="w-full border p-3 rounded-xl text-sm" placeholder="https://wa.me/213..."></div>
+                            <div><label class="block text-xs font-bold mb-1">رقم الهاتف (Phone)</label><input type="text" id="set-social-phone" class="w-full border p-3 rounded-xl text-sm" placeholder="0600000000"></div>
+                            <div class="md:col-span-2"><label class="block text-xs font-bold mb-1">البريد الإلكتروني (Gmail)</label><input type="email" id="set-social-email" class="w-full border p-3 rounded-xl text-sm" placeholder="contact@domain.com"></div>
+                            
+                            <div class="md:col-span-2 bg-yellow-50 p-4 rounded-xl border border-yellow-200 space-y-2">
+                                <label class="block text-xs font-bold text-[#B8860B]">⚡ ربط Meta Pixel (Facebook & Instagram Ads)</label>
+                                <input type="text" id="set-meta-pixel" class="w-full border p-3 rounded-xl text-sm bg-white font-mono" placeholder="أدخل رقم الـ Pixel ID فقط (مثال: 123456789012345)">
+                            </div>
+
+                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والروابط</button>
                         </form>
                     </div>
                 </div>
@@ -641,7 +670,7 @@
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
@@ -653,8 +682,9 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
+    <!-- Footer مع روابط التواصل الاجتماعي الديناميكية -->
+    <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto space-y-4">
+        <div id="footer-social-links" class="flex justify-center items-center gap-4 text-lg"></div>
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
