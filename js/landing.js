@@ -15,6 +15,16 @@ function openLandingPage(productId) {
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
+    // إظهار أو إخفاء العد التنازلي حسب رغبة التاجر في المنتج
+    const cdBox = document.getElementById('landing-countdown-box');
+    if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
+        cdBox.classList.remove('hidden');
+        startCountdownTimer(currentLandingProduct.countdownHours);
+    } else {
+        cdBox.classList.add('hidden');
+        if (window.cdInterval) clearInterval(window.cdInterval);
+    }
+
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
     const imagesList = currentLandingProduct.images && currentLandingProduct.images.length > 0 
         ? currentLandingProduct.images 
@@ -27,7 +37,6 @@ function openLandingPage(productId) {
     `).join('');
 
     populateWilayas();
-    startCountdownTimer();
     calculateLandingTotal();
     showPage('landing');
 }
@@ -88,32 +97,19 @@ function calculateLandingTotal() {
     const code = document.getElementById('cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
-    const qtyOffer = parseInt(document.querySelector('input[name="qty_offer"]:checked')?.value || '1');
     
-    let basePrice = currentLandingProduct.price * qtyOffer;
-    
-    // تطبيق الخصم حسب العرض
-    if (qtyOffer === 2) {
-        basePrice = basePrice * 0.90; // خصم 10%
-    }
-
-    let shipCost = 0;
-    if (qtyOffer === 3) {
-        shipCost = 0; // شحن مجاني عند اختيار 3 قطع
-    } else {
-        shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 0;
-    }
-
+    let basePrice = currentLandingProduct.price;
+    let shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 0;
     let grandTotal = basePrice + shipCost;
 
-    document.getElementById('sum-prod-price').innerText = Math.round(basePrice).toLocaleString() + ' دج';
-    document.getElementById('sum-ship-price').innerText = shipCost === 0 && qtyOffer === 3 ? 'مجاني 🎉' : shipCost.toLocaleString() + ' دج';
-    document.getElementById('sum-total-price').innerText = Math.round(grandTotal).toLocaleString() + ' دج';
-    document.getElementById('sticky-bar-price').innerText = Math.round(grandTotal).toLocaleString() + ' دج';
+    document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
+    document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
+    document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
+    document.getElementById('sticky-bar-price').innerText = grandTotal.toLocaleString() + ' دج';
 }
 
-function startCountdownTimer() {
-    let duration = 2 * 3600 + 15 * 60; // ساعتان و15 دقيقة
+function startCountdownTimer(hours) {
+    let duration = hours * 3600;
     if (window.cdInterval) clearInterval(window.cdInterval);
 
     window.cdInterval = setInterval(() => {
@@ -170,7 +166,6 @@ function submitLandingOrder() {
     const phone = document.getElementById('cust-phone').value;
     const wilayaCode = document.getElementById('cust-wilaya').value;
     const commune = document.getElementById('cust-commune').value;
-    const qtyOffer = parseInt(document.querySelector('input[name="qty_offer"]:checked')?.value || '1');
 
     const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
     const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
@@ -182,18 +177,15 @@ function submitLandingOrder() {
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
-    
-    let basePrice = currentLandingProduct.price * qtyOffer;
-    if (qtyOffer === 2) basePrice = basePrice * 0.90;
-    const shipCost = qtyOffer === 3 ? 0 : (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost);
+    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
 
     const newOrder = {
         customer: name,
         phone: phone,
         wilaya: wilaya.name,
         commune: commune,
-        product: `${currentLandingProduct.name} (عدد القطع: ${qtyOffer})`,
-        total: Math.round(basePrice + shipCost),
+        product: currentLandingProduct.name,
+        total: currentLandingProduct.price + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
