@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="site-title">Luxe & Shine | المتجر الفاخر</title>
+    <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -14,27 +14,6 @@
     <link rel="stylesheet" href="css/custom.css">
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
-
-    <div id="splash-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a] transition-opacity duration-700 ease-out">
-        <div class="flex flex-col items-center text-center px-4">
-            <div class="relative mb-6">
-                <div class="crown-shimmer-wrapper relative w-24 h-24 rounded-full gold-gradient flex items-center justify-center text-black text-4xl shadow-2xl shadow-[#D4AF37]/50 crown-pulse overflow-hidden">
-                    <i class="fa-solid fa-crown relative z-10"></i>
-                    <div class="crown-shine-sweep"></div>
-                </div>
-            </div>
-
-            <h1 id="splash-store-name" class="text-3xl md:text-4xl font-black gold-text mb-3 tracking-wide font-['Cairo']">Luxe & Shine</h1>
-            <p id="splash-slogan-display" class="text-sm md:text-base text-[#D4AF37] font-extrabold mb-8 tracking-wide leading-relaxed font-['Cairo'] max-w-lg px-2">
-                "لمستكِ الفاخرة لأناقة لا تُنسى ✨"
-            </p>
-            
-            <div class="w-60 h-2 bg-gray-800/80 rounded-full overflow-hidden relative shadow-inner border border-[#D4AF37]/20">
-                <div id="splash-progress-bar" class="h-full gold-gradient rounded-full w-0 transition-all duration-300 shadow-[0_0_12px_#D4AF37]"></div>
-            </div>
-            <span class="text-xs text-gray-400 mt-4 font-bold tracking-widest animate-pulse">جاري تجهيز التشكيلة الفاخرة... ✨</span>
-        </div>
-    </div>
 
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
@@ -50,8 +29,8 @@
                     <i id="store-logo-icon" class="fa-solid fa-crown text-xl"></i>
                 </div>
                 <div>
-                    <span id="store-name-display" class="text-xl md:text-2xl font-black gold-text block leading-none font-['Cairo']">Luxe & Shine</span>
-                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"لمستكِ الفاخرة لأناقة لا تُنسى ✨"</span>
+                    <span id="store-name-display" class="text-xl md:text-2xl font-black gold-text block leading-none font-['Cairo']">كوسمتيك عبد الحق</span>
+                    <span id="store-slogan-display" class="text-[10px] text-[#D4AF37] block font-semibold mt-1 tracking-tight">"يبدو أن أحدهم سيغدو سعيداً اليوم"</span>
                 </div>
             </div>
 
@@ -86,7 +65,7 @@
             </div>
             <div class="pt-6 border-t border-gray-800 text-xs text-gray-500 text-center space-y-2">
                 <p class="text-[#D4AF37] font-bold"><i class="fa-solid fa-phone"></i> خدمة الزبائن متوفرة 24/7</p>
-                <p>© 2026 Luxe & Shine - جميع الحقوق محفوظة</p>
+                <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة</p>
             </div>
         </div>
     </div>
@@ -116,7 +95,7 @@
             </section>
         </div>
 
-        <div id="page-catalog" class="page-sec">
+        <div id="page-catalog" class="page-sec hidden">
             <div class="max-w-7xl mx-auto px-4 py-6">
                 <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
                     <div id="catalog-breadcrumb" class="flex items-center gap-2">
@@ -176,7 +155,7 @@
             </div>
         </div>
 
-        <div id="page-landing" class="page-sec">
+        <div id="page-landing" class="page-sec hidden">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 grid md:grid-cols-2 gap-8 text-right">
                     <div>
@@ -253,7 +232,7 @@
             </div>
         </div>
 
-        <div id="page-cart" class="page-sec">
+        <div id="page-cart" class="page-sec hidden">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -269,11 +248,11 @@
             </div>
         </div>
 
-        <div id="page-admin" class="page-sec">
+        <div id="page-admin" class="page-sec hidden">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
                 <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
                     <h1 class="text-2xl font-black gold-text">⚙️ لوحة تحكم المتجر المتطورة</h1>
-                    <button onclick="showPage('home')" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
+                    <button onclick="showPage('home')" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-red-700 transition">تسجيل الخروج</button>
                 </div>
 
                 <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-2">
@@ -286,7 +265,7 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <div id="admin-tab-products" class="tab-content active space-y-6 text-gray-900">
+                <div id="admin-tab-products" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
                             <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)</h3>
@@ -373,7 +352,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
+                <div id="admin-tab-brands" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
                         <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
@@ -387,7 +366,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-analytics" class="tab-content space-y-6 text-gray-900">
+                <div id="admin-tab-analytics" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border shadow-sm">
                             <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات المؤكدة</span>
@@ -428,7 +407,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
+                <div id="admin-tab-hero" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة إعلان جديد للبانر الرئيسي</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -444,7 +423,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-categories" class="tab-content space-y-6 text-gray-900">
+                <div id="admin-tab-categories" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة فئة جديدة</h3>
                         <form onsubmit="handleSaveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -459,7 +438,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
+                <div id="admin-tab-shipping" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
                         <form onsubmit="handleSaveWilaya(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -477,7 +456,7 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
+                <div id="admin-tab-settings" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
                         <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
                         <div class="flex gap-3">
@@ -485,14 +464,6 @@
                             <button onclick="addBannerText()" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة للبانر</button>
                         </div>
                         <div id="banner-texts-list" class="space-y-2"></div>
-
-                        <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B] flex items-center gap-2">
-                            <i class="fa-solid fa-crown"></i> تعديل المقولة الافتتاحية (شاشة البداية)
-                        </h3>
-                        <div>
-                            <label class="block text-xs font-bold mb-1 text-gray-700">المقولة التي تظهر تحت الشعار أثناء التحميل:</label>
-                            <input type="text" id="set-splash-slogan" class="w-full border p-3 rounded-xl text-sm focus:border-[#D4AF37] outline-none" placeholder="مثال: لمستكِ الفاخرة لأناقة لا تُنسى ✨">
-                        </div>
 
                         <h3 class="font-bold text-lg border-b pb-3 pt-4 text-[#B8860B]">💬 إعدادات الرسائل والتنبيهات المخصصة</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -509,7 +480,8 @@
                         <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">المقولة / الشعار الفرعي</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
+                            <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
+                            <div><label class="block text-xs font-bold mb-1">شعار شاشة البداية (Splash Slogan)</label><input type="text" id="set-splash-slogan" class="w-full border p-3 rounded-xl text-sm" placeholder="لمستكِ الفاخرة لأناقة لا تُنسى ✨"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
                             <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والرسائل</button>
@@ -521,7 +493,7 @@
         </div>
     </main>
 
-    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
             <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
                 <i id="alert-icon" class="fa-solid fa-check"></i>
@@ -534,7 +506,7 @@
         </div>
     </div>
 
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-[#121212] border border-red-500/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
             <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 text-2xl shadow-lg">
                 <i class="fa-solid fa-trash-can"></i>
@@ -548,20 +520,23 @@
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
+            <div class="w-12 h-12 bg-amber-100 text-[#B8860B] rounded-full flex items-center justify-center mx-auto text-xl font-black">
+                <i class="fa-solid fa-lock"></i>
+            </div>
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
-            <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
-            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none">
-            <div class="flex gap-3">
-                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl">دخول</button>
-                <button onclick="document.getElementById('admin-auth-modal').style.display='none'" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
+            <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بمسؤول المتجر</p>
+            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border border-gray-300 p-3.5 rounded-xl text-center outline-none focus:border-[#B8860B]" onkeyup="if(event.key==='Enter') checkAdminPassword()">
+            <div class="flex gap-3 pt-2">
+                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md hover:opacity-90 transition">دخول</button>
+                <button onclick="closeAdminAuthModal()" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-300 transition">إلغاء</button>
             </div>
         </div>
     </div>
 
     <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
-        <p>© 2026 Luxe & Shine - جميع الحقوق محفوظة.</p>
+        <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
