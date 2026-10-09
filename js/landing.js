@@ -80,7 +80,6 @@ function scrollToOrderForm() {
     document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
 }
 
-// دالة النافذة المخصصة للتنبيهات
 function showCustomAlert(title, message, isSuccess = true) {
     const modal = document.getElementById('custom-alert-modal');
     const iconBox = document.getElementById('alert-icon-box');
@@ -109,14 +108,12 @@ function closeCustomAlert() {
     modal.classList.remove('flex');
 }
 
-// إرسال الطلب مع النوافذ المحدثة
 function submitLandingOrder() {
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
     const wilayaCode = document.getElementById('cust-wilaya').value;
     const commune = document.getElementById('cust-commune').value;
 
-    // الرسائل المخصصة المسجلة
     const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
     const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
 
