@@ -23,7 +23,13 @@ function handleLogoClick(event) {
     }
 }
 
-// بحث كتابي وصوتي ذكي
+function handleAdminPassKeydown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        checkAdminPassword();
+    }
+}
+
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -81,7 +87,6 @@ function handleSearchKeydown(event, query) {
     }
 }
 
-// البحث الصوتي الذكي (Speech Recognition)
 function startVoiceSearch() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -90,7 +95,7 @@ function startVoiceSearch() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'ar-DZ'; // اللهجة الجزائرية / العربية
+    recognition.lang = 'ar-DZ';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -272,7 +277,7 @@ function renderSingleProductCard(p) {
                         <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
                         <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
                     </div>
-                    <span class="bg-[#D4AF37]/10 text-[#B8860B] border border-[#D4AF37]/30 text-[9px] font-extrabold px-2 py-0.5 rounded-full">✨ أصلي 100% | شحن مضمون</span>
+                    <span class="bg-[#D4AF37]/10 text-[#B8860B] border border-[#D4AF37]/30 text-[9px] font-extrabold px-2 py-0.5 rounded-full">✨ كما تراها هنا تجدها في الواقع 100 %</span>
                 </div>
 
                 <h3 class="font-bold text-sm text-gray-900 truncate my-1 cursor-pointer group-hover:text-[#B8860B] transition" onclick="openLandingPage('${p.id}')">${p.name}</h3>
@@ -295,10 +300,11 @@ function renderSingleProductCard(p) {
                 <div class="space-y-1">
                     <span class="text-[10px] text-gray-500 font-bold block">شارك مع اصدقائك</span>
                     <div class="flex items-center gap-2">
-                        <a href="https://api.whatsapp.com/send?text=${shareText}%20${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-whatsapp"></i></a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                        <a href="https://t.me/share/url?url=${productUrl}&text=${shareText}" target="_blank" class="w-7 h-7 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-telegram"></i></a>
-                        <a href="https://www.instagram.com" target="_blank" class="w-7 h-7 rounded-full bg-pink-600 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${shareText}\%20${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="واتساب"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://m.me/share?text=${shareText}&link=${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="مسنجر"><i class="fa-brands fa-facebook-messenger"></i></a>
+                        <a href="https://t.me/share/url?url=${productUrl}&text=${shareText}" target="_blank" class="w-7 h-7 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="تليجرام"><i class="fa-brands fa-telegram"></i></a>
+                        <a href="https://www.instagram.com" target="_blank" class="w-7 h-7 rounded-full bg-pink-600 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="انستغرام"><i class="fa-brands fa-instagram"></i></a>
                     </div>
                 </div>
 
@@ -484,6 +490,93 @@ function renderProducts() {
         homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
+// عرض تقييمات الزبائن الحقيقية فقط (وإخفاء القسم تماماً إذا لم توجد)
+function renderRealCustomerReviews() {
+    const section = document.getElementById('real-reviews-section');
+    const grid = document.getElementById('reviews-grid-container');
+    if (!section || !grid) return;
+
+    const approvedReviews = storeReviews.filter(r => r.approved === true);
+
+    if (approvedReviews.length === 0) {
+        section.classList.add('hidden'); // إخفاء القسم نهائياً لعدم وجود تقييمات حقيقية
+        return;
+    }
+
+    section.classList.remove('hidden');
+    grid.innerHTML = approvedReviews.map(r => {
+        let starsHtml = '';
+        const count = parseInt(r.stars) || 5;
+        for (let i = 0; i < count; i++) {
+            starsHtml += '<i class="fa-solid fa-star"></i>';
+        }
+
+        return `
+            <div class="bg-black/60 border border-[#D4AF37]/30 rounded-3xl p-5 space-y-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-sm text-white">${r.name}</span>
+                    <div class="text-amber-400 text-xs">${starsHtml}</div>
+                </div>
+                <p class="text-xs text-gray-300 leading-relaxed">"${r.comment}"</p>
+                <img src="${r.image}" class="w-full h-44 object-cover rounded-2xl border border-gray-800">
+            </div>
+        `;
+    }).join('');
+}
+
+function handleReviewImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const maxDim = 800;
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
+            else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            document.getElementById('rev-img-url').value = canvas.toDataURL('image/jpeg', 0.8);
+            showCustomAlert('تم الرفع', 'تم إرفاق صورة المنتج بنجاح.', true);
+        };
+    };
+    reader.readAsDataURL(file);
+}
+
+function handleCustomerSubmitReview(e) {
+    e.preventDefault();
+    const name = document.getElementById('rev-name').value.trim();
+    const stars = document.getElementById('rev-stars').value;
+    const comment = document.getElementById('rev-comment').value.trim();
+    const image = document.getElementById('rev-img-url').value.trim();
+
+    if (!name || !comment || !image) {
+        showCustomAlert('تنبيه', 'يرجى ملء جميع الحقول وإرفاق الصورة.', false);
+        return;
+    }
+
+    const newRev = {
+        name: name,
+        stars: stars,
+        comment: comment,
+        image: image,
+        approved: false, // يحتاج موافقة المسؤول ليظهر كتقييم حقيقي
+        createdAt: new Date()
+    };
+
+    db.collection("reviews").add(newRev).then(() => {
+        document.getElementById('rev-name').value = '';
+        document.getElementById('rev-comment').value = '';
+        document.getElementById('rev-img-url').value = '';
+        showCustomAlert('شكراً لك! 🌟', 'تم إرسال تقييمك بنجاح وسيتم عرضه في المتجر بعد المراجعة.', true);
+    });
+}
+
 function updateAppHeaderInfo() {
     const titleEl = document.getElementById('site-title');
     if (titleEl) titleEl.innerText = (storeSettings.name || 'كوسمتيك عبد الحق') + ' | المتجر الفاخر';
@@ -504,15 +597,22 @@ function updateAppHeaderInfo() {
         if (logoIcon) logoIcon.classList.add('hidden');
     }
 
-    // عرض روابط التواصل في الـ Footer
+    // تحديث زر الواتساب العائم بناءً على لوحة التحكم
+    const floatWa = document.getElementById('floating-whatsapp-btn');
+    if (floatWa && storeSettings.socialWa) {
+        floatWa.href = storeSettings.socialWa;
+    }
+
+    // عرض روابط التواصل الاجتماعي في شريط حقوق النشر (Footer) حسب إعدادات لوحة التحكم
     const footerSocial = document.getElementById('footer-social-links');
     if (footerSocial) {
         let socialHtml = '';
-        if (storeSettings.socialFb) socialHtml += `<a href="${storeSettings.socialFb}" target="_blank" class="text-[#D4AF37] hover:text-white transition"><i class="fa-brands fa-facebook"></i></a>`;
-        if (storeSettings.socialIg) socialHtml += `<a href="${storeSettings.socialIg}" target="_blank" class="text-[#D4AF37] hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>`;
-        if (storeSettings.socialWa) socialHtml += `<a href="${storeSettings.socialWa}" target="_blank" class="text-[#D4AF37] hover:text-white transition"><i class="fa-brands fa-whatsapp"></i></a>`;
-        if (storeSettings.socialPhone) socialHtml += `<a href="tel:${storeSettings.socialPhone}" class="text-[#D4AF37] hover:text-white transition"><i class="fa-solid fa-phone"></i></a>`;
-        if (storeSettings.socialEmail) socialHtml += `<a href="mailto:${storeSettings.socialEmail}" class="text-[#D4AF37] hover:text-white transition"><i class="fa-solid fa-envelope"></i></a>`;
+        if (storeSettings.socialFb) socialHtml += `<a href="${storeSettings.socialFb}" target="_blank" class="text-[#D4AF37] hover:text-white transition" title="فيسبوك"><i class="fa-brands fa-facebook"></i></a>`;
+        if (storeSettings.socialIg) socialHtml += `<a href="${storeSettings.socialIg}" target="_blank" class="text-[#D4AF37] hover:text-white transition" title="انستغرام"><i class="fa-brands fa-instagram"></i></a>`;
+        if (storeSettings.socialWa) socialHtml += `<a href="${storeSettings.socialWa}" target="_blank" class="text-[#D4AF37] hover:text-white transition" title="واتساب"><i class="fa-brands fa-whatsapp"></i></a>`;
+        if (storeSettings.socialMessenger) socialHtml += `<a href="${storeSettings.socialMessenger}" target="_blank" class="text-[#D4AF37] hover:text-white transition" title="مسنجر"><i class="fa-brands fa-facebook-messenger"></i></a>`;
+        if (storeSettings.socialPhone) socialHtml += `<a href="tel:${storeSettings.socialPhone}" class="text-[#D4AF37] hover:text-white transition" title="اتصال هاتفي"><i class="fa-solid fa-phone"></i></a>`;
+        if (storeSettings.socialEmail) socialHtml += `<a href="mailto:${storeSettings.socialEmail}" class="text-[#D4AF37] hover:text-white transition" title="البريد الإلكتروني"><i class="fa-solid fa-envelope"></i></a>`;
         footerSocial.innerHTML = socialHtml;
     }
 
@@ -555,7 +655,7 @@ function initRealOrdersTicker() {
         if (!orders || orders.length === 0) return;
         const latestOrder = orders[orders.length - 1];
 
-        spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
+        spCustomer.innerText = `${latestOrder.customer \vert{}\vert{} 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
         spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
         
         toast.classList.remove('translate-y-28', 'opacity-0');
@@ -566,7 +666,6 @@ function initRealOrdersTicker() {
     }, 20000);
 }
 
-// التحقق من وجود رابط معرف مسوق (Affiliate Ref) في الرابط عند الدخول
 function checkAffiliateRef() {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
@@ -579,6 +678,7 @@ updateAppHeaderInfo();
 updateBadges();
 renderHeroSlider();
 renderProducts();
+renderRealCustomerReviews();
 initBannerRealtimeSync();
 initRealOrdersTicker();
 checkAffiliateRef();
