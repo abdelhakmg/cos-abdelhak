@@ -116,6 +116,30 @@ function populateAdminDropdowns() {
     }
 }
 
+// 📊 دالة تصدير الطلبات إلى Excel
+function exportOrdersToExcel() {
+    if (!orders || orders.length === 0) {
+        showCustomAlert('تنبيه', 'لا توجد طلبيات لتصديرها!', false);
+        return;
+    }
+
+    const excelData = orders.map(o => ({
+        "اسم الزبون": o.customer || '',
+        "رقم الهاتف": o.phone || '',
+        "الولاية": o.wilaya || '',
+        "البلدية": o.commune || '',
+        "المنتج والعرض": o.product || '',
+        "المبلغ الإجمالي (دج)": o.total || 0,
+        "حالة الطلب": o.status || 'جديد',
+        "التاريخ": o.date || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "الطلبيات");
+    XLSX.writeFile(workbook, `طلبيات_متجر_كوسمتيك_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
 function renderAdminDashboard() {
     const confirmedOrders = orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
     const totalSales = confirmedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -126,14 +150,19 @@ function renderAdminDashboard() {
     if (document.getElementById('stat-orders-count')) document.getElementById('stat-orders-count').innerText = orders.length;
     if (document.getElementById('stat-avg-order')) document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
     if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
-    if (document.getElementById('orders-badge-count')) document.getElementById('orders-badge-count').innerText = orders.length;
+
+    const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
+    let displayedOrders = orders;
+    if (filterVal && filterVal !== 'الجميع') {
+        displayedOrders = orders.filter(o => (o.status || 'جديد') === filterVal);
+    }
 
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
-        if (orders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات مسجلة بعد</td></tr>';
+        if (displayedOrders.length === 0) {
+            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات تطابق هذا التصفية</td></tr>';
         } else {
-            ordersTbody.innerHTML = orders.map(o => {
+            ordersTbody.innerHTML = displayedOrders.map(o => {
                 const status = o.status || 'جديد';
                 let statusBadgeClass = 'bg-yellow-100 text-yellow-800';
                 if (status === 'مؤكد') statusBadgeClass = 'bg-blue-100 text-blue-800';
