@@ -41,14 +41,14 @@
                 </div>
             </div>
 
-            <!-- شريط البحث المباشر في الوسط -->
+            <!-- شريط البحث المباشر في الوسط (كمبيوتر) -->
             <div class="flex-1 max-w-sm hidden md:block relative mx-4">
-                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" placeholder="ابحث عن منتج، قسم، أو ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
+                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج، قسم، أو ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
                 <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
                 <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
             </div>
 
-            <!-- القائمة العلوية وأزرار التفاعل -->
+            <!-- القائمة والأزرار -->
             <div class="flex items-center gap-2">
                 <div id="header-nav" class="hidden lg:flex items-center gap-4 font-bold text-xs text-gray-300"></div>
 
@@ -65,12 +65,11 @@
                 </button>
             </div>
         </div>
-        <!-- شريط البحث للموبايل أسفل الهيدر مباشرة -->
-        <div class="px-4 pb-3 md:hidden">
-            <div class="relative">
-                <input type="text" oninput="handleLiveSearch(this.value)" placeholder="ابحث عن منتج..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
-                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
-            </div>
+        <!-- شريط البحث للموبايل -->
+        <div class="px-4 pb-3 md:hidden relative">
+            <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
+            <i class="fa-solid fa-magnifying-glass absolute right-7 top-2.5 text-[#D4AF37] text-xs"></i>
+            <div id="mobile-search-dropdown" class="absolute top-11 left-4 right-4 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-60 overflow-y-auto"></div>
         </div>
     </header>
 
@@ -97,14 +96,14 @@
         </div>
     </div>
 
-    <!-- Social Proof Toast (الطلبات الحقيقية) -->
+    <!-- Social Proof Toast (الطلبات الحقيقية بالاسم والولاية) -->
     <div id="social-proof-toast" class="fixed bottom-20 right-4 z-40 bg-[#121212] border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs">
         <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black font-black text-sm flex-shrink-0">
             <i class="fa-solid fa-bag-shopping"></i>
         </div>
         <div class="text-right">
-            <p id="sp-text" class="text-xs font-bold text-white">طلب جديد تم تأكيده!</p>
-            <p id="sp-sub" class="text-[10px] text-gray-400">من قائمة الطلبات الحقيقية للمتجر ⚡</p>
+            <p id="sp-customer" class="text-xs font-bold text-white">محمد من عنابة</p>
+            <p id="sp-product" class="text-[10px] text-[#D4AF37] font-bold">اشترى عطر ديور فخامة</p>
         </div>
     </div>
 
@@ -204,7 +203,6 @@
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
                 
-                <!-- عداد تنازلي اختياري يظهر فقط إذا قام التاجر بتفعيله من لوحة التحكم -->
                 <div id="landing-countdown-box" class="bg-gradient-to-r from-red-900/40 via-red-600/30 to-red-900/40 border border-red-500/50 rounded-2xl p-3 mb-6 text-center flex flex-wrap items-center justify-between gap-2 shadow-lg hidden">
                     <span class="text-xs md:text-sm font-black text-red-400 flex items-center gap-1.5 mx-auto md:mx-0">
                         <i class="fa-solid fa-clock text-base animate-spin"></i> سارع بالتسوق! ينتهي العرض خلال:
@@ -235,7 +233,6 @@
                     </div>
                 </div>
 
-                <!-- استمارة الطلب السريع العادية بدون تعقيد -->
                 <div id="order-form-section" class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 text-right space-y-6 shadow-2xl">
                     <h2 class="text-xl font-black text-white border-b border-gray-800 pb-4 gold-text">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h2>
                     
@@ -282,7 +279,6 @@
                     </button>
                 </div>
 
-                <!-- قسم مراجعات الزبائن -->
                 <div class="mt-12 bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 space-y-6">
                     <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-star text-amber-400"></i> آراء وتقييمات زبائننا الكرام</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -379,7 +375,6 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- خيارات العد التنازلي الاختياري -->
                             <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
                                 <h4 class="font-bold text-xs text-[#B8860B]">⏱️ إعدادات العد التنازلي للعرض (اختياري):</h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -646,7 +641,7 @@
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
