@@ -23,14 +23,15 @@ function handleLogoClick(event) {
     }
 }
 
-// بحث مباشر مرتب
+// بحث مباشر يدعم الكمبيوتر والهاتف والتجاوب مع لوحة المفاتيح (Enter)
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
-    if (!dropdown) return;
-
+    const mobileDropdown = document.getElementById('mobile-search-dropdown');
+    
     const q = query.trim().toLowerCase();
     if (!q) {
-        dropdown.classList.add('hidden');
+        if (dropdown) dropdown.classList.add('hidden');
+        if (mobileDropdown) mobileDropdown.classList.add('hidden');
         return;
     }
 
@@ -40,11 +41,12 @@ function handleLiveSearch(query) {
         (p.brand && p.brand.toLowerCase().includes(q))
     ).slice(0, 5);
 
+    let htmlContent = '';
     if (matches.length === 0) {
-        dropdown.innerHTML = '<div class="p-4 text-xs text-gray-400 text-center">لا توجد نتائج مطابقة</div>';
+        htmlContent = '<div class="p-4 text-xs text-amber-400 text-center leading-relaxed">المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات حسب نوعية المنتج</div>';
     } else {
-        dropdown.innerHTML = matches.map(p => `
-            <div onclick="openLandingPage('${p.id}'); document.getElementById('search-results-dropdown').classList.add('hidden');" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
+        htmlContent = matches.map(p => `
+            <div onclick="openLandingPage('${p.id}'); hideAllDropdowns();" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
                 <img src="${(p.images && p.images[0]) || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
                 <div class="text-right">
                     <p class="text-xs font-bold text-white truncate">${p.name}</p>
@@ -53,7 +55,37 @@ function handleLiveSearch(query) {
             </div>
         `).join('');
     }
-    dropdown.classList.remove('hidden');
+
+    if (dropdown) {
+        dropdown.innerHTML = htmlContent;
+        dropdown.classList.remove('hidden');
+    }
+    if (mobileDropdown) {
+        mobileDropdown.innerHTML = htmlContent;
+        mobileDropdown.classList.remove('hidden');
+    }
+}
+
+function handleSearchKeydown(event, query) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const q = query.trim().toLowerCase();
+        if (!q) return;
+        const found = products.find(p => p.name && p.name.toLowerCase().includes(q));
+        hideAllDropdowns();
+        if (found) {
+            openLandingPage(found.id);
+        } else {
+            showCustomAlert('غير متوفر', 'المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات حسب نوعية المنتج', false);
+        }
+    }
+}
+
+function hideAllDropdowns() {
+    const dropdown = document.getElementById('search-results-dropdown');
+    const mobileDropdown = document.getElementById('mobile-search-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+    if (mobileDropdown) mobileDropdown.classList.add('hidden');
 }
 
 function initBannerRealtimeSync() {
@@ -424,17 +456,20 @@ function updateAppHeaderInfo() {
     }
 }
 
-// إشعارات الطلبات الحقيقية وليست الوهمية
+// إشعارات الطلبات الحقيقية بالتنسيق الجديد (الاسم من الولاية وأسفلها اشترى المنتج)
 function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
-    const spText = document.getElementById('sp-text');
-    if (!toast || !spText) return;
+    const spCustomer = document.getElementById('sp-customer');
+    const spProduct = document.getElementById('sp-product');
+    if (!toast || !spCustomer || !spProduct) return;
 
     setInterval(() => {
         if (!orders || orders.length === 0) return; // لا تظهر شيئاً إذا لم تكن هناك طلبيات حقيقية
         const latestOrder = orders[orders.length - 1]; // أحدث طلب حقيقي
 
-        spText.innerText = `تم تأكيد طلب جديد لـ: ${latestOrder.customer}`;
+        spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
+        spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
+        
         toast.classList.remove('translate-y-28', 'opacity-0');
 
         setTimeout(() => {
