@@ -15,7 +15,6 @@ function openLandingPage(productId) {
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
-    // إظهار أو إخفاء العد التنازلي حسب رغبة التاجر في المنتج
     const cdBox = document.getElementById('landing-countdown-box');
     if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
         cdBox.classList.remove('hidden');
