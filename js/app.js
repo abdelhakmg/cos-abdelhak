@@ -23,7 +23,7 @@ function handleLogoClick(event) {
     }
 }
 
-// 🔍 دالة البحث المباشر في الوقت الفعلي
+// بحث مباشر مرتب
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     if (!dropdown) return;
@@ -424,26 +424,23 @@ function updateAppHeaderInfo() {
     }
 }
 
-// 📣 إشعارات الشراء التلقائية لبناء الثقة
-function initSocialProofTicker() {
+// إشعارات الطلبات الحقيقية وليست الوهمية
+function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
     const spText = document.getElementById('sp-text');
     if (!toast || !spText) return;
 
-    const names = ['فاطمة من الجزائر', 'مريم من وهران', 'ياسمين من قسنطينة', 'حنان من سطيف', 'أسماء من البليدة', 'إيمان من عنابة'];
-    
     setInterval(() => {
-        if (!products || products.length === 0) return;
-        const randomName = names[Math.floor(Math.random() * names.length)];
-        const randomProd = products[Math.floor(Math.random() * products.length)];
+        if (!orders || orders.length === 0) return; // لا تظهر شيئاً إذا لم تكن هناك طلبيات حقيقية
+        const latestOrder = orders[orders.length - 1]; // أحدث طلب حقيقي
 
-        spText.innerText = `طلبية جديدة: ${randomName}`;
+        spText.innerText = `تم تأكيد طلب جديد لـ: ${latestOrder.customer}`;
         toast.classList.remove('translate-y-28', 'opacity-0');
 
         setTimeout(() => {
             toast.classList.add('translate-y-28', 'opacity-0');
         }, 4500);
-    }, 15000);
+    }, 20000);
 }
 
 updateAppHeaderInfo();
@@ -451,4 +448,4 @@ updateBadges();
 renderHeroSlider();
 renderProducts();
 initBannerRealtimeSync();
-initSocialProofTicker();
+initRealOrdersTicker();
