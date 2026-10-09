@@ -150,7 +150,7 @@ function renderAdminDashboard() {
     if (document.getElementById('stat-avg-order')) document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
     if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
 
-    const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
+    const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter'].value : 'الجميع';
     let displayedOrders = orders;
     if (filterVal && filterVal !== 'الجميع') {
         displayedOrders = orders.filter(o => (o.status || 'جديد') === filterVal);
@@ -178,8 +178,7 @@ function renderAdminDashboard() {
                     <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-3">
                             <div class="font-bold text-gray-900">${o.customer}</div>
-                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
-                            ${o.affiliateRef && o.affiliateRef !== 'مباشر' ? `<div class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded mt-1 font-bold">مسوق: ${o.affiliateRef}</div>` : ''}
+                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>${o.affiliateRef && o.affiliateRef !== 'مباشر' ? `<div class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded mt-1 font-bold">مسوق: ${o.affiliateRef}</div>` : ''}
                         </td>
                         <td class="p-3">
                             <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
@@ -215,6 +214,35 @@ function renderAdminDashboard() {
         }
     }
 
+    // إدارة التقييمات في لوحة التحكم
+    const reviewsContainer = document.getElementById('admin-reviews-list');
+    if (reviewsContainer) {
+        if (!storeReviews || storeReviews.length === 0) {
+            reviewsContainer.innerHTML = '<p class="text-xs text-gray-400 py-4">لا توجد تقييمات مرسلة حالياً.</p>';
+        } else {
+            reviewsContainer.innerHTML = storeReviews.map(r => `
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between bg-gray-50 p-4 rounded-xl border gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="${r.image}" class="w-16 h-16 object-cover rounded-lg border bg-black">
+                        <div>
+                            <h4 class="font-bold text-xs text-gray-900">${r.name} (${r.stars}⭐)</h4>
+                            <p class="text-xs text-gray-600 mt-1">"${r.comment}"</p>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${r.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'}">
+                                ${r.approved ? 'منشور في المتجر 🟢' : 'قيد الانتظار 🟡'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleReviewApproval('${r.id}',${!r.approved})" class="text-xs font-bold px-3 py-1.5 rounded-lg ${r.approved ? 'bg-amber-100 text-amber-700' : 'bg-green-600 text-white'}">
+                            ${r.approved ? 'إلغاء النشر' : 'موافقة ونشر'}
+                        </button>
+                        <button onclick="deleteReview('${r.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
     if (document.getElementById('set-store-name')) {
         document.getElementById('set-store-name').value = storeSettings.name || '';
         document.getElementById('set-store-slogan').value = storeSettings.slogan || '';
@@ -223,6 +251,7 @@ function renderAdminDashboard() {
         document.getElementById('set-social-fb').value = storeSettings.socialFb || '';
         document.getElementById('set-social-ig').value = storeSettings.socialIg || '';
         document.getElementById('set-social-wa').value = storeSettings.socialWa || '';
+        document.getElementById('set-social-messenger').value = storeSettings.socialMessenger || '';
         document.getElementById('set-social-phone').value = storeSettings.socialPhone || '';
         document.getElementById('set-social-email').value = storeSettings.socialEmail || '';
         document.getElementById('set-meta-pixel').value = storeSettings.metaPixel || '';
@@ -231,6 +260,20 @@ function renderAdminDashboard() {
     renderAdminProductsTable();
     populateAdminDropdowns();
     renderBannerTextsList();
+}
+
+function toggleReviewApproval(id, status) {
+    db.collection("reviews").doc(id).update({ approved: status }).then(() => {
+        showCustomAlert('تم التحديث', 'تم تغيير حالة التقييم بنجاح.', true);
+    });
+}
+
+function deleteReview(id) {
+    if (confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
+        db.collection("reviews").doc(id).delete().then(() => {
+            showCustomAlert('تم الحذف', 'تم حذف التقييم نهائياً.', true);
+        });
+    }
 }
 
 function renderAdminProductsTable() {
@@ -283,8 +326,6 @@ function handleSaveBrand(e) {
         input.value = '';
         populateAdminDropdowns();
         showCustomAlert('تم الحفظ', 'تمت إضافة العلامة التجارية بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء الحفظ: ' + err.message, false);
     });
 }
 
@@ -414,176 +455,4 @@ function renderBannerTextsList() {
     container.innerHTML = bannerMessages.map((msg, idx) => `
         <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
             <span class="font-bold text-gray-800">${msg}</span>
-            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">
-                <i class="fa-solid fa-trash-can"></i> حذف
-            </button>
-        </div>
-    `).join('');
-}
-
-function addBannerText() {
-    const input = document.getElementById('new-banner-text');
-    if (!input) return;
-
-    const newText = input.value.trim();
-    if (!newText) {
-        showCustomAlert('تنبيه', 'يرجى كتابة النص المراد إضافته للبانر العلوي!', false);
-        return;
-    }
-
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
-    }).then(() => {
-        input.value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها على كافة الأجهزة!', true);
-    }).catch(() => {
-        db.collection("settings").doc("main").set({
-            bannerMessages: [newText]
-        }, { merge: true });
-    });
-}
-
-function removeBannerText(index) {
-    const targetText = bannerMessages[index];
-    if (!targetText) return;
-
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
-    }).then(() => {
-        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
-    });
-}
-
-function promptDeleteOrder(id) {
-    pendingDeleteOrderId = id;
-    const modal = document.getElementById('custom-confirm-modal');
-    document.getElementById('confirm-action-btn').onclick = function() {
-        confirmDeleteOrder();
-    };
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeCustomConfirm() {
-    const modal = document.getElementById('custom-confirm-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    pendingDeleteOrderId = null;
-}
-
-function confirmDeleteOrder() {
-    if (pendingDeleteOrderId) {
-        db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
-            closeCustomConfirm();
-            showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
-        });
-    }
-}
-
-function updateOrderStatus(id, newStatus) {
-    db.collection("orders").doc(id).update({ status: newStatus }).then(() => {
-        renderAdminDashboard();
-    });
-}
-
-function handleSaveSettings(e) {
-    if (e) e.preventDefault();
-    const settings = {
-        name: document.getElementById('set-store-name').value,
-        slogan: document.getElementById('set-store-slogan').value,
-        logoUrl: document.getElementById('set-logo-url').value,
-        pass: document.getElementById('set-pass').value,
-        socialFb: document.getElementById('set-social-fb').value,
-        socialIg: document.getElementById('set-social-ig').value,
-        socialWa: document.getElementById('set-social-wa').value,
-        socialPhone: document.getElementById('set-social-phone').value,
-        socialEmail: document.getElementById('set-social-email').value,
-        metaPixel: document.getElementById('set-meta-pixel').value
-    };
-
-    db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
-        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والروابط والـ Pixel بنجاح!', true);
-    });
-}
-
-function handleSaveHeroSlide(e) {
-    if (e) e.preventDefault();
-    const title = document.getElementById('hero-title-input').value.trim();
-    const desc = document.getElementById('hero-desc-input').value.trim();
-    const image = document.getElementById('hero-img-input').value.trim();
-
-    if (!title || !desc || !image) {
-        showCustomAlert('تنبيه', 'يرجى ملء كافة خانات الإعلان!', false);
-        return;
-    }
-
-    db.collection("heroSlides").add({
-        title: title,
-        desc: desc,
-        image: image,
-        createdAt: new Date()
-    }).then(() => {
-        document.getElementById('hero-title-input').value = '';
-        document.getElementById('hero-desc-input').value = '';
-        document.getElementById('hero-img-input').value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ البانر: ' + err.message, false);
-    });
-}
-
-function handleSaveCategory(e) {
-    if (e) e.preventDefault();
-    const name = document.getElementById('cat-name-input').value.trim();
-    const image = document.getElementById('cat-img-input').value.trim();
-
-    if (!name || !image) {
-        showCustomAlert('تنبيه', 'يرجى إدخال اسم الفئة ورابط الصورة!', false);
-        return;
-    }
-
-    db.collection("categories").add({
-        name: name,
-        image: image,
-        createdAt: new Date()
-    }).then(() => {
-        document.getElementById('cat-name-input').value = '';
-        document.getElementById('cat-img-input').value = '';
-        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ الفئة: ' + err.message, false);
-    });
-}
-
-function handleSaveWilaya(e) {
-    if (e) e.preventDefault();
-    const code = document.getElementById('wilaya-code').value.trim();
-    const name = document.getElementById('wilaya-name').value.trim();
-    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
-    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
-    const communesInput = document.getElementById('wilaya-communes-input').value.trim();
-
-    if (!code || !name) {
-        showCustomAlert('تنبيه', 'يرجى إدخال رمز واسم الولاية!', false);
-        return;
-    }
-
-    const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [];
-
-    db.collection("wilayas").doc(code).set({
-        code: code,
-        name: name,
-        homeCost: homeCost,
-        officeCost: officeCost,
-        communes: communes
-    }).then(() => {
-        document.getElementById('wilaya-code').value = '';
-        document.getElementById('wilaya-name').value = '';
-        document.getElementById('wilaya-home-cost').value = '';
-        document.getElementById('wilaya-office-cost').value = '';
-        document.getElementById('wilaya-communes-input').value = '';
-        showCustomAlert('تم الحفظ', 'تم حفظ بيانات التسعير والتوصيل للولاية بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ بيانات الولاية: ' + err.message, false);
-    });
-}
+            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-
