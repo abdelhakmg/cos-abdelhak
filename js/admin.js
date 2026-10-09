@@ -3,7 +3,7 @@ let pendingDeleteOrderId = null;
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
-
+    
     if (typeof showCustomAlert === 'function') {
         showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
     }
