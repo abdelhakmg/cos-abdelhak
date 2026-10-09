@@ -352,7 +352,7 @@
                     <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
                     <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
-                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
+                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والإعلانات</button>
                 </div>
 
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
@@ -574,7 +574,14 @@
 
                 <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-6">
-                        <h3 class="font-bold text-lg border-b pb-3">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
+                        <h3 class="font-bold text-lg border-b pb-3 text-blue-600"><i class="fa-brands fa-[#1877F2] fa-facebook"></i> إعدادات التتبع والإعلانات (Meta Pixel)</h3>
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                            <label class="block text-xs font-bold mb-1 text-blue-900">Meta Pixel ID (معرف بكسل فيسبوك)</label>
+                            <input type="text" id="set-meta-pixel-id" placeholder="مثال: 1234567890123456" class="w-full border p-3 rounded-xl text-sm font-mono bg-white">
+                            <p class="text-[11px] text-gray-500 mt-1">عند حفظ معرف Meta Pixel، سيتم تتبع الزيارات والطلبيات والإضافات للسلة تلقائياً على حسابك الإعلاني.</p>
+                        </div>
+
+                        <h3 class="font-bold text-lg border-b pb-3 pt-2">تعديل جمل شريط البانر العلوي الأصفر المتحرك</h3>
                         <div class="flex gap-3">
                             <input type="text" id="new-banner-text" placeholder="اكتب جملة إعلانية جديدة..." class="border p-3 rounded-xl text-sm flex-1">
                             <button onclick="addBannerText()" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة للبانر</button>
@@ -593,13 +600,13 @@
                             </div>
                         </div>
 
-                        <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والاتصالات</h3>
+                        <h3 class="font-bold text-lg border-b pb-3 pt-4">إعدادات الهوية والأمان</h3>
                         <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والرسائل</button>
+                            <div><label class="block text-xs font-bold mb-1">تغيير كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" placeholder="اتركه فارغاً للحفاظ على كلمة السر الحالية" class="w-full border p-3 rounded-xl text-sm"></div>
+                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والبكسل</button>
                         </form>
                     </div>
                 </div>
