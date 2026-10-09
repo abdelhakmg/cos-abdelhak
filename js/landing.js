@@ -15,6 +15,15 @@ function openLandingPage(productId) {
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
+    // تتبع عرض المنتج في Meta Pixel
+    if (typeof trackPixelEvent === 'function') {
+        trackPixelEvent('ViewContent', {
+            content_name: currentLandingProduct.name,
+            value: currentLandingProduct.price,
+            currency: 'DZD'
+        });
+    }
+
     const cdBox = document.getElementById('landing-countdown-box');
     if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
         cdBox.classList.remove('hidden');
@@ -177,6 +186,7 @@ function submitLandingOrder() {
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+    const totalAmount = currentLandingProduct.price + shipCost;
 
     const newOrder = {
         customer: name,
@@ -184,13 +194,22 @@ function submitLandingOrder() {
         wilaya: wilaya.name,
         commune: commune,
         product: currentLandingProduct.name,
-        total: currentLandingProduct.price + shipCost,
+        total: totalAmount,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
     };
 
     db.collection("orders").add(newOrder).then(() => {
+        // تتبع الشراء في Meta Pixel
+        if (typeof trackPixelEvent === 'function') {
+            trackPixelEvent('Purchase', {
+                value: totalAmount,
+                currency: 'DZD',
+                content_name: currentLandingProduct.name
+            });
+        }
+
         showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
         showPage('home');
     });
