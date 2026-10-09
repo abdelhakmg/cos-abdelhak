@@ -26,7 +26,7 @@ let storeSettings = {
     name: 'كوسمتيك عبد الحق',
     slogan: 'يبدو أن أحدهم سينام سعيداً اليوم',
     logoUrl: '',
-    passHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // SHA-256 for default admin123
+    passHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // SHA-256 كلمة السر الافتراضية admin123
     metaPixelId: ''
 };
 
