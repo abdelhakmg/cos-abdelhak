@@ -36,33 +36,8 @@ function openLandingPage(productId) {
     `).join('');
 
     populateWilayas();
-    loadSavedCustomerData();
     calculateLandingTotal();
     showPage('landing');
-}
-
-function loadSavedCustomerData() {
-    const savedName = localStorage.getItem('lb_cust_name');
-    const savedPhone = localStorage.getItem('lb_cust_phone');
-    const savedWilaya = localStorage.getItem('lb_cust_wilaya');
-
-    if (savedName) document.getElementById('cust-name').value = savedName;
-    if (savedPhone) document.getElementById('cust-phone').value = savedPhone;
-    if (savedWilaya) {
-        document.getElementById('cust-wilaya').value = savedWilaya;
-        handleWilayaChange();
-    }
-}
-
-function clearSavedCustomerData() {
-    localStorage.removeItem('lb_cust_name');
-    localStorage.removeItem('lb_cust_phone');
-    localStorage.removeItem('lb_cust_wilaya');
-    document.getElementById('cust-name').value = '';
-    document.getElementById('cust-phone').value = '';
-    document.getElementById('cust-wilaya').value = '';
-    document.getElementById('cust-commune').innerHTML = '<option value="">اختر البلدية...</option>';
-    showCustomAlert('تم المسح', 'يمكنك الآن إدخال بيانات الشخص الجديد والعنوان الجديد.', true);
 }
 
 function openLightbox() {
@@ -96,7 +71,7 @@ function swapLandingMainImage(newUrl) {
 function populateWilayas() {
     const select = document.getElementById('cust-wilaya');
     select.innerHTML = '<option value="">اختر الولاية...</option>' + 
-        WILAYAS.map(w => `<option value="${w.code}">${w.code} -${w.name}</option>`).join('');
+        WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
 }
 
 function handleWilayaChange() {
@@ -199,14 +174,9 @@ function submitLandingOrder() {
         return;
     }
 
-    localStorage.setItem('lb_cust_name', name);
-    localStorage.setItem('lb_cust_phone', phone);
-    localStorage.setItem('lb_cust_wilaya', wilayaCode);
-
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
-    const affiliateRef = localStorage.getItem('lb_affiliate_ref') || 'مباشر';
 
     const newOrder = {
         customer: name,
@@ -215,7 +185,6 @@ function submitLandingOrder() {
         commune: commune,
         product: currentLandingProduct.name,
         total: currentLandingProduct.price + shipCost,
-        affiliateRef: affiliateRef,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()

@@ -19,7 +19,6 @@ let categories = [];
 let brands = [];
 let products = [];
 let orders = [];
-let storeReviews = [];
 let cart = JSON.parse(localStorage.getItem('lb_cart_v7')) || [];
 let favorites = JSON.parse(localStorage.getItem('lb_favs_v7')) || [];
 
@@ -27,14 +26,7 @@ let storeSettings = {
     name: 'كوسمتيك عبد الحق',
     slogan: 'يبدو أن أحدهم سينام سعيداً اليوم',
     logoUrl: '',
-    pass: 'admin123',
-    socialFb: '',
-    socialIg: '',
-    socialWa: '',
-    socialMessenger: '',
-    socialPhone: '',
-    socialEmail: '',
-    metaPixel: ''
+    pass: 'admin123'
 };
 
 // Realtime Firebase Listeners
@@ -63,12 +55,6 @@ function initFirebaseRealtime() {
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    db.collection("reviews").onSnapshot((snapshot) => {
-        storeReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof renderRealCustomerReviews === 'function') renderRealCustomerReviews();
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
     db.collection("banners").onSnapshot((snapshot) => {
         bannerMessages = snapshot.docs.map(doc => doc.data().text);
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
@@ -90,7 +76,6 @@ function initFirebaseRealtime() {
             storeSettings = doc.data();
             if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
             if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-            if (typeof injectMetaPixel === 'function') injectMetaPixel();
         }
     });
 }
