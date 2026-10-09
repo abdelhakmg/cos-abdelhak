@@ -1,292 +1,208 @@
-let logoClickCount = 0;
-let logoClickTimer = null;
-let pendingDeleteOrderId = null;
+// ==========================================
+// ⚙️ إدارة لوحة التحكم (Admin Dashboard Management)
+// ==========================================
 
-// معالجة وضغط الصور المرفوعة من الجهاز
-function handleImageUpload(event, targetInputId) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (typeof showCustomAlert === 'function') {
-        showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const maxDimension = 800;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-                if (width > maxDimension) {
-                    height *= maxDimension / width;
-                    width = maxDimension;
-                }
-            } else {
-                if (height > maxDimension) {
-                    width *= maxDimension / height;
-                    height = maxDimension;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
-            document.getElementById(targetInputId).value = compressedDataUrl;
-
-            if (typeof showCustomAlert === 'function') {
-                showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المرفوعة بنجاح في الحقل.', true);
-            }
-        };
-    };
-    reader.readAsDataURL(file);
-}
-
-function handleLogoClick(event) {
-    logoClickCount++;
-    if (logoClickCount === 1) {
-        logoClickTimer = setTimeout(() => {
-            if (logoClickCount < 3) showPage('home');
-            logoClickCount = 0;
-        }, 800);
-    } else if (logoClickCount === 3) {
-        clearTimeout(logoClickTimer);
-        logoClickCount = 0;
-        document.getElementById('admin-auth-modal').style.display = 'flex';
-    }
-}
-
-function checkAdminPassword() {
-    const pass = document.getElementById('admin-pass-input').value;
-    if (pass === storeSettings.pass) {
-        document.getElementById('admin-auth-modal').style.display = 'none';
-        document.getElementById('admin-pass-input').value = '';
-        showPage('admin');
-    } else {
-        showCustomAlert('خطأ', 'كلمة المرور غير صحيحة!', false);
-    }
-}
-
+// التبديل بين تبويبات لوحة التحكم
 function switchAdminTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.admin-tab-btn').forEach(b => {
-        b.classList.remove('bg-black', 'text-white');
-        b.classList.add('bg-gray-800', 'text-gray-300');
+    // إخفاء جميع التبويبات
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
     });
 
-    document.getElementById('admin-tab-' + tabName).classList.add('active');
-    const btn = document.getElementById('tab-btn-' + tabName);
-    if (btn) {
-        btn.classList.remove('bg-gray-800', 'text-gray-300');
-        btn.classList.add('bg-black', 'text-white');
+    // إلغاء تفعيل كافة الأزرار
+    document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.remove('bg-black', 'text-white');
+        btn.classList.add('bg-gray-800', 'text-gray-300');
+    });
+
+    // تفعيل التبويب المختار
+    const targetTab = document.getElementById(`admin-tab-${tabName}`);
+    const targetBtn = document.getElementById(`tab-btn-${tabName}`);
+
+    if (targetTab) targetTab.classList.add('active');
+    if (targetBtn) {
+        targetBtn.classList.remove('bg-gray-800', 'text-gray-300');
+        targetBtn.classList.add('bg-black', 'text-white');
     }
+
+    // عرض محتوى التبويب المختار
+    if (tabName === 'analytics') renderAdminAnalyticsTab();
+    if (tabName === 'hero') renderAdminHeroTab();
+    if (tabName === 'products') renderAdminProductsTab();
+    if (tabName === 'brands') renderAdminBrandsTab();
+    if (tabName === 'categories') renderAdminCategoriesTab();
+    if (tabName === 'shipping') renderAdminShippingTab();
+    if (tabName === 'settings') renderAdminSettingsTab();
 }
 
-// تحديث وتعبئة الخيارات والبيانات في لوحة التحكم
-function populateAdminDropdowns() {
-    // تعبئة قائمة الأقسام في نموذج المنتج
-    const catSelect = document.getElementById('prod-category-select');
-    if (catSelect) {
-        catSelect.innerHTML = '<option value="">-- اختر الفئة / القسم * --</option>' + 
-            categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-    }
-
-    // تعبئة قائمة الماركات في نموذج المنتج
-    const brandSelect = document.getElementById('prod-brand-select');
-    if (brandSelect) {
-        const brandList = (typeof brands !== 'undefined' && brands.length > 0) ? brands : ["Dior", "Chanel", "Gucci", "Versace", "عام"];
-        brandSelect.innerHTML = '<option value="">-- اختر العلامة التجارية (الماركة) --</option>' + 
-            brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
-    }
-
-    // عرض قائمة الماركات المتاحة حالياً
-    const brandsListContainer = document.getElementById('admin-brands-list');
-    if (brandsListContainer) {
-        const brandList = (typeof brands !== 'undefined' && brands.length > 0) ? brands : [];
-        if (brandList.length === 0) {
-            brandsListContainer.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد ماركات مضافة بعد.</p>';
-        } else {
-            brandsListContainer.innerHTML = brandList.map((b, idx) => `
-                <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border text-xs font-bold">
-                    <span>${typeof b === 'object' ? b.name : b}</span>
-                    <button onclick="deleteBrand(${idx})" class="text-red-500 hover:text-red-700">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-    }
-}
-
+// عرض الصفحة الرئيسية للوحة التحكم عند فتحها
 function renderAdminDashboard() {
-    const confirmedOrders = orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
-    const totalSales = confirmedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    const completedCount = orders.filter(o => o.status === 'مكتملاً').length;
-    const successRate = orders.length ? Math.round((completedCount / orders.length) * 100) : 0;
-
-    if (document.getElementById('stat-total-sales')) document.getElementById('stat-total-sales').innerText = totalSales.toLocaleString() + ' دج';
-    if (document.getElementById('stat-orders-count')) document.getElementById('stat-orders-count').innerText = orders.length;
-    if (document.getElementById('stat-avg-order')) document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
-    if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
-    if (document.getElementById('orders-badge-count')) document.getElementById('orders-badge-count').innerText = orders.length;
-
-    const ordersTbody = document.getElementById('admin-orders-log');
-    if (ordersTbody) {
-        if (orders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات مسجلة بعد</td></tr>';
-        } else {
-            ordersTbody.innerHTML = orders.map(o => {
-                const status = o.status || 'جديد';
-                let statusBadgeClass = 'bg-yellow-100 text-yellow-800';
-                if (status === 'مؤكد') statusBadgeClass = 'bg-blue-100 text-blue-800';
-                if (status === 'قيد الشحن') statusBadgeClass = 'bg-purple-100 text-purple-800';
-                if (status === 'مكتملاً') statusBadgeClass = 'bg-green-100 text-green-800';
-                if (status === 'ملغى') statusBadgeClass = 'bg-red-100 text-red-800';
-
-                let cleanPhone = (o.phone || '').replace(/\s+/g, '');
-                if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
-
-                const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${storeSettings.name} لتأكيد طلبكم الخاص بـ: ${o.product}. المبلغ الإجمالي: ${o.total} دج.`);
-
-                return `
-                    <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-3">
-                            <div class="font-bold text-gray-900">${o.customer}</div>
-                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
-                            <div class="text-[11px] text-gray-500">${o.commune || ''}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-bold text-xs text-gray-900">${o.product}</div>
-                            <div class="font-black text-xs text-[#B8860B]">${o.total ? o.total.toLocaleString() : 0} دج</div>
-                        </td>
-                        <td class="p-3">
-                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold p-1.5 rounded-lg border outline-none cursor-pointer ${statusBadgeClass}">
-                                <option value="جديد" ${status === 'جديد' ? 'selected' : ''}>🟡 جديد (قيد الانتظار)</option>
-                                <option value="مؤكد" ${status === 'مؤكد' ? 'selected' : ''}>🔵 تم التأكيد هاتفياً</option>
-                                <option value="قيد الشحن" ${status === 'قيد الشحن' ? 'selected' : ''}>🟣 قيد الشحن</option>
-                                <option value="مكتملاً" ${status === 'مكتملاً' ? 'selected' : ''}>🟢 تم التسليم والمبلغ</option>
-                                <option value="ملغى" ${status === 'ملغى' ? 'selected' : ''}>🔴 ملغى</option>
-                            </select>
-                        </td>
-                        <td class="p-3 flex items-center gap-2">
-                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700 flex items-center gap-1">
-                                📞 اتصال
-                            </a>
-                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600 flex items-center gap-1">
-                                💬 واتساب
-                            </a>
-                            <button onclick="promptDeleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200">
-                                🗑️
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-    }
-
-    if (document.getElementById('set-store-name')) {
-        document.getElementById('set-store-name').value = storeSettings.name || '';
-        document.getElementById('set-store-slogan').value = storeSettings.slogan || '';
-        document.getElementById('set-logo-url').value = storeSettings.logoUrl || '';
-        document.getElementById('set-pass').value = storeSettings.pass || 'admin123';
-        document.getElementById('set-msg-success').value = storeSettings.msgSuccess || '';
-        document.getElementById('set-msg-warning').value = storeSettings.msgWarning || '';
-    }
-
-    renderAdminProductsTable();
-    populateAdminDropdowns();
-    renderBannerTextsList();
+    renderAdminProductsTab();
+    renderAdminAnalyticsTab();
 }
 
-// عرض جدول المنتجات في لوحة التحكم
-function renderAdminProductsTable() {
-    const tbody = document.getElementById('admin-products-tbody');
-    if (!tbody) return;
+// ------------------------------------------
+// 📊 1. تبويب المبيعات والتحليلات والطلبات
+// ------------------------------------------
+function renderAdminAnalyticsTab() {
+    const totalSalesEl = document.getElementById('stat-total-sales');
+    const ordersCountEl = document.getElementById('stat-orders-count');
+    const avgOrderEl = document.getElementById('stat-avg-order');
+    const successRateEl = document.getElementById('stat-success-rate');
+    const ordersLogTbody = document.getElementById('admin-orders-log');
+    const ordersBadge = document.getElementById('orders-badge-count');
 
-    if (!products || products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">لا توجد منتجات مسجلة بعد</td></tr>';
-        return;
-    }
+    let totalRevenue = 0;
+    let deliveredCount = 0;
+    const totalOrdersCount = orders.length;
 
-    tbody.innerHTML = products.map(p => {
-        const img = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/100';
-        return `
-            <tr class="border-b hover:bg-gray-50">
-                <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black"></td>
-                <td class="p-3 font-bold text-xs">${p.name}</td>
-                <td class="p-3 text-xs">${p.category || 'عام'}</td>
-                <td class="p-3 text-xs">${p.brand || 'بدون'}</td>
-                <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
-                <td class="p-3 text-xs"><span class="${p.inStock ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
-                <td class="p-3 flex items-center gap-2">
-                    <button onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
-                    <button onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
+    orders.forEach(ord => {
+        if (ord.status === 'تم التوصيل' || ord.status === 'مؤكد') {
+            totalRevenue += parseFloat(ord.totalPrice || 0);
+        }
+        if (ord.status === 'تم التوصيل') {
+            deliveredCount++;
+        }
+    });
+
+    if (totalSalesEl) totalSalesEl.innerText = totalRevenue.toLocaleString() + ' دج';
+    if (ordersCountEl) ordersCountEl.innerText = totalOrdersCount;
+    if (ordersBadge) ordersBadge.innerText = totalOrdersCount;
+
+    const avg = totalOrdersCount > 0 ? Math.round(totalRevenue / totalOrdersCount) : 0;
+    if (avgOrderEl) avgOrderEl.innerText = avg.toLocaleString() + ' دج';
+
+    const rate = totalOrdersCount > 0 ? Math.round((deliveredCount / totalOrdersCount) * 100) : 0;
+    if (successRateEl) successRateEl.innerText = rate + '%';
+
+    if (ordersLogTbody) {
+        if (orders.length === 0) {
+            ordersLogTbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-400">لا توجد طلبات مسجلة حتى الآن.</td></tr>';
+            return;
+        }
+
+        ordersLogTbody.innerHTML = orders.map(ord => `
+            <tr class="border-b hover:bg-gray-50 transition">
+                <td class="p-3 font-bold text-gray-900">
+                    <div>${ord.customerName || 'زبون'}</div>
+                    <div class="text-xs text-gray-500 font-normal" dir="ltr">${ord.customerPhone || ''}</div>
+                </td>
+                <td class="p-3 text-xs text-gray-600">
+                    <div>${ord.wilayaName || ''} - ${ord.communeName || ''}</div>
+                    <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded border">${ord.shippingType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل'}</span>
+                </td>
+                <td class="p-3">
+                    <div class="font-bold text-sm text-[#B8860B]">${(ord.totalPrice || 0).toLocaleString()} دج</div>
+                    <div class="text-[11px] text-gray-500 truncate max-w-[150px]">${ord.productName || 'منتج'}</div>
+                </td>
+                <td class="p-3">
+                    <select onchange="updateOrderStatus('${ord.id}', this.value)" class="text-xs font-bold p-2 rounded-xl border outline-none cursor-pointer ${getStatusColorClass(ord.status)}">
+                        <option value="جديد" ${ord.status === 'جديد' ? 'selected' : ''}>قيد الانتظار 🟡</option>
+                        <option value="مؤكد" ${ord.status === 'مؤكد' ? 'selected' : ''}>مؤكد 🔵</option>
+                        <option value="تم التوصيل" ${ord.status === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل 🟢</option>
+                        <option value="ملغي" ${ord.status === 'ملغي' ? 'selected' : ''}>ملغي 🔴</option>
+                    </select>
+                </td>
+                <td class="p-3">
+                    <div class="flex items-center gap-2">
+                        <a href="tel:${ord.customerPhone}" class="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-phone"></i> اتصال
+                        </a>
+                        <button onclick="confirmDeleteOrder('${ord.id}')" class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
-        `;
-    }).join('');
+        `).join('');
+    }
 }
 
-// دالة حفظ الماركة بدون خروج من اللوحة
-function handleSaveBrand(e) {
-    if (e) e.preventDefault();
-    const input = document.getElementById('brand-name-input');
-    if (!input) return;
+function getStatusColorClass(status) {
+    if (status === 'مؤكد') return 'bg-blue-50 text-blue-800 border-blue-200';
+    if (status === 'تم التوصيل') return 'bg-green-50 text-green-800 border-green-200';
+    if (status === 'ملغي') return 'bg-red-50 text-red-800 border-red-200';
+    return 'bg-amber-50 text-amber-800 border-amber-200';
+}
 
-    const brandName = input.value.trim();
-    if (!brandName) {
-        showCustomAlert('تنبيه', 'يرجى إدخال اسم العلامة التجارية!', false);
-        return;
-    }
-
-    if (typeof brands === 'undefined') brands = [];
-    if (!brands.includes(brandName)) {
-        brands.push(brandName);
-    }
-
-    db.collection("settings").doc("main").set({
-        brands: brands
-    }, { merge: true }).then(() => {
-        input.value = '';
-        populateAdminDropdowns();
-        showCustomAlert('تم الحفظ', 'تمت إضافة العلامة التجارية بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء الحفظ: ' + err.message, false);
+function updateOrderStatus(orderId, newStatus) {
+    db.collection("orders").doc(orderId).update({
+        status: newStatus
+    }).then(() => {
+        showCustomAlert('تم التحديث 👍', 'تم تعديل حالة الطلبية بنجاح.');
+        renderAdminAnalyticsTab();
     });
 }
 
-// دالة حذف الماركة
-function deleteBrand(index) {
-    if (typeof brands !== 'undefined' && brands[index]) {
-        brands.splice(index, 1);
-        db.collection("settings").doc("main").set({
-            brands: brands
-        }, { merge: true }).then(() => {
-            populateAdminDropdowns();
-            showCustomAlert('تم الحذف', 'تم حذف العلامة التجارية.', true);
+function confirmDeleteOrder(orderId) {
+    showCustomConfirm('هل أنت تأكد من رغبتك في حذف هذه الطلبية نهائياً؟', () => {
+        db.collection("orders").doc(orderId).delete().then(() => {
+            showCustomAlert('تم الحذف 🗑️', 'تم حذف الطلبية بنجاح.');
+            renderAdminAnalyticsTab();
         });
+    });
+}
+
+// ------------------------------------------
+// 🛍️ 2. تبويب إدارة المنتجات
+// ------------------------------------------
+function renderAdminProductsTab() {
+    const tbody = document.getElementById('admin-products-tbody');
+    const catSelect = document.getElementById('prod-category-select');
+    const brandSelect = document.getElementById('prod-brand-select');
+
+    if (catSelect) {
+        catSelect.innerHTML = '<option value="">اختر الفئة *</option>' + categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    }
+
+    if (brandSelect) {
+        brandSelect.innerHTML = '<option value="">اختر الماركة (اختياري)</option>' + brands.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+    }
+
+    if (tbody) {
+        if (products.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-gray-400">لا توجد منتجات حالياً. أضف أول منتج أعلاه!</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = products.map(p => {
+            const img = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/60';
+            return `
+                <tr class="border-b hover:bg-gray-50 transition">
+                    <td class="p-3">
+                        <img src="${img}" class="w-12 h-12 object-cover rounded-lg border bg-gray-100">
+                    </td>
+                    <td class="p-3 font-bold text-gray-900">${p.name}</td>
+                    <td class="p-3 text-xs text-gray-600">${p.category || '-'}</td>
+                    <td class="p-3 text-xs text-gray-600">${p.brand || '-'}</td>
+                    <td class="p-3 font-black text-[#B8860B]">${(p.price || 0).toLocaleString()} دج</td>
+                    <td class="p-3">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${p.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${p.inStock ? 'متوفر 🟢' : 'غير متوفر 🔴'}
+                        </span>
+                    </td>
+                    <td class="p-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="editProduct('${p.id}')" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition text-xs font-bold">
+                                <i class="fa-solid fa-pen-to-square"></i> تعديل
+                            </button>
+                            <button onclick="deleteProduct('${p.id}')" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-xs font-bold">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 }
 
-// دالة حفظ المنتج بدون خروج من لوحة التحكم
 function handleSaveProduct(e) {
-    if (e) e.preventDefault();
-
+    e.preventDefault();
     const editId = document.getElementById('editing-product-id').value;
     const name = document.getElementById('prod-name').value.trim();
     const price = parseFloat(document.getElementById('prod-price').value) || 0;
-    const oldPrice = parseFloat(document.getElementById('prod-old-price').value) || null;
+    const oldPrice = parseFloat(document.getElementById('prod-old-price').value) || 0;
     const category = document.getElementById('prod-category-select').value;
     const brand = document.getElementById('prod-brand-select').value;
     const inStock = document.getElementById('prod-in-stock').value === 'true';
@@ -298,47 +214,40 @@ function handleSaveProduct(e) {
     const img4 = document.getElementById('prod-img-4').value.trim();
     const img5 = document.getElementById('prod-img-5').value.trim();
 
-    if (!name || !price || !category || !img1) {
-        showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية (الاسم، السعر، الفئة، والصورة الرئيسية)!', false);
+    const images = [img1, img2, img3, img4, img5].filter(url => url !== '');
+
+    if (images.length === 0) {
+        showCustomAlert('تنبيه ⚠️', 'يرجى إدخال رابط صورة واحدة على الأقل للمنتج!');
         return;
     }
 
-    const images = [img1, img2, img3, img4, img5].filter(img => img.length > 0);
-
     const productData = {
-        name: name,
-        price: price,
-        oldPrice: oldPrice,
-        category: category,
-        brand: brand,
-        inStock: inStock,
-        desc: desc,
-        images: images,
-        updatedAt: new Date()
+        name,
+        price,
+        oldPrice: oldPrice > 0 ? oldPrice : null,
+        category,
+        brand: brand || null,
+        inStock,
+        description: desc,
+        images,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
     if (editId) {
         db.collection("products").doc(editId).update(productData).then(() => {
+            showCustomAlert('تم التحديث 👍', 'تم تعديل بيانات المنتج بنجاح!');
             resetProductForm();
-            showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
+            renderAdminProductsTab();
         });
     } else {
-        db.collection("products").add({
-            ...productData,
-            createdAt: new Date()
-        }).then(() => {
+        productData.salesCount = 0;
+        productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        db.collection("products").add(productData).then(() => {
+            showCustomAlert('تمت الإضافة 🎉', 'تم إضافة المنتج الجديد بنجاح!');
             resetProductForm();
-            showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
+            renderAdminProductsTab();
         });
     }
-}
-
-function resetProductForm() {
-    document.getElementById('product-edit-form').reset();
-    document.getElementById('editing-product-id').value = '';
-    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)';
-    document.getElementById('cancel-edit-btn').classList.add('hidden');
-    document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
 }
 
 function editProduct(id) {
@@ -352,7 +261,7 @@ function editProduct(id) {
     document.getElementById('prod-category-select').value = p.category || '';
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
-    document.getElementById('prod-desc').value = p.desc || '';
+    document.getElementById('prod-desc').value = p.description || '';
 
     const imgs = p.images || [];
     document.getElementById('prod-img-main').value = imgs[0] || '';
@@ -361,117 +270,299 @@ function editProduct(id) {
     document.getElementById('prod-img-4').value = imgs[3] || '';
     document.getElementById('prod-img-5').value = imgs[4] || '';
 
-    document.getElementById('product-form-title').innerText = 'تعديل المنتج: ' + p.name;
+    document.getElementById('product-form-title').innerText = 'تعديل المنتج الحالي';
     document.getElementById('cancel-edit-btn').classList.remove('hidden');
-    document.getElementById('save-product-btn').innerText = 'تحديث بيانات المنتج';
+    document.getElementById('save-product-btn').innerText = 'حفظ التعديلات';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-    window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
+function resetProductForm() {
+    document.getElementById('product-edit-form').reset();
+    document.getElementById('editing-product-id').value = '';
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع رفع الصور من الجهاز أو الرابط)';
+    document.getElementById('cancel-edit-btn').classList.add('hidden');
+    document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
 }
 
 function deleteProduct(id) {
-    if (confirm('هل أنت تأكد من رغبتك في حذف هذا المنتج؟')) {
+    showCustomConfirm('هل أنت تأكد من رغبتك في حذف هذا المنتج نهائياً؟', () => {
         db.collection("products").doc(id).delete().then(() => {
-            showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
+            showCustomAlert('تم الحذف 🗑️', 'تم حذف المنتج بنجاح.');
+            renderAdminProductsTab();
         });
-    }
+    });
 }
 
-function renderBannerTextsList() {
-    const container = document.getElementById('banner-texts-list');
-    if (!container) return;
+function handleImageUpload(event, targetInputId) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    if (!bannerMessages || bannerMessages.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 py-2">لا توجد جمل مضافة للبانر حالياً.</p>';
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById(targetInputId).value = e.target.result;
+        showCustomAlert('تم الرفع 📸', 'تم تجهيز الصورة بنجاح!');
+    };
+    reader.readAsDataURL(file);
+}
+
+// ------------------------------------------
+// 🏷️ 3. تبويب العلامات التجارية (Brands)
+// ------------------------------------------
+function renderAdminBrandsTab() {
+    const listEl = document.getElementById('admin-brands-list');
+    if (!listEl) return;
+
+    if (brands.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-400 text-xs col-span-full">لا توجد علامات تجارية مسجلة.</p>';
         return;
     }
 
-    container.innerHTML = bannerMessages.map((msg, idx) => `
-        <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
+    listEl.innerHTML = brands.map(b => `
+        <div class="bg-gray-50 border p-3.5 rounded-xl flex items-center justify-between shadow-sm">
+            <span class="font-bold text-gray-800 text-sm">${b.name}</span>
+            <button onclick="deleteBrand('${b.id}')" class="text-red-500 hover:text-red-700 text-xs">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function handleSaveBrand(e) {
+    e.preventDefault();
+    const input = document.getElementById('brand-name-input');
+    const name = input.value.trim();
+    if (!name) return;
+
+    db.collection("brands").add({ name }).then(() => {
+        showCustomAlert('تمت الإضافة 👍', `تمت إضافة الماركة "${name}" بنجاح!`);
+        input.value = '';
+        renderAdminBrandsTab();
+    });
+}
+
+function deleteBrand(id) {
+    db.collection("brands").doc(id).delete().then(() => {
+        showCustomAlert('تم الحذف 🗑️', 'تم حذف العلامة التجارية.');
+        renderAdminBrandsTab();
+    });
+}
+
+// ------------------------------------------
+// 🖼️ 4. تبويب البانرات الإعلانية (Hero Slides)
+// ------------------------------------------
+function renderAdminHeroTab() {
+    const listEl = document.getElementById('admin-hero-slides-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = heroSlides.map(slide => `
+        <div class="flex items-center gap-4 bg-gray-50 border p-3 rounded-xl">
+            <img src="${slide.image}" class="w-20 h-14 object-cover rounded-lg border">
+            <div class="flex-1">
+                <h4 class="font-bold text-sm text-gray-900">${slide.title}</h4>
+                <p class="text-xs text-gray-500">${slide.desc}</p>
+            </div>
+            <button onclick="deleteHeroSlide('${slide.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg text-xs">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function handleSaveHeroSlide(e) {
+    e.preventDefault();
+    const title = document.getElementById('hero-title-input').value.trim();
+    const desc = document.getElementById('hero-desc-input').value.trim();
+    const image = document.getElementById('hero-img-input').value.trim();
+
+    db.collection("heroSlides").add({ title, desc, image }).then(() => {
+        showCustomAlert('تمت الإضافة 🖼️', 'تم إضافة البانر الإعلاني بنجاح!');
+        document.getElementById('hero-title-input').value = '';
+        document.getElementById('hero-desc-input').value = '';
+        document.getElementById('hero-img-input').value = '';
+        renderAdminHeroTab();
+    });
+}
+
+function deleteHeroSlide(id) {
+    db.collection("heroSlides").doc(id).delete().then(() => {
+        showCustomAlert('تم الحذف 🗑️', 'تم حذف البانر الإعلاني.');
+        renderAdminHeroTab();
+    });
+}
+
+// ------------------------------------------
+// 📂 5. تبويب الفئات (Categories)
+// ------------------------------------------
+function renderAdminCategoriesTab() {
+    const listEl = document.getElementById('admin-categories-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = categories.map(cat => `
+        <div class="bg-gray-50 border p-3 rounded-xl flex items-center justify-between gap-2 shadow-sm">
+            <div class="flex items-center gap-3">
+                <img src="${cat.image}" class="w-10 h-10 rounded-lg object-cover border">
+                <span class="font-bold text-xs text-gray-900">${cat.name}</span>
+            </div>
+            <button onclick="deleteCategory('${cat.id}')" class="text-red-500 hover:text-red-700 text-xs p-1">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function handleSaveCategory(e) {
+    e.preventDefault();
+    const name = document.getElementById('cat-name-input').value.trim();
+    const image = document.getElementById('cat-img-input').value.trim();
+
+    db.collection("categories").add({ name, image }).then(() => {
+        showCustomAlert('تمت الإضافة 📂', `تمت إضافة الفئة "${name}" بنجاح!`);
+        document.getElementById('cat-name-input').value = '';
+        document.getElementById('cat-img-input').value = '';
+        renderAdminCategoriesTab();
+    });
+}
+
+function deleteCategory(id) {
+    db.collection("categories").doc(id).delete().then(() => {
+        showCustomAlert('تم الحذف 🗑️', 'تم حذف الفئة.');
+        renderAdminCategoriesTab();
+    });
+}
+
+// ------------------------------------------
+// 🚚 6. تبويب الولايات وأسعار التوصيل
+// ------------------------------------------
+function renderAdminShippingTab() {
+    const listEl = document.getElementById('admin-wilayas-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = wilayas.map(w => `
+        <div class="bg-gray-50 border p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
+            <div>
+                <span class="bg-black text-white text-xs font-black px-2.5 py-1 rounded-lg ml-2">${w.code}</span>
+                <span class="font-bold text-gray-900 text-sm">${w.name}</span>
+            </div>
+            <div class="flex gap-4 text-xs">
+                <span class="text-gray-600">منزل: <strong class="text-[#B8860B]">${(w.homeCost || 0).toLocaleString()} دج</strong></span>
+                <span class="text-gray-600">مكتب: <strong class="text-blue-600">${(w.officeCost || 0).toLocaleString()} دج</strong></span>
+            </div>
+            <button onclick="deleteWilaya('${w.id}')" class="text-red-500 hover:text-red-700 text-xs">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function handleSaveWilaya(e) {
+    e.preventDefault();
+    const code = document.getElementById('wilaya-code').value.trim();
+    const name = document.getElementById('wilaya-name').value.trim();
+    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
+    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
+    const communesInput = document.getElementById('wilaya-communes-input').value.trim();
+
+    const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [];
+
+    db.collection("wilayas").add({ code, name, homeCost, officeCost, communes }).then(() => {
+        showCustomAlert('تم الحفظ 🚚', `تم تسعير ولاية (${name}) بنجاح!`);
+        document.getElementById('wilaya-code').value = '';
+        document.getElementById('wilaya-name').value = '';
+        document.getElementById('wilaya-home-cost').value = '';
+        document.getElementById('wilaya-office-cost').value = '';
+        document.getElementById('wilaya-communes-input').value = '';
+        renderAdminShippingTab();
+    });
+}
+
+function deleteWilaya(id) {
+    db.collection("wilayas").doc(id).delete().then(() => {
+        showCustomAlert('تم الحذف 🗑️', 'تم حذف بيانات الولاية.');
+        renderAdminShippingTab();
+    });
+}
+
+// ------------------------------------------
+// ⚙️ 7. تبويب الهوية والمقولة الافتتاحية والرسائل
+// ------------------------------------------
+function renderAdminSettingsTab() {
+    const storeNameInp = document.getElementById('set-store-name');
+    const storeSloganInp = document.getElementById('set-store-slogan');
+    const splashSloganInp = document.getElementById('set-splash-slogan');
+    const logoUrlInp = document.getElementById('set-logo-url');
+    const passInp = document.getElementById('set-pass');
+
+    if (storeNameInp) storeNameInp.value = storeSettings.name || '';
+    if (storeSloganInp) storeSloganInp.value = storeSettings.slogan || '';
+    if (splashSloganInp) splashSloganInp.value = storeSettings.splashSlogan || 'لمستكِ الفاخرة لأناقة لا تُنسى ✨';
+    if (logoUrlInp) logoUrlInp.value = storeSettings.logo || '';
+    if (passInp) passInp.value = storeSettings.adminPassword || 'admin123';
+
+    renderBannerTextsList();
+}
+
+function handleSaveSettings(e) {
+    e.preventDefault();
+    const name = document.getElementById('set-store-name').value.trim();
+    const slogan = document.getElementById('set-store-slogan').value.trim();
+    const splashSlogan = document.getElementById('set-splash-slogan').value.trim();
+    const logo = document.getElementById('set-logo-url').value.trim();
+    const pass = document.getElementById('set-pass').value.trim();
+
+    storeSettings = { name, slogan, splashSlogan, logo, adminPassword: pass };
+
+    db.collection("settings").doc("main").set({
+        storeName: name,
+        slogan: slogan,
+        splashSlogan: splashSlogan,
+        logo: logo,
+        adminPassword: pass
+    }, { merge: true }).then(() => {
+        showCustomAlert('تم الحفظ 👍', 'تم تحديث كافة الإعدادات والمقولة الافتتاحية بنجاح!');
+        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
+    });
+}
+
+function renderBannerTextsList() {
+    const listEl = document.getElementById('banner-texts-list');
+    if (!listEl) return;
+
+    if (!bannerMessages || bannerMessages.length === 0) {
+        listEl.innerHTML = '<p class="text-xs text-gray-400">لا توجد جمل مخصصة لشريط البانر العلوي.</p>';
+        return;
+    }
+
+    listEl.innerHTML = bannerMessages.map((msg, idx) => `
+        <div class="bg-gray-50 border p-3 rounded-xl flex items-center justify-between text-xs">
             <span class="font-bold text-gray-800">${msg}</span>
-            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">
-                <i class="fa-solid fa-trash-can"></i> حذف
+            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700">
+                <i class="fa-solid fa-trash"></i>
             </button>
         </div>
     `).join('');
 }
 
 function addBannerText() {
-    const input = document.getElementById('new-banner-text');
-    if (!input) return;
+    const inp = document.getElementById('new-banner-text');
+    const txt = inp.value.trim();
+    if (!txt) return;
 
-    const newText = input.value.trim();
-    if (!newText) {
-        showCustomAlert('تنبيه', 'يرجى كتابة النص المراد إضافته للبانر العلوي!', false);
-        return;
-    }
-
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
-    }).then(() => {
-        input.value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها على كافة الأجهزة!', true);
-    }).catch(() => {
-        db.collection("settings").doc("main").set({
-            bannerMessages: [newText]
-        }, { merge: true });
+    bannerMessages.push(txt);
+    db.collection("settings").doc("main").set({
+        bannerMessages: bannerMessages
+    }, { merge: true }).then(() => {
+        inp.value = '';
+        renderBannerTextsList();
+        showCustomAlert('تمت الإضافة 📢', 'تم إضافة الجملة إلى شريط الإعلانات العلوي!');
     });
 }
 
-function removeBannerText(index) {
-    const targetText = bannerMessages[index];
-    if (!targetText) return;
-
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
-    }).then(() => {
-        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
-    });
-}
-
-function promptDeleteOrder(id) {
-    pendingDeleteOrderId = id;
-    const modal = document.getElementById('custom-confirm-modal');
-    document.getElementById('confirm-action-btn').onclick = function() {
-        confirmDeleteOrder();
-    };
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeCustomConfirm() {
-    const modal = document.getElementById('custom-confirm-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    pendingDeleteOrderId = null;
-}
-
-function confirmDeleteOrder() {
-    if (pendingDeleteOrderId) {
-        db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
-            closeCustomConfirm();
-            showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
-        });
-    }
-}
-
-function updateOrderStatus(id, newStatus) {
-    db.collection("orders").doc(id).update({ status: newStatus }).then(() => {
-        renderAdminDashboard();
-    });
-}
-
-function handleSaveSettings(e) {
-    if (e) e.preventDefault();
-    const settings = {
-        name: document.getElementById('set-store-name').value,
-        slogan: document.getElementById('set-store-slogan').value,
-        logoUrl: document.getElementById('set-logo-url').value,
-        pass: document.getElementById('set-pass').value,
-        msgSuccess: document.getElementById('set-msg-success').value,
-        msgWarning: document.getElementById('set-msg-warning').value
-    };
-
-    db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
-        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل المخصصة بنجاح!', true);
+function removeBannerText(idx) {
+    bannerMessages.splice(idx, 1);
+    db.collection("settings").doc("main").set({
+        bannerMessages: bannerMessages
+    }, { merge: true }).then(() => {
+        renderBannerTextsList();
+        showCustomAlert('تم الحذف 🗑️', 'تمت إزالة الجملة من شريط الإعلانات.');
     });
 }
