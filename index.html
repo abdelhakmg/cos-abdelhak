@@ -14,7 +14,6 @@
     
     <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/custom.css">
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
@@ -128,7 +127,6 @@
                         </div>
                         <hr class="border-gray-800">
                         
-                        <!-- شريط تصفية السعر المعدل من 0 دج إلى 20,000 دج -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر</h4>
                             <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
@@ -336,7 +334,7 @@
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-5" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-5')">
                                     <button type="button" onclick="document.getElementById('file-input-5').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
-                                        <i class="fa-solid fa-upload"></i> 5. رفع الصورة 5
+                                        <i class="fa-solid fa-upload"></i> 5. رفع الصورة الخامسة
                                     </button>
                                     <input type="url" id="prod-img-5" placeholder="أو رابط الصورة الخامسة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
