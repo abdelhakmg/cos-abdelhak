@@ -300,7 +300,7 @@ function renderSingleProductCard(p) {
                 <div class="space-y-1">
                     <span class="text-[10px] text-gray-500 font-bold block">شارك مع اصدقائك</span>
                     <div class="flex items-center gap-2">
-                        <a href="https://api.whatsapp.com/send?text=${shareText}\%20${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="واتساب"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a href="https://api.whatsapp.com/send?text=${shareText}%20${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="واتساب"><i class="fa-brands fa-whatsapp"></i></a>
                         <a href="https://www.facebook.com/sharer/sharer.php?u=${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
                         <a href="https://m.me/share?text=${shareText}&link=${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="مسنجر"><i class="fa-brands fa-facebook-messenger"></i></a>
                         <a href="https://t.me/share/url?url=${productUrl}&text=${shareText}" target="_blank" class="w-7 h-7 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs hover:scale-110 transition" title="تليجرام"><i class="fa-brands fa-telegram"></i></a>
@@ -490,7 +490,6 @@ function renderProducts() {
         homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
-// عرض تقييمات الزبائن الحقيقية فقط (وإخفاء القسم تماماً إذا لم توجد)
 function renderRealCustomerReviews() {
     const section = document.getElementById('real-reviews-section');
     const grid = document.getElementById('reviews-grid-container');
@@ -499,7 +498,7 @@ function renderRealCustomerReviews() {
     const approvedReviews = storeReviews.filter(r => r.approved === true);
 
     if (approvedReviews.length === 0) {
-        section.classList.add('hidden'); // إخفاء القسم نهائياً لعدم وجود تقييمات حقيقية
+        section.classList.add('hidden');
         return;
     }
 
@@ -565,7 +564,7 @@ function handleCustomerSubmitReview(e) {
         stars: stars,
         comment: comment,
         image: image,
-        approved: false, // يحتاج موافقة المسؤول ليظهر كتقييم حقيقي
+        approved: false,
         createdAt: new Date()
     };
 
@@ -597,13 +596,11 @@ function updateAppHeaderInfo() {
         if (logoIcon) logoIcon.classList.add('hidden');
     }
 
-    // تحديث زر الواتساب العائم بناءً على لوحة التحكم
     const floatWa = document.getElementById('floating-whatsapp-btn');
     if (floatWa && storeSettings.socialWa) {
         floatWa.href = storeSettings.socialWa;
     }
 
-    // عرض روابط التواصل الاجتماعي في شريط حقوق النشر (Footer) حسب إعدادات لوحة التحكم
     const footerSocial = document.getElementById('footer-social-links');
     if (footerSocial) {
         let socialHtml = '';
@@ -655,7 +652,7 @@ function initRealOrdersTicker() {
         if (!orders || orders.length === 0) return;
         const latestOrder = orders[orders.length - 1];
 
-        spCustomer.innerText = `${latestOrder.customer \vert{}\vert{} 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
+        spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
         spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
         
         toast.classList.remove('translate-y-28', 'opacity-0');
