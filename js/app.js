@@ -2,7 +2,6 @@ let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'جميع المنتجات';
 
-// المزامنة الفورية لشريط البانر
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
@@ -176,7 +175,6 @@ function addToCart(id) {
     }
 }
 
-// دالة تصفية المنتجات بمرونة تامة ونظافة مطابقة
 function filterCategory(catName) {
     activeCategoryFilter = catName.trim();
     const breadcrumb = document.getElementById('breadcrumb-current');
@@ -186,23 +184,19 @@ function filterCategory(catName) {
     showPage('catalog');
 }
 
-// تطبيق التصفية والفرز
 function applyFilters() {
     let filtered = [...products];
 
-    // الفلترة حسب الفئة مع دعم الأحرف والمسافات
     if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
         filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
     }
 
-    // الفلترة بالسعر
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => p.price <= maxPrice);
     }
 
-    // الترتيب
     const sortSelect = document.getElementById('sort-select');
     const sortVal = sortSelect ? sortSelect.value : 'best';
 
@@ -211,7 +205,6 @@ function applyFilters() {
     } else if (sortVal === 'high') {
         filtered.sort((a, b) => b.price - a.price);
     } else {
-        // الأكثر مبيعاً
         filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
     }
 
@@ -240,7 +233,6 @@ function resetFilters() {
     updatePriceFilter(20000);
 }
 
-// عرض الأكثر مبيعاً الحقيقي بفرز الكميات أو الفرز المخصص
 function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
@@ -254,7 +246,6 @@ function renderProducts() {
         homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
-// القائمة العلوية مع الخيارات الجديدة المحددة
 function updateAppHeaderInfo() {
     const titleEl = document.getElementById('site-title');
     if (titleEl) titleEl.innerText = storeSettings.name + ' | المتجر الفاخر';
@@ -262,7 +253,6 @@ function updateAppHeaderInfo() {
     const nameEl = document.getElementById('store-name-display');
     if (nameEl) nameEl.innerText = storeSettings.name;
 
-    // شريط القائمة العلوية المطور
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
@@ -271,7 +261,6 @@ function updateAppHeaderInfo() {
         ` + categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
 
-    // القائمة المنسدلة للهواتف
     const mobileListEl = document.getElementById('mobile-drawer-categories');
     if (mobileListEl) {
         mobileListEl.innerHTML = `
@@ -280,7 +269,6 @@ function updateAppHeaderInfo() {
         ` + categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
     }
 
-    // بطاقات الأقسام في الصفحة الرئيسية
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
         homeCatGrid.innerHTML = categories.map(c => `
