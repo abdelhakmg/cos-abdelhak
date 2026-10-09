@@ -19,6 +19,7 @@ let categories = [];
 let brands = [];
 let products = [];
 let orders = [];
+let storeReviews = [];
 let cart = JSON.parse(localStorage.getItem('lb_cart_v7')) || [];
 let favorites = JSON.parse(localStorage.getItem('lb_favs_v7')) || [];
 
@@ -30,6 +31,7 @@ let storeSettings = {
     socialFb: '',
     socialIg: '',
     socialWa: '',
+    socialMessenger: '',
     socialPhone: '',
     socialEmail: '',
     metaPixel: ''
@@ -58,6 +60,12 @@ function initFirebaseRealtime() {
 
     db.collection("orders").onSnapshot((snapshot) => {
         orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+    });
+
+    db.collection("reviews").onSnapshot((snapshot) => {
+        storeReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (typeof renderRealCustomerReviews === 'function') renderRealCustomerReviews();
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
