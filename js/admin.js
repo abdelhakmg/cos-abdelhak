@@ -3,7 +3,7 @@ let pendingDeleteOrderId = null;
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     if (typeof showCustomAlert === 'function') {
         showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
     }
@@ -424,7 +424,7 @@ function editProduct(id) {
     const imgs = p.images || [];
     document.getElementById('prod-img-main').value = imgs[0] || '';
     document.getElementById('prod-img-2').value = imgs[1] || '';
-    document.getElementById('prod-img-3').value = imgs[3] || '';
+    document.getElementById('prod-img-3').value = imgs[2] || '';
     document.getElementById('prod-img-4').value = imgs[3] || '';
     document.getElementById('prod-img-5').value = imgs[4] || '';
 
@@ -527,7 +527,6 @@ function updateOrderStatus(id, newStatus) {
     });
 }
 
-// كود الحفظ المضمون لبيانات التواصل والإعدادات
 function handleSaveSettings(e) {
     if (e) e.preventDefault();
     
