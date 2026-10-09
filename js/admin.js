@@ -128,6 +128,7 @@ function exportOrdersToExcel() {
         "البلدية": o.commune || '',
         "المنتج": o.product || '',
         "المبلغ الإجمالي (دج)": o.total || 0,
+        "المسوق / الرابط": o.affiliateRef || 'مباشر',
         "حالة الطلب": o.status || 'جديد',
         "التاريخ": o.date || ''
     }));
@@ -178,6 +179,7 @@ function renderAdminDashboard() {
                         <td class="p-3">
                             <div class="font-bold text-gray-900">${o.customer}</div>
                             <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
+                            ${o.affiliateRef && o.affiliateRef !== 'مباشر' ? `<div class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded mt-1 font-bold">مسوق: ${o.affiliateRef}</div>` : ''}
                         </td>
                         <td class="p-3">
                             <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
@@ -218,8 +220,12 @@ function renderAdminDashboard() {
         document.getElementById('set-store-slogan').value = storeSettings.slogan || '';
         document.getElementById('set-logo-url').value = storeSettings.logoUrl || '';
         document.getElementById('set-pass').value = storeSettings.pass || 'admin123';
-        document.getElementById('set-msg-success').value = storeSettings.msgSuccess || '';
-        document.getElementById('set-msg-warning').value = storeSettings.msgWarning || '';
+        document.getElementById('set-social-fb').value = storeSettings.socialFb || '';
+        document.getElementById('set-social-ig').value = storeSettings.socialIg || '';
+        document.getElementById('set-social-wa').value = storeSettings.socialWa || '';
+        document.getElementById('set-social-phone').value = storeSettings.socialPhone || '';
+        document.getElementById('set-social-email').value = storeSettings.socialEmail || '';
+        document.getElementById('set-meta-pixel').value = storeSettings.metaPixel || '';
     }
 
     renderAdminProductsTable();
@@ -487,12 +493,16 @@ function handleSaveSettings(e) {
         slogan: document.getElementById('set-store-slogan').value,
         logoUrl: document.getElementById('set-logo-url').value,
         pass: document.getElementById('set-pass').value,
-        msgSuccess: document.getElementById('set-msg-success').value,
-        msgWarning: document.getElementById('set-msg-warning').value
+        socialFb: document.getElementById('set-social-fb').value,
+        socialIg: document.getElementById('set-social-ig').value,
+        socialWa: document.getElementById('set-social-wa').value,
+        socialPhone: document.getElementById('set-social-phone').value,
+        socialEmail: document.getElementById('set-social-email').value,
+        metaPixel: document.getElementById('set-meta-pixel').value
     };
 
     db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
-        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل المخصصة بنجاح!', true);
+        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والروابط والـ Pixel بنجاح!', true);
     });
 }
 
