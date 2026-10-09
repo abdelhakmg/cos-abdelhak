@@ -26,7 +26,7 @@ function handleLogoClick(event) {
 function handleAdminPassKeydown(event) {
     if (event.key === 'Enter') {
         event.preventDefault();
-        checkAdminPassword();
+        if (typeof checkAdminPassword === 'function') checkAdminPassword();
     }
 }
 
@@ -41,7 +41,7 @@ function handleLiveSearch(query) {
         return;
     }
 
-    const matches = products.filter(p => 
+    const matches = (typeof products !== 'undefined' ? products : []).filter(p => 
         (p.name && p.name.toLowerCase().includes(q)) || 
         (p.category && p.category.toLowerCase().includes(q)) ||
         (p.brand && p.brand.toLowerCase().includes(q))
@@ -56,7 +56,7 @@ function handleLiveSearch(query) {
                 <img src="${(p.images && p.images[0]) || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
                 <div class="text-right">
                     <p class="text-xs font-bold text-white truncate">${p.name}</p>
-                    <p class="text-[10px] text-[#D4AF37] font-bold">${p.price.toLocaleString()} دج</p>
+                    <p class="text-[10px] text-[#D4AF37] font-bold">${p.price ? p.price.toLocaleString() : 0} دج</p>
                 </div>
             </div>
         `).join('');
@@ -77,12 +77,12 @@ function handleSearchKeydown(event, query) {
         event.preventDefault();
         const q = query.trim().toLowerCase();
         if (!q) return;
-        const found = products.find(p => p.name && p.name.toLowerCase().includes(q));
+        const found = (typeof products !== 'undefined' ? products : []).find(p => p.name && p.name.toLowerCase().includes(q));
         hideAllDropdowns();
         if (found) {
-            openLandingPage(found.id);
+            if (typeof openLandingPage === 'function') openLandingPage(found.id);
         } else {
-            showCustomAlert('غير متوفر', 'المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات حسب نوعية المنتج', false);
+            if (typeof showCustomAlert === 'function') showCustomAlert('غير متوفر', 'المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات حسب نوعية المنتج', false);
         }
     }
 }
@@ -90,7 +90,7 @@ function handleSearchKeydown(event, query) {
 function startVoiceSearch() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        showCustomAlert('تنبيه', 'متصفحك لا يدعم البحث الصوتي المباشر.', false);
+        if (typeof showCustomAlert === 'function') showCustomAlert('تنبيه', 'متصفحك لا يدعم البحث الصوتي المباشر.', false);
         return;
     }
 
@@ -114,7 +114,7 @@ function startVoiceSearch() {
 
     recognition.onerror = function() {
         if (micIcon) micIcon.className = "fa-solid fa-microphone text-[#D4AF37]";
-        showCustomAlert('خطأ', 'تعذر التعرف على الصوت، حاول مرة أخرى.', false);
+        if (typeof showCustomAlert === 'function') showCustomAlert('خطأ', 'تعذر التعرف على الصوت، حاول مرة أخرى.', false);
     };
 
     recognition.onend = function() {
@@ -133,9 +133,11 @@ function hideAllDropdowns() {
 
 function injectMetaPixel() {
     const container = document.getElementById('meta-pixel-container');
-    if (!container || !storeSettings.metaPixel) return;
+    if (!container || typeof storeSettings === 'undefined' || !storeSettings.metaPixel) return;
 
     const pixelId = storeSettings.metaPixel.trim();
+    if (!pixelId) return;
+
     container.innerHTML = `
         <script>
             !function(f,b,e,v,n,t,s)
@@ -155,7 +157,7 @@ function injectMetaPixel() {
 
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
-    if (!bannerEl) return;
+    if (!bannerEl || typeof db === 'undefined') return;
 
     db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists && doc.data().bannerMessages && doc.data().bannerMessages.length > 0) {
@@ -186,7 +188,7 @@ function startBannerTicker() {
     }
 
     window.bannerTickerTimer = setInterval(() => {
-        if (!bannerMessages || bannerMessages.length === 0) return;
+        if (typeof bannerMessages === 'undefined' || !bannerMessages || bannerMessages.length === 0) return;
 
         bannerEl.style.opacity = '0';
         setTimeout(() => {
@@ -201,9 +203,10 @@ function renderHeroSlider() {
     const container = document.getElementById('hero-slider-container');
     const dotsContainer = document.getElementById('hero-slider-dots');
     
-    if (!container || !heroSlides || heroSlides.length === 0) return;
+    if (!container || typeof heroSlides === 'undefined' || !heroSlides || heroSlides.length === 0) return;
 
     const currentSlide = heroSlides[currentHeroIdx];
+    if (!currentSlide) return;
 
     container.innerHTML = `
         <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
@@ -257,7 +260,7 @@ function toggleMobileMenu() {
 
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
-    const isFav = favorites.includes(p.id);
+    const isFav = (typeof favorites !== 'undefined') ? favorites.includes(p.id) : false;
     const productUrl = window.location.href.split('?')[0] + '?id=' + p.id;
     const shareText = encodeURIComponent(`شاهد هذا المنتج الرائع من كوسمتيك عبد الحق: ${p.name}`);
 
@@ -322,6 +325,7 @@ function renderSingleProductCard(p) {
 }
 
 function toggleFavorite(id) {
+    if (typeof favorites === 'undefined') favorites = [];
     if (favorites.includes(id)) {
         favorites = favorites.filter(favId => favId !== id);
     } else {
@@ -331,14 +335,14 @@ function toggleFavorite(id) {
     updateBadges();
     if (typeof applyFilters === 'function') applyFilters();
     renderProducts();
-    if (document.getElementById('page-wishlist').classList.contains('active')) renderWishlistPage();
+    if (document.getElementById('page-wishlist') && document.getElementById('page-wishlist').classList.contains('active')) renderWishlistPage();
 }
 
 function renderWishlistPage() {
     const grid = document.getElementById('wishlist-products-grid');
     if (!grid) return;
 
-    const favProducts = products.filter(p => favorites.includes(p.id));
+    const favProducts = (typeof products !== 'undefined' ? products : []).filter(p => favorites.includes(p.id));
     if (favProducts.length === 0) {
         grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">لم تقم بإضافة أي منتج للمفضلة بعد.</p>';
     } else {
@@ -349,13 +353,14 @@ function renderWishlistPage() {
 function updateBadges() {
     const cartBadge = document.getElementById('cart-badge');
     const wishBadge = document.getElementById('wishlist-badge');
-    if (cartBadge) cartBadge.innerText = cart.length;
-    if (wishBadge) wishBadge.innerText = favorites.length;
+    if (cartBadge && typeof cart !== 'undefined') cartBadge.innerText = cart.length;
+    if (wishBadge && typeof favorites !== 'undefined') wishBadge.innerText = favorites.length;
 }
 
 function addToCart(id) {
-    const prod = products.find(p => p.id === id);
+    const prod = (typeof products !== 'undefined' ? products : []).find(p => p.id === id);
     if (prod) {
+        if (typeof cart === 'undefined') cart = [];
         cart.push(prod);
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         updateBadges();
@@ -372,7 +377,7 @@ function renderCart() {
 
     if (!cartList) return;
 
-    if (cart.length === 0) {
+    if (typeof cart === 'undefined' || cart.length === 0) {
         cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p>';
         if (subtotalEl) subtotalEl.innerText = '0 دج';
         if (totalEl) totalEl.innerText = '0 دج';
@@ -405,18 +410,20 @@ function renderCart() {
 }
 
 function removeFromCart(idx) {
-    cart.splice(idx, 1);
-    localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
-    updateBadges();
-    renderCart();
+    if (typeof cart !== 'undefined') {
+        cart.splice(idx, 1);
+        localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
+        updateBadges();
+        renderCart();
+    }
 }
 
 function submitCartCheckout() {
-    if (cart.length === 0) {
-        showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
+    if (typeof cart === 'undefined' || cart.length === 0) {
+        if (typeof showCustomAlert === 'function') showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
         return;
     }
-    showCustomAlert('طلب جاري!', 'لإكمال الشراء بسرعة والدفع عند الاستلام، يرجى الاستمرار من صفحة المنتج المباشرة.', true);
+    if (typeof showCustomAlert === 'function') showCustomAlert('طلب جاري!', 'لإكمال الشراء بسرعة والدفع عند الاستلام، يرجى الاستمرار من صفحة المنتج المباشرة.', true);
 }
 
 function filterCategory(catName) {
@@ -429,7 +436,7 @@ function filterCategory(catName) {
 }
 
 function applyFilters() {
-    let filtered = [...products];
+    let filtered = (typeof products !== 'undefined' ? [...products] : []);
 
     if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
         filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
@@ -481,12 +488,12 @@ function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
 
-    let bestSellers = [...products];
+    let bestSellers = (typeof products !== 'undefined' ? [...products] : []);
     bestSellers.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
     const homeList = bestSellers.slice(0, 8);
 
     grid.innerHTML = homeList.length === 0 ? 
-        '<p class="col-span-full text-center text-gray-400 py-12">جاري تحميل المنتجات...</p>' :
+        '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات معروضة حالياً.</p>' :
         homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
@@ -495,7 +502,7 @@ function renderRealCustomerReviews() {
     const grid = document.getElementById('reviews-grid-container');
     if (!section || !grid) return;
 
-    const approvedReviews = storeReviews.filter(r => r.approved === true);
+    const approvedReviews = (typeof storeReviews !== 'undefined' ? storeReviews : []).filter(r => r.approved === true);
 
     if (approvedReviews.length === 0) {
         section.classList.add('hidden');
@@ -541,7 +548,7 @@ function handleReviewImageUpload(event) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
             document.getElementById('rev-img-url').value = canvas.toDataURL('image/jpeg', 0.8);
-            showCustomAlert('تم الرفع', 'تم إرفاق صورة المنتج بنجاح.', true);
+            if (typeof showCustomAlert === 'function') showCustomAlert('تم الرفع', 'تم إرفاق صورة المنتج بنجاح.', true);
         };
     };
     reader.readAsDataURL(file);
@@ -555,7 +562,7 @@ function handleCustomerSubmitReview(e) {
     const image = document.getElementById('rev-img-url').value.trim();
 
     if (!name || !comment || !image) {
-        showCustomAlert('تنبيه', 'يرجى ملء جميع الحقول وإرفاق الصورة.', false);
+        if (typeof showCustomAlert === 'function') showCustomAlert('تنبيه', 'يرجى ملء جميع الحقول وإرفاق الصورة.', false);
         return;
     }
 
@@ -568,15 +575,19 @@ function handleCustomerSubmitReview(e) {
         createdAt: new Date()
     };
 
-    db.collection("reviews").add(newRev).then(() => {
-        document.getElementById('rev-name').value = '';
-        document.getElementById('rev-comment').value = '';
-        document.getElementById('rev-img-url').value = '';
-        showCustomAlert('شكراً لك! 🌟', 'تم إرسال تقييمك بنجاح وسيتم عرضه في المتجر بعد المراجعة.', true);
-    });
+    if (typeof db !== 'undefined') {
+        db.collection("reviews").add(newRev).then(() => {
+            document.getElementById('rev-name').value = '';
+            document.getElementById('rev-comment').value = '';
+            document.getElementById('rev-img-url').value = '';
+            if (typeof showCustomAlert === 'function') showCustomAlert('شكراً لك! 🌟', 'تم إرسال تقييمك بنجاح وسيتم عرضه في المتجر بعد المراجعة.', true);
+        });
+    }
 }
 
 function updateAppHeaderInfo() {
+    if (typeof storeSettings === 'undefined') return;
+
     const titleEl = document.getElementById('site-title');
     if (titleEl) titleEl.innerText = (storeSettings.name || 'كوسمتيك عبد الحق') + ' | المتجر الفاخر';
 
@@ -613,12 +624,13 @@ function updateAppHeaderInfo() {
         footerSocial.innerHTML = socialHtml;
     }
 
+    const catList = (typeof categories !== 'undefined' ? categories : []);
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
             <button onclick="showPage('home')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>
             <button onclick="filterCategory('جميع المنتجات')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">جميع المنتجات</button>
-        ` + categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
+        ` + catList.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
 
     const mobileListEl = document.getElementById('mobile-drawer-categories');
@@ -626,12 +638,12 @@ function updateAppHeaderInfo() {
         mobileListEl.innerHTML = `
             <button onclick="showPage('home'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-[#D4AF37] font-bold mb-2">الرئيسية</button>
             <button onclick="filterCategory('جميع المنتجات'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">جميع المنتجات</button>
-        ` + categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
+        ` + catList.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
     }
 
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
-        homeCatGrid.innerHTML = categories.map(c => `
+        homeCatGrid.innerHTML = catList.map(c => `
             <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
                 <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
                     <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black">
@@ -649,7 +661,7 @@ function initRealOrdersTicker() {
     if (!toast || !spCustomer || !spProduct) return;
 
     setInterval(() => {
-        if (!orders || orders.length === 0) return;
+        if (typeof orders === 'undefined' || !orders || orders.length === 0) return;
         const latestOrder = orders[orders.length - 1];
 
         spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
@@ -671,11 +683,14 @@ function checkAffiliateRef() {
     }
 }
 
-updateAppHeaderInfo();
-updateBadges();
-renderHeroSlider();
-renderProducts();
-renderRealCustomerReviews();
-initBannerRealtimeSync();
-initRealOrdersTicker();
-checkAffiliateRef();
+// تشغيل التهيئة عند اكتمال تحميل الصفحة
+window.addEventListener('DOMContentLoaded', () => {
+    updateAppHeaderInfo();
+    updateBadges();
+    renderHeroSlider();
+    renderProducts();
+    renderRealCustomerReviews();
+    initBannerRealtimeSync();
+    initRealOrdersTicker();
+    checkAffiliateRef();
+});
