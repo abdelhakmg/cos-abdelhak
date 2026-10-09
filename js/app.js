@@ -23,7 +23,7 @@ function handleLogoClick(event) {
     }
 }
 
-// بحث مباشر يدعم الكمبيوتر والهاتف والتجاوب مع لوحة المفاتيح (Enter)
+// بحث كتابي وصوتي ذكي
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -81,11 +81,71 @@ function handleSearchKeydown(event, query) {
     }
 }
 
+// البحث الصوتي الذكي (Speech Recognition)
+function startVoiceSearch() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        showCustomAlert('تنبيه', 'متصفحك لا يدعم البحث الصوتي المباشر.', false);
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ar-DZ'; // اللهجة الجزائرية / العربية
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const micIcon = document.getElementById('mic-icon');
+    if (micIcon) micIcon.className = "fa-solid fa-microphone text-red-500 animate-bounce";
+
+    recognition.onresult = function(event) {
+        const speechResult = event.results[0][0].transcript;
+        const searchInput = document.getElementById('live-search-input') || document.getElementById('mobile-search-input');
+        if (searchInput) {
+            searchInput.value = speechResult;
+            handleLiveSearch(speechResult);
+        }
+        if (micIcon) micIcon.className = "fa-solid fa-microphone text-[#D4AF37]";
+    };
+
+    recognition.onerror = function() {
+        if (micIcon) micIcon.className = "fa-solid fa-microphone text-[#D4AF37]";
+        showCustomAlert('خطأ', 'تعذر التعرف على الصوت، حاول مرة أخرى.', false);
+    };
+
+    recognition.onend = function() {
+        if (micIcon) micIcon.className = "fa-solid fa-microphone text-[#D4AF37]";
+    };
+
+    recognition.start();
+}
+
 function hideAllDropdowns() {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
     if (dropdown) dropdown.classList.add('hidden');
     if (mobileDropdown) mobileDropdown.classList.add('hidden');
+}
+
+function injectMetaPixel() {
+    const container = document.getElementById('meta-pixel-container');
+    if (!container || !storeSettings.metaPixel) return;
+
+    const pixelId = storeSettings.metaPixel.trim();
+    container.innerHTML = `
+        <script>
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=this.id='n';n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${pixelId}');
+            fbq('track', 'PageView');
+        </script>
+        <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"/></noscript>
+    `;
 }
 
 function initBannerRealtimeSync() {
@@ -193,6 +253,8 @@ function toggleMobileMenu() {
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     const isFav = favorites.includes(p.id);
+    const productUrl = window.location.href.split('?')[0] + '?id=' + p.id;
+    const shareText = encodeURIComponent(`شاهد هذا المنتج الرائع من كوسمتيك عبد الحق: ${p.name}`);
 
     return `
         <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
@@ -205,9 +267,12 @@ function renderSingleProductCard(p) {
                     <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500">
                 </div>
 
-                <div class="flex items-center gap-1.5 mb-1.5">
-                    <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
-                    <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
+                        <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
+                    </div>
+                    <span class="bg-[#D4AF37]/10 text-[#B8860B] border border-[#D4AF37]/30 text-[9px] font-extrabold px-2 py-0.5 rounded-full">✨ أصلي 100% | شحن مضمون</span>
                 </div>
 
                 <h3 class="font-bold text-sm text-gray-900 truncate my-1 cursor-pointer group-hover:text-[#B8860B] transition" onclick="openLandingPage('${p.id}')">${p.name}</h3>
@@ -226,13 +291,25 @@ function renderSingleProductCard(p) {
                 </div>
             </div>
 
-            <div class="space-y-2">
-                <button onclick="addToCart('${p.id}')" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
-                </button>
-                <button onclick="openLandingPage('${p.id}')" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
-                    اطلب الآن 🔥
-                </button>
+            <div class="space-y-3">
+                <div class="space-y-1">
+                    <span class="text-[10px] text-gray-500 font-bold block">شارك مع اصدقائك</span>
+                    <div class="flex items-center gap-2">
+                        <a href="https://api.whatsapp.com/send?text=${shareText}%20${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${productUrl}" target="_blank" class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://t.me/share/url?url=${productUrl}&text=${shareText}" target="_blank" class="w-7 h-7 rounded-full bg-sky-500 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-telegram"></i></a>
+                        <a href="https://www.instagram.com" target="_blank" class="w-7 h-7 rounded-full bg-pink-600 text-white flex items-center justify-center text-xs hover:scale-110 transition"><i class="fa-brands fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-gray-100">
+                    <button onclick="addToCart('${p.id}')" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
+                    </button>
+                    <button onclick="openLandingPage('${p.id}')" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
+                        اطلب الآن 🔥
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -427,6 +504,18 @@ function updateAppHeaderInfo() {
         if (logoIcon) logoIcon.classList.add('hidden');
     }
 
+    // عرض روابط التواصل في الـ Footer
+    const footerSocial = document.getElementById('footer-social-links');
+    if (footerSocial) {
+        let socialHtml = '';
+        if (storeSettings.socialFb) socialHtml += `<a href="${storeSettings.socialFb}" target="_blank" class="text-[#D4AF37] hover:text-white transition"><i class="fa-brands fa-facebook"></i></a>`;
+        if (storeSettings.socialIg) socialHtml += `<a href="${storeSettings.socialIg}" target="_blank" class="text-[#D4AF37] hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>`;
+        if (storeSettings.socialWa) socialHtml += `<a href="${storeSettings.socialWa}" target="_blank" class="text-[#D4AF37] hover:text-white transition"><i class="fa-brands fa-whatsapp"></i></a>`;
+        if (storeSettings.socialPhone) socialHtml += `<a href="tel:${storeSettings.socialPhone}" class="text-[#D4AF37] hover:text-white transition"><i class="fa-solid fa-phone"></i></a>`;
+        if (storeSettings.socialEmail) socialHtml += `<a href="mailto:${storeSettings.socialEmail}" class="text-[#D4AF37] hover:text-white transition"><i class="fa-solid fa-envelope"></i></a>`;
+        footerSocial.innerHTML = socialHtml;
+    }
+
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
@@ -456,7 +545,6 @@ function updateAppHeaderInfo() {
     }
 }
 
-// إشعارات الطلبات الحقيقية بالتنسيق الجديد (الاسم من الولاية وأسفلها اشترى المنتج)
 function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
     const spCustomer = document.getElementById('sp-customer');
@@ -464,8 +552,8 @@ function initRealOrdersTicker() {
     if (!toast || !spCustomer || !spProduct) return;
 
     setInterval(() => {
-        if (!orders || orders.length === 0) return; // لا تظهر شيئاً إذا لم تكن هناك طلبيات حقيقية
-        const latestOrder = orders[orders.length - 1]; // أحدث طلب حقيقي
+        if (!orders || orders.length === 0) return;
+        const latestOrder = orders[orders.length - 1];
 
         spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
         spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
@@ -478,9 +566,19 @@ function initRealOrdersTicker() {
     }, 20000);
 }
 
+// التحقق من وجود رابط معرف مسوق (Affiliate Ref) في الرابط عند الدخول
+function checkAffiliateRef() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+        localStorage.setItem('lb_affiliate_ref', ref);
+    }
+}
+
 updateAppHeaderInfo();
 updateBadges();
 renderHeroSlider();
 renderProducts();
 initBannerRealtimeSync();
 initRealOrdersTicker();
+checkAffiliateRef();
