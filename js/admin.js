@@ -2,6 +2,25 @@ let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'جميع المنتجات';
 
+// 🔑 دالة فتح لوحة التحكم عند النقر 3 مرات متتالية على اللوجو/اسم المتجر
+let logoClickCount = 0;
+let logoClickTimer = null;
+
+function handleLogoClick(event) {
+    logoClickCount++;
+    if (logoClickCount === 1) {
+        logoClickTimer = setTimeout(() => {
+            if (logoClickCount < 3) showPage('home');
+            logoClickCount = 0;
+        }, 800);
+    } else if (logoClickCount === 3) {
+        clearTimeout(logoClickTimer);
+        logoClickCount = 0;
+        const modal = document.getElementById('admin-auth-modal');
+        if (modal) modal.style.display = 'flex';
+    }
+}
+
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
@@ -253,7 +272,6 @@ function updateAppHeaderInfo() {
     const nameEl = document.getElementById('store-name-display');
     if (nameEl) nameEl.innerText = storeSettings.name || 'كوسمتيك عبد الحق';
 
-    // تحديث الشعار / المقولة تلقائياً من الإعدادات
     const sloganEl = document.getElementById('store-slogan-display');
     if (sloganEl && storeSettings.slogan) {
         sloganEl.innerText = `"${storeSettings.slogan}"`;
