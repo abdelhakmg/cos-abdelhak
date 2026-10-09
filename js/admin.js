@@ -46,20 +46,22 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
-function checkAdminPassword() {
+// التحقق الآمن من كلمة السر المشفرة
+async function checkAdminPassword() {
     const passInput = document.getElementById('admin-pass-input');
     if (!passInput) return;
     const pass = passInput.value;
     
-    const correctPass = (typeof storeSettings !== 'undefined' && storeSettings.pass) ? storeSettings.pass : 'admin123';
+    const inputHash = await hashPassword(pass);
+    const storedHash = storeSettings.passHash || '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
-    if (pass === correctPass) {
+    if (inputHash === storedHash) {
         document.getElementById('admin-auth-modal').style.display = 'none';
         passInput.value = '';
         showPage('admin');
     } else {
         if (typeof showCustomAlert === 'function') {
-            showCustomAlert('خطأ', 'كلمة المرور غير صحيحة!', false);
+            showCustomAlert('خطأ أمني', 'كلمة المرور غير صحيحة!', false);
         } else {
             alert('كلمة المرور غير صحيحة!');
         }
@@ -217,7 +219,7 @@ function renderAdminDashboard() {
         document.getElementById('set-store-name').value = storeSettings.name || '';
         document.getElementById('set-store-slogan').value = storeSettings.slogan || '';
         document.getElementById('set-logo-url').value = storeSettings.logoUrl || '';
-        document.getElementById('set-pass').value = storeSettings.pass || 'admin123';
+        document.getElementById('set-meta-pixel-id').value = storeSettings.metaPixelId || '';
         document.getElementById('set-msg-success').value = storeSettings.msgSuccess || '';
         document.getElementById('set-msg-warning').value = storeSettings.msgWarning || '';
     }
@@ -480,19 +482,24 @@ function updateOrderStatus(id, newStatus) {
     });
 }
 
-function handleSaveSettings(e) {
+async function handleSaveSettings(e) {
     if (e) e.preventDefault();
+    const newPass = document.getElementById('set-pass').value.trim();
     const settings = {
         name: document.getElementById('set-store-name').value,
         slogan: document.getElementById('set-store-slogan').value,
         logoUrl: document.getElementById('set-logo-url').value,
-        pass: document.getElementById('set-pass').value,
+        metaPixelId: document.getElementById('set-meta-pixel-id').value.trim(),
         msgSuccess: document.getElementById('set-msg-success').value,
         msgWarning: document.getElementById('set-msg-warning').value
     };
 
+    if (newPass) {
+        settings.passHash = await hashPassword(newPass);
+    }
+
     db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
-        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل المخصصة بنجاح!', true);
+        showCustomAlert('تم الحفظ', 'تم تحديث الهوية ومعرف Meta Pixel بنجاح!', true);
     });
 }
 
