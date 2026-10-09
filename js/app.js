@@ -2,6 +2,27 @@ let currentBannerIdx = 0;
 let currentHeroIdx = 0;
 let activeCategoryFilter = 'جميع المنتجات';
 
+let logoClickCount = 0;
+let logoClickTimer = null;
+
+function handleLogoClick(event) {
+    logoClickCount++;
+    if (logoClickCount === 1) {
+        logoClickTimer = setTimeout(() => {
+            if (logoClickCount < 3) showPage('home');
+            logoClickCount = 0;
+        }, 800);
+    } else if (logoClickCount === 3) {
+        clearTimeout(logoClickTimer);
+        logoClickCount = 0;
+        const modal = document.getElementById('admin-auth-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+        }
+    }
+}
+
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
@@ -248,10 +269,15 @@ function renderProducts() {
 
 function updateAppHeaderInfo() {
     const titleEl = document.getElementById('site-title');
-    if (titleEl) titleEl.innerText = storeSettings.name + ' | المتجر الفاخر';
+    if (titleEl) titleEl.innerText = (storeSettings.name || 'كوسمتيك عبد الحق') + ' | المتجر الفاخر';
 
     const nameEl = document.getElementById('store-name-display');
-    if (nameEl) nameEl.innerText = storeSettings.name;
+    if (nameEl) nameEl.innerText = storeSettings.name || 'كوسمتيك عبد الحق';
+
+    const sloganEl = document.getElementById('store-slogan-display');
+    if (sloganEl && storeSettings.slogan) {
+        sloganEl.innerText = `"${storeSettings.slogan}"`;
+    }
 
     const navEl = document.getElementById('header-nav');
     if (navEl) {
