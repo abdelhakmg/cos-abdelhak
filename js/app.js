@@ -7,26 +7,24 @@ function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
 
-    if (typeof db !== 'undefined') {
-        db.collection("settings").doc("main").onSnapshot((doc) => {
-            if (doc.exists && doc.data().bannerMessages && doc.data().bannerMessages.length > 0) {
-                bannerMessages = doc.data().bannerMessages;
-            } else {
-                bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
-            }
+    db.collection("settings").doc("main").onSnapshot((doc) => {
+        if (doc.exists && doc.data().bannerMessages && doc.data().bannerMessages.length > 0) {
+            bannerMessages = doc.data().bannerMessages;
+        } else {
+            bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
+        }
 
-            if (currentBannerIdx >= bannerMessages.length) {
-                currentBannerIdx = 0;
-            }
+        if (currentBannerIdx >= bannerMessages.length) {
+            currentBannerIdx = 0;
+        }
 
-            bannerEl.innerText = bannerMessages[currentBannerIdx];
-            startBannerTicker();
+        bannerEl.innerText = bannerMessages[currentBannerIdx];
+        startBannerTicker();
 
-            if (typeof renderBannerTextsList === 'function') {
-                renderBannerTextsList();
-            }
-        });
-    }
+        if (typeof renderBannerTextsList === 'function') {
+            renderBannerTextsList();
+        }
+    });
 }
 
 function startBannerTicker() {
@@ -53,7 +51,7 @@ function renderHeroSlider() {
     const container = document.getElementById('hero-slider-container');
     const dotsContainer = document.getElementById('hero-slider-dots');
     
-    if (!container || typeof heroSlides === 'undefined' || !heroSlides || heroSlides.length === 0) return;
+    if (!container || !heroSlides || heroSlides.length === 0) return;
 
     const currentSlide = heroSlides[currentHeroIdx];
 
@@ -108,7 +106,7 @@ function toggleMobileMenu() {
 
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
-    const isFav = (typeof favorites !== 'undefined') && favorites.includes(p.id);
+    const isFav = favorites.includes(p.id);
 
     return `
         <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
@@ -155,7 +153,6 @@ function renderSingleProductCard(p) {
 }
 
 function toggleFavorite(id) {
-    if (typeof favorites === 'undefined') return;
     if (favorites.includes(id)) {
         favorites = favorites.filter(favId => favId !== id);
     } else {
@@ -167,7 +164,6 @@ function toggleFavorite(id) {
 }
 
 function addToCart(id) {
-    if (typeof products === 'undefined' || typeof cart === 'undefined') return;
     const prod = products.find(p => p.id === id);
     if (prod) {
         cart.push(prod);
@@ -180,6 +176,7 @@ function addToCart(id) {
     }
 }
 
+// دالة تصفية المنتجات بمرونة تامة ونظافة مطابقة
 function filterCategory(catName) {
     activeCategoryFilter = catName.trim();
     const breadcrumb = document.getElementById('breadcrumb-current');
@@ -189,20 +186,23 @@ function filterCategory(catName) {
     showPage('catalog');
 }
 
+// تطبيق التصفية والفرز
 function applyFilters() {
-    if (typeof products === 'undefined') return;
     let filtered = [...products];
 
+    // الفلترة حسب الفئة مع دعم الأحرف والمسافات
     if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
         filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
     }
 
+    // الفلترة بالسعر
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => p.price <= maxPrice);
     }
 
+    // الترتيب
     const sortSelect = document.getElementById('sort-select');
     const sortVal = sortSelect ? sortSelect.value : 'best';
 
@@ -211,6 +211,7 @@ function applyFilters() {
     } else if (sortVal === 'high') {
         filtered.sort((a, b) => b.price - a.price);
     } else {
+        // الأكثر مبيعاً
         filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
     }
 
@@ -239,9 +240,10 @@ function resetFilters() {
     updatePriceFilter(20000);
 }
 
+// عرض الأكثر مبيعاً الحقيقي بفرز الكميات أو الفرز المخصص
 function renderProducts() {
     const grid = document.getElementById('home-products');
-    if (!grid || typeof products === 'undefined') return;
+    if (!grid) return;
 
     let bestSellers = [...products];
     bestSellers.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
@@ -252,15 +254,15 @@ function renderProducts() {
         homeList.map(p => renderSingleProductCard(p)).join('');
 }
 
+// القائمة العلوية مع الخيارات الجديدة المحددة
 function updateAppHeaderInfo() {
-    if (typeof storeSettings === 'undefined' || typeof categories === 'undefined') return;
-
     const titleEl = document.getElementById('site-title');
     if (titleEl) titleEl.innerText = storeSettings.name + ' | المتجر الفاخر';
 
     const nameEl = document.getElementById('store-name-display');
     if (nameEl) nameEl.innerText = storeSettings.name;
 
+    // شريط القائمة العلوية المطور
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
@@ -269,6 +271,7 @@ function updateAppHeaderInfo() {
         ` + categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
 
+    // القائمة المنسدلة للهواتف
     const mobileListEl = document.getElementById('mobile-drawer-categories');
     if (mobileListEl) {
         mobileListEl.innerHTML = `
@@ -277,6 +280,7 @@ function updateAppHeaderInfo() {
         ` + categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
     }
 
+    // بطاقات الأقسام في الصفحة الرئيسية
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
         homeCatGrid.innerHTML = categories.map(c => `
@@ -290,10 +294,7 @@ function updateAppHeaderInfo() {
     }
 }
 
-// تشغيل الدوال عند التحميل
-document.addEventListener("DOMContentLoaded", function() {
-    updateAppHeaderInfo();
-    renderHeroSlider();
-    renderProducts();
-    initBannerRealtimeSync();
-});
+updateAppHeaderInfo();
+renderHeroSlider();
+renderProducts();
+initBannerRealtimeSync();
