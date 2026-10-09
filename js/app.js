@@ -23,6 +23,39 @@ function handleLogoClick(event) {
     }
 }
 
+// 🔍 دالة البحث المباشر في الوقت الفعلي
+function handleLiveSearch(query) {
+    const dropdown = document.getElementById('search-results-dropdown');
+    if (!dropdown) return;
+
+    const q = query.trim().toLowerCase();
+    if (!q) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    const matches = products.filter(p => 
+        (p.name && p.name.toLowerCase().includes(q)) || 
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.brand && p.brand.toLowerCase().includes(q))
+    ).slice(0, 5);
+
+    if (matches.length === 0) {
+        dropdown.innerHTML = '<div class="p-4 text-xs text-gray-400 text-center">لا توجد نتائج مطابقة</div>';
+    } else {
+        dropdown.innerHTML = matches.map(p => `
+            <div onclick="openLandingPage('${p.id}'); document.getElementById('search-results-dropdown').classList.add('hidden');" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
+                <img src="${(p.images && p.images[0]) || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
+                <div class="text-right">
+                    <p class="text-xs font-bold text-white truncate">${p.name}</p>
+                    <p class="text-[10px] text-[#D4AF37] font-bold">${p.price.toLocaleString()} دج</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    dropdown.classList.remove('hidden');
+}
+
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
@@ -115,6 +148,7 @@ function showPage(pageId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (pageId === 'admin' && typeof renderAdminDashboard === 'function') renderAdminDashboard();
     if (pageId === 'cart' && typeof renderCart === 'function') renderCart();
+    if (pageId === 'wishlist') renderWishlistPage();
 }
 
 function toggleMobileMenu() {
@@ -179,8 +213,29 @@ function toggleFavorite(id) {
         favorites.push(id);
     }
     localStorage.setItem('lb_favs_v7', JSON.stringify(favorites));
+    updateBadges();
     if (typeof applyFilters === 'function') applyFilters();
     renderProducts();
+    if (document.getElementById('page-wishlist').classList.contains('active')) renderWishlistPage();
+}
+
+function renderWishlistPage() {
+    const grid = document.getElementById('wishlist-products-grid');
+    if (!grid) return;
+
+    const favProducts = products.filter(p => favorites.includes(p.id));
+    if (favProducts.length === 0) {
+        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">لم تقم بإضافة أي منتج للمفضلة بعد.</p>';
+    } else {
+        grid.innerHTML = favProducts.map(p => renderSingleProductCard(p)).join('');
+    }
+}
+
+function updateBadges() {
+    const cartBadge = document.getElementById('cart-badge');
+    const wishBadge = document.getElementById('wishlist-badge');
+    if (cartBadge) cartBadge.innerText = cart.length;
+    if (wishBadge) wishBadge.innerText = favorites.length;
 }
 
 function addToCart(id) {
@@ -188,12 +243,65 @@ function addToCart(id) {
     if (prod) {
         cart.push(prod);
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
-        const badge = document.getElementById('cart-badge');
-        if (badge) badge.innerText = cart.length;
+        updateBadges();
         if (typeof showCustomAlert === 'function') {
             showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" إلى السلة بنجاح.`, true);
         }
     }
+}
+
+function renderCart() {
+    const cartList = document.getElementById('cart-list');
+    const subtotalEl = document.getElementById('subtotal');
+    const totalEl = document.getElementById('total');
+
+    if (!cartList) return;
+
+    if (cart.length === 0) {
+        cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p>';
+        if (subtotalEl) subtotalEl.innerText = '0 دج';
+        if (totalEl) totalEl.innerText = '0 دج';
+        return;
+    }
+
+    let subtotal = 0;
+    cartList.innerHTML = cart.map((prod, idx) => {
+        subtotal += (prod.price || 0);
+        const img = (prod.images && prod.images[0]) || 'https://via.placeholder.com/100';
+        return `
+            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                <div class="flex items-center gap-4">
+                    <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-black border border-gray-800">
+                    <div>
+                        <h4 class="font-bold text-sm text-white">${prod.name}</h4>
+                        <span class="text-xs text-[#D4AF37] font-bold">${prod.price ? prod.price.toLocaleString() : 0} دج</span>
+                    </div>
+                </div>
+                <button onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-400 font-bold text-xs bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
+                    <i class="fa-solid fa-trash-can"></i> حذف
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    const shipping = 500;
+    if (subtotalEl) subtotalEl.innerText = subtotal.toLocaleString() + ' دج';
+    if (totalEl) totalEl.innerText = (subtotal + shipping).toLocaleString() + ' دج';
+}
+
+function removeFromCart(idx) {
+    cart.splice(idx, 1);
+    localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
+    updateBadges();
+    renderCart();
+}
+
+function submitCartCheckout() {
+    if (cart.length === 0) {
+        showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
+        return;
+    }
+    showCustomAlert('طلب جاري!', 'لإكمال الشراء بسرعة والدفع عند الاستلام، يرجى الاستمرار من صفحة المنتج المباشرة.', true);
 }
 
 function filterCategory(catName) {
@@ -279,6 +387,14 @@ function updateAppHeaderInfo() {
         sloganEl.innerText = `"${storeSettings.slogan}"`;
     }
 
+    const logoImg = document.getElementById('store-logo-img');
+    const logoIcon = document.getElementById('store-logo-icon');
+    if (logoImg && storeSettings.logoUrl) {
+        logoImg.src = storeSettings.logoUrl;
+        logoImg.classList.remove('hidden');
+        if (logoIcon) logoIcon.classList.add('hidden');
+    }
+
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
@@ -308,7 +424,31 @@ function updateAppHeaderInfo() {
     }
 }
 
+// 📣 إشعارات الشراء التلقائية لبناء الثقة
+function initSocialProofTicker() {
+    const toast = document.getElementById('social-proof-toast');
+    const spText = document.getElementById('sp-text');
+    if (!toast || !spText) return;
+
+    const names = ['فاطمة من الجزائر', 'مريم من وهران', 'ياسمين من قسنطينة', 'حنان من سطيف', 'أسماء من البليدة', 'إيمان من عنابة'];
+    
+    setInterval(() => {
+        if (!products || products.length === 0) return;
+        const randomName = names[Math.floor(Math.random() * names.length)];
+        const randomProd = products[Math.floor(Math.random() * products.length)];
+
+        spText.innerText = `طلبية جديدة: ${randomName}`;
+        toast.classList.remove('translate-y-28', 'opacity-0');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-28', 'opacity-0');
+        }, 4500);
+    }, 15000);
+}
+
 updateAppHeaderInfo();
+updateBadges();
 renderHeroSlider();
 renderProducts();
 initBannerRealtimeSync();
+initSocialProofTicker();
