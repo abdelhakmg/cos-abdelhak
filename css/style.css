@@ -35,7 +35,7 @@ body {
     border-color: rgba(212, 175, 55, 0.3);
 }
 
-/* --- 3. حركة وتنسيق قسم الأكثر مبيعاً (8 منتجات متواسطة) --- */
+/* --- 3. حركة وتنسيق قسم الأكثر مبيعاً --- */
 #products-section {
     display: flex;
     flex-direction: column;
@@ -46,7 +46,6 @@ body {
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
-/* حركة بسيطة وناعمة عند مرور الماوس فوق بطاقة المنتج */
 .product-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 35px -10px rgba(212, 175, 55, 0.3);
@@ -60,7 +59,6 @@ body {
     overflow: hidden;
 }
 
-/* اختفاء النصوص والعناوين تماماً عند مرور الماوس على البانر لإظهار الصورة صافية */
 .hero-content-overlay {
     transition: opacity 0.5s ease-in-out;
     opacity: 1;
@@ -71,7 +69,7 @@ body {
     pointer-events: none;
 }
 
-/* --- 5. القائمة المنسدلة للهاتف (Mobile Menu Drawer) --- */
+/* --- 5. القائمة المنسدلة للهاتف --- */
 .mobile-drawer-overlay {
     background-color: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
@@ -125,7 +123,7 @@ body {
     }
 }
 
-/* --- 8. شريط التمرير الذهبي المخصص (Custom Scrollbar) --- */
+/* --- 8. شريط التمرير الذهبي المخصص --- */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -143,7 +141,7 @@ body {
     background: #B8860B;
 }
 
-/* --- 9. الشاشة الافتتاحية التحميلية الفاخرة (Splash Screen) --- */
+/* --- 9. الشاشة الافتتاحية والبريق المتوهج على حافة التاج كل 4 ثوانٍ --- */
 @keyframes crownPulse {
     0%, 100% {
         transform: scale(1);
@@ -157,6 +155,42 @@ body {
 
 .crown-pulse {
     animation: crownPulse 2s infinite ease-in-out;
+}
+
+/* تأثير البريق الذي يمر عبر حافة التاج بمعدل 4 ثوانٍ بالضبط */
+.crown-shine-sweep {
+    position: absolute;
+    top: -50%;
+    left: -150%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 35%,
+        rgba(255, 255, 255, 0.8) 50%,
+        transparent 65%
+    );
+    transform: rotate(30deg);
+    animation: sweepShine 4s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes sweepShine {
+    0% {
+        left: -150%;
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    35% {
+        left: 150%;
+        opacity: 0;
+    }
+    100% {
+        left: 150%;
+        opacity: 0;
+    }
 }
 
 .splash-fade-out {
