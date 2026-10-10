@@ -1,4 +1,3 @@
-// البيانات المرجعية الأساسية للمتجر
 let products = [];
 let WILAYAS = [];
 let categories = [];
@@ -7,9 +6,12 @@ let bannerMessages = [];
 let orders = [];
 let brands = [];
 
-// مصفوفات ديناميكية لأنواع البشرة والشعر
-let availableSkinTypes = ["الدهنية", "الجافة", "الحساسة", "المختلطة", "العادية"];
-let availableHairTypes = ["الشعر الدهني", "الشعر الجاف", "الشعر العادي", "الشعر المصبوغ", "الشعر المتضرر", "علاج القشرة", "بروتين / كيراتين"];
+// قيم احتياطية تلقائية لضمان العرض
+const defaultSkinTypes = ["الدهنية", "الجافة", "الحساسة", "المختلطة", "العادية"];
+const defaultHairTypes = ["الشعر الدهني", "الشعر الجاف", "الشعر العادي", "الشعر المصبوغ", "الشعر المتضرر", "علاج القشرة", "بروتين / كيراتين"];
+
+let availableSkinTypes = [...defaultSkinTypes];
+let availableHairTypes = [...defaultHairTypes];
 
 let favorites = JSON.parse(localStorage.getItem('lb_favs_v7')) || [];
 let cart = JSON.parse(localStorage.getItem('lb_cart_v7')) || [];
@@ -23,11 +25,9 @@ let storeSettings = {
     msgWarning: "يرجى ملء كافة معلومات الاستمارة الضرورية!"
 };
 
-// تهيئة الربط المباشر مع Firebase
 function initFirebaseSync() {
     if (typeof firebase === 'undefined') return;
 
-    // 1. مزامنة المنتجات
     db.collection("products").onSnapshot((snapshot) => {
         products = [];
         snapshot.forEach((doc) => {
@@ -39,7 +39,6 @@ function initFirebaseSync() {
         if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
     });
 
-    // 2. مزامنة الولايات والأسعار
     db.collection("wilayas").onSnapshot((snapshot) => {
         WILAYAS = [];
         snapshot.forEach((doc) => {
@@ -51,7 +50,6 @@ function initFirebaseSync() {
         if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
     });
 
-    // 3. مزامنة الفئات
     db.collection("categories").onSnapshot((snapshot) => {
         categories = [];
         snapshot.forEach((doc) => {
@@ -61,22 +59,40 @@ function initFirebaseSync() {
         if (typeof populateAdminDropdowns === 'function') populateAdminDropdowns();
     });
 
-    // 4. مزامنة إعدادات الهوية والأنواع
     db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
             storeSettings = { ...storeSettings, ...data };
             if (data.brands) brands = data.brands;
-            if (data.skinTypes && data.skinTypes.length > 0) availableSkinTypes = data.skinTypes;
-            if (data.hairTypes && data.hairTypes.length > 0) availableHairTypes = data.hairTypes;
+
+            if (data.skinTypes && data.skinTypes.length > 0) {
+                availableSkinTypes = data.skinTypes;
+            } else {
+                availableSkinTypes = defaultSkinTypes;
+                db.collection("settings").doc("main").set({ skinTypes: defaultSkinTypes }, { merge: true });
+            }
+
+            if (data.hairTypes && data.hairTypes.length > 0) {
+                availableHairTypes = data.hairTypes;
+            } else {
+                availableHairTypes = defaultHairTypes;
+                db.collection("settings").doc("main").set({ hairTypes: defaultHairTypes }, { merge: true });
+            }
+        } else {
+            availableSkinTypes = defaultSkinTypes;
+            availableHairTypes = defaultHairTypes;
+            db.collection("settings").doc("main").set({
+                skinTypes: defaultSkinTypes,
+                hairTypes: defaultHairTypes
+            }, { merge: true });
         }
+
         if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
         if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
         if (typeof populateAdminDropdowns === 'function') populateAdminDropdowns();
         if (typeof renderAdminAttributesTab === 'function') renderAdminAttributesTab();
     });
 
-    // 5. مزامنة الطلبيات
     db.collection("orders").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         orders = [];
         snapshot.forEach((doc) => {
@@ -85,7 +101,6 @@ function initFirebaseSync() {
         if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
     });
 
-    // 6. مزامنة البانر
     db.collection("heroSlides").onSnapshot((snapshot) => {
         heroSlides = [];
         snapshot.forEach((doc) => {
