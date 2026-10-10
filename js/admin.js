@@ -42,14 +42,20 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
+// دالة التحقق من كلمة السر وإظهار لوحة التحكم مباشرة
 function checkAdminPassword() {
     const passInput = document.getElementById('admin-pass-input');
     if (!passInput) return;
-    const pass = passInput.value;
+    const pass = passInput.value.trim();
     const correctPass = (typeof storeSettings !== 'undefined' && storeSettings.pass) ? storeSettings.pass : 'admin123';
 
     if (pass === correctPass) {
-        document.getElementById('admin-auth-modal').style.display = 'none';
+        const authModal = document.getElementById('admin-auth-modal');
+        if (authModal) {
+            authModal.style.display = 'none';
+            authModal.classList.add('hidden');
+            authModal.classList.remove('flex');
+        }
         passInput.value = '';
         showPage('admin');
     } else {
@@ -95,7 +101,6 @@ function populateAdminDropdowns() {
     renderCategorySpecificAdminFields();
 }
 
-// دالة تفاعلية تُظهر الخصائص المناسبة لكل قسم في لوحة التحكم عند الاختيار
 function renderCategorySpecificAdminFields() {
     const catSelect = document.getElementById('prod-category-select');
     const container = document.getElementById('category-dynamic-fields-container');
@@ -562,7 +567,7 @@ function renderAdminProductsTable() {
     }
 
     tbody.innerHTML = products.map(p => {
-        const img = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/100';
+        const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
         let badgeInfo = [];
         
         if (p.jewelryMetal || p.jewelryType) badgeInfo.push(`${p.jewelryMetal || ''} ${p.jewelryType || ''}`);
@@ -579,7 +584,7 @@ function renderAdminProductsTable() {
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
                 <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${badgeInfo.join(' | ') || 'افتراضي'}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
-                <td class="p-3 text-xs"><span class="${p.inStock ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
+                <td class="p-3 text-xs"><span class="${p.inStock !== false ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock !== false ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
                 <td class="p-3 flex items-center gap-2">
                     <button onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
                     <button onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
