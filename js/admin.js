@@ -92,7 +92,6 @@ function populateAdminDropdowns() {
             brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
     }
 
-    // بناء مربعات الاختيار في استمارة إضافة/تعديل المنتجات للتحديد المتعدد
     const skinCbContainer = document.getElementById('admin-prod-skin-checkboxes');
     if (skinCbContainer && typeof availableSkinTypes !== 'undefined') {
         skinCbContainer.innerHTML = availableSkinTypes.map(st => `
@@ -114,16 +113,21 @@ function populateAdminDropdowns() {
     }
 }
 
-// عرض وتبويب إدارة أنواع البشرة والشعر
+// عرض الخصائص مع خيارات التعديل والحذف
 function renderAdminAttributesTab() {
     const skinListContainer = document.getElementById('admin-skin-types-list');
     if (skinListContainer && typeof availableSkinTypes !== 'undefined') {
         skinListContainer.innerHTML = availableSkinTypes.map((st, idx) => `
             <div class="flex items-center justify-between bg-gray-100 p-2.5 rounded-xl border text-xs font-bold">
                 <span>${st}</span>
-                <button onclick="deleteSkinType(${idx})" class="text-red-500 hover:text-red-700">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="editSkinType(${idx})" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">
+                        <i class="fa-solid fa-pen"></i> تعديل
+                    </button>
+                    <button type="button" onclick="deleteSkinType(${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded-lg border border-red-200">
+                        <i class="fa-solid fa-trash-can"></i> حذف
+                    </button>
+                </div>
             </div>
         `).join('');
     }
@@ -133,69 +137,139 @@ function renderAdminAttributesTab() {
         hairListContainer.innerHTML = availableHairTypes.map((ht, idx) => `
             <div class="flex items-center justify-between bg-gray-100 p-2.5 rounded-xl border text-xs font-bold">
                 <span>${ht}</span>
-                <button onclick="deleteHairType(${idx})" class="text-red-500 hover:text-red-700">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="editHairType(${idx})" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">
+                        <i class="fa-solid fa-pen"></i> تعديل
+                    </button>
+                    <button type="button" onclick="deleteHairType(${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded-lg border border-red-200">
+                        <i class="fa-solid fa-trash-can"></i> حذف
+                    </button>
+                </div>
             </div>
         `).join('');
     }
 }
 
 function handleAddSkinType(e) {
-    if (e) e.preventDefault();
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
     const input = document.getElementById('new-skin-type-input');
     if (!input) return;
+    
     const val = input.value.trim();
-    if (!val) return;
+    if (!val) {
+        showCustomAlert('تنبيه', 'يرجى كتابة اسم نوع البشرة أولاً!', false);
+        return;
+    }
+
+    if (typeof availableSkinTypes === 'undefined') availableSkinTypes = [];
 
     if (!availableSkinTypes.includes(val)) {
         availableSkinTypes.push(val);
-        db.collection("settings").doc("main").set({ skinTypes: availableSkinTypes }, { merge: true }).then(() => {
+        
+        db.collection("settings").doc("main").set({ 
+            skinTypes: availableSkinTypes 
+        }, { merge: true }).then(() => {
             input.value = '';
             renderAdminAttributesTab();
             populateAdminDropdowns();
-            showCustomAlert('تمت الإضافة', 'تمت إضافة نوع البشرة الجديد بنجاح!', true);
+            if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
+            showCustomAlert('تمت الإضافة 🎉', 'تم إضافة نوع البشرة بنجاح!', true);
+        });
+    } else {
+        showCustomAlert('موجود بالفعل', 'هذا النوع مضاف سابقاً في القائمة.', false);
+    }
+}
+
+function editSkinType(idx) {
+    const currentVal = availableSkinTypes[idx];
+    const newVal = prompt("تعديل اسم نوع البشرة:", currentVal);
+    if (newVal && newVal.trim() !== "" && newVal.trim() !== currentVal) {
+        availableSkinTypes[idx] = newVal.trim();
+        db.collection("settings").doc("main").set({ skinTypes: availableSkinTypes }, { merge: true }).then(() => {
+            renderAdminAttributesTab();
+            populateAdminDropdowns();
+            if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
+            showCustomAlert('تم التحديث 🎉', 'تم تعديل اسم نوع البشرة بنجاح!', true);
         });
     }
 }
 
 function deleteSkinType(idx) {
-    availableSkinTypes.splice(idx, 1);
-    db.collection("settings").doc("main").set({ skinTypes: availableSkinTypes }, { merge: true }).then(() => {
-        renderAdminAttributesTab();
-        populateAdminDropdowns();
-        showCustomAlert('تم الحذف', 'تم حذف نوع البشرة.', true);
-    });
+    if (confirm("هل أنت تأكد من رغبتك في حذف هذا النوع؟")) {
+        availableSkinTypes.splice(idx, 1);
+        db.collection("settings").doc("main").set({ skinTypes: availableSkinTypes }, { merge: true }).then(() => {
+            renderAdminAttributesTab();
+            populateAdminDropdowns();
+            if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
+            showCustomAlert('تم الحذف', 'تم حذف نوع البشرة بنجاح.', true);
+        });
+    }
 }
 
 function handleAddHairType(e) {
-    if (e) e.preventDefault();
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
     const input = document.getElementById('new-hair-type-input');
     if (!input) return;
+    
     const val = input.value.trim();
-    if (!val) return;
+    if (!val) {
+        showCustomAlert('تنبيه', 'يرجى كتابة اسم نوع الشعر أولاً!', false);
+        return;
+    }
+
+    if (typeof availableHairTypes === 'undefined') availableHairTypes = [];
 
     if (!availableHairTypes.includes(val)) {
         availableHairTypes.push(val);
-        db.collection("settings").doc("main").set({ hairTypes: availableHairTypes }, { merge: true }).then(() => {
+        
+        db.collection("settings").doc("main").set({ 
+            hairTypes: availableHairTypes 
+        }, { merge: true }).then(() => {
             input.value = '';
             renderAdminAttributesTab();
             populateAdminDropdowns();
-            showCustomAlert('تمت الإضافة', 'تمت إضافة نوع الشعر/العلاج الجديد بنجاح!', true);
+            if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
+            showCustomAlert('تمت الإضافة 🎉', 'تم إضافة نوع الشعر بنجاح!', true);
+        });
+    } else {
+        showCustomAlert('موجود بالفعل', 'هذا النوع مضاف سابقاً في القائمة.', false);
+    }
+}
+
+function editHairType(idx) {
+    const currentVal = availableHairTypes[idx];
+    const newVal = prompt("تعديل اسم نوع الشعر/العلاج:", currentVal);
+    if (newVal && newVal.trim() !== "" && newVal.trim() !== currentVal) {
+        availableHairTypes[idx] = newVal.trim();
+        db.collection("settings").doc("main").set({ hairTypes: availableHairTypes }, { merge: true }).then(() => {
+            renderAdminAttributesTab();
+            populateAdminDropdowns();
+            if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
+            showCustomAlert('تم التحديث 🎉', 'تم تعديل اسم نوع الشعر بنجاح!', true);
         });
     }
 }
 
 function deleteHairType(idx) {
-    availableHairTypes.splice(idx, 1);
-    db.collection("settings").doc("main").set({ hairTypes: availableHairTypes }, { merge: true }).then(() => {
-        renderAdminAttributesTab();
-        populateAdminDropdowns();
-        showCustomAlert('تم الحذف', 'تم حذف نوع الشعر.', true);
-    });
+    if (confirm("هل أنت تأكد من رغبتك في حذف هذا النوع؟")) {
+        availableHairTypes.splice(idx, 1);
+        db.collection("settings").doc("main").set({ hairTypes: availableHairTypes }, { merge: true }).then(() => {
+            renderAdminAttributesTab();
+            populateAdminDropdowns();
+            if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
+            showCustomAlert('تم الحذف', 'تم حذف نوع الشعر بنجاح.', true);
+        });
+    }
 }
 
-// دالة حفظ المنتج بالدعم المتعدد للأنواع
 function handleSaveProduct(e) {
     if (e) e.preventDefault();
 
@@ -216,7 +290,6 @@ function handleSaveProduct(e) {
         const brand = document.getElementById('prod-brand-select') ? document.getElementById('prod-brand-select').value : '';
         const inStock = document.getElementById('prod-in-stock') ? (document.getElementById('prod-in-stock').value === 'true') : true;
 
-        // مصفوفات التحديد المتعدد
         const selectedSkins = Array.from(document.querySelectorAll('.prod-skin-cb:checked')).map(cb => cb.value);
         const selectedHairs = Array.from(document.querySelectorAll('.prod-hair-cb:checked')).map(cb => cb.value);
 
@@ -310,7 +383,6 @@ function editProduct(id) {
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
 
-    // تحديد مربعات التحديد المتعدد المسجلة
     const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
     document.querySelectorAll('.prod-skin-cb').forEach(cb => {
         cb.checked = pSkins.includes(cb.value);
@@ -632,4 +704,85 @@ function addBannerText() {
     });
 }
 
-function removeBannerText
+function removeBannerText(index) {
+    const targetText = bannerMessages[index];
+    if (!targetText) return;
+    db.collection("settings").doc("main").update({
+        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
+    }).then(() => {
+        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
+    });
+}
+
+function promptDeleteOrder(id) {
+    pendingDeleteOrderId = id;
+    const modal = document.getElementById('custom-confirm-modal');
+    document.getElementById('confirm-action-btn').onclick = function() { confirmDeleteOrder(); };
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeCustomConfirm() {
+    const modal = document.getElementById('custom-confirm-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    pendingDeleteOrderId = null;
+}
+
+function confirmDeleteOrder() {
+    if (pendingDeleteOrderId) {
+        db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
+            closeCustomConfirm();
+            showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
+        });
+    }
+}
+
+function updateOrderStatus(id, newStatus) {
+    db.collection("orders").doc(id).update({ status: newStatus }).then(() => { renderAdminDashboard(); });
+}
+
+function handleSaveSettings(e) {
+    if (e) e.preventDefault();
+    const settings = {
+        name: document.getElementById('set-store-name').value,
+        slogan: document.getElementById('set-store-slogan').value,
+        logoUrl: document.getElementById('set-logo-url').value,
+        pass: document.getElementById('set-pass').value,
+        msgSuccess: document.getElementById('set-msg-success').value,
+        msgWarning: document.getElementById('set-msg-warning').value
+    };
+    db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
+        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل بنجاح!', true);
+    });
+}
+
+function handleSaveHeroSlide(e) {
+    if (e) e.preventDefault();
+    const title = document.getElementById('hero-title-input').value.trim();
+    const desc = document.getElementById('hero-desc-input').value.trim();
+    const image = document.getElementById('hero-img-input').value.trim();
+
+    if (!title || !desc || !image) return;
+
+    db.collection("heroSlides").add({ title: title, desc: desc, image: image, createdAt: new Date() }).then(() => {
+        document.getElementById('hero-title-input').value = '';
+        document.getElementById('hero-desc-input').value = '';
+        document.getElementById('hero-img-input').value = '';
+        showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
+    });
+}
+
+function handleSaveCategory(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('cat-name-input').value.trim();
+    const image = document.getElementById('cat-img-input').value.trim();
+
+    if (!name || !image) return;
+
+    db.collection("categories").add({ name: name, image: image, createdAt: new Date() }).then(() => {
+        document.getElementById('cat-name-input').value = '';
+        document.getElementById('cat-img-input').value = '';
+        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
+    });
+}
