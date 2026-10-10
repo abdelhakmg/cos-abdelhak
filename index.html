@@ -64,7 +64,6 @@
                 </button>
             </div>
         </div>
-        <!-- شريط البحث للموبايل -->
         <div class="px-4 pb-3 md:hidden relative">
             <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج، بشرة دهنية، شعر..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute right-7 top-2.5 text-[#D4AF37] text-xs"></i>
@@ -145,7 +144,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <!-- شريط تصفية النتائج الجانبي المطور -->
+                    <!-- شريط التصفية الجانبي الديناميكي بالكامل -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -154,7 +153,6 @@
                             <button onclick="resetFilters()" class="text-[11px] text-gray-400 hover:text-white underline">إعادة ضبط</button>
                         </div>
 
-                        <!-- التوفر بالمخزون -->
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 text-xs font-bold text-gray-200 cursor-pointer">
                                 <input type="checkbox" id="filter-in-stock-only" onchange="applyFilters()" class="w-4 h-4 accent-[#D4AF37] rounded">
@@ -164,7 +162,6 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- الفئة / القسم -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">الفئة / القسم</h4>
                             <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
@@ -172,36 +169,22 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- نوع البشرة -->
+                        <!-- نوع البشرة الديناميكي مع العداد المباشر -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
-                            <div class="space-y-1.5 text-xs text-gray-300" id="filter-skin-types">
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الدهنية" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة الدهنية</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الجافة" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة الجافة</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الحساسة" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة الحساسة</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="المختلطة" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة المختلطة</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="العادية" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة العادية</label>
-                            </div>
+                            <div class="space-y-1.5 text-xs text-gray-300" id="filter-skin-types"></div>
                         </div>
 
                         <hr class="border-gray-800">
 
-                        <!-- نوع الشعر والعلاج -->
+                        <!-- نوع الشعر والعلاج الديناميكي مع العداد المباشر -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر والعلاج</h4>
-                            <div class="space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto pr-1" id="filter-hair-types">
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر الدهني" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر الدهني</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر الجاف" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر الجاف</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر المصبوغ" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر المصبوغ</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر المتضرر" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر المتضرر</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="علاج القشرة" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> علاج القشرة</label>
-                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بروتين" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> بروتين / كيراتين</label>
-                            </div>
+                            <div class="space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto pr-1" id="filter-hair-types"></div>
                         </div>
 
                         <hr class="border-gray-800">
-                        
-                        <!-- السعر الأقصى -->
+
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر الأقصى</h4>
                             <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
@@ -213,7 +196,6 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- العلامة التجارية -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
                             <div id="filter-brands-list" class="space-y-2 text-xs text-gray-400"></div>
@@ -272,7 +254,6 @@
                         </div>
                         <p id="landing-desc" class="text-gray-300 text-sm leading-relaxed"></p>
 
-                        <!-- الخيارات الاختيارية ديناميكياً -->
                         <div id="landing-options-container" class="space-y-3 pt-2"></div>
                     </div>
                 </div>
@@ -325,7 +306,6 @@
                     </button>
                 </div>
 
-                <!-- ضمانات المتجر -->
                 <div class="mt-12 bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 space-y-6">
                     <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-shield-halved text-[#D4AF37]"></i> ضمانات ومزايا الشراء من متجرنا</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -442,17 +422,18 @@
                     <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات والطلبات</button>
                     <button onclick="switchAdminTab('hero')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-hero">🖼️ البانرات الإعلانية</button>
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-products">🛍️ المنتجات والتوافر</button>
+                    <button onclick="switchAdminTab('attributes')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-attributes">✨ أنواع البشرة والشعر</button>
                     <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
                     <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار والربط</button>
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <!-- إدارة المنتجات -->
+                <!-- إدارة المنتجات المكتملة بالتحديد المتعدد للخصائص -->
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع خصائص البشرة، الشعر، الألوان والأرقام)</h3>
+                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع التحديد المتعدد لأنواع البشرة والشعر)</h3>
                             <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
                         </div>
                         <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -469,39 +450,19 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- الخيارات الاختيارية الجديدة -->
+                            <!-- الخيارات المخصصة الشاملة -->
                             <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4">
-                                <h4 class="font-bold text-xs text-[#B8860B]">✨ الخصائص الإضافية الاختيارية للمنتج:</h4>
+                                <h4 class="font-bold text-xs text-[#B8860B]">✨ خصائص المنتج (يمكنك تحديد أكثر من نوع يناسب هذا المنتج):</h4>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع البشرة (اختياري):</label>
-                                        <select id="prod-skin-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                                            <option value="">-- بدون تحديد نوع بشرة --</option>
-                                            <option value="الدهنية">البشرة الدهنية</option>
-                                            <option value="الجافة">البشرة الجافة</option>
-                                            <option value="الحساسة">البشرة الحساسة</option>
-                                            <option value="المختلطة">البشرة المختلطة</option>
-                                            <option value="العادية">البشرة العادية</option>
-                                        </select>
+                                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع البشرة المناسبة للمنتج:</label>
+                                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-36 overflow-y-auto text-xs"></div>
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع الشعر (اختياري):</label>
-                                        <select id="prod-hair-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                                            <option value="">-- بدون تحديد نوع شعر --</option>
-                                            <option value="الشعر الدهني">الشعر الدهني</option>
-                                            <option value="الشعر الجاف">الشعر الجاف</option>
-                                            <option value="الشعر العادي">الشعر العادي</option>
-                                            <option value="الشعر المختلط">الشعر المختلط</option>
-                                            <option value="الشعر المجعد">الشعر المجعد</option>
-                                            <option value="الشعر المصبوغ">الشعر المصبوغ</option>
-                                            <option value="الشعر المتضرر">الشعر المتضرر</option>
-                                            <option value="الشعر الخفيف">الشعر الخفيف</option>
-                                            <option value="الشعر المتساقط">الشعر المتساقط</option>
-                                            <option value="علاج القشرة">علاج القشرة</option>
-                                            <option value="بروتين">بروتين</option>
-                                        </select>
+                                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع الشعر المناسبة للمنتج:</label>
+                                        <div id="admin-prod-hair-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-36 overflow-y-auto text-xs"></div>
                                     </div>
                                 </div>
 
@@ -566,7 +527,7 @@
                                     <th class="p-4">الصورة</th>
                                     <th class="p-4">اسم المنتج</th>
                                     <th class="p-4">الفئة</th>
-                                    <th class="p-4">الخصائص (بشرة/شعر/ألوان)</th>
+                                    <th class="p-4">الخصائص المحددة</th>
                                     <th class="p-4">السعر</th>
                                     <th class="p-4">التوفر</th>
                                     <th class="p-4">الإجراءات</th>
@@ -574,6 +535,31 @@
                             </thead>
                             <tbody id="admin-products-tbody"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- تبويب إدارة خيارات أنواع البشرة والشعر الديناميكي -->
+                <div id="admin-tab-attributes" class="tab-content space-y-6 text-gray-900">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- إدارة أنواع البشرة -->
+                        <div class="bg-white p-6 rounded-2xl border space-y-4">
+                            <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B]"><i class="fa-solid fa-sparkles"></i> إدارة أنواع البشرة</h3>
+                            <form onsubmit="handleAddSkinType(event)" class="flex gap-2">
+                                <input type="text" id="new-skin-type-input" placeholder="نوع بشرة جديد (مثال: المعرضة للحبوب) *" required class="border p-3 rounded-xl text-xs flex-1">
+                                <button type="submit" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs">+ إضافة</button>
+                            </form>
+                            <div id="admin-skin-types-list" class="space-y-2 pt-2"></div>
+                        </div>
+
+                        <!-- إدارة أنواع الشعر والعلاج -->
+                        <div class="bg-white p-6 rounded-2xl border space-y-4">
+                            <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B]"><i class="fa-solid fa-wand-magic-sparkles"></i> إدارة أنواع الشعر والعلاج</h3>
+                            <form onsubmit="handleAddHairType(event)" class="flex gap-2">
+                                <input type="text" id="new-hair-type-input" placeholder="نوع شعر/علاج جديد (مثال: كيرلي / Curly) *" required class="border p-3 rounded-xl text-xs flex-1">
+                                <button type="submit" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs">+ إضافة</button>
+                            </form>
+                            <div id="admin-hair-types-list" class="space-y-2 pt-2"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -806,16 +792,13 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- Firebase SDK Compat Scripts -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Application Scripts -->
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
     <script src="js/landing.js"></script>
