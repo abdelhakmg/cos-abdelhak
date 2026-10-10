@@ -1,6 +1,6 @@
 let currentBSProduct = null;
 
-// فتح اللوحة السفلية المنبثقة للشراء السريع (Bottom Sheet Checkout)
+// فتح اللوحة السفلية المنبثقة
 function openBottomSheet(productId) {
     currentBSProduct = products.find(p => p.id === productId);
     if (!currentBSProduct) return;
@@ -15,15 +15,6 @@ function openBottomSheet(productId) {
     document.getElementById('bs-price').innerText = currentBSProduct.price.toLocaleString() + ' دج';
     document.getElementById('bs-old-price').innerText = currentBSProduct.oldPrice ? currentBSProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('bs-desc').innerText = currentBSProduct.desc || '';
-
-    // تتبع Meta Pixel عند معاينة المنتج
-    if (typeof trackPixelEvent === 'function') {
-        trackPixelEvent('ViewContent', {
-            content_name: currentBSProduct.name,
-            value: currentBSProduct.price,
-            currency: 'DZD'
-        });
-    }
 
     const thumbsContainer = document.getElementById('bs-thumbnails-list');
     const imagesList = currentBSProduct.images && currentBSProduct.images.length > 0 ? currentBSProduct.images : [mainImg];
@@ -57,6 +48,25 @@ function closeBottomSheet() {
     setTimeout(() => {
         backdrop.classList.add('hidden');
     }, 300);
+}
+
+// تكبير الصور (Image Zoom Lightbox)
+function openLightbox(imgSrc) {
+    const modal = document.getElementById('image-lightbox-modal');
+    const img = document.getElementById('lightbox-target-img');
+    if (modal && img) {
+        img.src = imgSrc;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeLightbox() {
+    const modal = document.getElementById('image-lightbox-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
 
 function swapBSMainImage(newUrl) {
@@ -98,21 +108,28 @@ function calculateBSTotal() {
     let grandTotal = basePrice + shipCost;
 
     document.getElementById('bs-sum-prod').innerText = basePrice.toLocaleString() + ' دج';
-    document.getElementById('bs-sum-ship').innerText = shipCost.toLocaleString() + ' دج';
+    document.getElementById('bs-sum-ship').innerText = wilaya ? shipCost.toLocaleString() + ' دج' : '0 دج (حدد الولاية)';
     document.getElementById('bs-sum-total').innerText = grandTotal.toLocaleString() + ' دج';
 }
 
 function submitBSOrder() {
-    const name = document.getElementById('bs-cust-name').value;
-    const phone = document.getElementById('bs-cust-phone').value;
+    const name = document.getElementById('bs-cust-name').value.trim();
+    const phone = document.getElementById('bs-cust-phone').value.trim();
     const wilayaCode = document.getElementById('bs-cust-wilaya').value;
     const commune = document.getElementById('bs-cust-commune').value;
 
-    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
-    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
+    if (!name) {
+        showCustomAlert('تنبيه', 'يرجى كتابة الاسم واللقب!', false);
+        return;
+    }
 
-    if (!name || !phone || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', warnMsg, false);
+    if (!isAlgerianPhoneValid(phone)) {
+        showCustomAlert('رقم هاتف غير صحيح ❌', 'يرجى كتابة رقم هاتف جزائري صحيح يبدأ بـ 05 أو 06 أو 07 ومكون من 10 أرقام.', false);
+        return;
+    }
+
+    if (!wilayaCode) {
+        showCustomAlert('تنبيه', 'يرجى اختيار الولاية!', false);
         return;
     }
 
@@ -134,16 +151,8 @@ function submitBSOrder() {
     };
 
     db.collection("orders").add(newOrder).then(() => {
-        if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', {
-                value: totalAmount,
-                currency: 'DZD',
-                content_name: currentBSProduct.name
-            });
-        }
-
         closeBottomSheet();
-        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
+        showCustomAlert('تم استلام طلبك! 🎉', 'تم تسليم طلبك بنجاح وسنتصل بك هاتفياً لتأكيد التوصيل.', true);
     });
 }
 
