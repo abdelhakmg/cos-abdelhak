@@ -235,12 +235,18 @@ function renderAdminProductsTable() {
 
     tbody.innerHTML = products.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/100';
+        let badgeInfo = [];
+        if (p.skinType) badgeInfo.push(`بشرة: ${p.skinType}`);
+        if (p.hairType) badgeInfo.push(`شعر: ${p.hairType}`);
+        if (p.colors) badgeInfo.push(`ألوان: ${p.colors}`);
+        if (p.numbers) badgeInfo.push(`أرقام: ${p.numbers}`);
+
         return `
             <tr class="border-b hover:bg-gray-50">
                 <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
-                <td class="p-3 text-xs">${p.brand || 'بدون'}</td>
+                <td class="p-3 text-[11px] text-gray-600">${badgeInfo.join(' | ') || 'بدون خصائص'}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
                 <td class="p-3 text-xs"><span class="${p.inStock ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
                 <td class="p-3 flex items-center gap-2">
@@ -252,7 +258,6 @@ function renderAdminProductsTable() {
     }).join('');
 }
 
-// إضافة بلدية جديدة بأسعار منفصلة
 function addCommunePriceRow(name = '', cost = '') {
     const container = document.getElementById('communes-custom-list');
     if (!container) return;
@@ -269,7 +274,6 @@ function addCommunePriceRow(name = '', cost = '') {
 
 function handleSaveWilaya(e) {
     if (e) e.preventDefault();
-    const editCode = document.getElementById('editing-wilaya-id').value;
     const code = document.getElementById('wilaya-code').value.trim();
     const name = document.getElementById('wilaya-name').value.trim();
     const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
@@ -437,6 +441,7 @@ function deleteBrand(index) {
     }
 }
 
+// دالة حفظ المنتج متضمنة (بشرة، شعر، ألوان، أرقام)
 function handleSaveProduct(e) {
     if (e) e.preventDefault();
 
@@ -447,6 +452,13 @@ function handleSaveProduct(e) {
     const category = document.getElementById('prod-category-select').value;
     const brand = document.getElementById('prod-brand-select').value;
     const inStock = document.getElementById('prod-in-stock').value === 'true';
+    
+    // الخصائص الجديدة
+    const skinType = document.getElementById('prod-skin-type').value;
+    const hairType = document.getElementById('prod-hair-type').value;
+    const colors = document.getElementById('prod-colors').value.trim();
+    const numbers = document.getElementById('prod-numbers').value.trim();
+
     const hasCountdown = document.getElementById('prod-has-countdown').checked;
     const countdownHours = parseFloat(document.getElementById('prod-countdown-hours').value) || 0;
     const desc = document.getElementById('prod-desc').value.trim();
@@ -454,15 +466,13 @@ function handleSaveProduct(e) {
     const img1 = document.getElementById('prod-img-main').value.trim();
     const img2 = document.getElementById('prod-img-2').value.trim();
     const img3 = document.getElementById('prod-img-3').value.trim();
-    const img4 = document.getElementById('prod-img-4').value.trim();
-    const img5 = document.getElementById('prod-img-5').value.trim();
 
     if (!name || !price || !category || !img1) {
         showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية (الاسم، السعر، الفئة، والصورة الرئيسية)!', false);
         return;
     }
 
-    const images = [img1, img2, img3, img4, img5].filter(img => img.length > 0);
+    const images = [img1, img2, img3].filter(img => img.length > 0);
 
     const productData = {
         name: name,
@@ -471,6 +481,10 @@ function handleSaveProduct(e) {
         category: category,
         brand: brand,
         inStock: inStock,
+        skinType: skinType,
+        hairType: hairType,
+        colors: colors,
+        numbers: numbers,
         hasCountdown: hasCountdown,
         countdownHours: countdownHours,
         desc: desc,
@@ -497,7 +511,7 @@ function handleSaveProduct(e) {
 function resetProductForm() {
     document.getElementById('product-edit-form').reset();
     document.getElementById('editing-product-id').value = '';
-    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع رفع الصور والعد التنازلي)';
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع خصائص البشرة، الشعر، الألوان والأرقام)';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
     document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
 }
@@ -513,6 +527,12 @@ function editProduct(id) {
     document.getElementById('prod-category-select').value = p.category || '';
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
+    
+    document.getElementById('prod-skin-type').value = p.skinType || '';
+    document.getElementById('prod-hair-type').value = p.hairType || '';
+    document.getElementById('prod-colors').value = p.colors || '';
+    document.getElementById('prod-numbers').value = p.numbers || '';
+
     document.getElementById('prod-has-countdown').checked = p.hasCountdown || false;
     document.getElementById('prod-countdown-hours').value = p.countdownHours || '';
     document.getElementById('prod-desc').value = p.desc || '';
@@ -521,8 +541,6 @@ function editProduct(id) {
     document.getElementById('prod-img-main').value = imgs[0] || '';
     document.getElementById('prod-img-2').value = imgs[1] || '';
     document.getElementById('prod-img-3').value = imgs[2] || '';
-    document.getElementById('prod-img-4').value = imgs[3] || '';
-    document.getElementById('prod-img-5').value = imgs[4] || '';
 
     document.getElementById('product-form-title').innerText = 'تعديل المنتج: ' + p.name;
     document.getElementById('cancel-edit-btn').classList.remove('hidden');
