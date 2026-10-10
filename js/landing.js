@@ -1,5 +1,4 @@
 let currentLandingProduct = null;
-let currentBSProduct = null;
 
 function openLandingPage(productId) {
     currentLandingProduct = products.find(p => p.id === productId);
@@ -41,104 +40,12 @@ function openLandingPage(productId) {
     showPage('landing');
 }
 
-// دالة فتح اللوحة السفلية للطلب السريع المباشر (Bottom Sheet Checkout)
-function openBottomSheet(productId) {
-    currentBSProduct = products.find(p => p.id === productId);
-    if (!currentBSProduct) return;
-
-    const mainImg = (currentBSProduct.images && currentBSProduct.images[0]) || 'https://via.placeholder.com/300';
-    document.getElementById('bs-main-img').src = mainImg;
-    document.getElementById('bs-title').innerText = currentBSProduct.name;
-    document.getElementById('bs-category').innerText = currentBSProduct.category || 'عام';
-    document.getElementById('bs-price').innerText = currentBSProduct.price.toLocaleString() + ' دج';
-    document.getElementById('bs-old-price').innerText = currentBSProduct.oldPrice ? currentBSProduct.oldPrice.toLocaleString() + ' دج' : '';
-    document.getElementById('bs-desc').innerText = currentBSProduct.desc || '';
-
-    const select = document.getElementById('bs-cust-wilaya');
-    select.innerHTML = '<option value="">اختر الولاية...</option>' + 
-        WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
-
-    calculateBSTotal();
-
-    const backdrop = document.getElementById('bottom-sheet-backdrop');
-    const sheet = document.getElementById('bottom-sheet-modal');
-    backdrop.classList.remove('hidden');
-    setTimeout(() => {
-        backdrop.classList.remove('opacity-0');
-        sheet.classList.remove('translate-y-full');
-    }, 10);
-}
-
-function closeBottomSheet() {
-    const backdrop = document.getElementById('bottom-sheet-backdrop');
-    const sheet = document.getElementById('bottom-sheet-modal');
-    backdrop.classList.add('opacity-0');
-    sheet.classList.add('translate-y-full');
-    setTimeout(() => backdrop.classList.add('hidden'), 300);
-}
-
-function handleBSWilayaChange() {
-    const code = document.getElementById('bs-cust-wilaya').value;
-    const wilaya = WILAYAS.find(w => w.code === code);
-    const communeSelect = document.getElementById('bs-cust-commune');
-
-    if (wilaya && communeSelect) {
-        communeSelect.innerHTML = wilaya.communes.map(c => `<option value="${c}">${c}</option>`).join('');
-    } else if (communeSelect) {
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
-    }
-    calculateBSTotal();
-}
-
-function calculateBSTotal() {
-    if (!currentBSProduct) return;
-    const code = document.getElementById('bs-cust-wilaya').value;
-    const wilaya = WILAYAS.find(w => w.code === code);
-    const shipType = document.querySelector('input[name="bs_shipping_type"]:checked')?.value || 'home';
-
-    let shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 0;
-    let total = currentBSProduct.price + shipCost;
-
-    document.getElementById('bs-sum-prod').innerText = currentBSProduct.price.toLocaleString() + ' دج';
-    document.getElementById('bs-sum-ship').innerText = wilaya ? shipCost.toLocaleString() + ' دج' : '0 دج (حدد الولاية)';
-    document.getElementById('bs-sum-total').innerText = total.toLocaleString() + ' دج';
-}
-
-function submitBSOrder() {
-    const name = document.getElementById('bs-cust-name').value.trim();
-    const phone = document.getElementById('bs-cust-phone').value.trim();
-    const wilayaCode = document.getElementById('bs-cust-wilaya').value;
-
-    if (!name) return showCustomAlert('تنبيه', 'يرجى كتابة الاسم واللقب!', false);
-    if (!isAlgerianPhoneValid(phone)) return showCustomAlert('خطأ', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام (05/06/07).', false);
-    if (!wilayaCode) return showCustomAlert('تنبيه', 'يرجى اختيار الولاية!', false);
-
-    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const shipType = document.querySelector('input[name="bs_shipping_type"]:checked')?.value || 'home';
-    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
-
-    db.collection("orders").add({
-        customer: name,
-        phone: phone,
-        wilaya: wilaya.name,
-        commune: document.getElementById('bs-cust-commune').value || '',
-        product: currentBSProduct.name,
-        total: currentBSProduct.price + shipCost,
-        status: 'جديد',
-        date: new Date().toLocaleDateString('ar-DZ'),
-        createdAt: new Date()
-    }).then(() => {
-        closeBottomSheet();
-        showCustomAlert('تم الطلب 🎉', 'تم تسليم طلبك بنجاح وسنتصل بك لتأكيد التوصيل.', true);
-    });
-}
-
-function openLightbox(imgSrc) {
-    const targetSrc = imgSrc || document.getElementById('landing-main-img').src;
+function openLightbox() {
+    const mainImg = document.getElementById('landing-main-img').src;
     const lightboxModal = document.getElementById('image-lightbox-modal');
     const lightboxTarget = document.getElementById('lightbox-target-img');
     if (lightboxModal && lightboxTarget) {
-        lightboxTarget.src = targetSrc;
+        lightboxTarget.src = mainImg;
         lightboxModal.classList.remove('hidden');
         lightboxModal.classList.add('flex');
     }
@@ -195,7 +102,7 @@ function calculateLandingTotal() {
     let grandTotal = basePrice + shipCost;
 
     document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
-    document.getElementById('sum-ship-price').innerText = wilaya ? shipCost.toLocaleString() + ' دج' : '0 دج (حدد الولاية)';
+    document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
     document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
     document.getElementById('sticky-bar-price').innerText = grandTotal.toLocaleString() + ' دج';
 }
@@ -254,21 +161,16 @@ function closeCustomAlert() {
 }
 
 function submitLandingOrder() {
-    const name = document.getElementById('cust-name').value.trim();
-    const phone = document.getElementById('cust-phone').value.trim();
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
     const wilayaCode = document.getElementById('cust-wilaya').value;
     const commune = document.getElementById('cust-commune').value;
 
     const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
     const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
 
-    if (!name || !wilayaCode) {
+    if (!name || !phone || !wilayaCode) {
         showCustomAlert('تنبيه هام!', warnMsg, false);
-        return;
-    }
-
-    if (!isAlgerianPhoneValid(phone)) {
-        showCustomAlert('رقم هاتف غير صحيح ❌', 'يرجى إدخال رقم هاتف جزائري مكون من 10 أرقام ويبدأ حصراً بـ 05 أو 06 أو 07.', false);
         return;
     }
 
