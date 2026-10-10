@@ -4,38 +4,56 @@ function openLandingPage(productId) {
     currentLandingProduct = products.find(p => p.id === productId);
     if (!currentLandingProduct) return;
 
-    const mainImg = currentLandingProduct.images && currentLandingProduct.images.length > 0 
-        ? currentLandingProduct.images[0] 
-        : 'https://via.placeholder.com/500';
+    let mainImg = 'https://via.placeholder.com/500';
+    if (currentLandingProduct.images && Array.isArray(currentLandingProduct.images) && currentLandingProduct.images[0]) {
+        mainImg = currentLandingProduct.images[0];
+    } else if (currentLandingProduct.image) {
+        mainImg = currentLandingProduct.image;
+    }
         
-    document.getElementById('landing-main-img').src = mainImg;
-    document.getElementById('landing-title').innerText = currentLandingProduct.name;
-    document.getElementById('landing-category').innerText = currentLandingProduct.category || 'عام';
-    document.getElementById('landing-price').innerText = (currentLandingProduct.price || 0).toLocaleString() + ' دج';
-    document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
-    document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
+    const landingImgEl = document.getElementById('landing-main-img');
+    if (landingImgEl) landingImgEl.src = mainImg;
+
+    const landingTitleEl = document.getElementById('landing-title');
+    if (landingTitleEl) landingTitleEl.innerText = currentLandingProduct.name || '';
+
+    const landingCatEl = document.getElementById('landing-category');
+    if (landingCatEl) landingCatEl.innerText = currentLandingProduct.category || 'عام';
+
+    const landingPriceEl = document.getElementById('landing-price');
+    if (landingPriceEl) landingPriceEl.innerText = (currentLandingProduct.price || 0).toLocaleString() + ' دج';
+
+    const landingOldPriceEl = document.getElementById('landing-old-price');
+    if (landingOldPriceEl) landingOldPriceEl.innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
+
+    const landingDescEl = document.getElementById('landing-desc');
+    if (landingDescEl) landingDescEl.innerText = currentLandingProduct.desc || '';
 
     renderLandingDynamicOptions(currentLandingProduct);
 
     const cdBox = document.getElementById('landing-countdown-box');
-    if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
-        cdBox.classList.remove('hidden');
-        startCountdownTimer(currentLandingProduct.countdownHours);
-    } else {
-        cdBox.classList.add('hidden');
-        if (window.cdInterval) clearInterval(window.cdInterval);
+    if (cdBox) {
+        if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
+            cdBox.classList.remove('hidden');
+            startCountdownTimer(currentLandingProduct.countdownHours);
+        } else {
+            cdBox.classList.add('hidden');
+            if (window.cdInterval) clearInterval(window.cdInterval);
+        }
     }
 
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
-    const imagesList = currentLandingProduct.images && currentLandingProduct.images.length > 0 
-        ? currentLandingProduct.images 
-        : [mainImg];
+    if (thumbsContainer) {
+        const imagesList = (currentLandingProduct.images && Array.isArray(currentLandingProduct.images) && currentLandingProduct.images.length > 0) 
+            ? currentLandingProduct.images 
+            : [mainImg];
 
-    thumbsContainer.innerHTML = imagesList.map((imgUrl) => `
-        <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
-            <img src="${imgUrl}" class="w-full h-full object-contain">
-        </div>
-    `).join('');
+        thumbsContainer.innerHTML = imagesList.map((imgUrl) => `
+            <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
+                <img src="${imgUrl}" class="w-full h-full object-contain">
+            </div>
+        `).join('');
+    }
 
     populateWilayas();
     calculateLandingTotal();
@@ -121,11 +139,13 @@ function closeLightbox() {
 
 function swapLandingMainImage(newUrl) {
     const mainImg = document.getElementById('landing-main-img');
-    mainImg.style.opacity = '0.3';
-    setTimeout(() => {
-        mainImg.src = newUrl;
-        mainImg.style.opacity = '1';
-    }, 150);
+    if (mainImg) {
+        mainImg.style.opacity = '0.3';
+        setTimeout(() => {
+            mainImg.src = newUrl;
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
 }
 
 function populateWilayas() {
@@ -145,10 +165,12 @@ function handleWilayaChange() {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
             communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
             
-        document.getElementById('price-shipping-office').innerText = (wilaya.officeCost || 0) + ' دج';
+        const officePriceEl = document.getElementById('price-shipping-office');
+        if (officePriceEl) officePriceEl.innerText = (wilaya.officeCost || 0) + ' دج';
     } else if (communeSelect) {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
-        document.getElementById('price-shipping-office').innerText = 'حدد الولاية';
+        const officePriceEl = document.getElementById('price-shipping-office');
+        if (officePriceEl) officePriceEl.innerText = 'حدد الولاية';
     }
     calculateLandingTotal();
 }
@@ -172,10 +194,17 @@ function calculateLandingTotal() {
         }
     }
 
-    document.getElementById('price-shipping-home').innerText = (wilaya && communeName) ? shipCost + ' دج' : 'حدد البلدية';
-    document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
-    document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
-    document.getElementById('sum-total-price').innerText = (basePrice + shipCost).toLocaleString() + ' دج';
+    const homePriceEl = document.getElementById('price-shipping-home');
+    if (homePriceEl) homePriceEl.innerText = (wilaya && communeName) ? shipCost + ' دج' : 'حدد البلدية';
+
+    const sumProdEl = document.getElementById('sum-prod-price');
+    if (sumProdEl) sumProdEl.innerText = basePrice.toLocaleString() + ' دج';
+
+    const sumShipEl = document.getElementById('sum-ship-price');
+    if (sumShipEl) sumShipEl.innerText = shipCost.toLocaleString() + ' دج';
+
+    const sumTotalEl = document.getElementById('sum-total-price');
+    if (sumTotalEl) sumTotalEl.innerText = (basePrice + shipCost).toLocaleString() + ' دج';
     
     const stickyPrice = document.getElementById('sticky-bar-price');
     if (stickyPrice) stickyPrice.innerText = (basePrice + shipCost).toLocaleString() + ' دج';
@@ -265,5 +294,6 @@ function startCountdownTimer(hours) {
 }
 
 function scrollToOrderForm() {
-    document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
+    const orderSection = document.getElementById('order-form-section');
+    if (orderSection) orderSection.scrollIntoView({ behavior: 'smooth' });
 }
