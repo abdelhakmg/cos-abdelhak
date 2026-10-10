@@ -23,7 +23,6 @@ function handleLogoClick(event) {
     }
 }
 
-// بحث مباشر يدعم الكمبيوتر والهاتف والتجاوب مع Enter
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -327,7 +326,9 @@ function handleCartWilayaChange() {
     const communeSelect = document.getElementById('cart-cust-commune');
     
     if (wilaya && communeSelect) {
-        communeSelect.innerHTML = (wilaya.communes || []).map(c => `<option value="${c}">${c}</option>`).join('');
+        const communesList = wilaya.communesData || [];
+        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
+            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
     } else if (communeSelect) {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
     }
@@ -343,16 +344,25 @@ function updateCartCalculations() {
 
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const communeName = document.getElementById('cart-cust-commune')?.value;
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
 
     let shipCost = 0;
     if (wilaya) {
-        shipCost = shipType === 'home' ? (wilaya.homeCost || 0) : (wilaya.officeCost || 0);
+        if (shipType === 'office') {
+            shipCost = wilaya.officeCost || 0;
+        } else {
+            const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
+            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : 0);
+        }
     }
 
     if (subtotalEl) subtotalEl.innerText = subtotal.toLocaleString() + ' دج';
-    if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية';
-    if (totalEl) totalEl.innerText = (subtotal + shipCost).toLocaleString() + ' دج';
+    if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية والبلدية';
+    
+    // المجموع الكلي الدقيق = مجموع المنتجات + تكلفة التوصيل
+    const grandTotal = subtotal + shipCost;
+    if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' دج';
 }
 
 function removeFromCart(idx) {
@@ -368,19 +378,33 @@ function submitCartCheckout() {
         return;
     }
 
-    const name = document.getElementById('cart-cust-name')?.value;
-    const phone = document.getElementById('cart-cust-phone')?.value;
+    const name = document.getElementById('cart-cust-name')?.value.trim();
+    const phone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     const commune = document.getElementById('cart-cust-commune')?.value;
 
-    if (!name || !phone || !wilayaCode) {
+    if (!name || !wilayaCode) {
         showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+        return;
+    }
+
+    if (typeof isValidDzPhone === 'function' && !isValidDzPhone(phone)) {
+        showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري مكون من 10 أرقام ويبدأ بـ 05 أو 06 أو 07.', false);
         return;
     }
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
-    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+    
+    let shipCost = 0;
+    if (wilaya) {
+        if (shipType === 'office') {
+            shipCost = wilaya.officeCost || 0;
+        } else {
+            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
+            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+        }
+    }
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
     const itemsNames = cart.map(item => item.name).join(' + ');
@@ -389,7 +413,7 @@ function submitCartCheckout() {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: commune || '',
+        commune: commune || 'المكتب',
         product: `طلبية سلة: (${itemsNames})`,
         total: subtotal + shipCost,
         status: 'جديد',
