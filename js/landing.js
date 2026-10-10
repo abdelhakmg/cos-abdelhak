@@ -40,6 +40,13 @@ function openLandingPage(productId) {
     populateWilayas();
     calculateLandingTotal();
     showPage('landing');
+
+    setTimeout(() => {
+        const orderSection = document.getElementById('order-form-section');
+        if (orderSection) {
+            orderSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, 200);
 }
 
 function renderLandingDynamicOptions(p) {
@@ -168,4 +175,95 @@ function calculateLandingTotal() {
     document.getElementById('price-shipping-home').innerText = (wilaya && communeName) ? shipCost + ' دج' : 'حدد البلدية';
     document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
     document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
-    document.getElementById('sum-total-price').innerText =
+    document.getElementById('sum-total-price').innerText = (basePrice + shipCost).toLocaleString() + ' دج';
+    
+    const stickyPrice = document.getElementById('sticky-bar-price');
+    if (stickyPrice) stickyPrice.innerText = (basePrice + shipCost).toLocaleString() + ' دج';
+}
+
+function isValidDzPhone(phone) {
+    const cleanPhone = phone.trim();
+    const dzPhoneRegex = /^(05|06|07)[0-9]{8}$/;
+    return dzPhoneRegex.test(cleanPhone);
+}
+
+function submitLandingOrder() {
+    const name = document.getElementById('cust-name').value.trim();
+    const phone = document.getElementById('cust-phone').value.trim();
+    const wilayaCode = document.getElementById('cust-wilaya').value;
+    const commune = document.getElementById('cust-commune').value;
+
+    if (!name || !wilayaCode) {
+        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+        return;
+    }
+
+    if (!isValidDzPhone(phone)) {
+        showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري مكون من 10 أرقام ويبدأ بـ 05 أو 06 أو 07.', false);
+        return;
+    }
+
+    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
+    
+    let shipCost = 0;
+    if (wilaya) {
+        if (shipType === 'office') {
+            shipCost = wilaya.officeCost || 0;
+        } else {
+            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
+            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+        }
+    }
+
+    const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
+    const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
+    
+    let productDetails = currentLandingProduct.name;
+    if (selectedColor) productDetails += ` (اللون: ${selectedColor})`;
+    if (selectedNum) productDetails += ` (الدرجة: ${selectedNum})`;
+
+    const newOrder = {
+        customer: name,
+        phone: phone,
+        wilaya: wilaya ? wilaya.name : wilayaCode,
+        commune: commune || 'المكتب',
+        product: productDetails,
+        total: (currentLandingProduct.price || 0) + shipCost,
+        status: 'جديد',
+        date: new Date().toLocaleDateString('ar-DZ'),
+        createdAt: new Date()
+    };
+
+    db.collection("orders").add(newOrder).then(() => {
+        showCustomAlert('تم استلام طلبك! 🎉', storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.', true);
+        showPage('home');
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, false);
+    });
+}
+
+function startCountdownTimer(hours) {
+    let duration = hours * 3600;
+    if (window.cdInterval) clearInterval(window.cdInterval);
+
+    window.cdInterval = setInterval(() => {
+        if (duration <= 0) {
+            clearInterval(window.cdInterval);
+            return;
+        }
+        duration--;
+
+        const h = Math.floor(duration / 3600);
+        const m = Math.floor((duration % 3600) / 60);
+        const s = duration % 60;
+
+        if (document.getElementById('cd-hours')) document.getElementById('cd-hours').innerText = String(h).padStart(2, '0');
+        if (document.getElementById('cd-minutes')) document.getElementById('cd-minutes').innerText = String(m).padStart(2, '0');
+        if (document.getElementById('cd-seconds')) document.getElementById('cd-seconds').innerText = String(s).padStart(2, '0');
+    }, 1000);
+}
+
+function scrollToOrderForm() {
+    document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
+}
