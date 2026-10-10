@@ -15,6 +15,9 @@ function openLandingPage(productId) {
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
+    // عرض الخصائص الإضافية (بشرة، شعر، ألوان، أرقام) إذا وجدت في المنتج
+    renderLandingDynamicOptions(currentLandingProduct);
+
     const cdBox = document.getElementById('landing-countdown-box');
     if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
         cdBox.classList.remove('hidden');
@@ -38,6 +41,57 @@ function openLandingPage(productId) {
     populateWilayas();
     calculateLandingTotal();
     showPage('landing');
+}
+
+function renderLandingDynamicOptions(p) {
+    const container = document.getElementById('landing-options-container');
+    if (!container) return;
+
+    let html = '';
+
+    if (p.skinType) {
+        html += `<div class="bg-black/50 p-3 rounded-xl border border-gray-800 text-xs">
+            <span class="text-[#D4AF37] font-bold">نوع البشرة المناسب:</span> <span class="text-white font-semibold">${p.skinType}</span>
+        </div>`;
+    }
+
+    if (p.hairType) {
+        html += `<div class="bg-black/50 p-3 rounded-xl border border-gray-800 text-xs">
+            <span class="text-[#D4AF37] font-bold">نوع الشعر المناسب:</span> <span class="text-white font-semibold">${p.hairType}</span>
+        </div>`;
+    }
+
+    if (p.colors && p.colors.trim().length > 0) {
+        const colorsArr = p.colors.split(',').map(c => c.trim()).filter(Boolean);
+        html += `<div class="space-y-1.5 pt-1">
+            <label class="block text-xs font-bold text-gray-300">اختر اللون المتوفر *</label>
+            <div class="flex flex-wrap gap-2" id="landing-colors-selection">
+                ${colorsArr.map((col, idx) => `
+                    <label class="border border-gray-800 bg-black/60 px-3 py-1.5 rounded-xl text-xs text-white cursor-pointer hover:border-[#D4AF37] transition flex items-center gap-2">
+                        <input type="radio" name="selected_product_color" value="${col}" ${idx === 0 ? 'checked' : ''} class="accent-[#D4AF37]">
+                        <span>${col}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>`;
+    }
+
+    if (p.numbers && p.numbers.trim().length > 0) {
+        const numsArr = p.numbers.split(',').map(n => n.trim()).filter(Boolean);
+        html += `<div class="space-y-1.5 pt-1">
+            <label class="block text-xs font-bold text-gray-300">اختر الرقم / الدرجة *</label>
+            <div class="flex flex-wrap gap-2" id="landing-numbers-selection">
+                ${numsArr.map((num, idx) => `
+                    <label class="border border-gray-800 bg-black/60 px-3 py-1.5 rounded-xl text-xs text-white cursor-pointer hover:border-[#D4AF37] transition flex items-center gap-2">
+                        <input type="radio" name="selected_product_number" value="${num}" ${idx === 0 ? 'checked' : ''} class="accent-[#D4AF37]">
+                        <span>الدرجة ${num}</span>
+                    </label>
+                `).join('')}
+            </div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
 }
 
 function openLightbox() {
@@ -154,12 +208,19 @@ function submitLandingOrder() {
         }
     }
 
+    const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
+    const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
+    
+    let productDetails = currentLandingProduct.name;
+    if (selectedColor) productDetails += ` (اللون: ${selectedColor})`;
+    if (selectedNum) productDetails += ` (الدرجة: ${selectedNum})`;
+
     const newOrder = {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
         commune: commune || 'المكتب',
-        product: currentLandingProduct.name,
+        product: productDetails,
         total: (currentLandingProduct.price || 0) + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
