@@ -11,7 +11,7 @@ function openLandingPage(productId) {
     document.getElementById('landing-main-img').src = mainImg;
     document.getElementById('landing-title').innerText = currentLandingProduct.name;
     document.getElementById('landing-category').innerText = currentLandingProduct.category || 'عام';
-    document.getElementById('landing-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
+    document.getElementById('landing-price').innerText = (currentLandingProduct.price || 0).toLocaleString() + ' دج';
     document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
     document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
@@ -70,6 +70,7 @@ function swapLandingMainImage(newUrl) {
 
 function populateWilayas() {
     const select = document.getElementById('cust-wilaya');
+    if (!select) return;
     select.innerHTML = '<option value="">اختر الولاية...</option>' + 
         WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
 }
@@ -79,11 +80,11 @@ function handleWilayaChange() {
     const wilaya = WILAYAS.find(w => w.code === code);
     const communeSelect = document.getElementById('cust-commune');
     
-    if (wilaya) {
-        communeSelect.innerHTML = wilaya.communes.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('price-shipping-home').innerText = wilaya.homeCost + ' دج';
-        document.getElementById('price-shipping-office').innerText = wilaya.officeCost + ' دج';
-    } else {
+    if (wilaya && communeSelect) {
+        communeSelect.innerHTML = (wilaya.communes || []).map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('price-shipping-home').innerText = (wilaya.homeCost || 0) + ' دج';
+        document.getElementById('price-shipping-office').innerText = (wilaya.officeCost || 0) + ' دج';
+    } else if (communeSelect) {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
         document.getElementById('price-shipping-home').innerText = 'حدد الولاية';
         document.getElementById('price-shipping-office').innerText = 'حدد الولاية';
@@ -97,8 +98,8 @@ function calculateLandingTotal() {
     const wilaya = WILAYAS.find(w => w.code === code);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     
-    let basePrice = currentLandingProduct.price;
-    let shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 0;
+    let basePrice = currentLandingProduct.price || 0;
+    let shipCost = wilaya ? (shipType === 'home' ? (wilaya.homeCost || 0) : (wilaya.officeCost || 0)) : 0;
     let grandTotal = basePrice + shipCost;
 
     document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
@@ -139,6 +140,8 @@ function showCustomAlert(title, message, isSuccess = true) {
     const titleEl = document.getElementById('alert-title');
     const msgEl = document.getElementById('alert-message');
 
+    if (!modal) return;
+
     titleEl.innerText = title;
     msgEl.innerText = message;
 
@@ -156,8 +159,10 @@ function showCustomAlert(title, message, isSuccess = true) {
 
 function closeCustomAlert() {
     const modal = document.getElementById('custom-alert-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
 
 function submitLandingOrder() {
@@ -181,10 +186,10 @@ function submitLandingOrder() {
     const newOrder = {
         customer: name,
         phone: phone,
-        wilaya: wilaya.name,
+        wilaya: wilaya ? wilaya.name : wilayaCode,
         commune: commune,
         product: currentLandingProduct.name,
-        total: currentLandingProduct.price + shipCost,
+        total: (currentLandingProduct.price || 0) + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
@@ -193,5 +198,7 @@ function submitLandingOrder() {
     db.collection("orders").add(newOrder).then(() => {
         showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
         showPage('home');
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, false);
     });
 }
