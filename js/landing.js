@@ -1,4 +1,4 @@
-// js/landing.js - إدارة اللوحة السفلية ومكبر الصور
+// js/landing.js - إدارة اللوحة السفلية والمكبر
 
 let currentBSProduct = null;
 
@@ -6,8 +6,7 @@ function openBottomSheet(productId) {
     currentBSProduct = products.find(p => p.id === productId);
     if (!currentBSProduct) return;
 
-    const mainImg = (currentBSProduct.images && currentBSProduct.images[0]) || 'https://via.placeholder.com/300';
-    document.getElementById('bs-main-img').src = mainImg;
+    document.getElementById('bs-main-img').src = currentBSProduct.images[0];
     document.getElementById('bs-title').innerText = currentBSProduct.name;
     document.getElementById('bs-category').innerText = currentBSProduct.category || 'عام';
     document.getElementById('bs-price').innerText = currentBSProduct.price.toLocaleString() + ' دج';
@@ -36,7 +35,6 @@ function closeBottomSheet() {
     setTimeout(() => backdrop.classList.add('hidden'), 300);
 }
 
-// مكبر الصور الشامل المباشر (Zoom Lightbox)
 function openLightbox(imgSrc) {
     const modal = document.getElementById('image-lightbox-modal');
     const img = document.getElementById('lightbox-target-img');
@@ -88,7 +86,7 @@ function submitBSOrder() {
     const wilayaCode = document.getElementById('bs-cust-wilaya').value;
 
     if (!name) return showCustomAlert('تنبيه', 'يرجى كتابة الاسم واللقب!', false);
-    if (!isAlgerianPhoneValid(phone)) return showCustomAlert('خطأ', 'يرجى إدخال رقم هاتف جزائري مكون من 10 أرقام وتبدأ بـ 05 أو 06 أو 07.', false);
+    if (!isAlgerianPhoneValid(phone)) return showCustomAlert('خطأ', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام (05/06/07).', false);
     if (!wilayaCode) return showCustomAlert('تنبيه', 'يرجى اختيار الولاية!', false);
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
