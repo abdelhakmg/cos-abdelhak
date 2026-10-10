@@ -6,7 +6,7 @@ let bannerMessages = [];
 let orders = [];
 let brands = [];
 
-// قيم احتياطية تلقائية لضمان العرض
+// قيم احتياطية تلقائية لضمان التشغيل وعدم التعليق
 const defaultSkinTypes = ["الدهنية", "الجافة", "الحساسة", "المختلطة", "العادية"];
 const defaultHairTypes = ["الشعر الدهني", "الشعر الجاف", "الشعر العادي", "الشعر المصبوغ", "الشعر المتضرر", "علاج القشرة", "بروتين / كيراتين"];
 
@@ -25,40 +25,64 @@ let storeSettings = {
     msgWarning: "يرجى ملء كافة معلومات الاستمارة الضرورية!"
 };
 
-function initFirebaseSync() {
-    if (typeof firebase === 'undefined') return;
+// دالة الأمان لاستدعاء الدوال الحركية دون إيقاف الكود في حال غياب أحدها
+function safeCall(fn, ...args) {
+    if (typeof window[fn] === 'function') {
+        try {
+            window[fn](...args);
+        } catch (e) {
+            console.warn(`Error executing ${fn}:`, e);
+        }
+    }
+}
 
+function initFirebaseSync() {
+    if (typeof firebase === 'undefined' || typeof db === 'undefined') {
+        console.error("Firebase is not initialized properly.");
+        return;
+    }
+
+    // 1. جلب المنتجات
     db.collection("products").onSnapshot((snapshot) => {
         products = [];
         snapshot.forEach((doc) => {
             products.push({ id: doc.id, ...doc.data() });
         });
-        if (typeof renderProducts === 'function') renderProducts();
-        if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
-        if (typeof applyFilters === 'function') applyFilters();
-        if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+        safeCall('renderProducts');
+        safeCall('renderDynamicSidebarFilters');
+        safeCall('applyFilters');
+        safeCall('renderAdminProductsTable');
+    }, (error) => {
+        console.error("Error fetching products:", error);
     });
 
+    // 2. جلب الولايات
     db.collection("wilayas").onSnapshot((snapshot) => {
         WILAYAS = [];
         snapshot.forEach((doc) => {
             WILAYAS.push({ id: doc.id, ...doc.data() });
         });
         WILAYAS.sort((a, b) => parseInt(a.code) - parseInt(b.code));
-        if (typeof populateWilayas === 'function') populateWilayas();
-        if (typeof populateCartWilayas === 'function') populateCartWilayas();
-        if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
+        safeCall('populateWilayas');
+        safeCall('populateCartWilayas');
+        safeCall('renderAdminWilayasList');
+    }, (error) => {
+        console.error("Error fetching wilayas:", error);
     });
 
+    // 3. جلب الفئات
     db.collection("categories").onSnapshot((snapshot) => {
         categories = [];
         snapshot.forEach((doc) => {
             categories.push({ id: doc.id, ...doc.data() });
         });
-        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
-        if (typeof populateAdminDropdowns === 'function') populateAdminDropdowns();
+        safeCall('updateAppHeaderInfo');
+        safeCall('populateAdminDropdowns');
+    }, (error) => {
+        console.error("Error fetching categories:", error);
     });
 
+    // 4. جلب الإعدادات والخصائص
     db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
@@ -69,44 +93,46 @@ function initFirebaseSync() {
                 availableSkinTypes = data.skinTypes;
             } else {
                 availableSkinTypes = defaultSkinTypes;
-                db.collection("settings").doc("main").set({ skinTypes: defaultSkinTypes }, { merge: true });
             }
 
             if (data.hairTypes && data.hairTypes.length > 0) {
                 availableHairTypes = data.hairTypes;
             } else {
                 availableHairTypes = defaultHairTypes;
-                db.collection("settings").doc("main").set({ hairTypes: defaultHairTypes }, { merge: true });
             }
         } else {
             availableSkinTypes = defaultSkinTypes;
             availableHairTypes = defaultHairTypes;
-            db.collection("settings").doc("main").set({
-                skinTypes: defaultSkinTypes,
-                hairTypes: defaultHairTypes
-            }, { merge: true });
         }
 
-        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
-        if (typeof renderDynamicSidebarFilters === 'function') renderDynamicSidebarFilters();
-        if (typeof populateAdminDropdowns === 'function') populateAdminDropdowns();
-        if (typeof renderAdminAttributesTab === 'function') renderAdminAttributesTab();
+        safeCall('updateAppHeaderInfo');
+        safeCall('renderDynamicSidebarFilters');
+        safeCall('populateAdminDropdowns');
+        safeCall('renderAdminAttributesTab');
+    }, (error) => {
+        console.error("Error fetching settings:", error);
     });
 
+    // 5. جلب الطلبيات
     db.collection("orders").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         orders = [];
         snapshot.forEach((doc) => {
             orders.push({ id: doc.id, ...doc.data() });
         });
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+        safeCall('renderAdminDashboard');
+    }, (error) => {
+        console.error("Error fetching orders:", error);
     });
 
+    // 6. جلب البانرات الإعلانية
     db.collection("heroSlides").onSnapshot((snapshot) => {
         heroSlides = [];
         snapshot.forEach((doc) => {
             heroSlides.push({ id: doc.id, ...doc.data() });
         });
-        if (typeof renderHeroSlider === 'function') renderHeroSlider();
+        safeCall('renderHeroSlider');
+    }, (error) => {
+        console.error("Error fetching hero slides:", error);
     });
 }
 
