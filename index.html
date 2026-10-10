@@ -144,7 +144,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <!-- شريط التصفية الجانبي الديناميكي بالكامل -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -169,7 +168,7 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- نوع البشرة الديناميكي مع العداد المباشر -->
+                        <!-- نوع البشرة الديناميكي -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
                             <div class="space-y-1.5 text-xs text-gray-300" id="filter-skin-types"></div>
@@ -177,7 +176,7 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- نوع الشعر والعلاج الديناميكي مع العداد المباشر -->
+                        <!-- نوع الشعر والعلاج الديناميكي -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر والعلاج</h4>
                             <div class="space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto pr-1" id="filter-hair-types"></div>
@@ -538,26 +537,26 @@
                     </div>
                 </div>
 
-                <!-- تبويب إدارة خيارات أنواع البشرة والشعر الديناميكي -->
+                <!-- تبويب إدارة خيارات أنواع البشرة والشعر المطور مع التعديل والحذف -->
                 <div id="admin-tab-attributes" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- إدارة أنواع البشرة -->
                         <div class="bg-white p-6 rounded-2xl border space-y-4">
                             <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B]"><i class="fa-solid fa-sparkles"></i> إدارة أنواع البشرة</h3>
-                            <form onsubmit="handleAddSkinType(event)" class="flex gap-2">
-                                <input type="text" id="new-skin-type-input" placeholder="نوع بشرة جديد (مثال: المعرضة للحبوب) *" required class="border p-3 rounded-xl text-xs flex-1">
-                                <button type="submit" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs">+ إضافة</button>
-                            </form>
+                            <div class="flex gap-2">
+                                <input type="text" id="new-skin-type-input" placeholder="نوع بشرة جديد (مثال: المعرضة للحبوب) *" class="border p-3 rounded-xl text-xs flex-1">
+                                <button type="button" onclick="handleAddSkinType(event)" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition">+ إضافة</button>
+                            </div>
                             <div id="admin-skin-types-list" class="space-y-2 pt-2"></div>
                         </div>
 
                         <!-- إدارة أنواع الشعر والعلاج -->
                         <div class="bg-white p-6 rounded-2xl border space-y-4">
                             <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B]"><i class="fa-solid fa-wand-magic-sparkles"></i> إدارة أنواع الشعر والعلاج</h3>
-                            <form onsubmit="handleAddHairType(event)" class="flex gap-2">
-                                <input type="text" id="new-hair-type-input" placeholder="نوع شعر/علاج جديد (مثال: كيرلي / Curly) *" required class="border p-3 rounded-xl text-xs flex-1">
-                                <button type="submit" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs">+ إضافة</button>
-                            </form>
+                            <div class="flex gap-2">
+                                <input type="text" id="new-hair-type-input" placeholder="نوع شعر/علاج جديد (مثال: كيرلي / Curly) *" class="border p-3 rounded-xl text-xs flex-1">
+                                <button type="button" onclick="handleAddHairType(event)" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition">+ إضافة</button>
+                            </div>
                             <div id="admin-hair-types-list" class="space-y-2 pt-2"></div>
                         </div>
                     </div>
