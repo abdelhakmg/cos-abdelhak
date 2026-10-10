@@ -144,7 +144,8 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
+                    <!-- Sidebar Dynamic Filters -->
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6 lg:col-span-1">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
                                 <i class="fa-solid fa-sliders"></i> تصفية النتائج
@@ -162,29 +163,6 @@
                         <hr class="border-gray-800">
 
                         <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-gray-300">الفئة / القسم</h4>
-                            <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
-                        </div>
-
-                        <hr class="border-gray-800">
-
-                        <!-- نوع البشرة الديناميكي -->
-                        <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
-                            <div class="space-y-1.5 text-xs text-gray-300" id="filter-skin-types"></div>
-                        </div>
-
-                        <hr class="border-gray-800">
-
-                        <!-- نوع الشعر والعلاج الديناميكي -->
-                        <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر والعلاج</h4>
-                            <div class="space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto pr-1" id="filter-hair-types"></div>
-                        </div>
-
-                        <hr class="border-gray-800">
-
-                        <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">السعر الأقصى</h4>
                             <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
                             <div class="flex justify-between text-xs text-[#D4AF37] font-bold">
@@ -192,6 +170,11 @@
                                 <span id="price-range-val">20,000 دج</span>
                             </div>
                         </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- الحاوية الديناميكية التي تتغير تلقائياً حسب القسم المفتوح -->
+                        <div id="dynamic-category-filters" class="space-y-4"></div>
 
                         <hr class="border-gray-800">
 
@@ -224,7 +207,6 @@
         <!-- 3. LANDING PAGE -->
         <div id="page-landing" class="page-sec">
             <div class="max-w-4xl mx-auto px-4 py-8">
-                
                 <div id="landing-countdown-box" class="bg-gradient-to-r from-red-900/40 via-red-600/30 to-red-900/40 border border-red-500/50 rounded-2xl p-3 mb-6 text-center flex flex-wrap items-center justify-between gap-2 shadow-lg hidden">
                     <span class="text-xs md:text-sm font-black text-red-400 flex items-center gap-1.5 mx-auto md:mx-0">
                         <i class="fa-solid fa-clock text-base animate-spin"></i> سارع بالتسوق! ينتهي العرض خلال:
@@ -304,43 +286,6 @@
                         تأكيد الطلب الآن (الدفع عند الاستلام) 🚚
                     </button>
                 </div>
-
-                <div class="mt-12 bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 space-y-6">
-                    <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-shield-halved text-[#D4AF37]"></i> ضمانات ومزايا الشراء من متجرنا</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
-                            <i class="fa-solid fa-truck-fast text-2xl text-[#D4AF37]"></i>
-                            <h4 class="font-bold text-sm text-white">توصيل سريع</h4>
-                            <p class="text-[11px] text-gray-400">توصيل لـ 58 ولاية لغاية باب المنزل أو المكتب</p>
-                        </div>
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
-                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-[#D4AF37]"></i>
-                            <h4 class="font-bold text-sm text-white">الدفع عند الاستلام</h4>
-                            <p class="text-[11px] text-gray-400">معاينة الطلبية والتحقق منها قبل تسليم المبلغ</p>
-                        </div>
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
-                            <i class="fa-solid fa-award text-2xl text-[#D4AF37]"></i>
-                            <h4 class="font-bold text-sm text-white">منتجات أصلية 100%</h4>
-                            <p class="text-[11px] text-gray-400">جودة فاخرة ومصداقية تامة في اختيار المنتجات</p>
-                        </div>
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
-                            <i class="fa-solid fa-headset text-2xl text-[#D4AF37]"></i>
-                            <h4 class="font-bold text-sm text-white">دعم متواصل 24/7</h4>
-                            <p class="text-[11px] text-gray-400">فريق خدمة الزبائن جاهز لمساعدتكم دائماً</p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="sticky-bottom-bar bg-black border-t border-[#D4AF37]/30 text-white p-4 flex items-center justify-between max-w-4xl mx-auto rounded-t-2xl">
-                <div class="text-right">
-                    <span class="text-[10px] text-gray-400 block">السعر الإجمالي</span>
-                    <span id="sticky-bar-price" class="text-xl font-black gold-text">0 دج</span>
-                </div>
-                <button onclick="scrollToOrderForm()" class="px-8 py-3 gold-gradient text-black font-extrabold text-sm rounded-xl shadow-md">
-                    اطلب الآن 🔥
-                </button>
             </div>
         </div>
 
@@ -361,7 +306,6 @@
                     
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 h-fit text-right space-y-4 text-white shadow-xl">
                         <h3 class="font-bold border-b border-gray-800 pb-3 gold-text">📝 تفاصيل الطلب والتوصيل</h3>
-                        
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-gray-300">الاسم واللقب *</label>
@@ -428,11 +372,11 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <!-- إدارة المنتجات المكتملة بالتحديد المتعدد للخصائص -->
+                <!-- إدارة المنتجات الديناميكية حسب الفئة -->
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع التحديد المتعدد لأنواع البشرة والشعر)</h3>
+                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج (مع التحديد الديناميكي لكل قسم)</h3>
                             <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
                         </div>
                         <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -441,7 +385,7 @@
                             <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
                             <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
 
-                            <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white" required></select>
+                            <select id="prod-category-select" onchange="renderCategorySpecificAdminFields()" class="border p-3 rounded-xl text-sm bg-white" required></select>
                             <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
 
                             <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
@@ -449,65 +393,34 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- الخيارات المخصصة الشاملة -->
-                            <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-4">
-                                <h4 class="font-bold text-xs text-[#B8860B]">✨ خصائص المنتج (يمكنك تحديد أكثر من نوع يناسب هذا المنتج):</h4>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع البشرة المناسبة للمنتج:</label>
-                                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-36 overflow-y-auto text-xs"></div>
-                                    </div>
+                            <!-- الحاوية الديناميكية التي تتغير فوراً عند اختيار الفئة في لوحة التحكم -->
+                            <div id="category-dynamic-fields-container" class="md:col-span-3"></div>
 
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع الشعر المناسبة للمنتج:</label>
-                                        <div id="admin-prod-hair-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-36 overflow-y-auto text-xs"></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">الألوان المتوفرة في المخزون (افصل بينها بفاصلة ، مثل: أحمر, وردي, نيود):</label>
-                                    <input type="text" id="prod-colors" placeholder="مثال: أحمر, وردي, نيود, بني" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">الأرقام / التدرجات المتوفرة (افصل بينها بفاصلة ، مثل: 1, 2, 3 أو 01, 02):</label>
-                                    <input type="text" id="prod-numbers" placeholder="مثال: 1, 2, 3" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                                </div>
-                            </div>
-
-                            <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
-                                <h4 class="font-bold text-xs text-[#B8860B]">⏱️ إعدادات العد التنازلي للعرض (اختياري):</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <label class="flex items-center gap-2 text-xs font-bold">
-                                        <input type="checkbox" id="prod-has-countdown" class="w-4 h-4 accent-[#D4AF37]"> تفعيل العد التنازلي لهذا المنتج
-                                    </label>
-                                    <input type="number" id="prod-countdown-hours" placeholder="عدد ساعات العرض (مثال: 2)" class="border p-2 rounded-xl text-xs bg-white">
-                                </div>
+                            <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
+                                <h4 class="font-bold text-xs text-[#B8860B]">🎨 الخيارات الإضافية (ألوان / أرقام):</h4>
+                                <input type="text" id="prod-colors" placeholder="الألوان (مثل: أحمر, وردي, بني)" class="w-full border p-2.5 rounded-xl text-xs bg-white mb-2">
+                                <input type="text" id="prod-numbers" placeholder="الأرقام / التدرجات (مثل: 1, 2, 3)" class="w-full border p-2.5 rounded-xl text-xs bg-white">
                             </div>
 
                             <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج (رفع مباشر أو رابط):</h4>
-
+                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج:</h4>
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
-                                    <button type="button" onclick="document.getElementById('file-input-1').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-sm whitespace-nowrap">
+                                    <button type="button" onclick="document.getElementById('file-input-1').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
                                         <i class="fa-solid fa-upload"></i> 1. رفع الصورة الرئيسية *
                                     </button>
                                     <input type="url" id="prod-img-main" placeholder="أو رابط الصورة الرئيسية (URL) *" required class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
-
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-2" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-2')">
-                                    <button type="button" onclick="document.getElementById('file-input-2').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                    <button type="button" onclick="document.getElementById('file-input-2').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
                                         <i class="fa-solid fa-upload"></i> 2. رفع الصورة 2
                                     </button>
                                     <input type="url" id="prod-img-2" placeholder="أو رابط الصورة الثانية (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
                                 </div>
-
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                                     <input type="file" id="file-input-3" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-3')">
-                                    <button type="button" onclick="document.getElementById('file-input-3').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 hover:bg-black transition shadow-sm whitespace-nowrap">
+                                    <button type="button" onclick="document.getElementById('file-input-3').click()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
                                         <i class="fa-solid fa-upload"></i> 3. رفع الصورة 3
                                     </button>
                                     <input type="url" id="prod-img-3" placeholder="أو رابط الصورة الثالثة (URL)" class="border p-3 rounded-xl text-sm flex-1 bg-white">
@@ -526,7 +439,7 @@
                                     <th class="p-4">الصورة</th>
                                     <th class="p-4">اسم المنتج</th>
                                     <th class="p-4">الفئة</th>
-                                    <th class="p-4">الخصائص المحددة</th>
+                                    <th class="p-4">الخصائص الخاصة</th>
                                     <th class="p-4">السعر</th>
                                     <th class="p-4">التوفر</th>
                                     <th class="p-4">الإجراءات</th>
@@ -537,24 +450,22 @@
                     </div>
                 </div>
 
-                <!-- تبويب إدارة خيارات أنواع البشرة والشعر المطور مع التعديل والحذف -->
+                <!-- باقي التبويبات بدون تغيير -->
                 <div id="admin-tab-attributes" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- إدارة أنواع البشرة -->
                         <div class="bg-white p-6 rounded-2xl border space-y-4">
                             <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B]"><i class="fa-solid fa-sparkles"></i> إدارة أنواع البشرة</h3>
                             <div class="flex gap-2">
-                                <input type="text" id="new-skin-type-input" placeholder="نوع بشرة جديد (مثال: المعرضة للحبوب) *" class="border p-3 rounded-xl text-xs flex-1">
+                                <input type="text" id="new-skin-type-input" placeholder="نوع بشرة جديد..." class="border p-3 rounded-xl text-xs flex-1">
                                 <button type="button" onclick="handleAddSkinType(event)" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition">+ إضافة</button>
                             </div>
                             <div id="admin-skin-types-list" class="space-y-2 pt-2"></div>
                         </div>
 
-                        <!-- إدارة أنواع الشعر والعلاج -->
                         <div class="bg-white p-6 rounded-2xl border space-y-4">
                             <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B]"><i class="fa-solid fa-wand-magic-sparkles"></i> إدارة أنواع الشعر والعلاج</h3>
                             <div class="flex gap-2">
-                                <input type="text" id="new-hair-type-input" placeholder="نوع شعر/علاج جديد (مثال: كيرلي / Curly) *" class="border p-3 rounded-xl text-xs flex-1">
+                                <input type="text" id="new-hair-type-input" placeholder="نوع شعر/علاج جديد..." class="border p-3 rounded-xl text-xs flex-1">
                                 <button type="button" onclick="handleAddHairType(event)" class="bg-black text-white font-bold px-4 py-3 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition">+ إضافة</button>
                             </div>
                             <div id="admin-hair-types-list" class="space-y-2 pt-2"></div>
@@ -562,12 +473,11 @@
                     </div>
                 </div>
 
-                <!-- باقي التبويبات -->
                 <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
                         <form onsubmit="handleSaveBrand(event)" class="flex gap-4">
-                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية (مثال: Dior, Chanel) *" required class="border p-3 rounded-xl text-sm flex-1">
+                            <input type="text" id="brand-name-input" placeholder="اسم العلامة التجارية *" required class="border p-3 rounded-xl text-sm flex-1">
                             <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm">+ إضافة الماركة</button>
                         </form>
                     </div>
@@ -668,7 +578,7 @@
                 <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
                         <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B] flex items-center gap-2">
-                            <i class="fa-solid fa-plug"></i> الربط البرمجي التلقائي مع شركات التوصيل (Yalidine, Nord & Ouest, Express)
+                            <i class="fa-solid fa-plug"></i> الربط البرمجي التلقائي مع شركات التوصيل
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input type="text" id="shipping-api-key" placeholder="مفتاح الـ API (API Key)..." class="border p-3 rounded-xl text-sm">
@@ -689,7 +599,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <input type="text" id="wilaya-code" placeholder="رمز الولاية (مثال: 17) *" required class="border p-3 rounded-xl text-sm">
                                 <input type="text" id="wilaya-name" placeholder="اسم الولاية (مثال: الجلفة) *" required class="border p-3 rounded-xl text-sm">
-                                <input type="number" id="wilaya-office-cost" placeholder="سعر التوصيل للمكتب (دج) (مثال: 800) *" required class="border p-3 rounded-xl text-sm">
+                                <input type="number" id="wilaya-office-cost" placeholder="سعر التوصيل للمكتب (دج) *" required class="border p-3 rounded-xl text-sm">
                             </div>
 
                             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
@@ -746,12 +656,35 @@
         </div>
     </main>
 
-    <!-- Lightbox Modal -->
+    <!-- App-like Bottom Navigation for Mobile -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-[#D4AF37]/30 z-40 px-4 py-2 flex justify-around items-center text-white">
+        <button onclick="showPage('home')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span>الرئيسية</span>
+        </button>
+        <button onclick="filterCategory('جميع المنتجات')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
+            <i class="fa-solid fa-border-all text-lg"></i>
+            <span>المنتجات</span>
+        </button>
+        <button onclick="showCustomAlert('🎁 هديتك الخاصة', 'تسوق بقيمة أكثر من 10,000 دج واحصل على توصيل مجاني وهدية قيمة عند الاستلام!', true)" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce">
+            <div class="w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center text-sm shadow-lg">🎁</div>
+            <span>هديتك</span>
+        </button>
+        <button onclick="showPage('wishlist')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
+            <i class="fa-solid fa-heart text-lg"></i>
+            <span>المفضلة</span>
+        </button>
+        <button onclick="showPage('cart')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <span>السلة</span>
+        </button>
+    </div>
+
+    <!-- Modals -->
     <div id="image-lightbox-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
         <img id="lightbox-target-img" class="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl border border-[#D4AF37]/40 shadow-2xl">
     </div>
 
-    <!-- Modals -->
     <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
             <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
@@ -759,9 +692,7 @@
             </div>
             <h3 id="alert-title" class="text-xl font-black text-white gold-text">تم الاستلام بنجاح!</h3>
             <p id="alert-message" class="text-sm text-gray-300 leading-relaxed"></p>
-            <button onclick="closeCustomAlert()" class="w-full py-3.5 gold-gradient text-black font-black rounded-xl text-sm shadow-lg hover:opacity-90 transition">
-                حسناً 👍
-            </button>
+            <button onclick="closeCustomAlert()" class="w-full py-3.5 gold-gradient text-black font-black rounded-xl text-sm shadow-lg hover:opacity-90 transition">حسناً 👍</button>
         </div>
     </div>
 
@@ -791,11 +722,14 @@
         </div>
     </div>
 
-    <!-- مكتبات Firebase المتوافقة مع المتصفح -->
+    <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto pb-20 md:pb-8">
+        <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
+    </footer>
+
+    <!-- Firebase SDKs & Config -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- تهيئة قاعدة البيانات باستخدام بيانات مشروعك الحقيقية -->
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
@@ -812,10 +746,9 @@
       const db = firebase.firestore();
     </script>
 
-    <!-- ملفات المتجر البرمجية -->
-    <script src="js/data.js?v=3"></script>
-    <script src="js/app.js?v=3"></script>
-    <script src="js/landing.js?v=3"></script>
-    <script src="js/admin.js?v=3"></script>
+    <script src="js/data.js?v=4"></script>
+    <script src="js/app.js?v=4"></script>
+    <script src="js/landing.js?v=4"></script>
+    <script src="js/admin.js?v=4"></script>
 </body>
 </html>
