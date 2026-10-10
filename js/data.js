@@ -1,118 +1,105 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
-    authDomain: "cos-abdelhak.firebaseapp.com",
-    projectId: "cos-abdelhak",
-    storageBucket: "cos-abdelhak.firebasestorage.app",
-    messagingSenderId: "425194527542",
-    appId: "1:425194527542:web:fa10d4cd5fcf904826f197"
-};
-
-// Initialize Firebase & Firestore
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// Global App States
-let WILAYAS = [];
-let bannerMessages = [];
-let heroSlides = [];
-let categories = [];
-let brands = [];
-let products = [];
-let orders = [];
-let cart = JSON.parse(localStorage.getItem('lb_cart_v7')) || [];
-let favorites = JSON.parse(localStorage.getItem('lb_favs_v7')) || [];
+// js/data.js - البيانات الأساسية وهيكلية قاعدة البيانات
 
 let storeSettings = {
     name: 'كوسمتيك عبد الحق',
-    slogan: 'يبدو أن أحدهم سينام سعيداً اليوم',
+    slogan: 'يبدو أن أحدهم سيغدو سعيداً اليوم',
     logoUrl: '',
-    passHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // SHA-256 كلمة السر الافتراضية admin123
     metaPixelId: ''
 };
 
-// Meta Pixel Initialization Dynamic Helper
-function initMetaPixel(pixelId) {
-    if (!pixelId || window.fbq) return;
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    
-    fbq('init', pixelId);
-    fbq('track', 'PageView');
-}
+let bannerMessages = [
+    "🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام",
+    "✨ منتجات أصلية 100% وبأفضل الأسعار",
+    "🎁 هدايا وعروض حصرية بمناسبة الافتتاح"
+];
 
-function trackPixelEvent(eventName, params = {}) {
-    if (window.fbq) {
-        fbq('track', eventName, params);
+let heroSlides = [
+    {
+        title: "كوسمتيك عبد الحق - الفخامة والأناقة",
+        desc: "أفضل منتجات التجميل والعناية بالبشرة الأصلية بين يديك",
+        image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200"
+    },
+    {
+        title: "عروض خاصة وعطور فاخرة",
+        desc: "توصيل سريع لـ 58 ولاية والدفع عند الاستلام",
+        image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1200"
+    }
+];
+
+let categories = [
+    { id: '1', name: 'عطور', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=300' },
+    { id: '2', name: 'مكياج', image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=300' },
+    { id: '3', name: 'عناية بالبشرة', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=300' },
+    { id: '4', name: 'عناية بالشعر', image: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=300' }
+];
+
+let brands = [
+    { id: '1', name: 'Dior' },
+    { id: '2', name: 'Chanel' },
+    { id: '3', name: 'L\'Oréal' },
+    { id: '4', name: 'Nivea' }
+];
+
+let products = [
+    {
+        id: 'prod_1',
+        name: 'عطر ديور سوفاج فاخر (100ml)',
+        price: 8500,
+        oldPrice: 11000,
+        category: 'عطور',
+        brand: 'Dior',
+        inStock: true,
+        desc: 'عطر رجالي راقي ومركز يدوم طويلاً برائحة خشبية وأصيلة.',
+        images: [
+            'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600',
+            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600'
+        ]
+    },
+    {
+        id: 'prod_2',
+        name: 'مجموعة العناية الفائقة بالبشرة',
+        price: 4200,
+        oldPrice: 5500,
+        category: 'عناية بالبشرة',
+        brand: 'L\'Oréal',
+        inStock: true,
+        desc: 'مجموعة ترطيب وتغذية كاملة للبشرة لنضارة طوال اليوم.',
+        images: [
+            'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=600'
+        ]
+    }
+];
+
+let WILAYAS = [
+    { code: "01", name: "أدرار", homeCost: 900, officeCost: 500, communes: ["أدرار", "تامست", "فنوغيل"] },
+    { code: "16", name: "الجزائر", homeCost: 500, officeCost: 300, communes: ["الجزائر الوسطى", "باب الوادي", "حيدرة", "الشراقة"] },
+    { code: "23", name: "عنابة", homeCost: 600, officeCost: 400, communes: ["عنابة", "البوني", "الحجار"] },
+    { code: "31", name: "وهران", homeCost: 600, officeCost: 400, communes: ["وهران", "بئر الجير", "السانية"] }
+];
+
+let orders = [
+    { customer: "أحمد بن علي", wilaya: "عنابة", product: "عطر ديور سوفاج", total: 9100 },
+    { customer: "سارة الجزائرية", wilaya: "الجزائر", product: "مجموعة العناية بالبشرة", total: 4700 },
+    { customer: "ياسين كريم", wilaya: "وهران", product: "عطر ديور سوفاج", total: 9100 }
+];
+
+let cart = JSON.parse(localStorage.getItem('lb_cart_v7')) || [];
+let favorites = JSON.parse(localStorage.getItem('lb_favs_v7')) || [];
+
+// تهيئة Firebase الآمنة
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+    try {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKey",
+            authDomain: "store.firebaseapp.com",
+            projectId: "store",
+            storageBucket: "store.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+    } catch(e) {
+        console.log('Firebase Fallback Active');
     }
 }
-
-// Simple Helper Hash Function (SHA-256)
-async function hashPassword(str) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Realtime Firebase Listeners
-function initFirebaseRealtime() {
-    db.collection("products").onSnapshot((snapshot) => {
-        products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof renderProducts === 'function') renderProducts();
-        if (typeof applyFilters === 'function') applyFilters();
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("categories").onSnapshot((snapshot) => {
-        categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("brands").onSnapshot((snapshot) => {
-        brands = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof populateAdminDropdowns === 'function') populateAdminDropdowns();
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("orders").onSnapshot((snapshot) => {
-        orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("banners").onSnapshot((snapshot) => {
-        bannerMessages = snapshot.docs.map(doc => doc.data().text);
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("heroSlides").onSnapshot((snapshot) => {
-        heroSlides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof renderHeroSlider === 'function') renderHeroSlider();
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("wilayas").onSnapshot((snapshot) => {
-        WILAYAS = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-    });
-
-    db.collection("settings").doc("main").onSnapshot((doc) => {
-        if (doc.exists) {
-            storeSettings = { ...storeSettings, ...doc.data() };
-            if (storeSettings.metaPixelId) {
-                initMetaPixel(storeSettings.metaPixelId);
-            }
-            if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
-            if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-        }
-    });
-}
-
-initFirebaseRealtime();
