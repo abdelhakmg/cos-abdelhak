@@ -81,12 +81,13 @@ function handleWilayaChange() {
     const communeSelect = document.getElementById('cust-commune');
     
     if (wilaya && communeSelect) {
-        communeSelect.innerHTML = (wilaya.communes || []).map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('price-shipping-home').innerText = (wilaya.homeCost || 0) + ' دج';
+        const communesList = wilaya.communesData || [];
+        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
+            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
+            
         document.getElementById('price-shipping-office').innerText = (wilaya.officeCost || 0) + ' دج';
     } else if (communeSelect) {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
-        document.getElementById('price-shipping-home').innerText = 'حدد الولاية';
         document.getElementById('price-shipping-office').innerText = 'حدد الولاية';
     }
     calculateLandingTotal();
@@ -96,16 +97,81 @@ function calculateLandingTotal() {
     if (!currentLandingProduct) return;
     const code = document.getElementById('cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
+    const communeName = document.getElementById('cust-commune').value;
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     
     let basePrice = currentLandingProduct.price || 0;
-    let shipCost = wilaya ? (shipType === 'home' ? (wilaya.homeCost || 0) : (wilaya.officeCost || 0)) : 0;
-    let grandTotal = basePrice + shipCost;
+    let shipCost = 0;
 
+    if (wilaya) {
+        if (shipType === 'office') {
+            shipCost = wilaya.officeCost || 0;
+        } else {
+            const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
+            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : 0);
+        }
+    }
+
+    document.getElementById('price-shipping-home').innerText = (wilaya && communeName) ? shipCost + ' دج' : 'حدد البلدية';
     document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
     document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
-    document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
-    document.getElementById('sticky-bar-price').innerText = grandTotal.toLocaleString() + ' دج';
+    document.getElementById('sum-total-price').innerText = (basePrice + shipCost).toLocaleString() + ' دج';
+    document.getElementById('sticky-bar-price').innerText = (basePrice + shipCost).toLocaleString() + ' دج';
+}
+
+function isValidDzPhone(phone) {
+    const cleanPhone = phone.trim();
+    const dzPhoneRegex = /^(05|06|07)[0-9]{8}$/;
+    return dzPhoneRegex.test(cleanPhone);
+}
+
+function submitLandingOrder() {
+    const name = document.getElementById('cust-name').value.trim();
+    const phone = document.getElementById('cust-phone').value.trim();
+    const wilayaCode = document.getElementById('cust-wilaya').value;
+    const commune = document.getElementById('cust-commune').value;
+
+    if (!name || !wilayaCode) {
+        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+        return;
+    }
+
+    if (!isValidDzPhone(phone)) {
+        showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري مكون من 10 أرقام ويبدأ بـ 05 أو 06 أو 07.', false);
+        return;
+    }
+
+    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
+    
+    let shipCost = 0;
+    if (wilaya) {
+        if (shipType === 'office') {
+            shipCost = wilaya.officeCost || 0;
+        } else {
+            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
+            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+        }
+    }
+
+    const newOrder = {
+        customer: name,
+        phone: phone,
+        wilaya: wilaya ? wilaya.name : wilayaCode,
+        commune: commune || 'المكتب',
+        product: currentLandingProduct.name,
+        total: (currentLandingProduct.price || 0) + shipCost,
+        status: 'جديد',
+        date: new Date().toLocaleDateString('ar-DZ'),
+        createdAt: new Date()
+    };
+
+    db.collection("orders").add(newOrder).then(() => {
+        showCustomAlert('تم استلام طلبك! 🎉', storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.', true);
+        showPage('home');
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, false);
+    });
 }
 
 function startCountdownTimer(hours) {
@@ -163,42 +229,4 @@ function closeCustomAlert() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
-}
-
-function submitLandingOrder() {
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-    const wilayaCode = document.getElementById('cust-wilaya').value;
-    const commune = document.getElementById('cust-commune').value;
-
-    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
-    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
-
-    if (!name || !phone || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', warnMsg, false);
-        return;
-    }
-
-    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
-    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
-
-    const newOrder = {
-        customer: name,
-        phone: phone,
-        wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: commune,
-        product: currentLandingProduct.name,
-        total: (currentLandingProduct.price || 0) + shipCost,
-        status: 'جديد',
-        date: new Date().toLocaleDateString('ar-DZ'),
-        createdAt: new Date()
-    };
-
-    db.collection("orders").add(newOrder).then(() => {
-        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
-        showPage('home');
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, false);
-    });
 }
