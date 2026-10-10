@@ -5,22 +5,31 @@ let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
+// دالة نقر الشعار لفتح النافذة
 function handleLogoClick(event) {
+    if (event) event.preventDefault();
     logoClickCount++;
-    if (logoClickCount === 1) {
-        logoClickTimer = setTimeout(() => {
-            if (logoClickCount < 3) showPage('home');
-            logoClickCount = 0;
-        }, 800);
-    } else if (logoClickCount === 3) {
-        clearTimeout(logoClickTimer);
+    
+    if (logoClickTimer) clearTimeout(logoClickTimer);
+
+    if (logoClickCount >= 3) {
         logoClickCount = 0;
         const modal = document.getElementById('admin-auth-modal');
         if (modal) {
             modal.style.display = 'flex';
             modal.classList.remove('hidden');
+        } else {
+            showPage('admin');
         }
+        return;
     }
+
+    logoClickTimer = setTimeout(() => {
+        if (logoClickCount < 3) {
+            showPage('home');
+        }
+        logoClickCount = 0;
+    }, 600);
 }
 
 function handleLiveSearch(query) {
@@ -53,7 +62,7 @@ function handleLiveSearch(query) {
     } else {
         htmlContent = matches.map(p => `
             <div onclick="openLandingPage('${p.id}'); hideAllDropdowns();" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
-                <img src="${(p.images && p.images[0]) || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
+                <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
                 <div class="text-right">
                     <p class="text-xs font-bold text-white truncate">${p.name}</p>
                     <p class="text-[10px] text-[#D4AF37] font-bold">${(p.price || 0).toLocaleString()} دج</p>
@@ -471,27 +480,34 @@ function toggleMobileMenu() {
     if (drawer) drawer.classList.toggle('hidden');
 }
 
+// عرض كرت المنتج بطريقة تضمن فتح المودل ونقر الأزرار بدون استثناء
 function renderSingleProductCard(p) {
-    const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
-    const isFav = favorites.includes(p.id);
+    let displayImg = 'https://via.placeholder.com/300';
+    if (p.images && Array.isArray(p.images) && p.images.length > 0 && p.images[0]) {
+        displayImg = p.images[0];
+    } else if (p.image) {
+        displayImg = p.image;
+    }
+
+    const isFav = Array.isArray(favorites) && favorites.includes(p.id);
 
     return `
         <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
-            <button onclick="event.stopPropagation(); toggleFavorite('${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm">
+            <button onclick="event.stopPropagation(); toggleFavorite('${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm cursor-pointer">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
 
             <div class="cursor-pointer" onclick="openLandingPage('${p.id}')">
                 <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden">
-                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500">
+                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300'">
                 </div>
 
                 <div class="flex items-center gap-1.5 mb-1.5">
-                    <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
-                    <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
+                    <span class="w-2 h-2 rounded-full ${p.inStock !== false ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
+                    <span class="text-[10px] font-bold ${p.inStock !== false ? 'text-green-600' : 'text-red-500'}">${p.inStock !== false ? 'متوفر' : 'غير متوفر'}</span>
                 </div>
 
-                <h3 class="font-bold text-sm text-gray-900 truncate my-1 group-hover:text-[#B8860B] transition">${p.name}</h3>
+                <h3 class="font-bold text-sm text-gray-900 truncate my-1 group-hover:text-[#B8860B] transition">${p.name || 'منتج'}</h3>
 
                 <div class="flex items-center gap-2 mb-1">
                     <span class="font-black text-base text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</span>
@@ -508,10 +524,10 @@ function renderSingleProductCard(p) {
             </div>
 
             <div class="space-y-2 pt-2">
-                <button onclick="event.stopPropagation(); addToCart('${p.id}');" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+                <button onclick="event.stopPropagation(); addToCart('${p.id}');" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
                     <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
                 </button>
-                <button onclick="event.stopPropagation(); openLandingPage('${p.id}');" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
+                <button onclick="event.stopPropagation(); openLandingPage('${p.id}');" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition cursor-pointer">
                     اطلب الآن 🔥
                 </button>
             </div>
@@ -567,7 +583,7 @@ function renderCart() {
     }
 
     cartList.innerHTML = cart.map((prod, idx) => {
-        const img = (prod.images && prod.images[0]) || 'https://via.placeholder.com/100';
+        const img = (prod.images && prod.images[0]) || prod.image || 'https://via.placeholder.com/100';
         return `
             <div class="flex items-center justify-between border-b border-gray-800 pb-4">
                 <div class="flex items-center gap-4">
