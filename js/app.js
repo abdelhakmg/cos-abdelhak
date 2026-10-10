@@ -94,14 +94,12 @@ function hideAllDropdowns() {
     if (mobileDropdown) mobileDropdown.classList.add('hidden');
 }
 
-// إنشاء شريط الفلترة الجانبي ديناميكياً مع العداد المباشر للمنتجات
 function renderDynamicSidebarFilters() {
     const skinContainer = document.getElementById('filter-skin-types');
     const hairContainer = document.getElementById('filter-hair-types');
 
     if (skinContainer && typeof availableSkinTypes !== 'undefined') {
         skinContainer.innerHTML = availableSkinTypes.map(st => {
-            // حساب العداد المباشر
             const count = products.filter(p => {
                 const skins = Array.isArray(p.skinTypes) ? p.skinTypes : [p.skinType];
                 const pText = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
@@ -122,7 +120,6 @@ function renderDynamicSidebarFilters() {
 
     if (hairContainer && typeof availableHairTypes !== 'undefined') {
         hairContainer.innerHTML = availableHairTypes.map(ht => {
-            // حساب العداد المباشر
             const count = products.filter(p => {
                 const hairs = Array.isArray(p.hairTypes) ? p.hairTypes : [p.hairType];
                 const pText = ((p.name || '') + ' ' + (p.desc || '') + ' ' + (p.category || '')).toLowerCase();
@@ -143,7 +140,6 @@ function renderDynamicSidebarFilters() {
     }
 }
 
-// دالة الفلترة الشاملة الذكية المحدثة
 function applyFilters() {
     if (!products || !Array.isArray(products)) return;
 
@@ -655,9 +651,12 @@ function initRealOrdersTicker() {
     }, 12000);
 }
 
-updateAppHeaderInfo();
-updateBadges();
-renderHeroSlider();
-renderProducts();
-initBannerRealtimeSync();
-initRealOrdersTicker();
+// التشغيل الآمن التلقائي عند اكتمال تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    safeCall('updateAppHeaderInfo');
+    safeCall('updateBadges');
+    safeCall('renderHeroSlider');
+    safeCall('renderProducts');
+    safeCall('initBannerRealtimeSync');
+    safeCall('initRealOrdersTicker');
+});
