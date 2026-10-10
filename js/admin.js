@@ -1,4 +1,4 @@
-// js/admin.js - الدخول المباشر والآمن للوحة التحكم
+// js/admin.js - لوحة التحكم المباشرة والآمنة
 
 function closeAdminAuthModal() {
     const modal = document.getElementById('admin-auth-modal');
