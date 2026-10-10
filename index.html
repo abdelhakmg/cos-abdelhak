@@ -323,15 +323,55 @@
         <!-- 5. CART PAGE -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
-                <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
+                <h1 class="text-2xl font-black mb-8 text-right text-white gold-text"><i class="fa-solid fa-bag-shopping"></i> سلة التسوق والدفع</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div id="cart-list" class="lg:col-span-2 bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 space-y-4 text-white"></div>
-                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 h-fit text-right space-y-4 text-white">
-                        <h3 class="font-bold border-b border-gray-800 pb-3 gold-text">ملخص الطلب</h3>
-                        <div class="flex justify-between text-sm"><span class="text-gray-400">المجموع الفرعي</span><span id="subtotal">0 دج</span></div>
-                        <div class="flex justify-between text-sm"><span class="text-gray-400">رسوم التوصيل التقديرية</span><span>500 دج</span></div>
-                        <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-xl"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
-                        <button onclick="submitCartCheckout()" class="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition">إتمام الطلب لجميع عناصر السلة 🛍️</button>
+                    
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 h-fit text-right space-y-4 text-white shadow-xl">
+                        <h3 class="font-bold border-b border-gray-800 pb-3 gold-text">📝 تفاصيل الطلب والتوصيل</h3>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">الاسم واللقب *</label>
+                                <input type="text" id="cart-cust-name" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">رقم الهاتف *</label>
+                                <input type="tel" id="cart-cust-phone" placeholder="06XXXXXXXX" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">الولاية *</label>
+                                <select id="cart-cust-wilaya" onchange="handleCartWilayaChange()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">البلدية *</label>
+                                <select id="cart-cust-commune" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                                    <option value="">اختر البلدية...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">مكان التسليم *</label>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <label class="border border-gray-800 p-2 rounded-xl flex items-center gap-1.5 cursor-pointer bg-black/40">
+                                        <input type="radio" name="cart_shipping_type" value="home" checked onchange="updateCartCalculations()" class="accent-[#D4AF37]">
+                                        <span>للمنزل</span>
+                                    </label>
+                                    <label class="border border-gray-800 p-2 rounded-xl flex items-center gap-1.5 cursor-pointer bg-black/40">
+                                        <input type="radio" name="cart_shipping_type" value="office" onchange="updateCartCalculations()" class="accent-[#D4AF37]">
+                                        <span>من المكتب</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-800">
+                        <div class="flex justify-between text-xs"><span class="text-gray-400">مجموع المنتجات</span><span id="subtotal" class="font-bold">0 دج</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-gray-400">تكلفة التوصيل</span><span id="cart-shipping-cost" class="font-bold text-[#D4AF37]">0 دج</span></div>
+                        <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-lg"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
+                        
+                        <button onclick="submitCartCheckout()" class="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition mt-2">
+                            تأكيد طلب كافة السلة (الدفع عند الاستلام) 🛍️
+                        </button>
                     </div>
                 </div>
             </div>
