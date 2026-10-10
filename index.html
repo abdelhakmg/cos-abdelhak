@@ -5,34 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
     
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome Icons & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- SheetJS CDN للتصدير إلى إكسل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black pb-20 md:pb-0">
 
-    <!-- Sticky Top Yellow Banner Ticker -->
+    <!-- شريط الإعلانات -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
             🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام
         </span>
     </div>
 
-    <!-- Main Header Navigation -->
+    <!-- الهيدر الرئيسي -->
     <header class="bg-black/90 backdrop-blur-md text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
             <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
                 <div class="w-11 h-11 rounded-full gold-gradient flex items-center justify-center text-black font-bold shadow-md shadow-[#D4AF37]/20 overflow-hidden flex-shrink-0">
-                    <img id="store-logo-img" class="w-full h-full object-cover hidden" alt="Logo">
                     <i id="store-logo-icon" class="fa-solid fa-crown text-xl"></i>
                 </div>
                 <div>
@@ -41,14 +33,14 @@
                 </div>
             </div>
 
-            <!-- شريط البحث المباشر (كمبيوتر) -->
+            <!-- البحث للكمبيوتر -->
             <div class="flex-1 max-w-sm hidden md:block relative mx-4">
                 <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج، قسم، أو ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
                 <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
                 <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
             </div>
 
-            <!-- القائمة والأزرار -->
+            <!-- أزرار الهيدر -->
             <div class="flex items-center gap-2">
                 <div id="header-nav" class="hidden lg:flex items-center gap-4 font-bold text-xs text-gray-300"></div>
 
@@ -62,7 +54,7 @@
                 </button>
             </div>
         </div>
-        <!-- شريط البحث للموبايل -->
+        <!-- البحث للموبايل -->
         <div class="px-4 pb-3 md:hidden relative">
             <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute right-7 top-2.5 text-[#D4AF37] text-xs"></i>
@@ -70,7 +62,7 @@
         </div>
     </header>
 
-    <!-- Social Proof Toast (نافذة الإشعار الديناميكية المتحركة) -->
+    <!-- Social Proof Toast (إشعار المبيعات الديناميكي) -->
     <div id="social-proof-toast" class="fixed bottom-24 right-4 z-40 bg-[#121212]/95 backdrop-blur-md border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs">
         <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black font-black text-sm flex-shrink-0">
             <i class="fa-solid fa-bag-shopping"></i>
@@ -81,9 +73,9 @@
         </div>
     </div>
 
-    <!-- APP-LIKE BOTTOM NAVIGATION BAR FOR MOBILE -->
+    <!-- الشريط السفلي للموبايل -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-lg border-t border-[#D4AF37]/40 px-3 py-2 flex justify-around items-center text-white shadow-2xl">
-        <button onclick="showPage('home')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition">
+        <button onclick="showPage('home')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] transition">
             <i class="fa-solid fa-house text-lg"></i>
             <span class="text-[10px] font-bold">الرئيسية</span>
         </button>
@@ -91,11 +83,11 @@
             <i class="fa-solid fa-gift text-xl animate-bounce"></i>
             <span class="text-[10px] font-extrabold gold-text">هديتك 🎁</span>
         </button>
-        <button onclick="showPage('cart')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition relative">
+        <button onclick="showPage('cart')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] transition relative">
             <i class="fa-solid fa-bag-shopping text-lg"></i>
             <span class="text-[10px] font-bold">السلة</span>
         </button>
-        <button onclick="showPage('wishlist')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition relative">
+        <button onclick="showPage('wishlist')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] transition relative">
             <i class="fa-solid fa-heart text-lg"></i>
             <span class="text-[10px] font-bold">المفضلة</span>
         </button>
@@ -106,7 +98,7 @@
     </nav>
 
     <main class="flex-grow">
-        <!-- HOME PAGE -->
+        <!-- الصفحة الرئيسية -->
         <div id="page-home" class="page-sec active">
             <section class="bg-black py-6 md:py-8 border-b border-[#D4AF37]/20 relative overflow-hidden">
                 <div class="max-w-7xl mx-auto px-4">
@@ -131,7 +123,7 @@
             </section>
         </div>
 
-        <!-- CATALOG PAGE -->
+        <!-- صفحة الكتالوج -->
         <div id="page-catalog" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-6">
                 <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
@@ -163,34 +155,16 @@
                                 <span id="price-range-val">20,000 دج</span>
                             </div>
                         </div>
-                        <hr class="border-gray-800">
-                        <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
-                            <div id="filter-brands-list" class="space-y-2 text-xs text-gray-400"></div>
-                        </div>
                     </div>
 
                     <div class="lg:col-span-3 space-y-4">
-                        <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-xl p-4 flex flex-wrap justify-between items-center text-white gap-4">
-                            <span class="text-xs font-bold text-gray-300">
-                                إجمالي المنتجات (<span id="products-count-badge" class="text-[#D4AF37]">0</span>)
-                            </span>
-                            <div class="flex items-center gap-3">
-                                <span class="text-xs text-gray-400 font-bold">ترتيب حسب:</span>
-                                <select id="sort-select" onchange="applyFilters()" class="bg-black border border-gray-700 text-xs text-white p-2 rounded-lg outline-none cursor-pointer">
-                                    <option value="best">الأكثر مبيعاً</option>
-                                    <option value="low">السعر: من الأقل للأعلى</option>
-                                    <option value="high">السعر: من الأعلى للأقل</option>
-                                </select>
-                            </div>
-                        </div>
                         <div id="catalog-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- WISHLIST PAGE -->
+        <!-- صفحة المفضلة -->
         <div id="page-wishlist" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white"><i class="fa-solid fa-heart text-red-500"></i> قائمة المنتجات المفضلة</h1>
@@ -198,7 +172,7 @@
             </div>
         </div>
 
-        <!-- CART PAGE WITH UNIFIED CHECKOUT -->
+        <!-- صفحة السلة وإتمام الشراء الموحدة -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">🛍️ سلة التسوق وإتمام الطلب</h1>
@@ -254,7 +228,7 @@
             </div>
         </div>
 
-        <!-- ADMIN DASHBOARD -->
+        <!-- لوحة التحكم -->
         <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
                 <div class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
@@ -262,127 +236,15 @@
                     <button onclick="showPage('home')" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl">تسجيل الخروج</button>
                 </div>
 
-                <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-2">
-                    <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-black text-white" id="tab-btn-analytics">📊 المبيعات والطلبات</button>
-                    <button onclick="switchAdminTab('hero')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-hero">🖼️ البانرات الإعلانية</button>
-                    <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-products">🛍️ المنتجات والتوافر</button>
-                    <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
-                    <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
-                    <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
-                    <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والإعلانات</button>
+                <div class="bg-white p-6 rounded-2xl text-gray-900 border shadow-sm">
+                    <h3 class="font-bold text-lg mb-4">سجل الطلبيات التفصيلي</h3>
+                    <div id="admin-orders-log"></div>
                 </div>
-
-                <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
-                    <div class="bg-white p-6 rounded-2xl border">
-                        <div class="flex justify-between items-center mb-4 border-b pb-3">
-                            <h3 id="product-form-title" class="font-bold text-lg">إضافة / تعديل منتج</h3>
-                            <button type="button" onclick="resetProductForm()" id="cancel-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
-                        </div>
-                        <form onsubmit="handleSaveProduct(event)" id="product-edit-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input type="hidden" id="editing-product-id">
-                            <input type="text" id="prod-name" placeholder="اسم المنتج *" required class="border p-3 rounded-xl text-sm">
-                            <input type="number" id="prod-price" placeholder="السعر (دج) *" required class="border p-3 rounded-xl text-sm">
-                            <input type="number" id="prod-old-price" placeholder="السعر القديم (اختياري)" class="border p-3 rounded-xl text-sm">
-
-                            <select id="prod-category-select" class="border p-3 rounded-xl text-sm bg-white" required></select>
-                            <select id="prod-brand-select" class="border p-3 rounded-xl text-sm bg-white"></select>
-
-                            <select id="prod-in-stock" class="border p-3 rounded-xl text-sm bg-white">
-                                <option value="true">متوفر في المخزون 🟢</option>
-                                <option value="false">غير متوفر 🔴</option>
-                            </select>
-
-                            <div class="md:col-span-3 space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                                <h4 class="font-bold text-xs text-[#B8860B] mb-2"><i class="fa-solid fa-images"></i> صور المنتج:</h4>
-                                <input type="url" id="prod-img-main" placeholder="رابط الصورة الرئيسية *" required class="border p-3 rounded-xl text-sm w-full bg-white">
-                                <input type="url" id="prod-img-2" placeholder="رابط الصورة 2" class="border p-3 rounded-xl text-sm w-full bg-white">
-                                <input type="url" id="prod-img-3" placeholder="رابط الصورة 3" class="border p-3 rounded-xl text-sm w-full bg-white">
-                            </div>
-
-                            <textarea id="prod-desc" placeholder="وصف المنتج..." class="border p-3 rounded-xl text-sm md:col-span-3"></textarea>
-                            <button type="submit" id="save-product-btn" class="bg-black text-white font-bold py-3.5 rounded-xl md:col-span-3 hover:bg-[#D4AF37] hover:text-black transition">حفظ المنتج</button>
-                        </form>
-                    </div>
-
-                    <div class="bg-white rounded-2xl border overflow-x-auto">
-                        <table class="w-full text-right text-sm">
-                            <thead class="bg-gray-100 border-b">
-                                <tr>
-                                    <th class="p-4">الصورة</th>
-                                    <th class="p-4">اسم المنتج</th>
-                                    <th class="p-4">الفئة</th>
-                                    <th class="p-4">السعر</th>
-                                    <th class="p-4">التوفر</th>
-                                    <th class="p-4">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-products-tbody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات</span>
-                            <span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي الطلبات</span>
-                            <span id="stat-orders-count" class="text-2xl font-black">0</span>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">متوسط قيمة الطلب</span>
-                            <span id="stat-avg-order" class="text-2xl font-black text-blue-600">0 دج</span>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">نسبة التوصيل</span>
-                            <span id="stat-success-rate" class="text-2xl font-black text-green-600">0%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-                        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
-                            <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات</h3>
-                            <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
-                                <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
-                            </button>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-right text-sm">
-                                <thead class="bg-gray-100 border-b text-gray-700">
-                                    <tr>
-                                        <th class="p-3">الزبون والهاتف</th>
-                                        <th class="p-3">العنوان</th>
-                                        <th class="p-3">المنتج والمبلغ</th>
-                                        <th class="p-3">الحالة</th>
-                                        <th class="p-3">الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-orders-log"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="admin-tab-settings" class="tab-content space-y-6 text-gray-900">
-                    <div class="bg-white p-6 rounded-2xl border space-y-6">
-                        <h3 class="font-bold text-lg border-b pb-3 text-blue-600">إعدادات الهوية والـ Meta Pixel</h3>
-                        <form onsubmit="handleSaveSettings(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">Meta Pixel ID</label><input type="text" id="set-meta-pixel-id" class="w-full border p-3 rounded-xl text-sm font-mono"></div>
-                            <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ الإعدادات</button>
-                        </form>
-                    </div>
-                </div>
-
             </div>
         </div>
     </main>
 
-    <!-- LUXURY BOTTOM SHEET FOR QUICK CHECKOUT -->
+    <!-- اللوحة السفلية المنبثقة للطلب السريع -->
     <div id="bottom-sheet-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeBottomSheet()"></div>
     <div id="bottom-sheet-modal" class="fixed inset-x-0 bottom-0 z-50 bg-[#121212] border-t border-[#D4AF37]/40 rounded-t-[35px] p-6 text-white max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-500 ease-out shadow-2xl">
         <div class="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-5 cursor-pointer" onclick="closeBottomSheet()"></div>
@@ -391,10 +253,7 @@
             <div>
                 <span id="bs-category" class="text-[10px] bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-2.5 py-0.5 rounded-full font-bold"></span>
                 <h2 id="bs-title" class="text-xl font-black text-white mt-1"></h2>
-                <div class="flex items-center gap-3 mt-1">
-                    <span id="bs-price" class="text-xl font-black gold-text"></span>
-                    <span id="bs-old-price" class="text-xs text-gray-500 line-through"></span>
-                </div>
+                <span id="bs-price" class="text-xl font-black gold-text block mt-1"></span>
             </div>
             <button onclick="closeBottomSheet()" class="p-2 text-gray-400 hover:text-white rounded-full bg-black/50">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -403,10 +262,10 @@
 
         <div class="grid md:grid-cols-2 gap-6">
             <div>
-                <!-- مع مكبر الصور المدمج عند النقر -->
+                <!-- مكبر الصورة المباشر عند النقر -->
                 <div class="h-56 bg-black rounded-2xl p-2 flex items-center justify-center border border-gray-800 relative cursor-zoom-in group" onclick="openLightbox(document.getElementById('bs-main-img').src)">
                     <img id="bs-main-img" class="max-h-full object-contain">
-                    <div class="absolute bottom-2 left-2 bg-black/70 border border-[#D4AF37]/40 p-1.5 rounded-lg text-xs text-[#D4AF37] opacity-80 group-hover:opacity-100 transition">
+                    <div class="absolute bottom-2 left-2 bg-black/80 border border-[#D4AF37]/40 px-2 py-1 rounded-lg text-xs text-[#D4AF37] opacity-80 group-hover:opacity-100 transition">
                         <i class="fa-solid fa-magnifying-glass-plus"></i> انقر للتكبير
                     </div>
                 </div>
@@ -451,7 +310,7 @@
         </div>
     </div>
 
-    <!-- LIGHTBOX ZOOM MODAL (مكبر الصور المباشر) -->
+    <!-- نافذة مكبر الصور (IMAGE LIGHTBOX MODAL) -->
     <div id="image-lightbox-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
         <div class="relative max-w-4xl w-full flex flex-col items-center justify-center">
             <button onclick="closeLightbox()" class="absolute -top-12 right-0 text-white hover:text-[#D4AF37] text-2xl font-bold bg-black/50 px-3 py-1 rounded-full border border-gray-700">
@@ -461,7 +320,7 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- النافذة التنبيهية الخاصة -->
     <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
             <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
@@ -475,7 +334,7 @@
         </div>
     </div>
 
-    <!-- ADMIN AUTH MODAL -->
+    <!-- نافذة دخول لوحة التحكم -->
     <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
@@ -488,16 +347,15 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- الفوتر -->
     <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
         <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
     </footer>
 
-    <!-- Firebase SDK Compat Scripts -->
+    <!-- السكربتات البرمجية -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Application Scripts -->
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
     <script src="js/landing.js"></script>
