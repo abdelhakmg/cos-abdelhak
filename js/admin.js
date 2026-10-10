@@ -113,7 +113,6 @@ function populateAdminDropdowns() {
     }
 }
 
-// عرض الخصائص مع خيارات التعديل والحذف
 function renderAdminAttributesTab() {
     const skinListContainer = document.getElementById('admin-skin-types-list');
     if (skinListContainer && typeof availableSkinTypes !== 'undefined') {
