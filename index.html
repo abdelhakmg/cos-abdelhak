@@ -145,6 +145,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <!-- شريط تصفية النتائج الجانبي المطور -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -152,14 +153,57 @@
                             </h3>
                             <button onclick="resetFilters()" class="text-[11px] text-gray-400 hover:text-white underline">إعادة ضبط</button>
                         </div>
+
+                        <!-- التوفر بالمخزون -->
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 text-xs font-bold text-gray-200 cursor-pointer">
+                                <input type="checkbox" id="filter-in-stock-only" onchange="applyFilters()" class="w-4 h-4 accent-[#D4AF37] rounded">
+                                <span>عرض المتوفر في المخزون فقط 🟢</span>
+                            </label>
+                        </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- الفئة / القسم -->
                         <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-gray-300">الفئة</h4>
+                            <h4 class="font-bold text-xs text-gray-300">الفئة / القسم</h4>
                             <div id="filter-categories-list" class="space-y-2 text-xs text-gray-400"></div>
                         </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- نوع البشرة -->
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
+                            <div class="space-y-1.5 text-xs text-gray-300" id="filter-skin-types">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الدهنية" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة الدهنية</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الجافة" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة الجافة</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الحساسة" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة الحساسة</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="المختلطة" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة المختلطة</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="العادية" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> البشرة العادية</label>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-800">
+
+                        <!-- نوع الشعر والعلاج -->
+                        <div class="space-y-3">
+                            <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر والعلاج</h4>
+                            <div class="space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto pr-1" id="filter-hair-types">
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر الدهني" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر الدهني</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر الجاف" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر الجاف</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر المصبوغ" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر المصبوغ</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="الشعر المتضرر" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> الشعر المتضرر</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="علاج القشرة" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> علاج القشرة</label>
+                                <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بروتين" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> بروتين / كيراتين</label>
+                            </div>
+                        </div>
+
                         <hr class="border-gray-800">
                         
+                        <!-- السعر الأقصى -->
                         <div class="space-y-3">
-                            <h4 class="font-bold text-xs text-gray-300">السعر</h4>
+                            <h4 class="font-bold text-xs text-gray-300">السعر الأقصى</h4>
                             <input type="range" id="filter-price-range" min="0" max="20000" step="100" value="20000" oninput="updatePriceFilter(this.value)" class="w-full accent-[#D4AF37]">
                             <div class="flex justify-between text-xs text-[#D4AF37] font-bold">
                                 <span>0 دج</span>
@@ -168,6 +212,8 @@
                         </div>
 
                         <hr class="border-gray-800">
+
+                        <!-- العلامة التجارية -->
                         <div class="space-y-3">
                             <h4 class="font-bold text-xs text-gray-300">العلامة التجارية</h4>
                             <div id="filter-brands-list" class="space-y-2 text-xs text-gray-400"></div>
