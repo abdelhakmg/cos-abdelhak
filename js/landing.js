@@ -1,75 +1,66 @@
-let currentLandingProduct = null;
+let currentBSProduct = null;
 
-function openLandingPage(productId) {
-    currentLandingProduct = products.find(p => p.id === productId);
-    if (!currentLandingProduct) return;
+// فتح اللوحة السفلية المنبثقة للشراء السريع (Bottom Sheet Checkout)
+function openBottomSheet(productId) {
+    currentBSProduct = products.find(p => p.id === productId);
+    if (!currentBSProduct) return;
 
-    const mainImg = currentLandingProduct.images && currentLandingProduct.images.length > 0 
-        ? currentLandingProduct.images[0] 
+    const mainImg = currentBSProduct.images && currentBSProduct.images.length > 0 
+        ? currentBSProduct.images[0] 
         : 'https://via.placeholder.com/500';
-        
-    document.getElementById('landing-main-img').src = mainImg;
-    document.getElementById('landing-title').innerText = currentLandingProduct.name;
-    document.getElementById('landing-category').innerText = currentLandingProduct.category || 'عام';
-    document.getElementById('landing-price').innerText = currentLandingProduct.price.toLocaleString() + ' دج';
-    document.getElementById('landing-old-price').innerText = currentLandingProduct.oldPrice ? currentLandingProduct.oldPrice.toLocaleString() + ' دج' : '';
-    document.getElementById('landing-desc').innerText = currentLandingProduct.desc || '';
 
-    // تتبع عرض المنتج في Meta Pixel
+    document.getElementById('bs-main-img').src = mainImg;
+    document.getElementById('bs-title').innerText = currentBSProduct.name;
+    document.getElementById('bs-category').innerText = currentBSProduct.category || 'عام';
+    document.getElementById('bs-price').innerText = currentBSProduct.price.toLocaleString() + ' دج';
+    document.getElementById('bs-old-price').innerText = currentBSProduct.oldPrice ? currentBSProduct.oldPrice.toLocaleString() + ' دج' : '';
+    document.getElementById('bs-desc').innerText = currentBSProduct.desc || '';
+
+    // تتبع Meta Pixel عند معاينة المنتج
     if (typeof trackPixelEvent === 'function') {
         trackPixelEvent('ViewContent', {
-            content_name: currentLandingProduct.name,
-            value: currentLandingProduct.price,
+            content_name: currentBSProduct.name,
+            value: currentBSProduct.price,
             currency: 'DZD'
         });
     }
 
-    const cdBox = document.getElementById('landing-countdown-box');
-    if (currentLandingProduct.hasCountdown && currentLandingProduct.countdownHours > 0) {
-        cdBox.classList.remove('hidden');
-        startCountdownTimer(currentLandingProduct.countdownHours);
-    } else {
-        cdBox.classList.add('hidden');
-        if (window.cdInterval) clearInterval(window.cdInterval);
-    }
-
-    const thumbsContainer = document.getElementById('landing-thumbnails-list');
-    const imagesList = currentLandingProduct.images && currentLandingProduct.images.length > 0 
-        ? currentLandingProduct.images 
-        : [mainImg];
+    const thumbsContainer = document.getElementById('bs-thumbnails-list');
+    const imagesList = currentBSProduct.images && currentBSProduct.images.length > 0 ? currentBSProduct.images : [mainImg];
 
     thumbsContainer.innerHTML = imagesList.map((imgUrl) => `
-        <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
+        <div onclick="swapBSMainImage('${imgUrl}')" class="w-12 h-12 rounded-xl border border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden">
             <img src="${imgUrl}" class="w-full h-full object-contain">
         </div>
     `).join('');
 
-    populateWilayas();
-    calculateLandingTotal();
-    showPage('landing');
+    populateBSWilayas();
+    calculateBSTotal();
+
+    const backdrop = document.getElementById('bottom-sheet-backdrop');
+    const sheet = document.getElementById('bottom-sheet-modal');
+    
+    backdrop.classList.remove('hidden');
+    setTimeout(() => {
+        backdrop.classList.remove('opacity-0');
+        sheet.classList.remove('translate-y-full');
+    }, 10);
 }
 
-function openLightbox() {
-    const mainImg = document.getElementById('landing-main-img').src;
-    const lightboxModal = document.getElementById('image-lightbox-modal');
-    const lightboxTarget = document.getElementById('lightbox-target-img');
-    if (lightboxModal && lightboxTarget) {
-        lightboxTarget.src = mainImg;
-        lightboxModal.classList.remove('hidden');
-        lightboxModal.classList.add('flex');
-    }
+function closeBottomSheet() {
+    const backdrop = document.getElementById('bottom-sheet-backdrop');
+    const sheet = document.getElementById('bottom-sheet-modal');
+
+    backdrop.classList.add('opacity-0');
+    sheet.classList.add('translate-y-full');
+
+    setTimeout(() => {
+        backdrop.classList.add('hidden');
+    }, 300);
 }
 
-function closeLightbox() {
-    const lightboxModal = document.getElementById('image-lightbox-modal');
-    if (lightboxModal) {
-        lightboxModal.classList.add('hidden');
-        lightboxModal.classList.remove('flex');
-    }
-}
-
-function swapLandingMainImage(newUrl) {
-    const mainImg = document.getElementById('landing-main-img');
+function swapBSMainImage(newUrl) {
+    const mainImg = document.getElementById('bs-main-img');
     mainImg.style.opacity = '0.3';
     setTimeout(() => {
         mainImg.src = newUrl;
@@ -77,68 +68,83 @@ function swapLandingMainImage(newUrl) {
     }, 150);
 }
 
-function populateWilayas() {
-    const select = document.getElementById('cust-wilaya');
+function populateBSWilayas() {
+    const select = document.getElementById('bs-cust-wilaya');
     select.innerHTML = '<option value="">اختر الولاية...</option>' + 
         WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
 }
 
-function handleWilayaChange() {
-    const code = document.getElementById('cust-wilaya').value;
+function handleBSWilayaChange() {
+    const code = document.getElementById('bs-cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const communeSelect = document.getElementById('cust-commune');
+    const communeSelect = document.getElementById('bs-cust-commune');
     
     if (wilaya) {
         communeSelect.innerHTML = wilaya.communes.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('price-shipping-home').innerText = wilaya.homeCost + ' دج';
-        document.getElementById('price-shipping-office').innerText = wilaya.officeCost + ' دج';
     } else {
         communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
-        document.getElementById('price-shipping-home').innerText = 'حدد الولاية';
-        document.getElementById('price-shipping-office').innerText = 'حدد الولاية';
     }
-    calculateLandingTotal();
+    calculateBSTotal();
 }
 
-function calculateLandingTotal() {
-    if (!currentLandingProduct) return;
-    const code = document.getElementById('cust-wilaya').value;
+function calculateBSTotal() {
+    if (!currentBSProduct) return;
+    const code = document.getElementById('bs-cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
+    const shipType = document.querySelector('input[name="bs_shipping_type"]:checked')?.value || 'home';
     
-    let basePrice = currentLandingProduct.price;
+    let basePrice = currentBSProduct.price;
     let shipCost = wilaya ? (shipType === 'home' ? wilaya.homeCost : wilaya.officeCost) : 0;
     let grandTotal = basePrice + shipCost;
 
-    document.getElementById('sum-prod-price').innerText = basePrice.toLocaleString() + ' دج';
-    document.getElementById('sum-ship-price').innerText = shipCost.toLocaleString() + ' دج';
-    document.getElementById('sum-total-price').innerText = grandTotal.toLocaleString() + ' دج';
-    document.getElementById('sticky-bar-price').innerText = grandTotal.toLocaleString() + ' دج';
+    document.getElementById('bs-sum-prod').innerText = basePrice.toLocaleString() + ' دج';
+    document.getElementById('bs-sum-ship').innerText = shipCost.toLocaleString() + ' دج';
+    document.getElementById('bs-sum-total').innerText = grandTotal.toLocaleString() + ' دج';
 }
 
-function startCountdownTimer(hours) {
-    let duration = hours * 3600;
-    if (window.cdInterval) clearInterval(window.cdInterval);
+function submitBSOrder() {
+    const name = document.getElementById('bs-cust-name').value;
+    const phone = document.getElementById('bs-cust-phone').value;
+    const wilayaCode = document.getElementById('bs-cust-wilaya').value;
+    const commune = document.getElementById('bs-cust-commune').value;
 
-    window.cdInterval = setInterval(() => {
-        if (duration <= 0) {
-            clearInterval(window.cdInterval);
-            return;
+    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
+    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
+
+    if (!name || !phone || !wilayaCode) {
+        showCustomAlert('تنبيه هام!', warnMsg, false);
+        return;
+    }
+
+    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const shipType = document.querySelector('input[name="bs_shipping_type"]:checked')?.value || 'home';
+    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+    const totalAmount = currentBSProduct.price + shipCost;
+
+    const newOrder = {
+        customer: name,
+        phone: phone,
+        wilaya: wilaya.name,
+        commune: commune,
+        product: currentBSProduct.name,
+        total: totalAmount,
+        status: 'جديد',
+        date: new Date().toLocaleDateString('ar-DZ'),
+        createdAt: new Date()
+    };
+
+    db.collection("orders").add(newOrder).then(() => {
+        if (typeof trackPixelEvent === 'function') {
+            trackPixelEvent('Purchase', {
+                value: totalAmount,
+                currency: 'DZD',
+                content_name: currentBSProduct.name
+            });
         }
-        duration--;
 
-        const h = Math.floor(duration / 3600);
-        const m = Math.floor((duration % 3600) / 60);
-        const s = duration % 60;
-
-        if (document.getElementById('cd-hours')) document.getElementById('cd-hours').innerText = String(h).padStart(2, '0');
-        if (document.getElementById('cd-minutes')) document.getElementById('cd-minutes').innerText = String(m).padStart(2, '0');
-        if (document.getElementById('cd-seconds')) document.getElementById('cd-seconds').innerText = String(s).padStart(2, '0');
-    }, 1000);
-}
-
-function scrollToOrderForm() {
-    document.getElementById('order-form-section').scrollIntoView({ behavior: 'smooth' });
+        closeBottomSheet();
+        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
+    });
 }
 
 function showCustomAlert(title, message, isSuccess = true) {
@@ -167,50 +173,4 @@ function closeCustomAlert() {
     const modal = document.getElementById('custom-alert-modal');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-}
-
-function submitLandingOrder() {
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-    const wilayaCode = document.getElementById('cust-wilaya').value;
-    const commune = document.getElementById('cust-commune').value;
-
-    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
-    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
-
-    if (!name || !phone || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', warnMsg, false);
-        return;
-    }
-
-    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
-    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
-    const totalAmount = currentLandingProduct.price + shipCost;
-
-    const newOrder = {
-        customer: name,
-        phone: phone,
-        wilaya: wilaya.name,
-        commune: commune,
-        product: currentLandingProduct.name,
-        total: totalAmount,
-        status: 'جديد',
-        date: new Date().toLocaleDateString('ar-DZ'),
-        createdAt: new Date()
-    };
-
-    db.collection("orders").add(newOrder).then(() => {
-        // تتبع الشراء في Meta Pixel
-        if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', {
-                value: totalAmount,
-                currency: 'DZD',
-                content_name: currentLandingProduct.name
-            });
-        }
-
-        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
-        showPage('home');
-    });
 }
