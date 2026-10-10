@@ -791,16 +791,31 @@
         </div>
     </div>
 
-    <footer class="bg-black text-gray-400 py-8 text-center text-sm border-t border-[#D4AF37]/20 mt-auto">
-        <p>© 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.</p>
-    </footer>
-
+    <!-- مكتبات Firebase المتوافقة مع المتصفح -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <script src="js/data.js?v=2"></script>
-    <script src="js/app.js?v=2"></script>
-    <script src="js/landing.js?v=2"></script>
-    <script src="js/admin.js?v=2"></script>
+    <!-- تهيئة قاعدة البيانات باستخدام بيانات مشروعك الحقيقية -->
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
+        authDomain: "cos-abdelhak.firebaseapp.com",
+        projectId: "cos-abdelhak",
+        storageBucket: "cos-abdelhak.firebasestorage.app",
+        messagingSenderId: "425194527542",
+        appId: "1:425194527542:web:fa10d4cd5fcf904826f197"
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
+    </script>
+
+    <!-- ملفات المتجر البرمجية -->
+    <script src="js/data.js?v=3"></script>
+    <script src="js/app.js?v=3"></script>
+    <script src="js/landing.js?v=3"></script>
+    <script src="js/admin.js?v=3"></script>
 </body>
 </html>
