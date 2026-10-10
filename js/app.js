@@ -94,74 +94,259 @@ function hideAllDropdowns() {
     if (mobileDropdown) mobileDropdown.classList.add('hidden');
 }
 
+// إنشاء شريط التصفية الجانبي الديناميكي الذي يتكيف مع القسم المفتوح
 function renderDynamicSidebarFilters() {
-    const skinContainer = document.getElementById('filter-skin-types');
-    const hairContainer = document.getElementById('filter-hair-types');
+    const dynamicContainer = document.getElementById('dynamic-category-filters');
+    if (!dynamicContainer) return;
 
-    if (skinContainer && typeof availableSkinTypes !== 'undefined') {
-        skinContainer.innerHTML = availableSkinTypes.map(st => {
-            const count = products.filter(p => {
-                const skins = Array.isArray(p.skinTypes) ? p.skinTypes : [p.skinType];
-                const pText = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
-                return skins.includes(st) || pText.includes(st.toLowerCase());
-            }).length;
+    const activeCat = (activeCategoryFilter || 'جميع المنتجات').trim().toLowerCase();
+    let currentScopeProducts = [...products];
 
-            return `
-                <label class="flex items-center justify-between cursor-pointer group py-0.5">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]">
-                        <span class="group-hover:text-white transition">${st}</span>
-                    </div>
-                    <span class="bg-gray-800 text-[10px] text-[#D4AF37] px-2 py-0.5 rounded-full font-bold">${count}</span>
-                </label>
-            `;
-        }).join('');
+    if (activeCat !== 'جميع المنتجات' && activeCat !== 'الجميع') {
+        currentScopeProducts = currentScopeProducts.filter(p => {
+            const pCat = (p.category || '').trim().toLowerCase();
+            return pCat === activeCat || pCat.includes(activeCat) || activeCat.includes(pCat);
+        });
     }
 
-    if (hairContainer && typeof availableHairTypes !== 'undefined') {
-        hairContainer.innerHTML = availableHairTypes.map(ht => {
-            const count = products.filter(p => {
-                const hairs = Array.isArray(p.hairTypes) ? p.hairTypes : [p.hairType];
-                const pText = ((p.name || '') + ' ' + (p.desc || '') + ' ' + (p.category || '')).toLowerCase();
-                const keyword = ht.replace('الشعر', '').trim().toLowerCase();
-                return hairs.includes(ht) || pText.includes(keyword);
-            }).length;
+    let html = '';
 
-            return `
-                <label class="flex items-center justify-between cursor-pointer group py-0.5">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]">
-                        <span class="group-hover:text-white transition">${ht}</span>
-                    </div>
-                    <span class="bg-gray-800 text-[10px] text-[#D4AF37] px-2 py-0.5 rounded-full font-bold">${count}</span>
-                </label>
-            `;
-        }).join('');
+    // 1. أقسام التجميل أو الكوسمتيك
+    if (activeCat.includes('كوسمتيك')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ منطقة الاستخدام:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للوجه" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للوجه</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للجسد" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للجسد</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للشعر" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للشعر</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للتدليك والعناية" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للتدليك والعناية (يدين وقدمين)</label>
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableSkinTypes.map(st => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>
+                    `).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر:</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableHairTypes.map(ht => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> ${ht}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 2. بلاكيور + أسي
+    else if (activeCat.includes('بلاكيور') || activeCat.includes('اصي')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع المعدن:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بلاكيور أور" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> بلاكيور أور</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="أسي إينوكسيدابل / Steel" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> أسي إينوكسيدابل / Steel</label>
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع القطعة:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    ${["سلسلة", "خاتم", "قورمات", "بارور", "مناقش", "خلخال"].map(pt => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pt}" onchange="applyFilters()" class="jewelry-type-cb accent-[#D4AF37]"> ${pt}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 3. علب الهدايا
+    else if (activeCat.includes('علب الهدايا')) {
+        const shapes = ["شكل قلب", "شكل مربع", "شكل مستطيل", "شكل رسالة", "شكل دائري", "علب فوركس", "علب زجاج", "صاك كرتون", "صاك شفاف", "PMMA"];
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 شكل ومادة الصندوق:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
+                    ${shapes.map(sh => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${sh}" onchange="applyFilters()" class="giftshape-cb accent-[#D4AF37]"> ${sh}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 4. المايكاب
+    else if (activeCat.includes('مايكاب')) {
+        const makeups = ["فوندوتان", "كونسيلر", "ماسكارا", "طراسور", "روج لافر", "قلوص", "هايلايتر", "كونتور", "بالات", "برايمر", "ليوناغ", "فرشاة", "بونجة", "آلات", "أشفار", "أظافر", "لسقة أشفار", "لسقة أظافر", "فلامينغو", "فارني", "أخرى"];
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💄 نوع منتج المايكاب:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300 max-h-52 overflow-y-auto pr-1">
+                    ${makeups.map(mk => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${mk}" onchange="applyFilters()" class="makeup-cb accent-[#D4AF37]"> ${mk}</label>
+                    `).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableSkinTypes.map(st => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 5. العطور
+    else if (activeCat.includes('عطور')) {
+        const perfumes = ["نساء", "رجال", "أطفال", "للجنسين", "عطور جسم", "عطور غرف", "عطور ملابس", "عطور سيارات"];
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🌸 فئة العطر والاستخدام:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    ${perfumes.map(pf => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pf}" onchange="applyFilters()" class="perfume-cb accent-[#D4AF37]"> ${pf}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 6. إكسسوارات الشعر
+    else if (activeCat.includes('اكسسوارات شعر')) {
+        const hairaccs = ["مساك", "شوشو", "كخاب", "بوندانة", "سيغتات", "مناقش", "سنسلة", "خاتم", "قورمات", "خلخال"];
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎀 نوع الإكسسوار:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
+                    ${hairaccs.map(ha => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ha}" onchange="applyFilters()" class="hairacc-cb accent-[#D4AF37]"> ${ha}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 7. الهدايا
+    else if (activeCat.includes('هدايا')) {
+        const gifts = ["رجالية", "نسائية", "بوكي ورد", "بيبي", "تغليف"];
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 نوع الهدية:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    ${gifts.map(g => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${g}" onchange="applyFilters()" class="gift-cb accent-[#D4AF37]"> ${g}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 8. قسم جميع المنتجات (يُظهر الخيارات الرئيسية)
+    else if (activeCat === 'جميع المنتجات' || activeCat === 'الجميع') {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableSkinTypes.map(st => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>
+                    `).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر والعلاج</h4>
+                <div class="space-y-1 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1">
+                    ${availableHairTypes.map(ht => `
+                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> ${ht}</label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // باقي الأقسام (مثل الساعات)
+    else {
+        html = '';
     }
+
+    dynamicContainer.innerHTML = html;
 }
 
+// دالة الفلترة الذكية المحدثة
 function applyFilters() {
     if (!products || !Array.isArray(products)) return;
 
     let filtered = [...products];
 
+    // 1. تصفية الفئة
     if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
-        filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
+        const targetCat = activeCategoryFilter.trim().toLowerCase();
+        filtered = filtered.filter(p => {
+            const pCat = (p.category || '').trim().toLowerCase();
+            return pCat === targetCat || pCat.includes(targetCat) || targetCat.includes(pCat);
+        });
     }
 
+    // 2. تصفية التوفر
     const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
     if (inStockOnly) {
         filtered = filtered.filter(p => p.inStock === true);
+    }
+
+    // 3. تصفية السعر
+    const priceRangeInput = document.getElementById('filter-price-range');
+    if (priceRangeInput) {
+        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
+        filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
+    }
+
+    // 4. تصفية حسب الخصائص الديناميكية المفعلة
+    const selCosAreas = Array.from(document.querySelectorAll('.cos-area-cb:checked')).map(cb => cb.value);
+    if (selCosAreas.length > 0) {
+        filtered = filtered.filter(p => selCosAreas.includes(p.cosmeticArea));
+    }
+
+    const selMetals = Array.from(document.querySelectorAll('.metal-cb:checked')).map(cb => cb.value);
+    if (selMetals.length > 0) {
+        filtered = filtered.filter(p => selMetals.includes(p.jewelryMetal));
+    }
+
+    const selJewelryTypes = Array.from(document.querySelectorAll('.jewelry-type-cb:checked')).map(cb => cb.value);
+    if (selJewelryTypes.length > 0) {
+        filtered = filtered.filter(p => selJewelryTypes.includes(p.jewelryType));
+    }
+
+    const selGiftShapes = Array.from(document.querySelectorAll('.giftshape-cb:checked')).map(cb => cb.value);
+    if (selGiftShapes.length > 0) {
+        filtered = filtered.filter(p => selGiftShapes.includes(p.giftboxShape));
+    }
+
+    const selMakeups = Array.from(document.querySelectorAll('.makeup-cb:checked')).map(cb => cb.value);
+    if (selMakeups.length > 0) {
+        filtered = filtered.filter(p => selMakeups.includes(p.makeupType));
+    }
+
+    const selPerfumes = Array.from(document.querySelectorAll('.perfume-cb:checked')).map(cb => cb.value);
+    if (selPerfumes.length > 0) {
+        filtered = filtered.filter(p => selPerfumes.includes(p.perfumeTarget));
+    }
+
+    const selHairaccs = Array.from(document.querySelectorAll('.hairacc-cb:checked')).map(cb => cb.value);
+    if (selHairaccs.length > 0) {
+        filtered = filtered.filter(p => selHairaccs.includes(p.hairaccType));
+    }
+
+    const selGifts = Array.from(document.querySelectorAll('.gift-cb:checked')).map(cb => cb.value);
+    if (selGifts.length > 0) {
+        filtered = filtered.filter(p => selGifts.includes(p.giftOccasion));
     }
 
     const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
     if (selectedSkinTypes.length > 0) {
         filtered = filtered.filter(p => {
             const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
-            const hasExplicitSkin = selectedSkinTypes.some(st => pSkins.includes(st));
-            const pText = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
-            const matchesText = selectedSkinTypes.some(type => pText.includes(type.toLowerCase()));
-            return hasExplicitSkin || matchesText;
+            return selectedSkinTypes.some(st => pSkins.includes(st));
         });
     }
 
@@ -169,24 +354,11 @@ function applyFilters() {
     if (selectedHairTypes.length > 0) {
         filtered = filtered.filter(p => {
             const pHairs = Array.isArray(p.hairTypes) ? p.hairTypes : (p.hairType ? [p.hairType] : []);
-            const hasExplicitHair = selectedHairTypes.some(ht => pHairs.includes(ht));
-            
-            const pText = ((p.name || '') + ' ' + (p.desc || '') + ' ' + (p.category || '')).toLowerCase();
-            const matchesText = selectedHairTypes.some(type => {
-                const keyword = type.replace('الشعر', '').trim().toLowerCase();
-                return pText.includes(keyword) || (keyword === 'الدهني' && pText.includes('شامبو'));
-            });
-
-            return hasExplicitHair || matchesText;
+            return selectedHairTypes.some(ht => pHairs.includes(ht));
         });
     }
 
-    const priceRangeInput = document.getElementById('filter-price-range');
-    if (priceRangeInput) {
-        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
-        filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
-    }
-
+    // 5. الترتيب
     const sortSelect = document.getElementById('sort-select');
     const sortVal = sortSelect ? sortSelect.value : 'best';
 
@@ -200,28 +372,36 @@ function applyFilters() {
 
     const catalogGrid = document.getElementById('catalog-products');
     const badge = document.getElementById('products-count-badge');
-    
     if (badge) badge.innerText = filtered.length;
 
     if (catalogGrid) {
         catalogGrid.innerHTML = filtered.length === 0 ? 
-            '<div class="col-span-full text-center py-12 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لهذه الخيارات حالياً.</p><button onclick="resetFilters()" class="text-xs text-[#D4AF37] underline font-bold">إعادة ضبط التصفية</button></div>' :
+            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لهذه الخيارات حالياً.</p><button onclick="filterCategory(\'جميع المنتجات\')" class="text-xs text-[#D4AF37] underline font-bold cursor-pointer">عرض جميع المنتجات</button></div>' :
             filtered.map(p => renderSingleProductCard(p)).join('');
     }
 }
 
+function filterCategory(catName) {
+    activeCategoryFilter = catName.trim();
+    const breadcrumb = document.getElementById('breadcrumb-current');
+    if (breadcrumb) breadcrumb.innerText = activeCategoryFilter;
+
+    renderDynamicSidebarFilters();
+    applyFilters();
+    showPage('catalog');
+}
+
 function resetFilters() {
     activeCategoryFilter = 'جميع المنتجات';
-    
     const inStockCb = document.getElementById('filter-in-stock-only');
     if (inStockCb) inStockCb.checked = false;
-
-    document.querySelectorAll('.skin-filter-cb, .hair-filter-cb').forEach(cb => cb.checked = false);
 
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) priceRangeInput.value = 20000;
     
     updatePriceFilter(20000);
+    renderDynamicSidebarFilters();
+    applyFilters();
 }
 
 function initBannerRealtimeSync() {
@@ -267,20 +447,11 @@ function renderHeroSlider() {
     container.innerHTML = `
         <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
             <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Hero Banner">
-            
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12 transition-opacity duration-500 group-hover:opacity-0 pointer-events-none">
-                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">
-                    ✨ التشكيلة الحصرية 2026
-                </span>
-                <h1 class="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-2xl max-w-3xl leading-tight">
-                    ${currentSlide.title}
-                </h1>
-                <p class="text-gray-200 text-sm md:text-lg font-medium max-w-2xl mb-6 drop-shadow-lg">
-                    ${currentSlide.desc}
-                </p>
-                <button onclick="filterCategory('جميع المنتجات')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">
-                    تسوقي الآن 🔥
-                </button>
+                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">✨ التشكيلة الحصرية 2026</span>
+                <h1 class="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-2xl max-w-3xl leading-tight">${currentSlide.title}</h1>
+                <p class="text-gray-200 text-sm md:text-lg font-medium max-w-2xl mb-6 drop-shadow-lg">${currentSlide.desc}</p>
+                <button onclick="filterCategory('جميع المنتجات')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">تسوقي الآن 🔥</button>
             </div>
         </div>
     `;
@@ -550,15 +721,6 @@ function submitCartCheckout() {
     });
 }
 
-function filterCategory(catName) {
-    activeCategoryFilter = catName.trim();
-    const breadcrumb = document.getElementById('breadcrumb-current');
-    if (breadcrumb) breadcrumb.innerText = activeCategoryFilter;
-    
-    applyFilters();
-    showPage('catalog');
-}
-
 function updatePriceFilter(val) {
     const valEl = document.getElementById('price-range-val');
     if (valEl) valEl.innerText = parseFloat(val).toLocaleString() + ' دج';
@@ -601,7 +763,6 @@ function updateAppHeaderInfo() {
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
-            <button onclick="showPage('home')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>
             <button onclick="filterCategory('جميع المنتجات')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">جميع المنتجات</button>
         ` + categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
@@ -651,7 +812,6 @@ function initRealOrdersTicker() {
     }, 12000);
 }
 
-// التشغيل الآمن التلقائي عند اكتمال تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     safeCall('updateAppHeaderInfo');
     safeCall('updateBadges');
@@ -659,4 +819,5 @@ document.addEventListener('DOMContentLoaded', () => {
     safeCall('renderProducts');
     safeCall('initBannerRealtimeSync');
     safeCall('initRealOrdersTicker');
+    safeCall('renderDynamicSidebarFilters');
 });
