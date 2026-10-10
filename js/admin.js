@@ -4,9 +4,7 @@ function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
 
-    if (typeof showCustomAlert === 'function') {
-        showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
-    }
+    showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
 
     const reader = new FileReader();
     reader.onload = function(e) {
@@ -38,9 +36,7 @@ function handleImageUpload(event, targetInputId) {
             const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
             document.getElementById(targetInputId).value = compressedDataUrl;
 
-            if (typeof showCustomAlert === 'function') {
-                showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المرفوعة بنجاح في الحقل.', true);
-            }
+            showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المرفوعة بنجاح في الحقل.', true);
         };
     };
     reader.readAsDataURL(file);
@@ -58,11 +54,7 @@ function checkAdminPassword() {
         passInput.value = '';
         showPage('admin');
     } else {
-        if (typeof showCustomAlert === 'function') {
-            showCustomAlert('خطأ', 'كلمة المرور غير صحيحة!', false);
-        } else {
-            alert('كلمة المرور غير صحيحة!');
-        }
+        showCustomAlert('خطأ', 'كلمة المرور غير صحيحة!', false);
     }
 }
 
