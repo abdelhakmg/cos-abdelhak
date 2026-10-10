@@ -94,157 +94,22 @@ function hideAllDropdowns() {
     if (mobileDropdown) mobileDropdown.classList.add('hidden');
 }
 
-// إنشاء شريط التصفية الجانبي الديناميكي الذي يتكيف مع القسم المفتوح
+// بناء شريط الفلترة الجانبي الديناميكي وإثراء قسم "جميع المنتجات" بكافة الخصائص
 function renderDynamicSidebarFilters() {
     const dynamicContainer = document.getElementById('dynamic-category-filters');
     if (!dynamicContainer) return;
 
     const activeCat = (activeCategoryFilter || 'جميع المنتجات').trim().toLowerCase();
-    let currentScopeProducts = [...products];
-
-    if (activeCat !== 'جميع المنتجات' && activeCat !== 'الجميع') {
-        currentScopeProducts = currentScopeProducts.filter(p => {
-            const pCat = (p.category || '').trim().toLowerCase();
-            return pCat === activeCat || pCat.includes(activeCat) || activeCat.includes(pCat);
-        });
-    }
-
     let html = '';
 
-    // 1. أقسام التجميل أو الكوسمتيك
-    if (activeCat.includes('كوسمتيك')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ منطقة الاستخدام:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للوجه" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للوجه</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للجسد" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للجسد</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للشعر" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للشعر</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للتدليك والعناية" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للتدليك والعناية (يدين وقدمين)</label>
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${availableSkinTypes.map(st => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>
-                    `).join('')}
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${availableHairTypes.map(ht => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> ${ht}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 2. بلاكيور + أسي
-    else if (activeCat.includes('بلاكيور') || activeCat.includes('اصي')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع المعدن:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بلاكيور أور" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> بلاكيور أور</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="أسي إينوكسيدابل / Steel" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> أسي إينوكسيدابل / Steel</label>
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع القطعة:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    ${["سلسلة", "خاتم", "قورمات", "بارور", "مناقش", "خلخال"].map(pt => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pt}" onchange="applyFilters()" class="jewelry-type-cb accent-[#D4AF37]"> ${pt}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 3. علب الهدايا
-    else if (activeCat.includes('علب الهدايا')) {
-        const shapes = ["شكل قلب", "شكل مربع", "شكل مستطيل", "شكل رسالة", "شكل دائري", "علب فوركس", "علب زجاج", "صاك كرتون", "صاك شفاف", "PMMA"];
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 شكل ومادة الصندوق:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
-                    ${shapes.map(sh => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${sh}" onchange="applyFilters()" class="giftshape-cb accent-[#D4AF37]"> ${sh}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 4. المايكاب
-    else if (activeCat.includes('مايكاب')) {
-        const makeups = ["فوندوتان", "كونسيلر", "ماسكارا", "طراسور", "روج لافر", "قلوص", "هايلايتر", "كونتور", "بالات", "برايمر", "ليوناغ", "فرشاة", "بونجة", "آلات", "أشفار", "أظافر", "لسقة أشفار", "لسقة أظافر", "فلامينغو", "فارني", "أخرى"];
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💄 نوع منتج المايكاب:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-52 overflow-y-auto pr-1">
-                    ${makeups.map(mk => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${mk}" onchange="applyFilters()" class="makeup-cb accent-[#D4AF37]"> ${mk}</label>
-                    `).join('')}
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${availableSkinTypes.map(st => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 5. العطور
-    else if (activeCat.includes('عطور')) {
-        const perfumes = ["نساء", "رجال", "أطفال", "للجنسين", "عطور جسم", "عطور غرف", "عطور ملابس", "عطور سيارات"];
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🌸 فئة العطر والاستخدام:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    ${perfumes.map(pf => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pf}" onchange="applyFilters()" class="perfume-cb accent-[#D4AF37]"> ${pf}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 6. إكسسوارات الشعر
-    else if (activeCat.includes('اكسسوارات شعر')) {
-        const hairaccs = ["مساك", "شوشو", "كخاب", "بوندانة", "سيغتات", "مناقش", "سنسلة", "خاتم", "قورمات", "خلخال"];
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎀 نوع الإكسسوار:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
-                    ${hairaccs.map(ha => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ha}" onchange="applyFilters()" class="hairacc-cb accent-[#D4AF37]"> ${ha}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 7. الهدايا
-    else if (activeCat.includes('هدايا')) {
-        const gifts = ["رجالية", "نسائية", "بوكي ورد", "بيبي", "تغليف"];
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 نوع الهدية:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    ${gifts.map(g => `
-                        <label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${g}" onchange="applyFilters()" class="gift-cb accent-[#D4AF37]"> ${g}</label>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    // 8. قسم جميع المنتجات (يُظهر الخيارات الرئيسية)
-    else if (activeCat === 'جميع المنتجات' || activeCat === 'الجميع') {
+    const shapes = ["شكل قلب", "شكل مربع", "شكل مستطيل", "شكل رسالة", "شكل دائري", "علب فوركس", "علب زجاج", "صاك كرتون", "صاك شفاف", "PMMA"];
+    const makeups = ["فوندوتان", "كونسيلر", "ماسكارا", "طراسور", "روج لافر", "قلوص", "هايلايتر", "كونتور", "بالات", "برايمر", "ليوناغ", "فرشاة", "بونجة", "آلات", "أشفار", "أظافر", "لسقة أشفار", "لسقة أظافر", "فلامينغو", "فارني", "أخرى"];
+    const perfumes = ["نساء", "رجال", "أطفال", "للجنسين", "عطور جسم", "عطور غرف", "عطور ملابس", "عطور سيارات"];
+    const hairaccs = ["مساك", "شوشو", "كخاب", "بوندانة", "سيغتات", "مناقش", "سنسلة", "خاتم", "قورمات", "خلخال"];
+    const gifts = ["رجالية", "نسائية", "بوكي ورد", "بيبي", "تغليف"];
+
+    // 1. قسم جميع المنتجات أو الجميع (يحتوي على كافة الفلاتر)
+    if (activeCat === 'جميع المنتجات' || activeCat === 'الجميع' || activeCat === '') {
         html = `
             <div class="space-y-3">
                 <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
@@ -263,9 +128,160 @@ function renderDynamicSidebarFilters() {
                     `).join('')}
                 </div>
             </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع المعدن والقطعة</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بلاكيور أور" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> بلاكيور أور</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="أسي إينوكسيدابل / Steel" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> أسي إينوكسيدابل / Steel</label>
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 أشكال العلب</h4>
+                <div class="space-y-1 text-xs text-gray-300 max-h-32 overflow-y-auto pr-1">
+                    ${shapes.map(sh => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${sh}" onchange="applyFilters()" class="giftshape-cb accent-[#D4AF37]"> ${sh}</label>`).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💄 المايكاب</h4>
+                <div class="space-y-1 text-xs text-gray-300 max-h-32 overflow-y-auto pr-1">
+                    ${makeups.map(mk => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${mk}" onchange="applyFilters()" class="makeup-cb accent-[#D4AF37]"> ${mk}</label>`).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🌸 العطور</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${perfumes.map(pf => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pf}" onchange="applyFilters()" class="perfume-cb accent-[#D4AF37]"> ${pf}</label>`).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎀 إكسسوارات الشعر</h4>
+                <div class="space-y-1 text-xs text-gray-300 max-h-32 overflow-y-auto pr-1">
+                    ${hairaccs.map(ha => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ha}" onchange="applyFilters()" class="hairacc-cb accent-[#D4AF37]"> ${ha}</label>`).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 الهدايا</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${gifts.map(g => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${g}" onchange="applyFilters()" class="gift-cb accent-[#D4AF37]"> ${g}</label>`).join('')}
+                </div>
+            </div>
         `;
     } 
-    // باقي الأقسام (مثل الساعات)
+    // 2. قسم الكوسمتيك
+    else if (activeCat.includes('كوسمتيك')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ منطقة الاستخدام:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للوجه" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للوجه</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للجسد" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للجسد</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للشعر" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للشعر</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للتدليك والعناية" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للتدليك والعناية</label>
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableSkinTypes.map(st => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>`).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر:</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableHairTypes.map(ht => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> ${ht}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 3. قسم بلاكيور + أسي
+    else if (activeCat.includes('بلاكيور') || activeCat.includes('اصي')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع المعدن:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بلاكيور أور" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> بلاكيور أور</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="أسي إينوكسيدابل / Steel" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> أسي إينوكسيدابل / Steel</label>
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع القطعة:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    ${["سلسلة", "خاتم", "قورمات", "بارور", "مناقش", "خلخال"].map(pt => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pt}" onchange="applyFilters()" class="jewelry-type-cb accent-[#D4AF37]"> ${pt}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 4. قسم "علب" (تغيير التسمية)
+    else if (activeCat === 'علب' || activeCat.includes('علب')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 شكل ومادة الصندوق:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
+                    ${shapes.map(sh => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${sh}" onchange="applyFilters()" class="giftshape-cb accent-[#D4AF37]"> ${sh}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 5. المايكاب
+    else if (activeCat.includes('مايكاب')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">💄 نوع منتج المايكاب:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300 max-h-52 overflow-y-auto pr-1">
+                    ${makeups.map(mk => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${mk}" onchange="applyFilters()" class="makeup-cb accent-[#D4AF37]"> ${mk}</label>`).join('')}
+                </div>
+            </div>
+            <hr class="border-gray-800">
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
+                <div class="space-y-1 text-xs text-gray-300">
+                    ${availableSkinTypes.map(st => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 6. العطور
+    else if (activeCat.includes('عطور')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🌸 فئة العطر والاستخدام:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    ${perfumes.map(pf => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pf}" onchange="applyFilters()" class="perfume-cb accent-[#D4AF37]"> ${pf}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 7. إكسسوارات الشعر
+    else if (activeCat.includes('اكسسوارات شعر')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎀 نوع الإكسسوار:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
+                    ${hairaccs.map(ha => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ha}" onchange="applyFilters()" class="hairacc-cb accent-[#D4AF37]"> ${ha}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
+    // 8. الهدايا
+    else if (activeCat === 'هدايا' || activeCat.includes('هدايا')) {
+        html = `
+            <div class="space-y-3">
+                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 نوع الهدية:</h4>
+                <div class="space-y-1.5 text-xs text-gray-300">
+                    ${gifts.map(g => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${g}" onchange="applyFilters()" class="gift-cb accent-[#D4AF37]"> ${g}</label>`).join('')}
+                </div>
+            </div>
+        `;
+    } 
     else {
         html = '';
     }
@@ -273,7 +289,6 @@ function renderDynamicSidebarFilters() {
     dynamicContainer.innerHTML = html;
 }
 
-// دالة الفلترة الذكية المحدثة
 function applyFilters() {
     if (!products || !Array.isArray(products)) return;
 
@@ -301,46 +316,30 @@ function applyFilters() {
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
     }
 
-    // 4. تصفية حسب الخصائص الديناميكية المفعلة
+    // 4. تصفية الخصائص الديناميكية
     const selCosAreas = Array.from(document.querySelectorAll('.cos-area-cb:checked')).map(cb => cb.value);
-    if (selCosAreas.length > 0) {
-        filtered = filtered.filter(p => selCosAreas.includes(p.cosmeticArea));
-    }
+    if (selCosAreas.length > 0) filtered = filtered.filter(p => selCosAreas.includes(p.cosmeticArea));
 
     const selMetals = Array.from(document.querySelectorAll('.metal-cb:checked')).map(cb => cb.value);
-    if (selMetals.length > 0) {
-        filtered = filtered.filter(p => selMetals.includes(p.jewelryMetal));
-    }
+    if (selMetals.length > 0) filtered = filtered.filter(p => selMetals.includes(p.jewelryMetal));
 
     const selJewelryTypes = Array.from(document.querySelectorAll('.jewelry-type-cb:checked')).map(cb => cb.value);
-    if (selJewelryTypes.length > 0) {
-        filtered = filtered.filter(p => selJewelryTypes.includes(p.jewelryType));
-    }
+    if (selJewelryTypes.length > 0) filtered = filtered.filter(p => selJewelryTypes.includes(p.jewelryType));
 
     const selGiftShapes = Array.from(document.querySelectorAll('.giftshape-cb:checked')).map(cb => cb.value);
-    if (selGiftShapes.length > 0) {
-        filtered = filtered.filter(p => selGiftShapes.includes(p.giftboxShape));
-    }
+    if (selGiftShapes.length > 0) filtered = filtered.filter(p => selGiftShapes.includes(p.giftboxShape));
 
     const selMakeups = Array.from(document.querySelectorAll('.makeup-cb:checked')).map(cb => cb.value);
-    if (selMakeups.length > 0) {
-        filtered = filtered.filter(p => selMakeups.includes(p.makeupType));
-    }
+    if (selMakeups.length > 0) filtered = filtered.filter(p => selMakeups.includes(p.makeupType));
 
     const selPerfumes = Array.from(document.querySelectorAll('.perfume-cb:checked')).map(cb => cb.value);
-    if (selPerfumes.length > 0) {
-        filtered = filtered.filter(p => selPerfumes.includes(p.perfumeTarget));
-    }
+    if (selPerfumes.length > 0) filtered = filtered.filter(p => selPerfumes.includes(p.perfumeTarget));
 
     const selHairaccs = Array.from(document.querySelectorAll('.hairacc-cb:checked')).map(cb => cb.value);
-    if (selHairaccs.length > 0) {
-        filtered = filtered.filter(p => selHairaccs.includes(p.hairaccType));
-    }
+    if (selHairaccs.length > 0) filtered = filtered.filter(p => selHairaccs.includes(p.hairaccType));
 
     const selGifts = Array.from(document.querySelectorAll('.gift-cb:checked')).map(cb => cb.value);
-    if (selGifts.length > 0) {
-        filtered = filtered.filter(p => selGifts.includes(p.giftOccasion));
-    }
+    if (selGifts.length > 0) filtered = filtered.filter(p => selGifts.includes(p.giftOccasion));
 
     const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
     if (selectedSkinTypes.length > 0) {
@@ -486,18 +485,19 @@ function toggleMobileMenu() {
     if (drawer) drawer.classList.toggle('hidden');
 }
 
+// تعديل كرت المنتج ليكون قابل للضغط كلياً ويعيد توجيه الزبون للشراء السريع
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     const isFav = favorites.includes(p.id);
 
     return `
         <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
-            <button onclick="toggleFavorite('${p.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm">
+            <button onclick="event.stopPropagation(); toggleFavorite('${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
 
-            <div>
-                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer overflow-hidden" onclick="openLandingPage('${p.id}')">
+            <div class="cursor-pointer" onclick="openLandingPage('${p.id}')">
+                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden">
                     <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500">
                 </div>
 
@@ -506,7 +506,7 @@ function renderSingleProductCard(p) {
                     <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
                 </div>
 
-                <h3 class="font-bold text-sm text-gray-900 truncate my-1 cursor-pointer group-hover:text-[#B8860B] transition" onclick="openLandingPage('${p.id}')">${p.name}</h3>
+                <h3 class="font-bold text-sm text-gray-900 truncate my-1 group-hover:text-[#B8860B] transition">${p.name}</h3>
 
                 <div class="flex items-center gap-2 mb-1">
                     <span class="font-black text-base text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</span>
@@ -522,11 +522,11 @@ function renderSingleProductCard(p) {
                 </div>
             </div>
 
-            <div class="space-y-2">
-                <button onclick="addToCart('${p.id}')" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
+            <div class="space-y-2 pt-2">
+                <button onclick="event.stopPropagation(); addToCart('${p.id}');" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
                     <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
                 </button>
-                <button onclick="openLandingPage('${p.id}')" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
+                <button onclick="event.stopPropagation(); openLandingPage('${p.id}');" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
                     اطلب الآن 🔥
                 </button>
             </div>
