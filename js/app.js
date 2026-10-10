@@ -23,6 +23,7 @@ function handleLogoClick(event) {
     }
 }
 
+// محرك بحث ذكي متطور يطابق الكلمات (الشعر الدهني، البشرة الجافة، الألوان، الأرقام...)
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -37,7 +38,11 @@ function handleLiveSearch(query) {
     const matches = products.filter(p => 
         (p.name && p.name.toLowerCase().includes(q)) || 
         (p.category && p.category.toLowerCase().includes(q)) ||
-        (p.brand && p.brand.toLowerCase().includes(q))
+        (p.brand && p.brand.toLowerCase().includes(q)) ||
+        (p.skinType && p.skinType.toLowerCase().includes(q)) ||
+        (p.hairType && p.hairType.toLowerCase().includes(q)) ||
+        (p.colors && p.colors.toLowerCase().includes(q)) ||
+        (p.numbers && p.numbers.toLowerCase().includes(q))
     ).slice(0, 5);
 
     let htmlContent = '';
@@ -70,7 +75,11 @@ function handleSearchKeydown(event, query) {
         event.preventDefault();
         const q = query.trim().toLowerCase();
         if (!q) return;
-        const found = products.find(p => p.name && p.name.toLowerCase().includes(q));
+        const found = products.find(p => 
+            (p.name && p.name.toLowerCase().includes(q)) ||
+            (p.hairType && p.hairType.toLowerCase().includes(q)) ||
+            (p.skinType && p.skinType.toLowerCase().includes(q))
+        );
         hideAllDropdowns();
         if (found) {
             openLandingPage(found.id);
@@ -552,7 +561,6 @@ function updateAppHeaderInfo() {
     }
 }
 
-// دالة متطورة لتنقل الإشعارات تلقائياً بين جميع الطلبيات المسجلة بدلاً من طلب واحد فقط
 let currentOrderTickerIndex = 0;
 function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
