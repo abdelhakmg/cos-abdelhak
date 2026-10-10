@@ -23,7 +23,6 @@ function handleLogoClick(event) {
     }
 }
 
-// بحث مباشر يدعم الكمبيوتر والهاتف والتجاوب مع لوحة المفاتيح (Enter)
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -46,7 +45,7 @@ function handleLiveSearch(query) {
         htmlContent = '<div class="p-4 text-xs text-amber-400 text-center leading-relaxed">المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات حسب نوعية المنتج</div>';
     } else {
         htmlContent = matches.map(p => `
-            <div onclick="openLandingPage('${p.id}'); hideAllDropdowns();" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
+            <div onclick="openBottomSheet('${p.id}'); hideAllDropdowns();" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
                 <img src="${(p.images && p.images[0]) || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
                 <div class="text-right">
                     <p class="text-xs font-bold text-white truncate">${p.name}</p>
@@ -74,7 +73,7 @@ function handleSearchKeydown(event, query) {
         const found = products.find(p => p.name && p.name.toLowerCase().includes(q));
         hideAllDropdowns();
         if (found) {
-            openLandingPage(found.id);
+            openBottomSheet(found.id);
         } else {
             showCustomAlert('غير متوفر', 'المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات حسب نوعية المنتج', false);
         }
@@ -141,10 +140,10 @@ function renderHeroSlider() {
     const currentSlide = heroSlides[currentHeroIdx];
 
     container.innerHTML = `
-        <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
+        <div class="relative w-full h-[400px] md:h-[480px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
             <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Hero Banner">
             
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12 transition-opacity duration-500 group-hover:opacity-0 pointer-events-none">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12">
                 <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">
                     ✨ التشكيلة الحصرية 2026
                 </span>
@@ -154,7 +153,7 @@ function renderHeroSlider() {
                 <p class="text-gray-200 text-sm md:text-lg font-medium max-w-2xl mb-6 drop-shadow-lg">
                     ${currentSlide.desc}
                 </p>
-                <button onclick="filterCategory('جميع المنتجات')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">
+                <button onclick="filterCategory('جميع المنتجات')" class="px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">
                     تسوقي الآن 🔥
                 </button>
             </div>
@@ -183,55 +182,41 @@ function showPage(pageId) {
     if (pageId === 'wishlist') renderWishlistPage();
 }
 
-function toggleMobileMenu() {
-    const drawer = document.getElementById('mobile-drawer');
-    if (drawer) {
-        drawer.classList.toggle('hidden');
-    }
-}
-
+// تصميم بطاقات المنتجات المضيئة (Gold Glow Cards)
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     const isFav = favorites.includes(p.id);
 
     return `
-        <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
-            <button onclick="toggleFavorite('${p.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm">
+        <div class="gold-glow-card rounded-3xl p-4 text-right flex flex-col justify-between group">
+            <button onclick="toggleFavorite('${p.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 border border-[#D4AF37]/30 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-md">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
 
             <div>
-                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center cursor-pointer overflow-hidden" onclick="openLandingPage('${p.id}')">
-                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500">
+                <div class="h-48 bg-black/50 rounded-2xl p-2 mb-3 flex items-center justify-center cursor-pointer overflow-hidden border border-gray-800/80" onclick="openBottomSheet('${p.id}')">
+                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-110 transition duration-500">
                 </div>
 
                 <div class="flex items-center gap-1.5 mb-1.5">
                     <span class="w-2 h-2 rounded-full ${p.inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
-                    <span class="text-[10px] font-bold ${p.inStock ? 'text-green-600' : 'text-red-500'}">${p.inStock ? 'متوفر' : 'غير متوفر'}</span>
+                    <span class="text-[10px] font-bold ${p.inStock ? 'text-green-400' : 'text-red-400'}">${p.inStock ? 'متوفر بالمخزون' : 'غير متوفر'}</span>
                 </div>
 
-                <h3 class="font-bold text-sm text-gray-900 truncate my-1 cursor-pointer group-hover:text-[#B8860B] transition" onclick="openLandingPage('${p.id}')">${p.name}</h3>
+                <h3 class="font-bold text-sm text-white truncate my-1 cursor-pointer group-hover:text-[#D4AF37] transition" onclick="openBottomSheet('${p.id}')">${p.name}</h3>
 
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="font-black text-base text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</span>
-                    ${p.oldPrice ? `<span class="text-xs text-gray-400 line-through">${p.oldPrice.toLocaleString()} دج</span>` : ''}
-                </div>
-
-                <div class="flex items-center gap-1 text-amber-400 text-xs mb-3">
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="font-black text-base gold-text">${p.price ? p.price.toLocaleString() : 0} دج</span>
+                    ${p.oldPrice ? `<span class="text-xs text-gray-500 line-through">${p.oldPrice.toLocaleString()} دج</span>` : ''}
                 </div>
             </div>
 
-            <div class="space-y-2">
-                <button onclick="addToCart('${p.id}')" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm">
-                    <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
+            <div class="space-y-2 pt-2">
+                <button onclick="openBottomSheet('${p.id}')" class="w-full py-3 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2">
+                    شراء سريع الآن ⚡
                 </button>
-                <button onclick="openLandingPage('${p.id}')" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition">
-                    اطلب الآن 🔥
+                <button onclick="addToCart('${p.id}')" class="w-full py-2 bg-black border border-[#D4AF37]/30 text-gray-300 hover:text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bag-shopping text-xs"></i> أضف للسلة
                 </button>
             </div>
         </div>
@@ -277,7 +262,6 @@ function addToCart(id) {
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         updateBadges();
         
-        // تتبع إضافة المنتج إلى السلة في Meta Pixel
         if (typeof trackPixelEvent === 'function') {
             trackPixelEvent('AddToCart', {
                 content_name: prod.name,
@@ -343,7 +327,7 @@ function submitCartCheckout() {
         showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
         return;
     }
-    showCustomAlert('طلب جاري!', 'لإكمال الشراء بسرعة والدفع عند الاستلام، يرجى الاستمرار من صفحة المنتج المباشرة.', true);
+    showCustomAlert('طلب جاري!', 'لإكمال الشراء بسرعة والدفع عند الاستلام، يرجى الاستمرار من الشراء المباشر لكل منتج.', true);
 }
 
 function filterCategory(catName) {
@@ -445,14 +429,6 @@ function updateAppHeaderInfo() {
         ` + categories.map(c => `<button onclick="filterCategory('${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
     }
 
-    const mobileListEl = document.getElementById('mobile-drawer-categories');
-    if (mobileListEl) {
-        mobileListEl.innerHTML = `
-            <button onclick="showPage('home'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-[#D4AF37] font-bold mb-2">الرئيسية</button>
-            <button onclick="filterCategory('جميع المنتجات'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">جميع المنتجات</button>
-        ` + categories.map(c => `<button onclick="filterCategory('${c.name}'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
-    }
-
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
         homeCatGrid.innerHTML = categories.map(c => `
@@ -466,7 +442,6 @@ function updateAppHeaderInfo() {
     }
 }
 
-// إشعارات الطلبات الحقيقية بالتنسيق الجديد (الاسم من الولاية وأسفلها اشترى المنتج)
 function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
     const spCustomer = document.getElementById('sp-customer');
@@ -474,8 +449,8 @@ function initRealOrdersTicker() {
     if (!toast || !spCustomer || !spProduct) return;
 
     setInterval(() => {
-        if (!orders || orders.length === 0) return; // لا تظهر شيئاً إذا لم تكن هناك طلبيات حقيقية
-        const latestOrder = orders[orders.length - 1]; // أحدث طلب حقيقي
+        if (!orders || orders.length === 0) return;
+        const latestOrder = orders[orders.length - 1];
 
         spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
         spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
