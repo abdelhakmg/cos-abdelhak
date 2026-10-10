@@ -96,14 +96,14 @@
         </div>
     </div>
 
-    <!-- Social Proof Toast (الطلبات الحقيقية بالاسم والولاية) -->
+    <!-- Social Proof Toast -->
     <div id="social-proof-toast" class="fixed bottom-20 right-4 z-40 bg-[#121212] border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs">
         <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black font-black text-sm flex-shrink-0">
             <i class="fa-solid fa-bag-shopping"></i>
         </div>
         <div class="text-right">
-            <p id="sp-customer" class="text-xs font-bold text-white">محمد من عنابة</p>
-            <p id="sp-product" class="text-[10px] text-[#D4AF37] font-bold">اشترى عطر ديور فخامة</p>
+            <p id="sp-customer" class="text-xs font-bold text-white">زبون</p>
+            <p id="sp-product" class="text-[10px] text-[#D4AF37] font-bold">اشترى منتجاً منذ قليل</p>
         </div>
     </div>
 
@@ -242,8 +242,8 @@
                             <input type="text" id="cust-name" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-2 text-gray-300">رقم الهاتف *</label>
-                            <input type="tel" id="cust-phone" placeholder="06XXXXXXXX" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
+                            <label class="block text-xs font-bold mb-2 text-gray-300">رقم الهاتف (10 أرقام جزائرية) *</label>
+                            <input type="tel" id="cust-phone" maxlength="10" placeholder="06XXXXXXXX / 07 / 05" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                         <div>
                             <label class="block text-xs font-bold mb-2 text-gray-300">الولاية *</label>
@@ -251,7 +251,9 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold mb-2 text-gray-300">البلدية *</label>
-                            <select id="cust-commune" onchange="calculateLandingTotal()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]"></select>
+                            <select id="cust-commune" onchange="calculateLandingTotal()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]">
+                                <option value="">اختر البلدية...</option>
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -259,7 +261,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <label class="border border-gray-800 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37] transition">
                                 <input type="radio" name="shipping_type" value="home" checked onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                <span class="text-xs font-bold text-white">توصيل للمنزل</span>
+                                <span class="text-xs font-bold text-white">توصيل للمنزل / البلدية</span>
                                 <span id="price-shipping-home" class="text-xs font-bold text-[#D4AF37]">حدد الولاية</span>
                             </label>
                             <label class="border border-gray-800 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37] transition">
@@ -279,22 +281,29 @@
                     </button>
                 </div>
 
+                <!-- استبدال قسم الآراء والتقييمات بضمانات ومزايا متجر كوسمتيك عبد الحق -->
                 <div class="mt-12 bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 space-y-6">
-                    <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-star text-amber-400"></i> آراء وتقييمات زبائننا الكرام</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-right space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-sm text-white">سارة - الجزائر العاصمة</span>
-                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                            </div>
-                            <p class="text-xs text-gray-300">"منتج رائع جداً والجودة ممتازة، التوصيل كان سريعاً في يومين فقط. شكراً كوسمتيك عبد الحق!"</p>
+                    <h3 class="text-xl font-black text-white text-center gold-text"><i class="fa-solid fa-shield-halved text-[#D4AF37]"></i> ضمانات ومزايا الشراء من متجرنا</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
+                            <i class="fa-solid fa-truck-fast text-2xl text-[#D4AF37]"></i>
+                            <h4 class="font-bold text-sm text-white">توصيل سريع</h4>
+                            <p class="text-[11px] text-gray-400">توصيل لـ 58 ولاية لغاية باب المنزل أو المكتب</p>
                         </div>
-                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-right space-y-2">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-sm text-white">أمينة - وهران</span>
-                                <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                            </div>
-                            <p class="text-xs text-gray-300">"أصلي 100% والتغليف فاخر، التعامل جد راقي والتوصيل للمكتب كان مريح."</p>
+                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
+                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-[#D4AF37]"></i>
+                            <h4 class="font-bold text-sm text-white">الدفع عند الاستلام</h4>
+                            <p class="text-[11px] text-gray-400">معاينة الطلبية والتحقق منها قبل تسليم المبلغ</p>
+                        </div>
+                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
+                            <i class="fa-solid fa-[#D4AF37] fa-award text-2xl text-[#D4AF37]"></i>
+                            <h4 class="font-bold text-sm text-white">منتجات أصلية 100%</h4>
+                            <p class="text-[11px] text-gray-400">جودة فاخرة ومصداقية تامة في اختيار المنتجات</p>
+                        </div>
+                        <div class="bg-black/50 p-4 rounded-2xl border border-gray-800 text-center space-y-2">
+                            <i class="fa-solid fa-headset text-2xl text-[#D4AF37]"></i>
+                            <h4 class="font-bold text-sm text-white">دعم متواصل 24/7</h4>
+                            <p class="text-[11px] text-gray-400">فريق خدمة الزبائن جاهز لمساعدتكم دائماً</p>
                         </div>
                     </div>
                 </div>
@@ -336,8 +345,8 @@
                                 <input type="text" id="cart-cust-name" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">رقم الهاتف *</label>
-                                <input type="tel" id="cart-cust-phone" placeholder="06XXXXXXXX" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                                <label class="block text-xs font-bold mb-1 text-gray-300">رقم الهاتف (10 أرقام جزائرية) *</label>
+                                <input type="tel" id="cart-cust-phone" maxlength="10" placeholder="06XXXXXXXX / 07 / 05" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-gray-300">الولاية *</label>
@@ -345,7 +354,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-gray-300">البلدية *</label>
-                                <select id="cart-cust-commune" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                                <select id="cart-cust-commune" onchange="updateCartCalculations()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
                                     <option value="">اختر البلدية...</option>
                                 </select>
                             </div>
@@ -391,7 +400,7 @@
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-products">🛍️ المنتجات والتوافر</button>
                     <button onclick="switchAdminTab('brands')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-brands">🏷️ العلامات التجارية</button>
                     <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-categories">📂 الفئات</button>
-                    <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار</button>
+                    <button onclick="switchAdminTab('shipping')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-shipping">🚚 الولايات والأسعار والربط</button>
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
@@ -585,7 +594,7 @@
                         <form onsubmit="handleSaveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input type="text" id="cat-name-input" placeholder="اسم الفئة *" required class="border p-3 rounded-xl text-sm">
                             <input type="url" id="cat-img-input" placeholder="رابط صورة الفئة (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
-                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-3">حفظ الفئة</button>
+                            <button type="submit" class="bg-black text-[#0f0f0f] font-bold py-3 rounded-xl md:col-span-3">حفظ الفئة</button>
                         </form>
                     </div>
                     <div class="bg-white p-6 rounded-2xl border">
@@ -594,20 +603,54 @@
                     </div>
                 </div>
 
+                <!-- تطوير شاشة التوصيل والولايات والبلديات التفاعلية وتأطير الربط مع شركات التوصيل -->
                 <div id="admin-tab-shipping" class="tab-content space-y-6 text-gray-900">
-                    <div class="bg-white p-6 rounded-2xl border space-y-4">
-                        <h3 class="font-bold text-lg border-b pb-3">إضافة ولاية وأسعار التوصيل</h3>
-                        <form onsubmit="handleSaveWilaya(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="wilaya-code" placeholder="رمز الولاية (مثال: 16)" required class="border p-3 rounded-xl text-sm">
-                            <input type="text" id="wilaya-name" placeholder="اسم الولاية (مثال: الجزائر)" required class="border p-3 rounded-xl text-sm">
-                            <input type="number" id="wilaya-home-cost" placeholder="سعر التوصيل للمنزل (دج) *" required class="border p-3 rounded-xl text-sm">
-                            <input type="number" id="wilaya-office-cost" placeholder="سعر التوصيل للمكتب (دج) *" required class="border p-3 rounded-xl text-sm">
-                            <input type="text" id="wilaya-communes-input" placeholder="البلديات التابعة (افصل بينها بفاصلة ,)" class="border p-3 rounded-xl text-sm md:col-span-2">
-                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-2">حفظ بيانات الولاية والتسعير</button>
+                    
+                    <!-- الربط المباشر مع شركات التوصيل -->
+                    <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
+                        <h3 class="font-bold text-lg border-b pb-3 text-[#B8860B] flex items-center gap-2">
+                            <i class="fa-solid fa-plug"></i> الربط البرمجي التلقائي مع شركات التوصيل (Yalidine, Nord & Ouest, Express)
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="shipping-api-key" placeholder="مفتاح الـ API (API Key)..." class="border p-3 rounded-xl text-sm">
+                            <input type="text" id="shipping-api-token" placeholder="رمز الأمان (API Token)..." class="border p-3 rounded-xl text-sm">
+                            <button onclick="saveShippingApiSettings()" class="bg-black text-white font-bold py-3 px-4 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">تفعيل الربط التلقائي</button>
+                        </div>
+                    </div>
+
+                    <!-- نموذج إضافة/تعديل ولاية بأسعار مخصصة للبلديات -->
+                    <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h3 id="wilaya-form-title" class="font-bold text-lg">إضافة / تعديل ولاية بأسعار تفصيلية للمكتب والبلديات</h3>
+                            <button type="button" onclick="resetWilayaForm()" id="cancel-wilaya-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
+                        </div>
+
+                        <form onsubmit="handleSaveWilaya(event)" id="wilaya-edit-form" class="space-y-4">
+                            <input type="hidden" id="editing-wilaya-id">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input type="text" id="wilaya-code" placeholder="رمز الولاية (مثال: 17) *" required class="border p-3 rounded-xl text-sm">
+                                <input type="text" id="wilaya-name" placeholder="اسم الولاية (مثال: الجلفة) *" required class="border p-3 rounded-xl text-sm">
+                                <input type="number" id="wilaya-office-cost" placeholder="سعر التوصيل للمكتب (دج) (مثال: 800) *" required class="border p-3 rounded-xl text-sm">
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-bold text-xs text-[#B8860B]"><i class="fa-solid fa-map-location-dot"></i> تحديد أسعار البلديات التابعة تفصيلياً:</h4>
+                                    <button type="button" onclick="addCommunePriceRow()" class="bg-black text-white text-xs px-3 py-1.5 rounded-lg font-bold">+ إضافة بلدية وسعرها</button>
+                                </div>
+                                <div id="communes-custom-list" class="space-y-2">
+                                    <!-- حقول أدخال اسم البلدية وسعرها -->
+                                </div>
+                            </div>
+
+                            <button type="submit" id="save-wilaya-btn" class="w-full bg-black text-white font-bold py-3.5 rounded-xl hover:bg-[#D4AF37] hover:text-black transition">حفظ بيانات الولاية والتسعير التفصيلي</button>
                         </form>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl border">
-                        <h3 class="font-bold text-lg mb-4">قائمة الولايات المسجلة وأسعارها</h3>
+
+                    <!-- قائمة الولايات والبلديات المسجلة للتعديل والحذف -->
+                    <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                        <h3 class="font-bold text-lg mb-4 border-b pb-2">قائمة الولايات المسجلة وأسعارها التنافسية</h3>
                         <div id="admin-wilayas-list" class="space-y-3"></div>
                     </div>
                 </div>
@@ -672,8 +715,8 @@
             <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 text-2xl shadow-lg">
                 <i class="fa-solid fa-trash-can"></i>
             </div>
-            <h3 class="text-xl font-black text-white">حذف الطلبية؟</h3>
-            <p id="confirm-message" class="text-sm text-gray-300 leading-relaxed">هل أنت تأكد من رغبتك في حذف هذه الطلبية نهائياً؟</p>
+            <h3 class="text-xl font-black text-white">حذف العنصر؟</h3>
+            <p id="confirm-message" class="text-sm text-gray-300 leading-relaxed">هل أنت تأكد من رغبتك في الحذف نهائياً؟</p>
             <div class="flex gap-3">
                 <button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-red-700 transition">نعم، حذف</button>
                 <button onclick="closeCustomConfirm()" class="flex-1 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-700 transition">إلغاء</button>
