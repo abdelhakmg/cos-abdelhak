@@ -1,31 +1,43 @@
-// admin.js - إدارة لوحة التحكم والتحقق من الأمان
+// js/admin.js - إدارة لوحة التحكم والتحقق المباشر من الأمان
 
-// كلمة المرور الافتراضية للوحة التحكم
+// كلمة المرور الافتراضية (123456) أو المسجلة سابقاً
 let adminPassword = localStorage.getItem('lb_admin_pass_v7') || '123456';
 
-// التحقق من كلمة المرور عند محاولة الدخول
+// التحقق الفوري من كلمة المرور
 function checkAdminPassword() {
     const inputEl = document.getElementById('admin-pass-input');
-    if (!inputEl) return;
+    if (!inputEl) {
+        alert('حدث خطأ: حقل كلمة المرور غير موجود');
+        return;
+    }
 
-    const inputVal = inputEl.value.trim();
+    const inputVal = inputEl.value ? inputEl.value.trim() : '';
 
     if (inputVal === adminPassword) {
-        // كلمة المرور صحيحة
-        document.getElementById('admin-auth-modal').style.display = 'none';
-        document.getElementById('admin-auth-modal').classList.add('hidden');
-        inputEl.value = ''; // تفريغ الحقل
+        // كلمة المرور صحيحة - إغلاق النافذة والدخول
+        const modal = document.getElementById('admin-auth-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+        }
+        inputEl.value = ''; // مسح الحقل للأمان
         
-        // الانتقال لصفحة لوحة التحكم
+        // فتح صفحة التحكم
         showPage('admin');
-        renderAdminDashboard();
+        if (typeof renderAdminDashboard === 'function') {
+            renderAdminDashboard();
+        }
     } else {
         // كلمة المرور خاطئة
-        showCustomAlert('خطأ في الدخول ❌', 'كلمة المرور غير صحيحة! يرجى المحاولة مرة أخرى (كلمة السر الافتراضية هي: 123456)', false);
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('خطأ في الدخول ❌', 'كلمة المرور غير صحيحة! جرب كلمة السر الافتراضية: 123456', false);
+        } else {
+            alert('كلمة المرور غير صحيحة! كلمة السر الافتراضية هي: 123456');
+        }
     }
 }
 
-// إضافة إمكانية الضغط على Enter في حقل كلمة المرور
+// تشغيل زر Enter عند كتابة كلمة السر
 document.addEventListener('DOMContentLoaded', () => {
     const passInput = document.getElementById('admin-pass-input');
     if (passInput) {
@@ -56,7 +68,7 @@ function switchAdminTab(tabName) {
     }
 }
 
-// عرض وإدارة الطلبيات والإحصائيات
+// عرض الإحصائيات والبيانات
 function renderAdminDashboard() {
     renderAnalyticsStats();
     renderOrdersLog();
@@ -69,15 +81,17 @@ function renderAdminDashboard() {
 
 function renderAnalyticsStats() {
     let totalSales = 0;
-    let ordersCount = orders.length;
+    let ordersCount = typeof orders !== 'undefined' ? orders.length : 0;
     let completedOrders = 0;
 
-    orders.forEach(o => {
-        if (o.status === 'مكتملاً' || o.status === 'مؤكد') {
-            totalSales += (o.total || 0);
-            completedOrders++;
-        }
-    });
+    if (typeof orders !== 'undefined') {
+        orders.forEach(o => {
+            if (o.status === 'مكتملاً' || o.status === 'مؤكد') {
+                totalSales += (o.total || 0);
+                completedOrders++;
+            }
+        });
+    }
 
     const avgOrder = ordersCount > 0 ? Math.round(totalSales / ordersCount) : 0;
     const successRate = ordersCount > 0 ? Math.round((completedOrders / ordersCount) * 100) : 0;
@@ -96,7 +110,7 @@ function renderAnalyticsStats() {
 function renderOrdersLog() {
     const tbody = document.getElementById('admin-orders-log');
     const filterStatus = document.getElementById('order-status-filter')?.value || 'الجميع';
-    if (!tbody) return;
+    if (!tbody || typeof orders === 'undefined') return;
 
     let filteredOrders = [...orders];
 
@@ -110,9 +124,9 @@ function renderOrdersLog() {
     }
 
     tbody.innerHTML = filteredOrders.map((o, idx) => `
-        <tr class="border-b hover:bg-gray-50 text-xs">
+        <tr class="border-b hover:bg-gray-50 text-xs text-gray-900">
             <td class="p-3">
-                <p class="font-bold text-gray-900">${o.customer || 'غير محدد'}</p>
+                <p class="font-bold">${o.customer || 'غير محدد'}</p>
                 <p class="text-gray-500 font-mono">${o.phone || ''}</p>
             </td>
             <td class="p-3">
@@ -145,59 +159,42 @@ function renderOrdersLog() {
 }
 
 function updateOrderStatus(orderId, newStatus) {
-    db.collection("orders").doc(orderId).update({ status: newStatus }).then(() => {
-        renderAdminDashboard();
-    }).catch(() => {
-        // fallback للـ arrays المحلية
-        const ord = orders.find((o, idx) => o.id === orderId || idx == orderId);
-        if (ord) ord.status = newStatus;
-        renderAdminDashboard();
-    });
-}
-
-function deleteOrder(orderId) {
-    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الطلبية؟')) {
-        db.collection("orders").doc(orderId).delete().then(() => {
-            renderAdminDashboard();
-        }).catch(() => {
-            orders = orders.filter((o, idx) => o.id !== orderId && idx != orderId);
+    if (typeof db !== 'undefined') {
+        db.collection("orders").doc(orderId).update({ status: newStatus }).then(() => {
             renderAdminDashboard();
         });
     }
 }
 
-// تصدير للـ Excel
-function exportOrdersToExcel() {
-    if (!orders || orders.length === 0) {
-        showCustomAlert('تنبيه', 'لا توجد طلبيات لتصديرها.', false);
-        return;
+function deleteOrder(orderId) {
+    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الطلبية؟')) {
+        if (typeof db !== 'undefined') {
+            db.collection("orders").doc(orderId).delete().then(() => {
+                renderAdminDashboard();
+            });
+        }
     }
-    const ws = XLSX.utils.json_to_sheet(orders);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "الطلبيات");
-    XLSX.writeFile(wb, `طلبيات_كوسمتيك_عبد_الحق_${new Date().toLocaleDateString('ar-DZ')}.xlsx`);
 }
 
-// إدارة المنتجات
 function renderAdminProducts() {
     const tbody = document.getElementById('admin-products-tbody');
     const catSelect = document.getElementById('prod-category-select');
     const brandSelect = document.getElementById('prod-brand-select');
 
-    if (catSelect) {
+    if (catSelect && typeof categories !== 'undefined') {
         catSelect.innerHTML = '<option value="">اختر الفئة... *</option>' + 
             categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
 
-    if (brandSelect) {
+    if (brandSelect && typeof brands !== 'undefined') {
         brandSelect.innerHTML = '<option value="">اختر الماركة (اختياري)...</option>' + 
             brands.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
     }
 
-    if (!tbody) return;
+    if (!tbody || typeof products === 'undefined') return;
 
     tbody.innerHTML = products.map((p) => `
-        <tr class="border-b text-xs">
+        <tr class="border-b text-xs text-gray-900">
             <td class="p-3"><img src="${(p.images && p.images[0]) || 'https://via.placeholder.com/40'}" class="w-10 h-10 object-contain rounded-lg bg-black"></td>
             <td class="p-3 font-bold">${p.name}</td>
             <td class="p-3 text-gray-500">${p.category || '-'}</td>
@@ -233,18 +230,20 @@ function handleSaveProduct(e) {
 
     const prodData = { name, price, oldPrice, category, brand, inStock, desc, images };
 
-    if (id) {
-        db.collection("products").doc(id).update(prodData).then(() => {
-            resetProductForm();
-            renderAdminDashboard();
-            showCustomAlert('تم التحديث', 'تم تعديل المنتج بنجاح!', true);
-        });
-    } else {
-        db.collection("products").add(prodData).then(() => {
-            resetProductForm();
-            renderAdminDashboard();
-            showCustomAlert('تمت الإضافة', 'تمت إضافة المنتج بنجاح!', true);
-        });
+    if (typeof db !== 'undefined') {
+        if (id) {
+            db.collection("products").doc(id).update(prodData).then(() => {
+                resetProductForm();
+                renderAdminDashboard();
+                showCustomAlert('تم التحديث', 'تم تعديل المنتج بنجاح!', true);
+            });
+        } else {
+            db.collection("products").add(prodData).then(() => {
+                resetProductForm();
+                renderAdminDashboard();
+                showCustomAlert('تمت الإضافة', 'تمت إضافة المنتج بنجاح!', true);
+            });
+        }
     }
 }
 
@@ -283,14 +282,15 @@ function resetProductForm() {
 
 function deleteProduct(id) {
     if (confirm('هل أنت تأكد من رغبتك في حذف هذا المنتج؟')) {
-        db.collection("products").doc(id).delete().then(() => {
-            renderAdminDashboard();
-            showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
-        });
+        if (typeof db !== 'undefined') {
+            db.collection("products").doc(id).delete().then(() => {
+                renderAdminDashboard();
+                showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
+            });
+        }
     }
 }
 
-// رفع الصور وتحويلها لروابط Base64
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
@@ -302,51 +302,22 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
-// باقي عمليات الحفظ للإعدادات والماركات والفئات
-function handleSaveBrand(e) {
-    e.preventDefault();
-    const name = document.getElementById('brand-name-input').value.trim();
-    if (!name) return;
-
-    db.collection("brands").add({ name }).then(() => {
-        document.getElementById('brand-name-input').value = '';
-        renderAdminDashboard();
-    });
-}
-
 function renderAdminBrands() {
     const container = document.getElementById('admin-brands-list');
-    if (!container) return;
+    if (!container || typeof brands === 'undefined') return;
     container.innerHTML = brands.map(b => `
-        <div class="bg-gray-100 p-3 rounded-xl flex justify-between items-center text-xs font-bold">
+        <div class="bg-gray-100 p-3 rounded-xl flex justify-between items-center text-xs font-bold text-gray-900">
             <span>${b.name}</span>
             <button onclick="deleteBrand('${b.id}')" class="text-red-600 hover:text-red-800"><i class="fa-solid fa-xmark"></i></button>
         </div>
     `).join('');
 }
 
-function deleteBrand(id) {
-    db.collection("brands").doc(id).delete().then(() => renderAdminDashboard());
-}
-
-function handleSaveCategory(e) {
-    e.preventDefault();
-    const name = document.getElementById('cat-name-input').value.trim();
-    const image = document.getElementById('cat-img-input').value.trim();
-    if (!name || !image) return;
-
-    db.collection("categories").add({ name, image }).then(() => {
-        document.getElementById('cat-name-input').value = '';
-        document.getElementById('cat-img-input').value = '';
-        renderAdminDashboard();
-    });
-}
-
 function renderAdminCategories() {
     const container = document.getElementById('admin-categories-list');
-    if (!container) return;
+    if (!container || typeof categories === 'undefined') return;
     container.innerHTML = categories.map(c => `
-        <div class="bg-gray-100 p-3 rounded-xl flex justify-between items-center text-xs font-bold">
+        <div class="bg-gray-100 p-3 rounded-xl flex justify-between items-center text-xs font-bold text-gray-900">
             <div class="flex items-center gap-2">
                 <img src="${c.image}" class="w-8 h-8 rounded-lg object-cover">
                 <span>${c.name}</span>
@@ -356,17 +327,13 @@ function renderAdminCategories() {
     `).join('');
 }
 
-function deleteCategory(id) {
-    db.collection("categories").doc(id).delete().then(() => renderAdminDashboard());
-}
-
 function renderAdminWilayas() {
     const container = document.getElementById('admin-wilayas-list');
-    if (!container) return;
+    if (!container || typeof WILAYAS === 'undefined') return;
     container.innerHTML = WILAYAS.map(w => `
-        <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs">
+        <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs text-gray-900">
             <div>
-                <span class="font-bold text-gray-900">${w.code} - ${w.name}</span>
+                <span class="font-bold">${w.code} - ${w.name}</span>
                 <p class="text-gray-500">المنزل: ${w.homeCost} دج | المكتب: ${w.officeCost} دج</p>
             </div>
         </div>
@@ -374,6 +341,7 @@ function renderAdminWilayas() {
 }
 
 function renderSettingsTab() {
+    if (typeof storeSettings === 'undefined') return;
     const nameInput = document.getElementById('set-store-name');
     const sloganInput = document.getElementById('set-store-slogan');
     const logoInput = document.getElementById('set-logo-url');
@@ -400,9 +368,11 @@ function handleSaveSettings(e) {
 
     const settingsData = { name, slogan, logoUrl, metaPixelId };
 
-    db.collection("settings").doc("main").set(settingsData, { merge: true }).then(() => {
-        storeSettings = { ...storeSettings, ...settingsData };
-        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
-        showCustomAlert('تم الحفظ', 'تمت تحديث كافة إعدادات المتجر بنجاح!', true);
-    });
+    if (typeof db !== 'undefined') {
+        db.collection("settings").doc("main").set(settingsData, { merge: true }).then(() => {
+            if (typeof storeSettings !== 'undefined') storeSettings = { ...storeSettings, ...settingsData };
+            if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
+            showCustomAlert('تم الحفظ', 'تمت تحديث كافة إعدادات المتجر بنجاح!', true);
+        });
+    }
 }
