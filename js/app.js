@@ -360,7 +360,6 @@ function updateCartCalculations() {
     if (subtotalEl) subtotalEl.innerText = subtotal.toLocaleString() + ' دج';
     if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية والبلدية';
     
-    // المجموع الكلي الدقيق = مجموع المنتجات + تكلفة التوصيل
     const grandTotal = subtotal + shipCost;
     if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' دج';
 }
@@ -553,25 +552,36 @@ function updateAppHeaderInfo() {
     }
 }
 
+// دالة متطورة لتنقل الإشعارات تلقائياً بين جميع الطلبيات المسجلة بدلاً من طلب واحد فقط
+let currentOrderTickerIndex = 0;
 function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
     const spCustomer = document.getElementById('sp-customer');
     const spProduct = document.getElementById('sp-product');
     if (!toast || !spCustomer || !spProduct) return;
 
-    setInterval(() => {
-        if (!orders || orders.length === 0) return;
-        const latestOrder = orders[orders.length - 1];
+    if (window.ordersTickerTimer) clearInterval(window.ordersTickerTimer);
 
-        spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
-        spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
+    window.ordersTickerTimer = setInterval(() => {
+        if (!orders || orders.length === 0) return;
+        
+        if (currentOrderTickerIndex >= orders.length) {
+            currentOrderTickerIndex = 0;
+        }
+
+        const currentOrder = orders[currentOrderTickerIndex];
+
+        spCustomer.innerText = `${currentOrder.customer || 'زبون'} من ${currentOrder.wilaya || 'الجزائر'}`;
+        spProduct.innerText = `اشترى ${currentOrder.product || 'منتج'} منذ قليل`;
         
         toast.classList.remove('translate-y-28', 'opacity-0');
 
         setTimeout(() => {
             toast.classList.add('translate-y-28', 'opacity-0');
         }, 4500);
-    }, 20000);
+
+        currentOrderTickerIndex++;
+    }, 12000);
 }
 
 updateAppHeaderInfo();
