@@ -82,20 +82,24 @@ function switchAdminTab(tabName) {
 function populateAdminDropdowns() {
     const catSelect = document.getElementById('prod-category-select');
     if (catSelect) {
+        const catList = (typeof categories !== 'undefined' && Array.isArray(categories)) ? categories : [];
         catSelect.innerHTML = '<option value="">-- اختر الفئة / القسم * --</option>' + 
-            categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            catList.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
 
     const brandSelect = document.getElementById('prod-brand-select');
     if (brandSelect) {
-        const brandList = (typeof brands !== 'undefined' && brands.length > 0) ? brands : ["Dior", "Chanel", "Gucci", "Versace", "عام"];
+        const brandList = (typeof brands !== 'undefined' && Array.isArray(brands) && brands.length > 0) ? brands : ["Dior", "Chanel", "Gucci", "Versace", "عام"];
         brandSelect.innerHTML = '<option value="">-- اختر العلامة التجارية (الماركة) --</option>' + 
-            brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
+            brandList.map(b => {
+                const bName = (typeof b === 'object' && b !== null) ? (b.name || '') : b;
+                return `<option value="${bName}">${bName}</option>`;
+            }).join('');
     }
 
     const brandsListContainer = document.getElementById('admin-brands-list');
     if (brandsListContainer) {
-        const brandList = (typeof brands !== 'undefined' && brands.length > 0) ? brands : [];
+        const brandList = (typeof brands !== 'undefined' && Array.isArray(brands)) ? brands : [];
         if (brandList.length === 0) {
             brandsListContainer.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد ماركات مضافة بعد.</p>';
         } else {
@@ -441,75 +445,112 @@ function deleteBrand(index) {
     }
 }
 
-// دالة حفظ المنتج متضمنة (بشرة، شعر، ألوان، أرقام)
+// دالة حفظ المنتج المصححة بالكامل
 function handleSaveProduct(e) {
     if (e) e.preventDefault();
 
-    const editId = document.getElementById('editing-product-id').value;
-    const name = document.getElementById('prod-name').value.trim();
-    const price = parseFloat(document.getElementById('prod-price').value) || 0;
-    const oldPrice = parseFloat(document.getElementById('prod-old-price').value) || null;
-    const category = document.getElementById('prod-category-select').value;
-    const brand = document.getElementById('prod-brand-select').value;
-    const inStock = document.getElementById('prod-in-stock').value === 'true';
-    
-    // الخصائص الجديدة
-    const skinType = document.getElementById('prod-skin-type').value;
-    const hairType = document.getElementById('prod-hair-type').value;
-    const colors = document.getElementById('prod-colors').value.trim();
-    const numbers = document.getElementById('prod-numbers').value.trim();
+    try {
+        const editId = document.getElementById('editing-product-id') ? document.getElementById('editing-product-id').value : '';
+        const nameInput = document.getElementById('prod-name');
+        const priceInput = document.getElementById('prod-price');
+        const catSelect = document.getElementById('prod-category-select');
+        const img1Input = document.getElementById('prod-img-main');
 
-    const hasCountdown = document.getElementById('prod-has-countdown').checked;
-    const countdownHours = parseFloat(document.getElementById('prod-countdown-hours').value) || 0;
-    const desc = document.getElementById('prod-desc').value.trim();
+        if (!nameInput || !priceInput || !catSelect || !img1Input) {
+            showCustomAlert('خطأ', 'تعذر العثور على حقول الإدخال الأساسية!', false);
+            return;
+        }
 
-    const img1 = document.getElementById('prod-img-main').value.trim();
-    const img2 = document.getElementById('prod-img-2').value.trim();
-    const img3 = document.getElementById('prod-img-3').value.trim();
+        const name = nameInput.value.trim();
+        const price = parseFloat(priceInput.value) || 0;
+        const oldPriceVal = document.getElementById('prod-old-price') ? document.getElementById('prod-old-price').value : '';
+        const oldPrice = oldPriceVal ? parseFloat(oldPriceVal) : null;
+        const category = catSelect.value;
+        const brand = document.getElementById('prod-brand-select') ? document.getElementById('prod-brand-select').value : '';
+        const inStock = document.getElementById('prod-in-stock') ? (document.getElementById('prod-in-stock').value === 'true') : true;
 
-    if (!name || !price || !category || !img1) {
-        showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية (الاسم، السعر، الفئة، والصورة الرئيسية)!', false);
-        return;
-    }
+        const skinType = document.getElementById('prod-skin-type') ? document.getElementById('prod-skin-type').value : '';
+        const hairType = document.getElementById('prod-hair-type') ? document.getElementById('prod-hair-type').value : '';
+        const colors = document.getElementById('prod-colors') ? document.getElementById('prod-colors').value.trim() : '';
+        const numbers = document.getElementById('prod-numbers') ? document.getElementById('prod-numbers').value.trim() : '';
 
-    const images = [img1, img2, img3].filter(img => img.length > 0);
+        const hasCountdownCheckbox = document.getElementById('prod-has-countdown');
+        const hasCountdown = hasCountdownCheckbox ? hasCountdownCheckbox.checked : false;
+        const countdownHoursVal = document.getElementById('prod-countdown-hours') ? document.getElementById('prod-countdown-hours').value : '';
+        const countdownHours = countdownHoursVal ? parseFloat(countdownHoursVal) : 0;
+        const desc = document.getElementById('prod-desc') ? document.getElementById('prod-desc').value.trim() : '';
 
-    const productData = {
-        name: name,
-        price: price,
-        oldPrice: oldPrice,
-        category: category,
-        brand: brand,
-        inStock: inStock,
-        skinType: skinType,
-        hairType: hairType,
-        colors: colors,
-        numbers: numbers,
-        hasCountdown: hasCountdown,
-        countdownHours: countdownHours,
-        desc: desc,
-        images: images,
-        updatedAt: new Date()
-    };
+        const img1 = img1Input.value.trim();
+        const img2 = document.getElementById('prod-img-2') ? document.getElementById('prod-img-2').value.trim() : '';
+        const img3 = document.getElementById('prod-img-3') ? document.getElementById('prod-img-3').value.trim() : '';
 
-    if (editId) {
-        db.collection("products").doc(editId).update(productData).then(() => {
-            resetProductForm();
-            showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
-        });
-    } else {
-        db.collection("products").add({
-            ...productData,
-            createdAt: new Date()
-        }).then(() => {
-            resetProductForm();
-            showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
-        });
+        if (!name || !price || !category || !img1) {
+            showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية (اسم المنتج، السعر، الفئة، والصورة الرئيسية)!', false);
+            return;
+        }
+
+        const images = [img1, img2, img3].filter(img => img && img.length > 0);
+
+        const productData = {
+            name: name,
+            price: price,
+            oldPrice: oldPrice,
+            category: category,
+            brand: brand,
+            inStock: inStock,
+            skinType: skinType,
+            hairType: hairType,
+            colors: colors,
+            numbers: numbers,
+            hasCountdown: hasCountdown,
+            countdownHours: countdownHours,
+            desc: desc,
+            images: images,
+            updatedAt: new Date()
+        };
+
+        const saveBtn = document.getElementById('save-product-btn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'جاري الحفظ... ⏳';
+        }
+
+        if (editId) {
+            db.collection("products").doc(editId).update(productData).then(() => {
+                resetProductForm();
+                showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
+            }).catch(err => {
+                showCustomAlert('خطأ', 'حدث خطأ أثناء التحديث: ' + err.message, false);
+            }).finally(() => {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'تحديث بيانات المنتج';
+                }
+            });
+        } else {
+            db.collection("products").add({
+                ...productData,
+                createdAt: new Date()
+            }).then(() => {
+                resetProductForm();
+                showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
+            }).catch(err => {
+                showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ المنتج: ' + err.message, false);
+            }).finally(() => {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'حفظ المنتج';
+                }
+            });
+        }
+    } catch (err) {
+        showCustomAlert('خطأ في البيانات', 'يرجى التأكد من ملء الحقول بالشكل الصحيح: ' + err.message, false);
     }
 }
 
 function resetProductForm() {
-    document.getElementById('product-edit-form').reset();
+    const form = document.getElementById('product-edit-form');
+    if (form) form.reset();
     document.getElementById('editing-product-id').value = '';
     document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع خصائص البشرة، الشعر، الألوان والأرقام)';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
