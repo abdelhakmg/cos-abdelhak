@@ -23,6 +23,10 @@ function handleLogoClick(event) {
     }
 }
 
+function handleGiftSection() {
+    showCustomAlert('هديتك 🎁', 'قريباً! نجهز لكم مفاجآت وقسائم هدايا مميزة لزبائننا الكرام.', true);
+}
+
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -182,7 +186,7 @@ function showPage(pageId) {
     if (pageId === 'wishlist') renderWishlistPage();
 }
 
-// تصميم بطاقات المنتجات المضيئة (Gold Glow Cards)
+// بطاقات المنتجات المضيئة والتفاعل المباشر (Gold Glow Cards)
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     const isFav = favorites.includes(p.id);
@@ -276,17 +280,19 @@ function addToCart(id) {
     }
 }
 
+// عرض السلة وتكامل استمارة الشراء
 function renderCart() {
     const cartList = document.getElementById('cart-list');
     const subtotalEl = document.getElementById('subtotal');
-    const totalEl = document.getElementById('total');
 
     if (!cartList) return;
+
+    populateCartWilayas();
 
     if (cart.length === 0) {
         cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p>';
         if (subtotalEl) subtotalEl.innerText = '0 دج';
-        if (totalEl) totalEl.innerText = '0 دج';
+        calculateCartTotal();
         return;
     }
 
@@ -310,9 +316,46 @@ function renderCart() {
         `;
     }).join('');
 
-    const shipping = 500;
     if (subtotalEl) subtotalEl.innerText = subtotal.toLocaleString() + ' دج';
-    if (totalEl) totalEl.innerText = (subtotal + shipping).toLocaleString() + ' دج';
+    calculateCartTotal();
+}
+
+function populateCartWilayas() {
+    const select = document.getElementById('cart-cust-wilaya');
+    if (!select || select.options.length > 1) return;
+    select.innerHTML = '<option value="">اختر الولاية...</option>' + 
+        WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
+}
+
+function handleCartWilayaChange() {
+    const code = document.getElementById('cart-cust-wilaya').value;
+    const wilaya = WILAYAS.find(w => w.code === code);
+    const communeSelect = document.getElementById('cart-cust-commune');
+    
+    if (wilaya && communeSelect) {
+        communeSelect.innerHTML = wilaya.communes.map(c => `<option value="${c}">${c}</option>`).join('');
+    } else if (communeSelect) {
+        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
+    }
+    calculateCartTotal();
+}
+
+function calculateCartTotal() {
+    let subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
+    const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
+    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
+
+    let shipCost = 0;
+    if (wilaya) {
+        shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+    }
+
+    const shipEl = document.getElementById('shipping-cost');
+    const totalEl = document.getElementById('total');
+
+    if (shipEl) shipEl.innerText = wilaya ? shipCost.toLocaleString() + ' دج' : 'حدد الولاية (0 دج)';
+    if (totalEl) totalEl.innerText = (subtotal + shipCost).toLocaleString() + ' دج';
 }
 
 function removeFromCart(idx) {
@@ -327,7 +370,57 @@ function submitCartCheckout() {
         showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
         return;
     }
-    showCustomAlert('طلب جاري!', 'لإكمال الشراء بسرعة والدفع عند الاستلام، يرجى الاستمرار من الشراء المباشر لكل منتج.', true);
+
+    const name = document.getElementById('cart-cust-name').value.trim();
+    const phone = document.getElementById('cart-cust-phone').value.trim();
+    const wilayaCode = document.getElementById('cart-cust-wilaya').value;
+    const commune = document.getElementById('cart-cust-commune').value;
+
+    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
+    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
+
+    if (!name || !phone || !wilayaCode) {
+        showCustomAlert('تنبيه هام!', warnMsg, false);
+        return;
+    }
+
+    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
+    const shipCost = shipType === 'home' ? wilaya.homeCost : wilaya.officeCost;
+    
+    const subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
+    const totalAmount = subtotal + shipCost;
+
+    const productsSummary = cart.map(item => item.name).join(' + ');
+
+    const newOrder = {
+        customer: name,
+        phone: phone,
+        wilaya: wilaya.name,
+        commune: commune,
+        product: `سلة متكاملة: (${productsSummary})`,
+        total: totalAmount,
+        status: 'جديد',
+        date: new Date().toLocaleDateString('ar-DZ'),
+        createdAt: new Date()
+    };
+
+    db.collection("orders").add(newOrder).then(() => {
+        if (typeof trackPixelEvent === 'function') {
+            trackPixelEvent('Purchase', {
+                value: totalAmount,
+                currency: 'DZD',
+                content_name: productsSummary
+            });
+        }
+
+        cart = [];
+        localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
+        updateBadges();
+        
+        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
+        showPage('home');
+    });
 }
 
 function filterCategory(catName) {
