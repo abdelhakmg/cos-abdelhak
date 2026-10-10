@@ -34,15 +34,18 @@ function handleLiveSearch(query) {
         return;
     }
 
-    const matches = products.filter(p => 
-        (p.name && p.name.toLowerCase().includes(q)) || 
-        (p.category && p.category.toLowerCase().includes(q)) ||
-        (p.brand && p.brand.toLowerCase().includes(q)) ||
-        (p.skinType && p.skinType.toLowerCase().includes(q)) ||
-        (p.hairType && p.hairType.toLowerCase().includes(q)) ||
-        (p.colors && p.colors.toLowerCase().includes(q)) ||
-        (p.numbers && p.numbers.toLowerCase().includes(q))
-    ).slice(0, 5);
+    const matches = products.filter(p => {
+        const skinsStr = Array.isArray(p.skinTypes) ? p.skinTypes.join(' ') : (p.skinType || '');
+        const hairsStr = Array.isArray(p.hairTypes) ? p.hairTypes.join(' ') : (p.hairType || '');
+        
+        return (p.name && p.name.toLowerCase().includes(q)) || 
+               (p.category && p.category.toLowerCase().includes(q)) ||
+               (p.brand && p.brand.toLowerCase().includes(q)) ||
+               skinsStr.toLowerCase().includes(q) ||
+               hairsStr.toLowerCase().includes(q) ||
+               (p.colors && p.colors.toLowerCase().includes(q)) ||
+               (p.numbers && p.numbers.toLowerCase().includes(q));
+    }).slice(0, 5);
 
     let htmlContent = '';
     if (matches.length === 0) {
@@ -74,11 +77,7 @@ function handleSearchKeydown(event, query) {
         event.preventDefault();
         const q = query.trim().toLowerCase();
         if (!q) return;
-        const found = products.find(p => 
-            (p.name && p.name.toLowerCase().includes(q)) ||
-            (p.hairType && p.hairType.toLowerCase().includes(q)) ||
-            (p.skinType && p.skinType.toLowerCase().includes(q))
-        );
+        const found = products.find(p => (p.name && p.name.toLowerCase().includes(q)));
         hideAllDropdowns();
         if (found) {
             openLandingPage(found.id);
@@ -95,6 +94,140 @@ function hideAllDropdowns() {
     if (mobileDropdown) mobileDropdown.classList.add('hidden');
 }
 
+// إنشاء شريط الفلترة الجانبي ديناميكياً مع العداد المباشر للمنتجات
+function renderDynamicSidebarFilters() {
+    const skinContainer = document.getElementById('filter-skin-types');
+    const hairContainer = document.getElementById('filter-hair-types');
+
+    if (skinContainer && typeof availableSkinTypes !== 'undefined') {
+        skinContainer.innerHTML = availableSkinTypes.map(st => {
+            // حساب العداد المباشر
+            const count = products.filter(p => {
+                const skins = Array.isArray(p.skinTypes) ? p.skinTypes : [p.skinType];
+                const pText = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
+                return skins.includes(st) || pText.includes(st.toLowerCase());
+            }).length;
+
+            return `
+                <label class="flex items-center justify-between cursor-pointer group py-0.5">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]">
+                        <span class="group-hover:text-white transition">${st}</span>
+                    </div>
+                    <span class="bg-gray-800 text-[10px] text-[#D4AF37] px-2 py-0.5 rounded-full font-bold">${count}</span>
+                </label>
+            `;
+        }).join('');
+    }
+
+    if (hairContainer && typeof availableHairTypes !== 'undefined') {
+        hairContainer.innerHTML = availableHairTypes.map(ht => {
+            // حساب العداد المباشر
+            const count = products.filter(p => {
+                const hairs = Array.isArray(p.hairTypes) ? p.hairTypes : [p.hairType];
+                const pText = ((p.name || '') + ' ' + (p.desc || '') + ' ' + (p.category || '')).toLowerCase();
+                const keyword = ht.replace('الشعر', '').trim().toLowerCase();
+                return hairs.includes(ht) || pText.includes(keyword);
+            }).length;
+
+            return `
+                <label class="flex items-center justify-between cursor-pointer group py-0.5">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]">
+                        <span class="group-hover:text-white transition">${ht}</span>
+                    </div>
+                    <span class="bg-gray-800 text-[10px] text-[#D4AF37] px-2 py-0.5 rounded-full font-bold">${count}</span>
+                </label>
+            `;
+        }).join('');
+    }
+}
+
+// دالة الفلترة الشاملة الذكية المحدثة
+function applyFilters() {
+    if (!products || !Array.isArray(products)) return;
+
+    let filtered = [...products];
+
+    if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
+        filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
+    }
+
+    const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
+    if (inStockOnly) {
+        filtered = filtered.filter(p => p.inStock === true);
+    }
+
+    const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
+    if (selectedSkinTypes.length > 0) {
+        filtered = filtered.filter(p => {
+            const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
+            const hasExplicitSkin = selectedSkinTypes.some(st => pSkins.includes(st));
+            const pText = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
+            const matchesText = selectedSkinTypes.some(type => pText.includes(type.toLowerCase()));
+            return hasExplicitSkin || matchesText;
+        });
+    }
+
+    const selectedHairTypes = Array.from(document.querySelectorAll('.hair-filter-cb:checked')).map(cb => cb.value);
+    if (selectedHairTypes.length > 0) {
+        filtered = filtered.filter(p => {
+            const pHairs = Array.isArray(p.hairTypes) ? p.hairTypes : (p.hairType ? [p.hairType] : []);
+            const hasExplicitHair = selectedHairTypes.some(ht => pHairs.includes(ht));
+            
+            const pText = ((p.name || '') + ' ' + (p.desc || '') + ' ' + (p.category || '')).toLowerCase();
+            const matchesText = selectedHairTypes.some(type => {
+                const keyword = type.replace('الشعر', '').trim().toLowerCase();
+                return pText.includes(keyword) || (keyword === 'الدهني' && pText.includes('شامبو'));
+            });
+
+            return hasExplicitHair || matchesText;
+        });
+    }
+
+    const priceRangeInput = document.getElementById('filter-price-range');
+    if (priceRangeInput) {
+        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
+        filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
+    }
+
+    const sortSelect = document.getElementById('sort-select');
+    const sortVal = sortSelect ? sortSelect.value : 'best';
+
+    if (sortVal === 'low') {
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortVal === 'high') {
+        filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+    } else {
+        filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
+    }
+
+    const catalogGrid = document.getElementById('catalog-products');
+    const badge = document.getElementById('products-count-badge');
+    
+    if (badge) badge.innerText = filtered.length;
+
+    if (catalogGrid) {
+        catalogGrid.innerHTML = filtered.length === 0 ? 
+            '<div class="col-span-full text-center py-12 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لهذه الخيارات حالياً.</p><button onclick="resetFilters()" class="text-xs text-[#D4AF37] underline font-bold">إعادة ضبط التصفية</button></div>' :
+            filtered.map(p => renderSingleProductCard(p)).join('');
+    }
+}
+
+function resetFilters() {
+    activeCategoryFilter = 'جميع المنتجات';
+    
+    const inStockCb = document.getElementById('filter-in-stock-only');
+    if (inStockCb) inStockCb.checked = false;
+
+    document.querySelectorAll('.skin-filter-cb, .hair-filter-cb').forEach(cb => cb.checked = false);
+
+    const priceRangeInput = document.getElementById('filter-price-range');
+    if (priceRangeInput) priceRangeInput.value = 20000;
+    
+    updatePriceFilter(20000);
+}
+
 function initBannerRealtimeSync() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
@@ -106,30 +239,19 @@ function initBannerRealtimeSync() {
             bannerMessages = ["🚚 التوصيل متوفر لجميع الولايات والدفع عند الاستلام"];
         }
 
-        if (currentBannerIdx >= bannerMessages.length) {
-            currentBannerIdx = 0;
-        }
-
+        if (currentBannerIdx >= bannerMessages.length) currentBannerIdx = 0;
         bannerEl.innerText = bannerMessages[currentBannerIdx];
         startBannerTicker();
-
-        if (typeof renderBannerTextsList === 'function') {
-            renderBannerTextsList();
-        }
     });
 }
 
 function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl) return;
-
-    if (window.bannerTickerTimer) {
-        clearInterval(window.bannerTickerTimer);
-    }
+    if (window.bannerTickerTimer) clearInterval(window.bannerTickerTimer);
 
     window.bannerTickerTimer = setInterval(() => {
         if (!bannerMessages || bannerMessages.length === 0) return;
-
         bannerEl.style.opacity = '0';
         setTimeout(() => {
             currentBannerIdx = (currentBannerIdx + 1) % bannerMessages.length;
@@ -142,7 +264,6 @@ function startBannerTicker() {
 function renderHeroSlider() {
     const container = document.getElementById('hero-slider-container');
     const dotsContainer = document.getElementById('hero-slider-dots');
-    
     if (!container || !heroSlides || heroSlides.length === 0) return;
 
     const currentSlide = heroSlides[currentHeroIdx];
@@ -195,9 +316,7 @@ function showPage(pageId) {
 
 function toggleMobileMenu() {
     const drawer = document.getElementById('mobile-drawer');
-    if (drawer) {
-        drawer.classList.toggle('hidden');
-    }
+    if (drawer) drawer.classList.toggle('hidden');
 }
 
 function renderSingleProductCard(p) {
@@ -264,13 +383,8 @@ function toggleFavorite(id) {
 function renderWishlistPage() {
     const grid = document.getElementById('wishlist-products-grid');
     if (!grid) return;
-
     const favProducts = products.filter(p => favorites.includes(p.id));
-    if (favProducts.length === 0) {
-        grid.innerHTML = '<p class="col-span-full text-center text-gray-400 py-12">لم تقم بإضافة أي منتج للمفضلة بعد.</p>';
-    } else {
-        grid.innerHTML = favProducts.map(p => renderSingleProductCard(p)).join('');
-    }
+    grid.innerHTML = favProducts.length === 0 ? '<p class="col-span-full text-center text-gray-400 py-12">لم تقم بإضافة أي منتج للمفضلة بعد.</p>' : favProducts.map(p => renderSingleProductCard(p)).join('');
 }
 
 function updateBadges() {
@@ -449,82 +563,10 @@ function filterCategory(catName) {
     showPage('catalog');
 }
 
-// دالة التصفية الشاملة المحدثة
-function applyFilters() {
-    let filtered = [...products];
-
-    // 1. فلترة الفئة / القسم
-    if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
-        filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
-    }
-
-    // 2. فلترة التوفر بالمخزون فقط
-    const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
-    if (inStockOnly) {
-        filtered = filtered.filter(p => p.inStock === true);
-    }
-
-    // 3. فلترة أنواع البشرة المحددة
-    const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
-    if (selectedSkinTypes.length > 0) {
-        filtered = filtered.filter(p => p.skinType && selectedSkinTypes.includes(p.skinType));
-    }
-
-    // 4. فلترة أنواع الشعر المحددة
-    const selectedHairTypes = Array.from(document.querySelectorAll('.hair-filter-cb:checked')).map(cb => cb.value);
-    if (selectedHairTypes.length > 0) {
-        filtered = filtered.filter(p => p.hairType && selectedHairTypes.includes(p.hairType));
-    }
-
-    // 5. فلترة السعر الأقصى
-    const priceRangeInput = document.getElementById('filter-price-range');
-    if (priceRangeInput) {
-        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
-        filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
-    }
-
-    // 6. الترتيب
-    const sortSelect = document.getElementById('sort-select');
-    const sortVal = sortSelect ? sortSelect.value : 'best';
-
-    if (sortVal === 'low') {
-        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-    } else if (sortVal === 'high') {
-        filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
-    } else {
-        filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
-    }
-
-    const catalogGrid = document.getElementById('catalog-products');
-    const badge = document.getElementById('products-count-badge');
-    
-    if (badge) badge.innerText = filtered.length;
-
-    if (catalogGrid) {
-        catalogGrid.innerHTML = filtered.length === 0 ? 
-            '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات مطابقة لهذه الخيارات حالياً.</p>' :
-            filtered.map(p => renderSingleProductCard(p)).join('');
-    }
-}
-
 function updatePriceFilter(val) {
     const valEl = document.getElementById('price-range-val');
     if (valEl) valEl.innerText = parseFloat(val).toLocaleString() + ' دج';
     applyFilters();
-}
-
-function resetFilters() {
-    activeCategoryFilter = 'جميع المنتجات';
-    
-    const inStockCb = document.getElementById('filter-in-stock-only');
-    if (inStockCb) inStockCb.checked = false;
-
-    document.querySelectorAll('.skin-filter-cb, .hair-filter-cb').forEach(cb => cb.checked = false);
-
-    const priceRangeInput = document.getElementById('filter-price-range');
-    if (priceRangeInput) priceRangeInput.value = 20000;
-    
-    updatePriceFilter(20000);
 }
 
 function renderProducts() {
@@ -600,21 +642,14 @@ function initRealOrdersTicker() {
 
     window.ordersTickerTimer = setInterval(() => {
         if (!orders || orders.length === 0) return;
-        
-        if (currentOrderTickerIndex >= orders.length) {
-            currentOrderTickerIndex = 0;
-        }
+        if (currentOrderTickerIndex >= orders.length) currentOrderTickerIndex = 0;
 
         const currentOrder = orders[currentOrderTickerIndex];
-
         spCustomer.innerText = `${currentOrder.customer || 'زبون'} من ${currentOrder.wilaya || 'الجزائر'}`;
         spProduct.innerText = `اشترى ${currentOrder.product || 'منتج'} منذ قليل`;
         
         toast.classList.remove('translate-y-28', 'opacity-0');
-
-        setTimeout(() => {
-            toast.classList.add('translate-y-28', 'opacity-0');
-        }, 4500);
+        setTimeout(() => toast.classList.add('translate-y-28', 'opacity-0'), 4500);
 
         currentOrderTickerIndex++;
     }, 12000);
