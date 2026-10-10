@@ -18,7 +18,7 @@
     <!-- Custom CSS Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black pb-20 md:pb-0">
+<body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
     <!-- Sticky Top Yellow Banner Ticker -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
@@ -73,30 +73,6 @@
         </div>
     </header>
 
-    <!-- App-like Bottom Nav Bar (شريط التنقل السفلي للهواتف) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 backdrop-blur-lg border-t border-[#D4AF37]/40 px-3 py-2 flex justify-around items-center text-white shadow-2xl">
-        <button onclick="showPage('home')" class="flex flex-col items-center gap-1 text-gray-300 hover:text-[#D4AF37] transition">
-            <i class="fa-solid fa-house text-lg"></i>
-            <span class="text-[10px] font-bold">الرئيسية</span>
-        </button>
-        <button onclick="handleGiftSection()" class="flex flex-col items-center gap-1 text-[#D4AF37] hover:scale-110 transition">
-            <i class="fa-solid fa-gift text-xl animate-bounce"></i>
-            <span class="text-[10px] font-extrabold gold-text">هديتك 🎁</span>
-        </button>
-        <button onclick="showPage('cart')" class="flex flex-col items-center gap-1 text-gray-300 hover:text-[#D4AF37] transition relative">
-            <i class="fa-solid fa-bag-shopping text-lg"></i>
-            <span class="text-[10px] font-bold">السلة</span>
-        </button>
-        <button onclick="showPage('wishlist')" class="flex flex-col items-center gap-1 text-gray-300 hover:text-[#D4AF37] transition relative">
-            <i class="fa-solid fa-heart text-lg"></i>
-            <span class="text-[10px] font-bold">المفضلة</span>
-        </button>
-        <a href="https://wa.me/213600000000" target="_blank" class="flex flex-col items-center gap-1 text-emerald-400">
-            <i class="fa-brands fa-whatsapp text-xl"></i>
-            <span class="text-[10px] font-bold">واتساب</span>
-        </a>
-    </nav>
-
     <!-- Mobile Drawer -->
     <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
         <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
@@ -120,20 +96,20 @@
         </div>
     </div>
 
-    <!-- Social Proof Toast (الطلبات الحقيقية بالاسم والولاية متدورة تلقائياً) -->
-    <div id="social-proof-toast" class="fixed bottom-24 right-4 z-40 bg-[#121212] border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs pointer-events-none">
+    <!-- Social Proof Toast (الطلبات الحقيقية بالاسم والولاية) -->
+    <div id="social-proof-toast" class="fixed bottom-20 right-4 z-40 bg-[#121212] border border-[#D4AF37]/50 p-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-28 opacity-0 transition-all duration-500 max-w-xs">
         <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center text-black font-black text-sm flex-shrink-0">
             <i class="fa-solid fa-bag-shopping"></i>
         </div>
         <div class="text-right">
             <p id="sp-customer" class="text-xs font-bold text-white">محمد من عنابة</p>
-            <p id="sp-product" class="text-[10px] text-[#D4AF37] font-bold">اشترى منتجاً منذ قليل</p>
+            <p id="sp-product" class="text-[10px] text-[#D4AF37] font-bold">اشترى عطر ديور فخامة</p>
         </div>
     </div>
 
     <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/213600000000" target="_blank" class="fixed bottom-20 left-6 z-40 w-12 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition p-2.5">
-        <i class="fa-brands fa-whatsapp text-2xl"></i>
+    <a href="https://wa.me/213600000000" target="_blank" class="fixed bottom-6 left-6 z-40 w-13 h-13 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition p-3">
+        <i class="fa-brands fa-whatsapp text-3xl"></i>
     </a>
 
     <main class="flex-grow">
@@ -240,7 +216,7 @@
 
                 <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-6 md:p-8 shadow-2xl mb-8 grid md:grid-cols-2 gap-8 text-right">
                     <div>
-                        <div class="bg-black rounded-2xl p-4 flex items-center justify-center border border-gray-800 h-80 relative group cursor-zoom-in" onclick="openLightbox(document.getElementById('landing-main-img').src)">
+                        <div class="bg-black rounded-2xl p-4 flex items-center justify-center border border-gray-800 h-80 relative group cursor-zoom-in" onclick="openLightbox()">
                             <img id="landing-main-img" class="max-h-full object-contain transition-all duration-300">
                             <span class="absolute bottom-3 left-3 bg-black/70 text-xs text-[#D4AF37] px-2.5 py-1 rounded-full border border-[#D4AF37]/30"><i class="fa-solid fa-expand"></i> تكبير الصورة</span>
                         </div>
@@ -266,8 +242,8 @@
                             <input type="text" id="cust-name" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-2 text-gray-300">رقم الهاتف (الجزائر) *</label>
-                            <input type="tel" id="cust-phone" maxlength="10" placeholder="مثال: 06XXXXXXXX" oninput="validatePhoneInput(this)" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37] font-mono">
+                            <label class="block text-xs font-bold mb-2 text-gray-300">رقم الهاتف *</label>
+                            <input type="tel" id="cust-phone" placeholder="06XXXXXXXX" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                         <div>
                             <label class="block text-xs font-bold mb-2 text-gray-300">الولاية *</label>
@@ -295,7 +271,7 @@
                     </div>
                     <div class="bg-black/60 p-5 rounded-2xl border border-gray-800 space-y-3 text-gray-300">
                         <div class="flex justify-between text-sm"><span>سعر المنتج:</span><span id="sum-prod-price" class="font-bold text-white">0 دج</span></div>
-                        <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold text-[#D4AF37]">0 دج (حدد الولاية)</span></div>
+                        <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold text-[#D4AF37]">0 دج</span></div>
                         <div class="border-t border-gray-800 pt-3 flex justify-between text-lg font-black"><span>المجموع الإجمالي:</span><span id="sum-total-price" class="gold-text">0 دج</span></div>
                     </div>
                     <button onclick="submitLandingOrder()" class="w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition">
@@ -344,57 +320,18 @@
             </div>
         </div>
 
-        <!-- 5. CART PAGE (السلة المحدثة بإستمارة الطلب الشاملة) -->
+        <!-- 5. CART PAGE -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
-                <h1 class="text-2xl font-black mb-8 text-right text-white">🛍️ سلة التسوق وإتمام الطلب المباشر</h1>
+                <h1 class="text-2xl font-black mb-8 text-right text-white">سلة التسوق والدفع</h1>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div id="cart-list" class="lg:col-span-2 bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 space-y-4 text-white"></div>
-                    
-                    <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-6 h-fit text-right space-y-5 text-white shadow-2xl">
-                        <h3 class="font-bold border-b border-gray-800 pb-3 gold-text text-lg">📝 استمارة معلومات التوصيل والدفع</h3>
-                        
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">الاسم واللقب *</label>
-                                <input type="text" id="cart-cust-name" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">رقم الهاتف (الجزائر) *</label>
-                                <input type="tel" id="cart-cust-phone" maxlength="10" placeholder="مثال: 0655001122" oninput="validatePhoneInput(this)" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37] font-mono">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">الولاية *</label>
-                                <select id="cart-cust-wilaya" onchange="handleCartWilayaChange()" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">البلدية *</label>
-                                <select id="cart-cust-commune" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">نوع التوصيل *</label>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <label class="border border-gray-800 rounded-xl p-2.5 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37]">
-                                        <input type="radio" name="cart_shipping_type" value="home" checked onchange="calculateCartTotal()" class="accent-[#D4AF37]">
-                                        <span class="text-xs font-bold text-white">توصيل للمنزل</span>
-                                    </label>
-                                    <label class="border border-gray-800 rounded-xl p-2.5 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37]">
-                                        <input type="radio" name="cart_shipping_type" value="office" onchange="calculateCartTotal()" class="accent-[#D4AF37]">
-                                        <span class="text-xs font-bold text-white">استلام من المكتب</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-black/60 p-4 rounded-xl border border-gray-800 space-y-2 text-xs text-gray-300">
-                            <div class="flex justify-between"><span>المجموع الفرعي:</span><span id="subtotal" class="font-bold text-white">0 دج</span></div>
-                            <div class="flex justify-between"><span>تكلفة التوصيل:</span><span id="shipping-cost" class="font-bold text-[#D4AF37]">0 دج (حدد الولاية)</span></div>
-                            <div class="border-t border-gray-800 pt-2 flex justify-between font-black text-base text-white"><span>المجموع الكلي:</span><span id="total" class="gold-text">0 دج</span></div>
-                        </div>
-
-                        <button onclick="submitCartCheckout()" class="w-full py-4 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition">
-                            إتمام وصرف الطلبية (الدفع عند الاستلام) 🚚
-                        </button>
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-6 h-fit text-right space-y-4 text-white">
+                        <h3 class="font-bold border-b border-gray-800 pb-3 gold-text">ملخص الطلب</h3>
+                        <div class="flex justify-between text-sm"><span class="text-gray-400">المجموع الفرعي</span><span id="subtotal">0 دج</span></div>
+                        <div class="flex justify-between text-sm"><span class="text-gray-400">رسوم التوصيل التقديرية</span><span>500 دج</span></div>
+                        <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-xl"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
+                        <button onclick="submitCartCheckout()" class="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition">إتمام الطلب لجميع عناصر السلة 🛍️</button>
                     </div>
                 </div>
             </div>
@@ -671,76 +608,7 @@
         </div>
     </main>
 
-    <!-- Bottom Sheet Checkout Modal (اللوحة السفلية المنبثقة للطلب السريع) -->
-    <div id="bottom-sheet-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeBottomSheet()"></div>
-    <div id="bottom-sheet-modal" class="fixed inset-x-0 bottom-0 z-50 bg-[#121212] border-t border-[#D4AF37]/40 rounded-t-[35px] p-6 text-white max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-500 ease-out shadow-2xl">
-        <div class="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-5 cursor-pointer" onclick="closeBottomSheet()"></div>
-        
-        <div class="flex justify-between items-start mb-4 pb-3 border-b border-gray-800">
-            <div>
-                <span id="bs-category" class="text-[10px] bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-2.5 py-0.5 rounded-full font-bold"></span>
-                <h2 id="bs-title" class="text-xl font-black text-white mt-1"></h2>
-                <div class="flex items-center gap-3 mt-1">
-                    <span id="bs-price" class="text-xl font-black gold-text"></span>
-                    <span id="bs-old-price" class="text-xs text-gray-500 line-through"></span>
-                </div>
-            </div>
-            <button onclick="closeBottomSheet()" class="p-2 text-gray-400 hover:text-white rounded-full bg-black/50">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-6">
-            <div>
-                <!-- مكبر الصور بنقرة واحدة -->
-                <div class="h-56 bg-black rounded-2xl p-2 flex items-center justify-center border border-gray-800 relative cursor-zoom-in group" onclick="openLightbox(document.getElementById('bs-main-img').src)">
-                    <img id="bs-main-img" class="max-h-full object-contain">
-                    <div class="absolute bottom-2 left-2 bg-black/80 border border-[#D4AF37]/40 px-2 py-1 rounded-lg text-xs text-[#D4AF37] opacity-80 group-hover:opacity-100 transition">
-                        <i class="fa-solid fa-magnifying-glass-plus"></i> انقر للتكبير
-                    </div>
-                </div>
-                <div id="bs-thumbnails-list" class="flex gap-2 mt-3 overflow-x-auto pb-2 justify-center"></div>
-                <p id="bs-desc" class="text-xs text-gray-300 leading-relaxed mt-3"></p>
-            </div>
-
-            <div class="bg-black/40 p-5 rounded-2xl border border-gray-800/80 space-y-4">
-                <h3 class="text-sm font-black gold-text border-b border-gray-800 pb-2">📝 استمارة الطلب السريع (الدفع عند الاستلام)</h3>
-                
-                <div class="space-y-3">
-                    <input type="text" id="bs-cust-name" placeholder="الاسم واللقب *" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs outline-none text-white focus:border-[#D4AF37]">
-                    <input type="tel" id="bs-cust-phone" maxlength="10" placeholder="رقم الهاتف (06XXXXXXXX) *" oninput="validatePhoneInput(this)" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs outline-none text-white focus:border-[#D4AF37] font-mono">
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <select id="bs-cust-wilaya" onchange="handleBSWilayaChange()" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
-                        <select id="bs-cust-commune" onchange="calculateBSTotal()" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <label class="border border-gray-800 rounded-xl p-2.5 flex items-center justify-between cursor-pointer bg-black/50 hover:border-[#D4AF37]">
-                            <input type="radio" name="bs_shipping_type" value="home" checked onchange="calculateBSTotal()" class="accent-[#D4AF37]">
-                            <span class="text-[11px] font-bold text-white">توصيل للمنزل</span>
-                        </label>
-                        <label class="border border-gray-800 rounded-xl p-2.5 flex items-center justify-between cursor-pointer bg-black/50 hover:border-[#D4AF37]">
-                            <input type="radio" name="bs_shipping_type" value="office" onchange="calculateBSTotal()" class="accent-[#D4AF37]">
-                            <span class="text-[11px] font-bold text-white">استلام للمكتب</span>
-                        </label>
-                    </div>
-
-                    <div class="bg-black p-3.5 rounded-xl border border-gray-800 text-xs space-y-1.5">
-                        <div class="flex justify-between text-gray-400"><span>المبلغ الفرعي:</span><span id="bs-sum-prod" class="text-white font-bold">0 دج</span></div>
-                        <div class="flex justify-between text-gray-400"><span>التوصيل:</span><span id="bs-sum-ship" class="text-[#D4AF37] font-bold">0 دج (حدد الولاية)</span></div>
-                        <div class="border-t border-gray-800 pt-1.5 flex justify-between font-black text-sm text-white"><span>المجموع الكلي:</span><span id="bs-sum-total" class="gold-text">0 دج</span></div>
-                    </div>
-
-                    <button onclick="submitBSOrder()" class="w-full py-3.5 gold-gradient text-black font-extrabold text-sm rounded-xl shadow-xl hover:opacity-90 transition">
-                        تأكيد الطلب المباشر 🚚
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lightbox Modal (مكبر الصور الشامل) -->
+    <!-- Lightbox Modal -->
     <div id="image-lightbox-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
         <img id="lightbox-target-img" class="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl border border-[#D4AF37]/40 shadow-2xl">
     </div>
