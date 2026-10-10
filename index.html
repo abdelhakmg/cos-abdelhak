@@ -226,7 +226,7 @@
                         </div>
                         <p id="landing-desc" class="text-gray-300 text-sm leading-relaxed"></p>
 
-                        <!-- الخيارات الاختيارية (بشرة، شعر، ألوان، أرقام) تظهر هنا ديناميكياً -->
+                        <!-- الخيارات الاختيارية ديناميكياً -->
                         <div id="landing-options-container" class="space-y-3 pt-2"></div>
                     </div>
                 </div>
@@ -402,7 +402,7 @@
                     <button onclick="switchAdminTab('settings')" class="admin-tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-800 text-gray-300" id="tab-btn-settings">⚙️ الهوية والرسائل</button>
                 </div>
 
-                <!-- إدارة المنتجات المطور بالخصائص الجديدة -->
+                <!-- إدارة المنتجات -->
                 <div id="admin-tab-products" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border">
                         <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -428,7 +428,6 @@
                                 <h4 class="font-bold text-xs text-[#B8860B]">✨ الخصائص الإضافية الاختيارية للمنتج:</h4>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- نوع البشرة -->
                                     <div>
                                         <label class="block text-xs font-bold text-gray-700 mb-1">نوع البشرة (اختياري):</label>
                                         <select id="prod-skin-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
@@ -441,7 +440,6 @@
                                         </select>
                                     </div>
 
-                                    <!-- نوع الشعر -->
                                     <div>
                                         <label class="block text-xs font-bold text-gray-700 mb-1">نوع الشعر (اختياري):</label>
                                         <select id="prod-hair-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
@@ -461,13 +459,11 @@
                                     </div>
                                 </div>
 
-                                <!-- الألوان المتوفرة -->
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">الألوان المتوفرة في المخزون (افصل بينها بفاصلة ، مثل: أحمر, وردي, نيود):</label>
                                     <input type="text" id="prod-colors" placeholder="مثال: أحمر, وردي, نيود, بني" class="w-full border p-2.5 rounded-xl text-xs bg-white">
                                 </div>
 
-                                <!-- الأرقام / التدرجات -->
                                 <div>
                                     <label class="block text-xs font-bold text-gray-700 mb-1">الأرقام / التدرجات المتوفرة (افصل بينها بفاصلة ، مثل: 1, 2, 3 أو 01, 02):</label>
                                     <input type="text" id="prod-numbers" placeholder="مثال: 1, 2, 3" class="w-full border p-2.5 rounded-xl text-xs bg-white">
@@ -535,7 +531,7 @@
                     </div>
                 </div>
 
-                <!-- باقي التبويبات (ماركات، فئات، ولايات، إعدادات) -->
+                <!-- باقي التبويبات -->
                 <div id="admin-tab-brands" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
                         <h3 class="font-bold text-lg border-b pb-3">إضافة ماركة / علامة تجارية جديدة</h3>
