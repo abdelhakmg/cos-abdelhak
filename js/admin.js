@@ -46,7 +46,6 @@ function checkAdminPassword() {
     const passInput = document.getElementById('admin-pass-input');
     if (!passInput) return;
     const pass = passInput.value;
-    
     const correctPass = (typeof storeSettings !== 'undefined' && storeSettings.pass) ? storeSettings.pass : 'admin123';
 
     if (pass === correctPass) {
@@ -74,9 +73,8 @@ function switchAdminTab(tabName) {
         btn.classList.add('bg-black', 'text-white');
     }
 
-    if (tabName === 'shipping') {
-        renderAdminWilayasList();
-    }
+    if (tabName === 'shipping') renderAdminWilayasList();
+    if (tabName === 'attributes') renderAdminAttributesTab();
 }
 
 function populateAdminDropdowns() {
@@ -91,51 +89,263 @@ function populateAdminDropdowns() {
     if (brandSelect) {
         const brandList = (typeof brands !== 'undefined' && Array.isArray(brands) && brands.length > 0) ? brands : ["Dior", "Chanel", "Gucci", "Versace", "عام"];
         brandSelect.innerHTML = '<option value="">-- اختر العلامة التجارية (الماركة) --</option>' + 
-            brandList.map(b => {
-                const bName = (typeof b === 'object' && b !== null) ? (b.name || '') : b;
-                return `<option value="${bName}">${bName}</option>`;
-            }).join('');
+            brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
     }
 
-    const brandsListContainer = document.getElementById('admin-brands-list');
-    if (brandsListContainer) {
-        const brandList = (typeof brands !== 'undefined' && Array.isArray(brands)) ? brands : [];
-        if (brandList.length === 0) {
-            brandsListContainer.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد ماركات مضافة بعد.</p>';
-        } else {
-            brandsListContainer.innerHTML = brandList.map((b, idx) => `
-                <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border text-xs font-bold">
-                    <span>${typeof b === 'object' ? b.name : b}</span>
-                    <button onclick="deleteBrand(${idx})" class="text-red-500 hover:text-red-700">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
+    // بناء مربعات الاختيار في استمارة إضافة/تعديل المنتجات للتحديد المتعدد
+    const skinCbContainer = document.getElementById('admin-prod-skin-checkboxes');
+    if (skinCbContainer && typeof availableSkinTypes !== 'undefined') {
+        skinCbContainer.innerHTML = availableSkinTypes.map(st => `
+            <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" value="${st}" class="prod-skin-cb accent-[#D4AF37]">
+                <span>${st}</span>
+            </label>
+        `).join('');
+    }
+
+    const hairCbContainer = document.getElementById('admin-prod-hair-checkboxes');
+    if (hairCbContainer && typeof availableHairTypes !== 'undefined') {
+        hairCbContainer.innerHTML = availableHairTypes.map(ht => `
+            <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" value="${ht}" class="prod-hair-cb accent-[#D4AF37]">
+                <span>${ht}</span>
+            </label>
+        `).join('');
     }
 }
 
-function exportOrdersToExcel() {
-    if (!orders || orders.length === 0) {
-        showCustomAlert('تنبيه', 'لا توجد طلبيات لتصديرها!', false);
-        return;
+// عرض وتبويب إدارة أنواع البشرة والشعر
+function renderAdminAttributesTab() {
+    const skinListContainer = document.getElementById('admin-skin-types-list');
+    if (skinListContainer && typeof availableSkinTypes !== 'undefined') {
+        skinListContainer.innerHTML = availableSkinTypes.map((st, idx) => `
+            <div class="flex items-center justify-between bg-gray-100 p-2.5 rounded-xl border text-xs font-bold">
+                <span>${st}</span>
+                <button onclick="deleteSkinType(${idx})" class="text-red-500 hover:text-red-700">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `).join('');
     }
 
-    const excelData = orders.map(o => ({
-        "اسم الزبون": o.customer || '',
-        "رقم الهاتف": o.phone || '',
-        "الولاية": o.wilaya || '',
-        "البلدية": o.commune || '',
-        "المنتج": o.product || '',
-        "المبلغ الإجمالي (دج)": o.total || 0,
-        "حالة الطلب": o.status || 'جديد',
-        "التاريخ": o.date || ''
-    }));
+    const hairListContainer = document.getElementById('admin-hair-types-list');
+    if (hairListContainer && typeof availableHairTypes !== 'undefined') {
+        hairListContainer.innerHTML = availableHairTypes.map((ht, idx) => `
+            <div class="flex items-center justify-between bg-gray-100 p-2.5 rounded-xl border text-xs font-bold">
+                <span>${ht}</span>
+                <button onclick="deleteHairType(${idx})" class="text-red-500 hover:text-red-700">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+}
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "الطلبيات");
-    XLSX.writeFile(workbook, `طلبيات_متجر_كوسمتيك_${new Date().toISOString().slice(0,10)}.xlsx`);
+function handleAddSkinType(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('new-skin-type-input');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+
+    if (!availableSkinTypes.includes(val)) {
+        availableSkinTypes.push(val);
+        db.collection("settings").doc("main").set({ skinTypes: availableSkinTypes }, { merge: true }).then(() => {
+            input.value = '';
+            renderAdminAttributesTab();
+            populateAdminDropdowns();
+            showCustomAlert('تمت الإضافة', 'تمت إضافة نوع البشرة الجديد بنجاح!', true);
+        });
+    }
+}
+
+function deleteSkinType(idx) {
+    availableSkinTypes.splice(idx, 1);
+    db.collection("settings").doc("main").set({ skinTypes: availableSkinTypes }, { merge: true }).then(() => {
+        renderAdminAttributesTab();
+        populateAdminDropdowns();
+        showCustomAlert('تم الحذف', 'تم حذف نوع البشرة.', true);
+    });
+}
+
+function handleAddHairType(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('new-hair-type-input');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+
+    if (!availableHairTypes.includes(val)) {
+        availableHairTypes.push(val);
+        db.collection("settings").doc("main").set({ hairTypes: availableHairTypes }, { merge: true }).then(() => {
+            input.value = '';
+            renderAdminAttributesTab();
+            populateAdminDropdowns();
+            showCustomAlert('تمت الإضافة', 'تمت إضافة نوع الشعر/العلاج الجديد بنجاح!', true);
+        });
+    }
+}
+
+function deleteHairType(idx) {
+    availableHairTypes.splice(idx, 1);
+    db.collection("settings").doc("main").set({ hairTypes: availableHairTypes }, { merge: true }).then(() => {
+        renderAdminAttributesTab();
+        populateAdminDropdowns();
+        showCustomAlert('تم الحذف', 'تم حذف نوع الشعر.', true);
+    });
+}
+
+// دالة حفظ المنتج بالدعم المتعدد للأنواع
+function handleSaveProduct(e) {
+    if (e) e.preventDefault();
+
+    try {
+        const editId = document.getElementById('editing-product-id') ? document.getElementById('editing-product-id').value : '';
+        const nameInput = document.getElementById('prod-name');
+        const priceInput = document.getElementById('prod-price');
+        const catSelect = document.getElementById('prod-category-select');
+        const img1Input = document.getElementById('prod-img-main');
+
+        if (!nameInput || !priceInput || !catSelect || !img1Input) return;
+
+        const name = nameInput.value.trim();
+        const price = parseFloat(priceInput.value) || 0;
+        const oldPriceVal = document.getElementById('prod-old-price') ? document.getElementById('prod-old-price').value : '';
+        const oldPrice = oldPriceVal ? parseFloat(oldPriceVal) : null;
+        const category = catSelect.value;
+        const brand = document.getElementById('prod-brand-select') ? document.getElementById('prod-brand-select').value : '';
+        const inStock = document.getElementById('prod-in-stock') ? (document.getElementById('prod-in-stock').value === 'true') : true;
+
+        // مصفوفات التحديد المتعدد
+        const selectedSkins = Array.from(document.querySelectorAll('.prod-skin-cb:checked')).map(cb => cb.value);
+        const selectedHairs = Array.from(document.querySelectorAll('.prod-hair-cb:checked')).map(cb => cb.value);
+
+        const colors = document.getElementById('prod-colors') ? document.getElementById('prod-colors').value.trim() : '';
+        const numbers = document.getElementById('prod-numbers') ? document.getElementById('prod-numbers').value.trim() : '';
+
+        const hasCountdown = document.getElementById('prod-has-countdown') ? document.getElementById('prod-has-countdown').checked : false;
+        const countdownHours = document.getElementById('prod-countdown-hours') ? (parseFloat(document.getElementById('prod-countdown-hours').value) || 0) : 0;
+        const desc = document.getElementById('prod-desc') ? document.getElementById('prod-desc').value.trim() : '';
+
+        const img1 = img1Input.value.trim();
+        const img2 = document.getElementById('prod-img-2') ? document.getElementById('prod-img-2').value.trim() : '';
+        const img3 = document.getElementById('prod-img-3') ? document.getElementById('prod-img-3').value.trim() : '';
+
+        if (!name || !price || !category || !img1) {
+            showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية (الاسم، السعر، الفئة، والصورة الرئيسية)!', false);
+            return;
+        }
+
+        const images = [img1, img2, img3].filter(img => img && img.length > 0);
+
+        const productData = {
+            name: name,
+            price: price,
+            oldPrice: oldPrice,
+            category: category,
+            brand: brand,
+            inStock: inStock,
+            skinTypes: selectedSkins,
+            hairTypes: selectedHairs,
+            colors: colors,
+            numbers: numbers,
+            hasCountdown: hasCountdown,
+            countdownHours: countdownHours,
+            desc: desc,
+            images: images,
+            updatedAt: new Date()
+        };
+
+        const saveBtn = document.getElementById('save-product-btn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'جاري الحفظ... ⏳';
+        }
+
+        if (editId) {
+            db.collection("products").doc(editId).update(productData).then(() => {
+                resetProductForm();
+                showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
+            }).finally(() => {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'تحديث بيانات المنتج';
+                }
+            });
+        } else {
+            db.collection("products").add({ ...productData, createdAt: new Date() }).then(() => {
+                resetProductForm();
+                showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
+            }).finally(() => {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'حفظ المنتج';
+                }
+            });
+        }
+    } catch (err) {
+        showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
+    }
+}
+
+function resetProductForm() {
+    const form = document.getElementById('product-edit-form');
+    if (form) form.reset();
+    document.getElementById('editing-product-id').value = '';
+    document.querySelectorAll('.prod-skin-cb, .prod-hair-cb').forEach(cb => cb.checked = false);
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع التحديد المتعدد لأنواع البشرة والشعر)';
+    document.getElementById('cancel-edit-btn').classList.add('hidden');
+    document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
+}
+
+function editProduct(id) {
+    const p = products.find(prod => prod.id === id);
+    if (!p) return;
+
+    document.getElementById('editing-product-id').value = p.id;
+    document.getElementById('prod-name').value = p.name || '';
+    document.getElementById('prod-price').value = p.price || '';
+    document.getElementById('prod-old-price').value = p.oldPrice || '';
+    document.getElementById('prod-category-select').value = p.category || '';
+    document.getElementById('prod-brand-select').value = p.brand || '';
+    document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
+
+    // تحديد مربعات التحديد المتعدد المسجلة
+    const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
+    document.querySelectorAll('.prod-skin-cb').forEach(cb => {
+        cb.checked = pSkins.includes(cb.value);
+    });
+
+    const pHairs = Array.isArray(p.hairTypes) ? p.hairTypes : (p.hairType ? [p.hairType] : []);
+    document.querySelectorAll('.prod-hair-cb').forEach(cb => {
+        cb.checked = pHairs.includes(cb.value);
+    });
+
+    document.getElementById('prod-colors').value = p.colors || '';
+    document.getElementById('prod-numbers').value = p.numbers || '';
+
+    document.getElementById('prod-has-countdown').checked = p.hasCountdown || false;
+    document.getElementById('prod-countdown-hours').value = p.countdownHours || '';
+    document.getElementById('prod-desc').value = p.desc || '';
+
+    const imgs = p.images || [];
+    document.getElementById('prod-img-main').value = imgs[0] || '';
+    document.getElementById('prod-img-2').value = imgs[1] || '';
+    document.getElementById('prod-img-3').value = imgs[2] || '';
+
+    document.getElementById('product-form-title').innerText = 'تعديل المنتج: ' + p.name;
+    document.getElementById('cancel-edit-btn').classList.remove('hidden');
+    document.getElementById('save-product-btn').innerText = 'تحديث بيانات المنتج';
+
+    window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
+}
+
+function deleteProduct(id) {
+    if (confirm('هل أنت تأكد من رغبتك في حذف هذا المنتج؟')) {
+        db.collection("products").doc(id).delete().then(() => {
+            showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
+        });
+    }
 }
 
 function renderAdminDashboard() {
@@ -240,8 +450,12 @@ function renderAdminProductsTable() {
     tbody.innerHTML = products.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/100';
         let badgeInfo = [];
-        if (p.skinType) badgeInfo.push(`بشرة: ${p.skinType}`);
-        if (p.hairType) badgeInfo.push(`شعر: ${p.hairType}`);
+        
+        const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes.join(', ') : (p.skinType || '');
+        const pHairs = Array.isArray(p.hairTypes) ? p.hairTypes.join(', ') : (p.hairType || '');
+
+        if (pSkins) badgeInfo.push(`بشرة: ${pSkins}`);
+        if (pHairs) badgeInfo.push(`شعر: ${pHairs}`);
         if (p.colors) badgeInfo.push(`ألوان: ${p.colors}`);
         if (p.numbers) badgeInfo.push(`أرقام: ${p.numbers}`);
 
@@ -250,7 +464,7 @@ function renderAdminProductsTable() {
                 <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
-                <td class="p-3 text-[11px] text-gray-600">${badgeInfo.join(' | ') || 'بدون خصائص'}</td>
+                <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${badgeInfo.join(' | ') || 'بدون خصائص'}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
                 <td class="p-3 text-xs"><span class="${p.inStock ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
                 <td class="p-3 flex items-center gap-2">
@@ -269,8 +483,8 @@ function addCommunePriceRow(name = '', cost = '') {
     const div = document.createElement('div');
     div.className = "flex items-center gap-2 commune-price-row";
     div.innerHTML = `
-        <input type="text" placeholder="اسم البلدية (مثال: دار الشيوخ)" value="${name}" class="border p-2.5 rounded-xl text-xs flex-1 commune-name-input" required>
-        <input type="number" placeholder="سعر التوصيل (دج) (مثال: 500)" value="${cost}" class="border p-2.5 rounded-xl text-xs w-36 commune-cost-input" required>
+        <input type="text" placeholder="اسم البلدية" value="${name}" class="border p-2.5 rounded-xl text-xs flex-1 commune-name-input" required>
+        <input type="number" placeholder="سعر التوصيل (دج)" value="${cost}" class="border p-2.5 rounded-xl text-xs w-36 commune-cost-input" required>
         <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold p-2"><i class="fa-solid fa-trash-can"></i></button>
     `;
     container.appendChild(div);
@@ -288,29 +502,20 @@ function handleSaveWilaya(e) {
     rows.forEach(r => {
         const cName = r.querySelector('.commune-name-input').value.trim();
         const cCost = parseFloat(r.querySelector('.commune-cost-input').value) || 0;
-        if (cName) {
-            communesData.push({ name: cName, cost: cCost });
-        }
+        if (cName) communesData.push({ name: cName, cost: cCost });
     });
 
-    if (!code || !name) {
-        showCustomAlert('تنبيه', 'يرجى إدخال رمز واسم الولاية!', false);
-        return;
-    }
+    if (!code || !name) return;
 
-    const wilayaPayload = {
+    db.collection("wilayas").doc(code).set({
         code: code,
         name: name,
         officeCost: officeCost,
         communesData: communesData
-    };
-
-    db.collection("wilayas").doc(code).set(wilayaPayload).then(() => {
+    }).then(() => {
         resetWilayaForm();
         renderAdminWilayasList();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات التسعير والبلديات للولاية بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ بيانات الولاية: ' + err.message, false);
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية والبلديات!', true);
     });
 }
 
@@ -322,39 +527,6 @@ function resetWilayaForm() {
     document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية بأسعار تفصيلية للمكتب والبلديات';
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
     document.getElementById('save-wilaya-btn').innerText = 'حفظ بيانات الولاية والتسعير التفصيلي';
-}
-
-function editWilaya(code) {
-    const w = WILAYAS.find(wil => wil.code === code);
-    if (!w) return;
-
-    document.getElementById('editing-wilaya-id').value = w.code;
-    document.getElementById('wilaya-code').value = w.code || '';
-    document.getElementById('wilaya-name').value = w.name || '';
-    document.getElementById('wilaya-office-cost').value = w.officeCost || '';
-
-    const communesContainer = document.getElementById('communes-custom-list');
-    communesContainer.innerHTML = '';
-
-    const list = w.communesData || [];
-    list.forEach(c => {
-        addCommunePriceRow(c.name, c.cost);
-    });
-
-    document.getElementById('wilaya-form-title').innerText = 'تعديل ولاية: ' + w.name;
-    document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
-    document.getElementById('save-wilaya-btn').innerText = 'تحديث التغييرات';
-
-    window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
-}
-
-function deleteWilaya(code) {
-    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية نهائياً؟')) {
-        db.collection("wilayas").doc(code).delete().then(() => {
-            renderAdminWilayasList();
-            showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
-        });
-    }
 }
 
 function renderAdminWilayasList() {
@@ -397,12 +569,8 @@ function renderAdminWilayasList() {
 function saveShippingApiSettings() {
     const key = document.getElementById('shipping-api-key').value.trim();
     const token = document.getElementById('shipping-api-token').value.trim();
-
-    db.collection("settings").doc("main").set({
-        shippingApiKey: key,
-        shippingApiToken: token
-    }, { merge: true }).then(() => {
-        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API لشركة التوصيل المحددة بنجاح!', true);
+    db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
+        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API لشركة التوصيل!', true);
     });
 }
 
@@ -410,190 +578,25 @@ function handleSaveBrand(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('brand-name-input');
     if (!input) return;
-
     const brandName = input.value.trim();
-    if (!brandName) {
-        showCustomAlert('تنبيه', 'يرجى إدخال اسم العلامة التجارية!', false);
-        return;
-    }
+    if (!brandName) return;
 
     if (typeof brands === 'undefined') brands = [];
-    if (!brands.includes(brandName)) {
-        brands.push(brandName);
-    }
+    if (!brands.includes(brandName)) brands.push(brandName);
 
-    db.collection("settings").doc("main").set({
-        brands: brands
-    }, { merge: true }).then(() => {
+    db.collection("settings").doc("main").set({ brands: brands }, { merge: true }).then(() => {
         input.value = '';
         populateAdminDropdowns();
         showCustomAlert('تم الحفظ', 'تمت إضافة العلامة التجارية بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء الحفظ: ' + err.message, false);
     });
 }
 
 function deleteBrand(index) {
     if (typeof brands !== 'undefined' && brands[index]) {
         brands.splice(index, 1);
-        db.collection("settings").doc("main").set({
-            brands: brands
-        }, { merge: true }).then(() => {
+        db.collection("settings").doc("main").set({ brands: brands }, { merge: true }).then(() => {
             populateAdminDropdowns();
             showCustomAlert('تم الحذف', 'تم حذف العلامة التجارية.', true);
-        });
-    }
-}
-
-// دالة حفظ المنتج المصححة بالكامل
-function handleSaveProduct(e) {
-    if (e) e.preventDefault();
-
-    try {
-        const editId = document.getElementById('editing-product-id') ? document.getElementById('editing-product-id').value : '';
-        const nameInput = document.getElementById('prod-name');
-        const priceInput = document.getElementById('prod-price');
-        const catSelect = document.getElementById('prod-category-select');
-        const img1Input = document.getElementById('prod-img-main');
-
-        if (!nameInput || !priceInput || !catSelect || !img1Input) {
-            showCustomAlert('خطأ', 'تعذر العثور على حقول الإدخال الأساسية!', false);
-            return;
-        }
-
-        const name = nameInput.value.trim();
-        const price = parseFloat(priceInput.value) || 0;
-        const oldPriceVal = document.getElementById('prod-old-price') ? document.getElementById('prod-old-price').value : '';
-        const oldPrice = oldPriceVal ? parseFloat(oldPriceVal) : null;
-        const category = catSelect.value;
-        const brand = document.getElementById('prod-brand-select') ? document.getElementById('prod-brand-select').value : '';
-        const inStock = document.getElementById('prod-in-stock') ? (document.getElementById('prod-in-stock').value === 'true') : true;
-
-        const skinType = document.getElementById('prod-skin-type') ? document.getElementById('prod-skin-type').value : '';
-        const hairType = document.getElementById('prod-hair-type') ? document.getElementById('prod-hair-type').value : '';
-        const colors = document.getElementById('prod-colors') ? document.getElementById('prod-colors').value.trim() : '';
-        const numbers = document.getElementById('prod-numbers') ? document.getElementById('prod-numbers').value.trim() : '';
-
-        const hasCountdownCheckbox = document.getElementById('prod-has-countdown');
-        const hasCountdown = hasCountdownCheckbox ? hasCountdownCheckbox.checked : false;
-        const countdownHoursVal = document.getElementById('prod-countdown-hours') ? document.getElementById('prod-countdown-hours').value : '';
-        const countdownHours = countdownHoursVal ? parseFloat(countdownHoursVal) : 0;
-        const desc = document.getElementById('prod-desc') ? document.getElementById('prod-desc').value.trim() : '';
-
-        const img1 = img1Input.value.trim();
-        const img2 = document.getElementById('prod-img-2') ? document.getElementById('prod-img-2').value.trim() : '';
-        const img3 = document.getElementById('prod-img-3') ? document.getElementById('prod-img-3').value.trim() : '';
-
-        if (!name || !price || !category || !img1) {
-            showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية (اسم المنتج، السعر، الفئة، والصورة الرئيسية)!', false);
-            return;
-        }
-
-        const images = [img1, img2, img3].filter(img => img && img.length > 0);
-
-        const productData = {
-            name: name,
-            price: price,
-            oldPrice: oldPrice,
-            category: category,
-            brand: brand,
-            inStock: inStock,
-            skinType: skinType,
-            hairType: hairType,
-            colors: colors,
-            numbers: numbers,
-            hasCountdown: hasCountdown,
-            countdownHours: countdownHours,
-            desc: desc,
-            images: images,
-            updatedAt: new Date()
-        };
-
-        const saveBtn = document.getElementById('save-product-btn');
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerText = 'جاري الحفظ... ⏳';
-        }
-
-        if (editId) {
-            db.collection("products").doc(editId).update(productData).then(() => {
-                resetProductForm();
-                showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
-            }).catch(err => {
-                showCustomAlert('خطأ', 'حدث خطأ أثناء التحديث: ' + err.message, false);
-            }).finally(() => {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = 'تحديث بيانات المنتج';
-                }
-            });
-        } else {
-            db.collection("products").add({
-                ...productData,
-                createdAt: new Date()
-            }).then(() => {
-                resetProductForm();
-                showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
-            }).catch(err => {
-                showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ المنتج: ' + err.message, false);
-            }).finally(() => {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = 'حفظ المنتج';
-                }
-            });
-        }
-    } catch (err) {
-        showCustomAlert('خطأ في البيانات', 'يرجى التأكد من ملء الحقول بالشكل الصحيح: ' + err.message, false);
-    }
-}
-
-function resetProductForm() {
-    const form = document.getElementById('product-edit-form');
-    if (form) form.reset();
-    document.getElementById('editing-product-id').value = '';
-    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع خصائص البشرة، الشعر، الألوان والأرقام)';
-    document.getElementById('cancel-edit-btn').classList.add('hidden');
-    document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
-}
-
-function editProduct(id) {
-    const p = products.find(prod => prod.id === id);
-    if (!p) return;
-
-    document.getElementById('editing-product-id').value = p.id;
-    document.getElementById('prod-name').value = p.name || '';
-    document.getElementById('prod-price').value = p.price || '';
-    document.getElementById('prod-old-price').value = p.oldPrice || '';
-    document.getElementById('prod-category-select').value = p.category || '';
-    document.getElementById('prod-brand-select').value = p.brand || '';
-    document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
-    
-    document.getElementById('prod-skin-type').value = p.skinType || '';
-    document.getElementById('prod-hair-type').value = p.hairType || '';
-    document.getElementById('prod-colors').value = p.colors || '';
-    document.getElementById('prod-numbers').value = p.numbers || '';
-
-    document.getElementById('prod-has-countdown').checked = p.hasCountdown || false;
-    document.getElementById('prod-countdown-hours').value = p.countdownHours || '';
-    document.getElementById('prod-desc').value = p.desc || '';
-
-    const imgs = p.images || [];
-    document.getElementById('prod-img-main').value = imgs[0] || '';
-    document.getElementById('prod-img-2').value = imgs[1] || '';
-    document.getElementById('prod-img-3').value = imgs[2] || '';
-
-    document.getElementById('product-form-title').innerText = 'تعديل المنتج: ' + p.name;
-    document.getElementById('cancel-edit-btn').classList.remove('hidden');
-    document.getElementById('save-product-btn').innerText = 'تحديث بيانات المنتج';
-
-    window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
-}
-
-function deleteProduct(id) {
-    if (confirm('هل أنت تأكد من رغبتك في حذف هذا المنتج؟')) {
-        db.collection("products").doc(id).delete().then(() => {
-            showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
         });
     }
 }
@@ -601,12 +604,10 @@ function deleteProduct(id) {
 function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
-
     if (!bannerMessages || bannerMessages.length === 0) {
         container.innerHTML = '<p class="text-xs text-gray-400 py-2">لا توجد جمل مضافة للبانر حالياً.</p>';
         return;
     }
-
     container.innerHTML = bannerMessages.map((msg, idx) => `
         <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
             <span class="font-bold text-gray-800">${msg}</span>
@@ -620,129 +621,15 @@ function renderBannerTextsList() {
 function addBannerText() {
     const input = document.getElementById('new-banner-text');
     if (!input) return;
-
     const newText = input.value.trim();
-    if (!newText) {
-        showCustomAlert('تنبيه', 'يرجى كتابة النص المراد إضافته للبانر العلوي!', false);
-        return;
-    }
+    if (!newText) return;
 
     db.collection("settings").doc("main").update({
         bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
     }).then(() => {
         input.value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها على كافة الأجهزة!', true);
-    }).catch(() => {
-        db.collection("settings").doc("main").set({
-            bannerMessages: [newText]
-        }, { merge: true });
+        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها!', true);
     });
 }
 
-function removeBannerText(index) {
-    const targetText = bannerMessages[index];
-    if (!targetText) return;
-
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
-    }).then(() => {
-        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
-    });
-}
-
-function promptDeleteOrder(id) {
-    pendingDeleteOrderId = id;
-    const modal = document.getElementById('custom-confirm-modal');
-    document.getElementById('confirm-action-btn').onclick = function() {
-        confirmDeleteOrder();
-    };
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeCustomConfirm() {
-    const modal = document.getElementById('custom-confirm-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    pendingDeleteOrderId = null;
-}
-
-function confirmDeleteOrder() {
-    if (pendingDeleteOrderId) {
-        db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
-            closeCustomConfirm();
-            showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
-        });
-    }
-}
-
-function updateOrderStatus(id, newStatus) {
-    db.collection("orders").doc(id).update({ status: newStatus }).then(() => {
-        renderAdminDashboard();
-    });
-}
-
-function handleSaveSettings(e) {
-    if (e) e.preventDefault();
-    const settings = {
-        name: document.getElementById('set-store-name').value,
-        slogan: document.getElementById('set-store-slogan').value,
-        logoUrl: document.getElementById('set-logo-url').value,
-        pass: document.getElementById('set-pass').value,
-        msgSuccess: document.getElementById('set-msg-success').value,
-        msgWarning: document.getElementById('set-msg-warning').value
-    };
-
-    db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
-        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل المخصصة بنجاح!', true);
-    });
-}
-
-function handleSaveHeroSlide(e) {
-    if (e) e.preventDefault();
-    const title = document.getElementById('hero-title-input').value.trim();
-    const desc = document.getElementById('hero-desc-input').value.trim();
-    const image = document.getElementById('hero-img-input').value.trim();
-
-    if (!title || !desc || !image) {
-        showCustomAlert('تنبيه', 'يرجى ملء كافة خانات الإعلان!', false);
-        return;
-    }
-
-    db.collection("heroSlides").add({
-        title: title,
-        desc: desc,
-        image: image,
-        createdAt: new Date()
-    }).then(() => {
-        document.getElementById('hero-title-input').value = '';
-        document.getElementById('hero-desc-input').value = '';
-        document.getElementById('hero-img-input').value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ البانر: ' + err.message, false);
-    });
-}
-
-function handleSaveCategory(e) {
-    if (e) e.preventDefault();
-    const name = document.getElementById('cat-name-input').value.trim();
-    const image = document.getElementById('cat-img-input').value.trim();
-
-    if (!name || !image) {
-        showCustomAlert('تنبيه', 'يرجى إدخال اسم الفئة ورابط الصورة!', false);
-        return;
-    }
-
-    db.collection("categories").add({
-        name: name,
-        image: image,
-        createdAt: new Date()
-    }).then(() => {
-        document.getElementById('cat-name-input').value = '';
-        document.getElementById('cat-img-input').value = '';
-        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ الفئة: ' + err.message, false);
-    });
-}
+function removeBannerText
