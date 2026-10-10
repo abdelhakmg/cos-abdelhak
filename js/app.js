@@ -94,7 +94,6 @@ function hideAllDropdowns() {
     if (mobileDropdown) mobileDropdown.classList.add('hidden');
 }
 
-// بناء شريط الفلترة الجانبي الديناميكي وإثراء قسم "جميع المنتجات" بكافة الخصائص
 function renderDynamicSidebarFilters() {
     const dynamicContainer = document.getElementById('dynamic-category-filters');
     if (!dynamicContainer) return;
@@ -108,7 +107,6 @@ function renderDynamicSidebarFilters() {
     const hairaccs = ["مساك", "شوشو", "كخاب", "بوندانة", "سيغتات", "مناقش", "سنسلة", "خاتم", "قورمات", "خلخال"];
     const gifts = ["رجالية", "نسائية", "بوكي ورد", "بيبي", "تغليف"];
 
-    // 1. قسم جميع المنتجات أو الجميع (يحتوي على كافة الفلاتر)
     if (activeCat === 'جميع المنتجات' || activeCat === 'الجميع' || activeCat === '') {
         html = `
             <div class="space-y-3">
@@ -173,7 +171,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 2. قسم الكوسمتيك
     else if (activeCat.includes('كوسمتيك')) {
         html = `
             <div class="space-y-3">
@@ -201,7 +198,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 3. قسم بلاكيور + أسي
     else if (activeCat.includes('بلاكيور') || activeCat.includes('اصي')) {
         html = `
             <div class="space-y-3">
@@ -220,7 +216,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 4. قسم "علب" (تغيير التسمية)
     else if (activeCat === 'علب' || activeCat.includes('علب')) {
         html = `
             <div class="space-y-3">
@@ -231,7 +226,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 5. المايكاب
     else if (activeCat.includes('مايكاب')) {
         html = `
             <div class="space-y-3">
@@ -249,7 +243,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 6. العطور
     else if (activeCat.includes('عطور')) {
         html = `
             <div class="space-y-3">
@@ -260,7 +253,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 7. إكسسوارات الشعر
     else if (activeCat.includes('اكسسوارات شعر')) {
         html = `
             <div class="space-y-3">
@@ -271,7 +263,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    // 8. الهدايا
     else if (activeCat === 'هدايا' || activeCat.includes('هدايا')) {
         html = `
             <div class="space-y-3">
@@ -294,7 +285,6 @@ function applyFilters() {
 
     let filtered = [...products];
 
-    // 1. تصفية الفئة
     if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
         const targetCat = activeCategoryFilter.trim().toLowerCase();
         filtered = filtered.filter(p => {
@@ -303,20 +293,17 @@ function applyFilters() {
         });
     }
 
-    // 2. تصفية التوفر
     const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
     if (inStockOnly) {
         filtered = filtered.filter(p => p.inStock === true);
     }
 
-    // 3. تصفية السعر
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
     }
 
-    // 4. تصفية الخصائص الديناميكية
     const selCosAreas = Array.from(document.querySelectorAll('.cos-area-cb:checked')).map(cb => cb.value);
     if (selCosAreas.length > 0) filtered = filtered.filter(p => selCosAreas.includes(p.cosmeticArea));
 
@@ -357,7 +344,6 @@ function applyFilters() {
         });
     }
 
-    // 5. الترتيب
     const sortSelect = document.getElementById('sort-select');
     const sortVal = sortSelect ? sortSelect.value : 'best';
 
@@ -485,7 +471,6 @@ function toggleMobileMenu() {
     if (drawer) drawer.classList.toggle('hidden');
 }
 
-// تعديل كرت المنتج ليكون قابل للضغط كلياً ويعيد توجيه الزبون للشراء السريع
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     const isFav = favorites.includes(p.id);
