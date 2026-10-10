@@ -217,6 +217,7 @@ function renderAdminDashboard() {
     renderAdminProductsTable();
     populateAdminDropdowns();
     renderBannerTextsList();
+    renderAdminWilayasList();
 }
 
 function renderAdminProductsTable() {
@@ -245,6 +246,150 @@ function renderAdminProductsTable() {
             </tr>
         `;
     }).join('');
+}
+
+// دالة إضافة صف لبلدية وسعرها في لوحة التحكم
+function addCommunePriceRow(name = '', cost = '') {
+    const container = document.getElementById('communes-custom-list');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = "flex items-center gap-2 commune-price-row";
+    div.innerHTML = `
+        <input type="text" placeholder="اسم البلدية (مثال: دار الشيوخ)" value="${name}" class="border p-2.5 rounded-xl text-xs flex-1 commune-name-input" required>
+        <input type="number" placeholder="سعر التوصيل (دج) (مثال: 500)" value="${cost}" class="border p-2.5 rounded-xl text-xs w-36 commune-cost-input" required>
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold p-2"><i class="fa-solid fa-trash-can"></i></button>
+    `;
+    container.appendChild(div);
+}
+
+function handleSaveWilaya(e) {
+    if (e) e.preventDefault();
+    const editCode = document.getElementById('editing-wilaya-id').value;
+    const code = document.getElementById('wilaya-code').value.trim();
+    const name = document.getElementById('wilaya-name').value.trim();
+    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
+
+    const rows = document.querySelectorAll('.commune-price-row');
+    const communesData = [];
+
+    rows.forEach(r => {
+        const cName = r.querySelector('.commune-name-input').value.trim();
+        const cCost = parseFloat(r.querySelector('.commune-cost-input').value) || 0;
+        if (cName) {
+            communesData.push({ name: cName, cost: cCost });
+        }
+    });
+
+    if (!code || !name) {
+        showCustomAlert('تنبيه', 'يرجى إدخال رمز واسم الولاية!', false);
+        return;
+    }
+
+    const wilayaPayload = {
+        code: code,
+        name: name,
+        officeCost: officeCost,
+        communesData: communesData
+    };
+
+    db.collection("wilayas").doc(code).set(wilayaPayload).then(() => {
+        resetWilayaForm();
+        showCustomAlert('تم الحفظ', 'تم حفظ بيانات التسعير والبلديات للولاية بنجاح!', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ بيانات الولاية: ' + err.message, false);
+    });
+}
+
+function resetWilayaForm() {
+    const form = document.getElementById('wilaya-edit-form');
+    if (form) form.reset();
+    document.getElementById('editing-wilaya-id').value = '';
+    document.getElementById('communes-custom-list').innerHTML = '';
+    document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية بأسعار تفصيلية للمكتب والبلديات';
+    document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
+    document.getElementById('save-wilaya-btn').innerText = 'حفظ بيانات الولاية والتسعير التفصيلي';
+}
+
+function editWilaya(code) {
+    const w = WILAYAS.find(wil => wil.code === code);
+    if (!w) return;
+
+    document.getElementById('editing-wilaya-id').value = w.code;
+    document.getElementById('wilaya-code').value = w.code || '';
+    document.getElementById('wilaya-name').value = w.name || '';
+    document.getElementById('wilaya-office-cost').value = w.officeCost || '';
+
+    const communesContainer = document.getElementById('communes-custom-list');
+    communesContainer.innerHTML = '';
+
+    const list = w.communesData || [];
+    list.forEach(c => {
+        addCommunePriceRow(c.name, c.cost);
+    });
+
+    document.getElementById('wilaya-form-title').innerText = 'تعديل ولاية: ' + w.name;
+    document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
+    document.getElementById('save-wilaya-btn').innerText = 'تحديث التغييرات';
+
+    window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
+}
+
+function deleteWilaya(code) {
+    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية نهائياً؟')) {
+        db.collection("wilayas").doc(code).delete().then(() => {
+            showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
+        });
+    }
+}
+
+function renderAdminWilayasList() {
+    const container = document.getElementById('admin-wilayas-list');
+    if (!container) return;
+
+    if (!WILAYAS || WILAYAS.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">لا توجد ولايات مسجلة بعد.</p>';
+        return;
+    }
+
+    container.innerHTML = WILAYAS.map(w => {
+        const communesList = w.communesData || [];
+        return `
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-[#B8860B] text-white font-bold px-2 py-0.5 rounded-lg text-[10px]">${w.code}</span>
+                        <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
+                        <span class="text-gray-500 font-bold">(المكتب: ${w.officeCost || 0} دج)</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                        ${communesList.length > 0 ? communesList.map(c => `
+                            <span class="bg-white border text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
+                                ${c.name}: <strong class="text-[#B8860B]">${c.cost} دج</strong>
+                            </span>
+                        `).join('') : '<span class="text-gray-400">لا توجد بلديات مفصلة</span>'}
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl hover:bg-blue-200 transition">تعديل</button>
+                    <button onclick="deleteWilaya('${w.code}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl hover:bg-red-200 transition">حذف</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function saveShippingApiSettings() {
+    const key = document.getElementById('shipping-api-key').value.trim();
+    const token = document.getElementById('shipping-api-token').value.trim();
+
+    db.collection("settings").doc("main").set({
+        shippingApiKey: key,
+        shippingApiToken: token
+    }, { merge: true }).then(() => {
+        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API لشركة التوصيل المحددة بنجاح!', true);
+    });
 }
 
 function handleSaveBrand(e) {
@@ -534,38 +679,5 @@ function handleSaveCategory(e) {
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
     }).catch(err => {
         showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ الفئة: ' + err.message, false);
-    });
-}
-
-function handleSaveWilaya(e) {
-    if (e) e.preventDefault();
-    const code = document.getElementById('wilaya-code').value.trim();
-    const name = document.getElementById('wilaya-name').value.trim();
-    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
-    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
-    const communesInput = document.getElementById('wilaya-communes-input').value.trim();
-
-    if (!code || !name) {
-        showCustomAlert('تنبيه', 'يرجى إدخال رمز واسم الولاية!', false);
-        return;
-    }
-
-    const communes = communesInput ? communesInput.split(',').map(c => c.trim()) : [];
-
-    db.collection("wilayas").doc(code).set({
-        code: code,
-        name: name,
-        homeCost: homeCost,
-        officeCost: officeCost,
-        communes: communes
-    }).then(() => {
-        document.getElementById('wilaya-code').value = '';
-        document.getElementById('wilaya-name').value = '';
-        document.getElementById('wilaya-home-cost').value = '';
-        document.getElementById('wilaya-office-cost').value = '';
-        document.getElementById('wilaya-communes-input').value = '';
-        showCustomAlert('تم الحفظ', 'تم حفظ بيانات التسعير والتوصيل للولاية بنجاح!', true);
-    }).catch(err => {
-        showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ بيانات الولاية: ' + err.message, false);
     });
 }
