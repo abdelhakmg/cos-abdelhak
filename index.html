@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <!-- APP-LIKE BOTTOM NAVIGATION BAR FOR MOBILE (مع تبديل هديتك 🎁) -->
+    <!-- APP-LIKE BOTTOM NAVIGATION BAR FOR MOBILE -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-lg border-t border-[#D4AF37]/40 px-3 py-2 flex justify-around items-center text-white shadow-2xl">
         <button onclick="showPage('home')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition">
             <i class="fa-solid fa-house text-lg"></i>
@@ -198,7 +198,7 @@
             </div>
         </div>
 
-        <!-- CART PAGE WITH INTEGRATED CHECKOUT (إصلاح وتحديث السلة) -->
+        <!-- CART PAGE WITH INTEGRATED CHECKOUT -->
         <div id="page-cart" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-10">
                 <h1 class="text-2xl font-black mb-8 text-right text-white">🛍️ سلة التسوق وإتمام الطلب</h1>
@@ -532,7 +532,7 @@
         </div>
     </main>
 
-    <!-- LUXURY BOTTOM SHEET FOR QUICK CHECKOUT (اللوحة السفلية المنبثقة) -->
+    <!-- LUXURY BOTTOM SHEET FOR QUICK CHECKOUT -->
     <div id="bottom-sheet-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden opacity-0 transition-opacity duration-300" onclick="closeBottomSheet()"></div>
     <div id="bottom-sheet-modal" class="fixed inset-x-0 bottom-0 z-50 bg-[#121212] border-t border-[#D4AF37]/40 rounded-t-[35px] p-6 text-white max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-500 ease-out shadow-2xl">
         <div class="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-5 cursor-pointer" onclick="closeBottomSheet()"></div>
@@ -597,11 +597,6 @@
         </div>
     </div>
 
-    <!-- Lightbox Modal -->
-    <div id="image-lightbox-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
-        <img id="lightbox-target-img" class="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl border border-[#D4AF37]/40 shadow-2xl">
-    </div>
-
     <!-- Modals -->
     <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
@@ -616,28 +611,15 @@
         </div>
     </div>
 
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-        <div class="bg-[#121212] border border-red-500/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
-            <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 text-2xl shadow-lg">
-                <i class="fa-solid fa-trash-can"></i>
-            </div>
-            <h3 class="text-xl font-black text-white">حذف الطلبية؟</h3>
-            <p id="confirm-message" class="text-sm text-gray-300 leading-relaxed">هل أنت تأكد من رغبتك في حذف هذه الطلبية نهائياً؟</p>
-            <div class="flex gap-3">
-                <button id="confirm-action-btn" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-red-700 transition">نعم، حذف</button>
-                <button onclick="closeCustomConfirm()" class="flex-1 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-700 transition">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- ADMIN AUTH MODAL (نافذة الدخول المباشرة للوحة التحكم) -->
     <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
-            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none">
+            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none text-black font-bold">
             <div class="flex gap-3">
-                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl">دخول</button>
-                <button onclick="document.getElementById('admin-auth-modal').style.display='none'" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
+                <button type="button" onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md">دخول</button>
+                <button type="button" onclick="closeAdminAuthModal()" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
             </div>
         </div>
     </div>
