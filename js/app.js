@@ -449,19 +449,41 @@ function filterCategory(catName) {
     showPage('catalog');
 }
 
+// دالة التصفية الشاملة المحدثة
 function applyFilters() {
     let filtered = [...products];
 
+    // 1. فلترة الفئة / القسم
     if (activeCategoryFilter && activeCategoryFilter !== 'جميع المنتجات' && activeCategoryFilter !== 'الجميع') {
         filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
     }
 
+    // 2. فلترة التوفر بالمخزون فقط
+    const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
+    if (inStockOnly) {
+        filtered = filtered.filter(p => p.inStock === true);
+    }
+
+    // 3. فلترة أنواع البشرة المحددة
+    const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
+    if (selectedSkinTypes.length > 0) {
+        filtered = filtered.filter(p => p.skinType && selectedSkinTypes.includes(p.skinType));
+    }
+
+    // 4. فلترة أنواع الشعر المحددة
+    const selectedHairTypes = Array.from(document.querySelectorAll('.hair-filter-cb:checked')).map(cb => cb.value);
+    if (selectedHairTypes.length > 0) {
+        filtered = filtered.filter(p => p.hairType && selectedHairTypes.includes(p.hairType));
+    }
+
+    // 5. فلترة السعر الأقصى
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
     }
 
+    // 6. الترتيب
     const sortSelect = document.getElementById('sort-select');
     const sortVal = sortSelect ? sortSelect.value : 'best';
 
@@ -480,7 +502,7 @@ function applyFilters() {
 
     if (catalogGrid) {
         catalogGrid.innerHTML = filtered.length === 0 ? 
-            '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات متوفرة في هذا القسم حالياً.</p>' :
+            '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات مطابقة لهذه الخيارات حالياً.</p>' :
             filtered.map(p => renderSingleProductCard(p)).join('');
     }
 }
@@ -493,8 +515,15 @@ function updatePriceFilter(val) {
 
 function resetFilters() {
     activeCategoryFilter = 'جميع المنتجات';
+    
+    const inStockCb = document.getElementById('filter-in-stock-only');
+    if (inStockCb) inStockCb.checked = false;
+
+    document.querySelectorAll('.skin-filter-cb, .hair-filter-cb').forEach(cb => cb.checked = false);
+
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) priceRangeInput.value = 20000;
+    
     updatePriceFilter(20000);
 }
 
