@@ -27,6 +27,18 @@ function handleGiftSection() {
     showCustomAlert('هديتك 🎁', 'قريباً! نجهز لكم مفاجآت وقسائم هدايا مميزة لزبائننا الكرام.', true);
 }
 
+// دالة التحقق وتقييد كتابة الأرقام الجزائرية فقط (05 / 06 / 07)
+function validatePhoneInput(input) {
+    let val = input.value.replace(/\D/g, ''); // إزالة الحروف والرموز
+    if (val.length > 10) val = val.substring(0, 10);
+    input.value = val;
+}
+
+function isAlgerianPhoneValid(phone) {
+    const regex = /^(05|06|07)[0-9]{8}$/;
+    return regex.test(phone);
+}
+
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -108,10 +120,6 @@ function initBannerRealtimeSync() {
 
         bannerEl.innerText = bannerMessages[currentBannerIdx];
         startBannerTicker();
-
-        if (typeof renderBannerTextsList === 'function') {
-            renderBannerTextsList();
-        }
     });
 }
 
@@ -186,7 +194,6 @@ function showPage(pageId) {
     if (pageId === 'wishlist') renderWishlistPage();
 }
 
-// بطاقات المنتجات المضيئة والتفاعل المباشر (Gold Glow Cards)
 function renderSingleProductCard(p) {
     const displayImg = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/300';
     const isFav = favorites.includes(p.id);
@@ -235,7 +242,6 @@ function toggleFavorite(id) {
     }
     localStorage.setItem('lb_favs_v7', JSON.stringify(favorites));
     updateBadges();
-    if (typeof applyFilters === 'function') applyFilters();
     renderProducts();
     if (document.getElementById('page-wishlist').classList.contains('active')) renderWishlistPage();
 }
@@ -266,21 +272,13 @@ function addToCart(id) {
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         updateBadges();
         
-        if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('AddToCart', {
-                content_name: prod.name,
-                value: prod.price,
-                currency: 'DZD'
-            });
-        }
-
         if (typeof showCustomAlert === 'function') {
             showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" إلى السلة بنجاح.`, true);
         }
     }
 }
 
-// عرض السلة وتكامل استمارة الشراء
+// السلة المصححة (تأتي بسعر توصيل 0 دج حتى اختيار الولاية)
 function renderCart() {
     const cartList = document.getElementById('cart-list');
     const subtotalEl = document.getElementById('subtotal');
@@ -354,7 +352,7 @@ function calculateCartTotal() {
     const shipEl = document.getElementById('shipping-cost');
     const totalEl = document.getElementById('total');
 
-    if (shipEl) shipEl.innerText = wilaya ? shipCost.toLocaleString() + ' دج' : 'حدد الولاية (0 دج)';
+    if (shipEl) shipEl.innerText = wilaya ? shipCost.toLocaleString() + ' دج' : '0 دج (حدد الولاية)';
     if (totalEl) totalEl.innerText = (subtotal + shipCost).toLocaleString() + ' دج';
 }
 
@@ -376,11 +374,18 @@ function submitCartCheckout() {
     const wilayaCode = document.getElementById('cart-cust-wilaya').value;
     const commune = document.getElementById('cart-cust-commune').value;
 
-    const warnMsg = storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!';
-    const succMsg = storeSettings.msgSuccess || 'تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.';
+    if (!name) {
+        showCustomAlert('تنبيه', 'يرجى إدخال الاسم واللقب!', false);
+        return;
+    }
 
-    if (!name || !phone || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', warnMsg, false);
+    if (!isAlgerianPhoneValid(phone)) {
+        showCustomAlert('رقم هاتف غير صحيح ❌', 'يرجى كتابة رقم هاتف جزائري صحيح يبدأ بـ 05 أو 06 أو 07 ومكون من 10 أرقام.', false);
+        return;
+    }
+
+    if (!wilayaCode) {
+        showCustomAlert('تنبيه', 'يرجى اختيار الولاية!', false);
         return;
     }
 
@@ -406,19 +411,11 @@ function submitCartCheckout() {
     };
 
     db.collection("orders").add(newOrder).then(() => {
-        if (typeof trackPixelEvent === 'function') {
-            trackPixelEvent('Purchase', {
-                value: totalAmount,
-                currency: 'DZD',
-                content_name: productsSummary
-            });
-        }
-
         cart = [];
         localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
         updateBadges();
         
-        showCustomAlert('تم استلام طلبك! 🎉', succMsg, true);
+        showCustomAlert('تم استلام طلبك! 🎉', 'شكراً لك! تم تسليم طلبيتك بنجاح وسنتصل بك هاتفياً للتأكيد.', true);
         showPage('home');
     });
 }
@@ -439,23 +436,6 @@ function applyFilters() {
         filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategoryFilter.toLowerCase());
     }
 
-    const priceRangeInput = document.getElementById('filter-price-range');
-    if (priceRangeInput) {
-        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
-        filtered = filtered.filter(p => p.price <= maxPrice);
-    }
-
-    const sortSelect = document.getElementById('sort-select');
-    const sortVal = sortSelect ? sortSelect.value : 'best';
-
-    if (sortVal === 'low') {
-        filtered.sort((a, b) => a.price - b.price);
-    } else if (sortVal === 'high') {
-        filtered.sort((a, b) => b.price - a.price);
-    } else {
-        filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
-    }
-
     const catalogGrid = document.getElementById('catalog-products');
     const badge = document.getElementById('products-count-badge');
     
@@ -466,19 +446,6 @@ function applyFilters() {
             '<p class="col-span-full text-center text-gray-400 py-12">لا توجد منتجات متوفرة في هذا القسم حالياً.</p>' :
             filtered.map(p => renderSingleProductCard(p)).join('');
     }
-}
-
-function updatePriceFilter(val) {
-    const valEl = document.getElementById('price-range-val');
-    if (valEl) valEl.innerText = parseFloat(val).toLocaleString() + ' دج';
-    applyFilters();
-}
-
-function resetFilters() {
-    activeCategoryFilter = 'جميع المنتجات';
-    const priceRangeInput = document.getElementById('filter-price-range');
-    if (priceRangeInput) priceRangeInput.value = 20000;
-    updatePriceFilter(20000);
 }
 
 function renderProducts() {
@@ -506,14 +473,6 @@ function updateAppHeaderInfo() {
         sloganEl.innerText = `"${storeSettings.slogan}"`;
     }
 
-    const logoImg = document.getElementById('store-logo-img');
-    const logoIcon = document.getElementById('store-logo-icon');
-    if (logoImg && storeSettings.logoUrl) {
-        logoImg.src = storeSettings.logoUrl;
-        logoImg.classList.remove('hidden');
-        if (logoIcon) logoIcon.classList.add('hidden');
-    }
-
     const navEl = document.getElementById('header-nav');
     if (navEl) {
         navEl.innerHTML = `
@@ -535,25 +494,31 @@ function updateAppHeaderInfo() {
     }
 }
 
+// دالة النافذة المنبثقة التفاعلية (تتنقل بين جميع الطلبيات المسجلة)
 function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
     const spCustomer = document.getElementById('sp-customer');
     const spProduct = document.getElementById('sp-product');
     if (!toast || !spCustomer || !spProduct) return;
 
+    let orderIndex = 0;
+
     setInterval(() => {
         if (!orders || orders.length === 0) return;
-        const latestOrder = orders[orders.length - 1];
+        
+        // التدوير والتنقل بين جميع الزبائن الذين اشتروا
+        const currentOrder = orders[orderIndex % orders.length];
+        orderIndex++;
 
-        spCustomer.innerText = `${latestOrder.customer || 'زبون'} من ${latestOrder.wilaya || 'الجزائر'}`;
-        spProduct.innerText = `اشترى ${latestOrder.product || 'منتج'} منذ قليل`;
+        spCustomer.innerText = `${currentOrder.customer || 'زبون'} من ${currentOrder.wilaya || 'الجزائر'}`;
+        spProduct.innerText = `اشترى ${currentOrder.product || 'منتج'} منذ قليل`;
         
         toast.classList.remove('translate-y-28', 'opacity-0');
 
         setTimeout(() => {
             toast.classList.add('translate-y-28', 'opacity-0');
         }, 4500);
-    }, 20000);
+    }, 15000);
 }
 
 updateAppHeaderInfo();
