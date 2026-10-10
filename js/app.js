@@ -23,7 +23,6 @@ function handleLogoClick(event) {
     }
 }
 
-// محرك بحث ذكي متطور يطابق الكلمات (الشعر الدهني، البشرة الجافة، الألوان، الأرقام...)
 function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
