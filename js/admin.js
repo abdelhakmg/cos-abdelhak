@@ -73,6 +73,10 @@ function switchAdminTab(tabName) {
         btn.classList.remove('bg-gray-800', 'text-gray-300');
         btn.classList.add('bg-black', 'text-white');
     }
+
+    if (tabName === 'shipping') {
+        renderAdminWilayasList();
+    }
 }
 
 function populateAdminDropdowns() {
@@ -248,7 +252,7 @@ function renderAdminProductsTable() {
     }).join('');
 }
 
-// دالة إضافة صف لبلدية وسعرها في لوحة التحكم
+// إضافة بلدية جديدة بأسعار منفصلة
 function addCommunePriceRow(name = '', cost = '') {
     const container = document.getElementById('communes-custom-list');
     if (!container) return;
@@ -295,7 +299,8 @@ function handleSaveWilaya(e) {
 
     db.collection("wilayas").doc(code).set(wilayaPayload).then(() => {
         resetWilayaForm();
-        showCustomAlert('تم الحفظ', 'تم حفظ بيانات التسعير والبلديات للولاية بنجاح!', true);
+        renderAdminWilayasList();
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات التسعير والبلديات للولاية بنجاح!', true);
     }).catch(err => {
         showCustomAlert('خطأ', 'حدث خطأ أثناء حفظ بيانات الولاية: ' + err.message, false);
     });
@@ -338,6 +343,7 @@ function editWilaya(code) {
 function deleteWilaya(code) {
     if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية نهائياً؟')) {
         db.collection("wilayas").doc(code).delete().then(() => {
+            renderAdminWilayasList();
             showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
         });
     }
@@ -355,7 +361,7 @@ function renderAdminWilayasList() {
     container.innerHTML = WILAYAS.map(w => {
         const communesList = w.communesData || [];
         return `
-            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="bg-[#B8860B] text-white font-bold px-2 py-0.5 rounded-lg text-[10px]">${w.code}</span>
