@@ -1,4 +1,4 @@
-// js/landing.js - إدارة اللوحة السفلية والمكبر
+// js/landing.js - إدارة اللوحة السفلية ومكبر الصور
 
 let currentBSProduct = null;
 
@@ -6,7 +6,8 @@ function openBottomSheet(productId) {
     currentBSProduct = products.find(p => p.id === productId);
     if (!currentBSProduct) return;
 
-    document.getElementById('bs-main-img').src = currentBSProduct.images[0];
+    const mainImg = (currentBSProduct.images && currentBSProduct.images[0]) || 'https://via.placeholder.com/300';
+    document.getElementById('bs-main-img').src = mainImg;
     document.getElementById('bs-title').innerText = currentBSProduct.name;
     document.getElementById('bs-category').innerText = currentBSProduct.category || 'عام';
     document.getElementById('bs-price').innerText = currentBSProduct.price.toLocaleString() + ' دج';
@@ -35,6 +36,7 @@ function closeBottomSheet() {
     setTimeout(() => backdrop.classList.add('hidden'), 300);
 }
 
+// مكبر الصورة المباشر بنقرة واحدة
 function openLightbox(imgSrc) {
     const modal = document.getElementById('image-lightbox-modal');
     const img = document.getElementById('lightbox-target-img');
@@ -90,7 +92,7 @@ function submitBSOrder() {
     if (!wilayaCode) return showCustomAlert('تنبيه', 'يرجى اختيار الولاية!', false);
 
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    orders.push({ customer: name, phone, wilaya: wilaya.name, product: currentBSProduct.name, total: currentBSProduct.price + wilaya.homeCost });
+    orders.push({ id: Date.now().toString(), customer: name, phone, wilaya: wilaya.name, commune: '', product: currentBSProduct.name, total: currentBSProduct.price + wilaya.homeCost, status: 'جديد' });
 
     closeBottomSheet();
     showCustomAlert('تم الطلب 🎉', 'تم تسليم طلبك بنجاح وسنتصل بك لتأكيد التوصيل.', true);
