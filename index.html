@@ -368,6 +368,208 @@
             </div>
         </div>
 
+        <!-- 🎁 GIFT BUILDER PAGE (صمّم هديتك بنفسك) 🎁 -->
+        <div id="page-gift-builder" class="page-sec hidden">
+            <div class="max-w-4xl mx-auto px-4 py-6 text-white text-right">
+                
+                <!-- Header Banner -->
+                <div class="text-center mb-6 relative">
+                    <div class="inline-flex items-center gap-2 gold-gradient text-black font-black text-xs md:text-sm px-4 py-1.5 rounded-full shadow-lg mb-2">
+                        <i class="fa-solid fa-gift"></i> الخدمة الحصرية 2026
+                    </div>
+                    <h1 class="text-2xl md:text-4xl font-black gold-text">صمّم هديتك بنفسك 🎁</h1>
+                    <p class="text-xs text-gray-400 mt-1">اختر المنتجات، أضف لمستك الشخصية ونحن نقوم بتجهيزها بأجمل شكل</p>
+                </div>
+
+                <!-- Stepper Progress Bar -->
+                <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 mb-6 shadow-xl">
+                    <div class="flex justify-between items-center relative">
+                        <div class="absolute top-1/2 left-4 right-4 h-0.5 bg-gray-800 -z-0"></div>
+                        
+                        <button onclick="goToGiftStep(1)" id="step-btn-1" class="step-nav-btn relative z-10 flex flex-col items-center gap-1">
+                            <div class="w-9 h-9 rounded-full gold-gradient text-black font-black text-xs flex items-center justify-center shadow-md transition-all">1</div>
+                            <span class="text-[10px] font-bold text-[#D4AF37]">المناسبة</span>
+                        </button>
+                        <button onclick="goToGiftStep(2)" id="step-btn-2" class="step-nav-btn relative z-10 flex flex-col items-center gap-1">
+                            <div class="w-9 h-9 rounded-full bg-gray-800 text-gray-400 font-black text-xs flex items-center justify-center shadow-md transition-all">2</div>
+                            <span class="text-[10px] font-bold text-gray-400">المنتجات</span>
+                        </button>
+                        <button onclick="goToGiftStep(3)" id="step-btn-3" class="step-nav-btn relative z-10 flex flex-col items-center gap-1">
+                            <div class="w-9 h-9 rounded-full bg-gray-800 text-gray-400 font-black text-xs flex items-center justify-center shadow-md transition-all">3</div>
+                            <span class="text-[10px] font-bold text-gray-400">التغليف</span>
+                        </button>
+                        <button onclick="goToGiftStep(4)" id="step-btn-4" class="step-nav-btn relative z-10 flex flex-col items-center gap-1">
+                            <div class="w-9 h-9 rounded-full bg-gray-800 text-gray-400 font-black text-xs flex items-center justify-center shadow-md transition-all">4</div>
+                            <span class="text-[10px] font-bold text-gray-400">الرسالة</span>
+                        </button>
+                        <button onclick="goToGiftStep(5)" id="step-btn-5" class="step-nav-btn relative z-10 flex flex-col items-center gap-1">
+                            <div class="w-9 h-9 rounded-full bg-gray-800 text-gray-400 font-black text-xs flex items-center justify-center shadow-md transition-all">5</div>
+                            <span class="text-[10px] font-bold text-gray-400">المعاينة</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 1: Occasion & Budget -->
+                <div id="gift-step-1" class="gift-step-content space-y-6">
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 shadow-lg">
+                        <h2 class="text-base font-bold text-[#D4AF37] mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-heart text-red-500"></i> 1. اختر المناسبة (لمن هذه الهدية؟)
+                        </h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="gift-occasions-grid"></div>
+                    </div>
+
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 shadow-lg">
+                        <h2 class="text-base font-bold text-[#D4AF37] mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-wallet"></i> تحديد الميزانية التقديرية (دج)
+                        </h2>
+                        <div class="flex flex-wrap gap-3 mb-4" id="gift-budget-options"></div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">أو أدخل ميزانية مخصصة:</label>
+                            <input type="number" id="gift-custom-budget" placeholder="مثال: 7500" oninput="setCustomGiftBudget(this.value)" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                        </div>
+                    </div>
+
+                    <button onclick="goToGiftStep(2)" class="w-full py-4 gold-gradient text-black font-extrabold rounded-xl shadow-xl flex items-center justify-center gap-2 text-sm">
+                        التالي: اختيار المنتجات <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+
+                <!-- STEP 2: Products Selection from Real Store Inventory -->
+                <div id="gift-step-2" class="gift-step-content hidden space-y-6">
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-4 shadow-lg flex flex-wrap justify-between items-center gap-3">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-boxes-stacked text-[#D4AF37]"></i> اختر المنتجات من المتجر
+                        </h2>
+                        <div class="text-xs font-bold">
+                            المجموع الحالي: <span id="builder-live-total" class="gold-text font-black text-sm">0 دج</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 overflow-x-auto pb-2" id="builder-cat-filter-tabs"></div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="builder-products-grid"></div>
+
+                    <div class="flex gap-3">
+                        <button onclick="goToGiftStep(1)" class="w-1/3 py-3.5 bg-gray-800 text-white font-bold rounded-xl text-xs">السابق</button>
+                        <button onclick="validateAndGoToStep(3)" class="w-2/3 py-3.5 gold-gradient text-black font-extrabold rounded-xl text-xs shadow-lg">التالي: اختيار التغليف 📦</button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Box & Packaging Selection -->
+                <div id="gift-step-3" class="gift-step-content hidden space-y-6">
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 shadow-lg space-y-4">
+                        <h2 class="text-base font-bold text-[#D4AF37] flex items-center gap-2">
+                            <i class="fa-solid fa-box-open"></i> اختر العلبة والتغليف الفاخر
+                        </h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="builder-boxes-grid"></div>
+                    </div>
+
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 shadow-lg space-y-3">
+                        <h3 class="text-xs font-bold text-gray-300">اختر لون الشريط التزييني:</h3>
+                        <div class="flex gap-3" id="ribbon-color-options">
+                            <button onclick="selectRibbonColor('ذهبي')" class="w-8 h-8 rounded-full gold-gradient border-2 border-white/80 shadow-md"></button>
+                            <button onclick="selectRibbonColor('أحمر')" class="w-8 h-8 rounded-full bg-red-600 border-2 border-transparent"></button>
+                            <button onclick="selectRibbonColor('وردي')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-transparent"></button>
+                            <button onclick="selectRibbonColor('أسود')" class="w-8 h-8 rounded-full bg-black border-2 border-gray-700"></button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="goToGiftStep(2)" class="w-1/3 py-3.5 bg-gray-800 text-white font-bold rounded-xl text-xs">السابق</button>
+                        <button onclick="goToGiftStep(4)" class="w-2/3 py-3.5 gold-gradient text-black font-extrabold rounded-xl text-xs shadow-lg">التالي: كتابة الرسالة ✉️</button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Personal Message Card -->
+                <div id="gift-step-4" class="gift-step-content hidden space-y-6">
+                    <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 shadow-lg space-y-4">
+                        <h2 class="text-base font-bold text-[#D4AF37] flex items-center gap-2">
+                            <i class="fa-solid fa-envelope-open-text"></i> كتابة بطاقة الإهداء الشخصية
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 mb-1">اسم المستلم (إلى) *</label>
+                                <input type="text" id="gift-recipient-name" placeholder="مثال: أمي الغالية / سارة" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 mb-1">اسم المرسل (من) *</label>
+                                <input type="text" id="gift-sender-name" placeholder="مثال: عبد الحق" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 mb-1">اختر قالب جاهز (اختياري):</label>
+                            <div class="flex flex-wrap gap-2 mb-3" id="gift-msg-templates"></div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-xs font-bold text-gray-300">نص الرسالة *</label>
+                                <span class="text-[10px] text-gray-500"><span id="msg-char-count">0</span>/200 حرف</span>
+                            </div>
+                            <textarea id="gift-message-text" maxlength="200" rows="3" oninput="updateMsgCharCount(this.value)" placeholder="اكتب عباراتك الخاصة النابعة من القلب..." class="w-full bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37] leading-relaxed"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="goToGiftStep(3)" class="w-1/3 py-3.5 bg-gray-800 text-white font-bold rounded-xl text-xs">السابق</button>
+                        <button onclick="goToGiftStep(5)" class="w-2/3 py-3.5 gold-gradient text-black font-extrabold rounded-xl text-xs shadow-lg">التالي: معاينة الهدية 👁️</button>
+                    </div>
+                </div>
+
+                <!-- STEP 5: Final Visual Preview & Checkout -->
+                <div id="gift-step-5" class="gift-step-content hidden space-y-6">
+                    <div class="bg-[#121212] border border-[#D4AF37]/30 rounded-3xl p-5 md:p-6 shadow-2xl space-y-5">
+                        <h2 class="text-lg font-black text-white gold-text border-b border-gray-800 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-eye"></i> معاينة هديتك النهائية قبل الطلب
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-black p-4 rounded-2xl border border-gray-800 relative flex flex-col items-center justify-center min-h-[250px]">
+                                <img id="preview-box-img" src="https://via.placeholder.com/200" class="w-40 h-40 object-contain mb-3">
+                                <div class="absolute top-3 left-3 bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] text-[10px] font-bold px-2.5 py-1 rounded-full">
+                                    شريط: <span id="preview-ribbon-text">ذهبي</span>
+                                </div>
+                                <div id="preview-products-list" class="flex flex-wrap gap-2 justify-center mt-2"></div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-[#1a1a1a] to-black p-5 rounded-2xl border border-[#D4AF37]/40 relative space-y-3">
+                                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                                    <span class="text-xs font-bold text-[#D4AF37]"><i class="fa-solid fa-crown"></i> بطاقة إهداء فاخرة</span>
+                                    <span id="preview-occasion-badge" class="text-[10px] bg-red-900/50 text-red-300 px-2 py-0.5 rounded-full border border-red-500/30"></span>
+                                </div>
+                                <p class="text-xs text-gray-300">إلى: <strong id="preview-to-name" class="text-white"></strong></p>
+                                <p id="preview-card-body" class="text-xs italic text-amber-200 leading-relaxed bg-black/40 p-3 rounded-xl border border-gray-800"></p>
+                                <p class="text-xs text-gray-300 text-left">من: <strong id="preview-from-name" class="text-white"></strong></p>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/60 p-4 rounded-2xl border border-gray-800 space-y-2 text-xs text-gray-300">
+                            <div class="flex justify-between"><span>مجموع المنتجات المختارة:</span><span id="summary-prods-price" class="font-bold text-white">0 دج</span></div>
+                            <div class="flex justify-between"><span>تكلفة العلبة والتغليف:</span><span id="summary-box-price" class="font-bold text-[#D4AF37]">0 دج</span></div>
+                            <div class="border-t border-gray-800 pt-2 flex justify-between text-sm font-black"><span>المبلغ الكلي للهدية:</span><span id="summary-grand-total" class="gold-text text-base">0 دج</span></div>
+                        </div>
+
+                        <div class="space-y-3 pt-2">
+                            <h3 class="font-bold text-xs text-white">📝 معلومات التسليم والتوصيل:</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <input type="text" id="gift-cust-name" placeholder="اسمك الكامل *" class="bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                                <input type="tel" id="gift-cust-phone" maxlength="10" placeholder="رقم الهاتف (06/07/05) *" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                                <select id="gift-cust-wilaya" onchange="handleGiftWilayaChange()" class="bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
+                                <select id="gift-cust-commune" class="bg-black border border-gray-800 p-3 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"><option value="">اختر البلدية...</option></select>
+                            </div>
+                        </div>
+
+                        <button onclick="submitGiftOrder()" id="submit-gift-order-btn" class="w-full py-4 gold-gradient text-black font-extrabold text-base rounded-2xl shadow-xl hover:opacity-90 transition">
+                            تأكيد طلب الهدية الآن (الدفع عند الاستلام) 🎁
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <!-- 🎁 END GIFT BUILDER PAGE 🎁 -->
+
         <!-- 6. ADMIN DASHBOARD -->
         <div id="page-admin" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-8 text-right text-white">
@@ -679,7 +881,8 @@
             <i class="fa-solid fa-border-all text-lg"></i>
             <span>المنتجات</span>
         </button>
-        <button onclick="showPage('gift-builder')" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce">
+        <!-- الزر المحدث ليفتح مصمم الهدايا الفعلي -->
+        <button onclick="showPage('gift-builder')" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce cursor-pointer">
             <div class="w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center text-sm shadow-lg">🎁</div>
             <span>هديتك</span>
         </button>
@@ -723,7 +926,7 @@
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
