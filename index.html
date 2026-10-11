@@ -20,6 +20,23 @@
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
+    <!-- 🌟 شاشة الافتتاح الفاخرة (Luxury Splash Screen) 🌟 -->
+    <div id="luxury-splash-screen" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center text-center p-6 transition-opacity duration-700 ease-in-out">
+        <div class="relative mb-5 animate-pulse">
+            <div class="absolute inset-0 bg-[#D4AF37]/30 blur-2xl rounded-full"></div>
+            <i class="fa-solid fa-crown text-5xl md:text-7xl text-[#D4AF37] relative z-10 drop-shadow-[0_0_20px_rgba(212,175,55,0.9)]"></i>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-black text-white tracking-widest mb-3 drop-shadow-md">
+            كوسمتيك عبد الحق
+        </h1>
+        <p class="text-xs md:text-base text-[#D4AF37] font-bold max-w-md leading-relaxed tracking-wide drop-shadow-lg px-4">
+            ✨ أهلاً بك في عالم الفخامة... حيث تبدأ حكايتك مع التميز 🔥
+        </p>
+        <div class="w-32 h-1 bg-gray-900 rounded-full mt-8 overflow-hidden relative border border-[#D4AF37]/20">
+            <div class="w-full h-full gold-gradient animate-pulse"></div>
+        </div>
+    </div>
+
     <!-- Sticky Top Yellow Banner Ticker -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
         <span id="top-announcement-text" class="inline-block transition-opacity duration-500">
@@ -144,7 +161,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <!-- Sidebar Dynamic Filters -->
                     <div class="bg-[#121212] border border-[#D4AF37]/20 rounded-2xl p-5 text-white h-fit space-y-6 lg:col-span-1">
                         <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                             <h3 class="font-black text-base text-[#D4AF37] flex items-center gap-2">
@@ -173,7 +189,6 @@
 
                         <hr class="border-gray-800">
 
-                        <!-- الحاوية الديناميكية التي تتغير تلقائياً حسب القسم المفتوح -->
                         <div id="dynamic-category-filters" class="space-y-4"></div>
 
                         <hr class="border-gray-800">
@@ -393,7 +408,6 @@
                                 <option value="false">غير متوفر 🔴</option>
                             </select>
 
-                            <!-- الحاوية الديناميكية التي تتغير فوراً عند اختيار الفئة في لوحة التحكم -->
                             <div id="category-dynamic-fields-container" class="md:col-span-3"></div>
 
                             <div class="md:col-span-3 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
@@ -450,7 +464,6 @@
                     </div>
                 </div>
 
-                <!-- باقي التبويبات بدون تغيير -->
                 <div id="admin-tab-attributes" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl border space-y-4">
