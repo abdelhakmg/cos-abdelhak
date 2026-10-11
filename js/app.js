@@ -5,18 +5,22 @@ let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
-// 🌟 دالة إظهار وإخفاء شاشة الافتتاح الفاخرة (تختفي تلقائياً بعد 1.5 ثانية وتظهر مرة واحدة فقط في الجلسة)
+// 🌟 شاشة الافتتاح الفاخرة (تظهر مع كل تحديث للصفحة وتختفي بسلاسة بعد 4 ثوانٍ)
 function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
 
-    // تم إزالة شرط التخزين المؤقت لكي تظهر مع كل تحديث لإخفاء وقت التحميل
+    // التأكد من أن الشاشة تبدأ ظاهرة
+    splash.style.opacity = '1';
+    splash.style.display = 'flex';
+
+    // الانتظار لمدة 4 ثوانٍ تماماً لتغطية تحميل الملفات
     setTimeout(() => {
-        splash.style.opacity = '0';
+        splash.style.opacity = '0'; // بدء التلاشي السلس
         setTimeout(() => {
-            splash.remove();
-        }, 700);
-    }, 4000);
+            splash.style.display = 'none'; // إخفاء الشاشة تماماً بعد انتهاء التلاشي
+        }, 700); // 700 ملي ثانية مدة تأثير التلاشي (transition)
+    }, 4000); // 4000 ملي ثانية = 4 ثوانٍ
     }
 }
 
