@@ -10,18 +10,13 @@ function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
 
-    const hasSeenSplash = sessionStorage.getItem('has_seen_splash');
-
-    if (hasSeenSplash) {
-        splash.remove(); // إزالة العنصر تماماً من DOM حتى لا يعيق التفاعل
-    } else {
+    // تم إزالة شرط التخزين المؤقت لكي تظهر مع كل تحديث لإخفاء وقت التحميل
+    setTimeout(() => {
+        splash.style.opacity = '0';
         setTimeout(() => {
-            splash.style.opacity = '0';
-            setTimeout(() => {
-                splash.remove();
-                sessionStorage.setItem('has_seen_splash', 'true');
-            }, 700);
-        }, 1500);
+            splash.remove();
+        }, 700);
+    }, 4000);
     }
 }
 
