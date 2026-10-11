@@ -5,7 +5,7 @@ let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
-// 🌟 دالة إظهار وإخفاء شاشة الافتتاح الفاخرة (تظهر مرة واحدة لكل جلسة)
+// 🌟 دالة إظهار وإخفاء شاشة الافتتاح الفاخرة (تختفي تلقائياً بعد 1.5 ثانية وتظهر مرة واحدة فقط في الجلسة)
 function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
@@ -13,15 +13,15 @@ function initLuxurySplashScreen() {
     const hasSeenSplash = sessionStorage.getItem('has_seen_splash');
 
     if (hasSeenSplash) {
-        splash.style.display = 'none';
+        splash.remove(); // إزالة العنصر تماماً من DOM حتى لا يعيق التفاعل
     } else {
         setTimeout(() => {
             splash.style.opacity = '0';
             setTimeout(() => {
-                splash.style.display = 'none';
+                splash.remove();
                 sessionStorage.setItem('has_seen_splash', 'true');
             }, 700);
-        }, 1800);
+        }, 1500);
     }
 }
 
