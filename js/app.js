@@ -465,3 +465,70 @@ function submitGiftOrder() {
 document.addEventListener('DOMContentLoaded', () => {
     initLuxurySplashScreen();
 });
+// دالة عرض المنتجات في الصفحة الرئيسية وقسم الكتالوج
+function renderProducts() {
+    const homeContainer = document.getElementById('home-products');
+    const catalogContainer = document.getElementById('catalog-products');
+    
+    if (!products || products.length === 0) {
+        if (homeContainer) homeContainer.innerHTML = '<p class="text-gray-400 text-xs text-center col-span-full py-8">لا توجد منتجات مضافة حالياً.</p>';
+        if (catalogContainer) catalogContainer.innerHTML = '<p class="text-gray-400 text-xs text-center col-span-full py-8">لا توجد منتجات تطابق بحثك.</p>';
+        return;
+    }
+
+    const htmlContent = products.map(p => renderSingleProductCard(p)).join('');
+    
+    if (homeContainer) homeContainer.innerHTML = htmlContent;
+    if (catalogContainer) catalogContainer.innerHTML = htmlContent;
+    
+    const countBadge = document.getElementById('products-count-badge');
+    if (countBadge) countBadge.innerText = products.length;
+}
+
+// دالة عرض أقسام المتجر في الصفحة الرئيسية
+function renderCategoryCards() {
+    const container = document.getElementById('home-category-cards');
+    if (!container) return;
+
+    const defaultCats = [
+        { name: 'كوسمتيك', image: 'https://via.placeholder.com/100' },
+        { name: 'بلاكيور', image: 'https://via.placeholder.com/100' },
+        { name: 'مايكاب', image: 'https://via.placeholder.com/100' },
+        { name: 'عطور', image: 'https://via.placeholder.com/100' },
+        { name: 'علب هدايا', image: 'https://via.placeholder.com/100' },
+        { name: 'إكسسوارات شعر', image: 'https://via.placeholder.com/100' }
+    ];
+
+    const catsToDisplay = (typeof categories !== 'undefined' && categories.length > 0) ? categories : defaultCats;
+
+    container.innerHTML = catsToDisplay.map(c => `
+        <div onclick="filterByCategory('${c.name}')" class="bg-[#121212] border border-gray-800 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition group">
+            <div class="w-14 h-14 mx-auto mb-2 rounded-xl bg-black border border-gray-800 flex items-center justify-center overflow-hidden">
+                <img src="${c.image || 'https://via.placeholder.com/100'}" class="w-full h-full object-contain group-hover:scale-110 transition duration-300">
+            </div>
+            <span class="text-xs font-bold text-white group-hover:text-[#D4AF37] transition">${c.name}</span>
+        </div>
+    `).join('');
+}
+
+function filterByCategory(catName) {
+    activeCategoryFilter = catName;
+    showPage('catalog');
+    if (typeof applyFilters === 'function') applyFilters();
+}
+
+function updateAppHeaderInfo() {
+    renderCategoryCards();
+    renderProducts();
+}
+
+// تشغيل الدوال فور تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    initLuxurySplashScreen();
+    if (typeof loadStoreDataFromFirebase === 'function') {
+        loadStoreDataFromFirebase();
+    } else {
+        renderProducts();
+        renderCategoryCards();
+    }
+});
