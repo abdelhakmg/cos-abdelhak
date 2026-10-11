@@ -475,3 +475,54 @@ document.addEventListener('DOMContentLoaded', () => {
         safeCall('renderDynamicSidebarFilters');
     }
 });
+// دالة جلب المنتجات والبيانات من Firebase وإعادة تحديث العرض
+function loadStoreDataFromFirebase() {
+    if (typeof db === 'undefined') return;
+
+    // 1. جلب المنتجات
+    db.collection("products").get().then((querySnapshot) => {
+        products = [];
+        querySnapshot.forEach((doc) => {
+            products.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // تحديث العرض فوراً
+        if (typeof renderProducts === 'function') renderProducts();
+        if (typeof applyFilters === 'function') applyFilters();
+        if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
+    }).catch(err => {
+        console.error("Error loading products: ", err);
+    });
+
+    // 2. جلب الفئات والأقسام
+    db.collection("categories").get().then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+            categories = [];
+            querySnapshot.forEach((doc) => {
+                categories.push({ id: doc.id, ...doc.data() });
+            });
+            if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
+        }
+    });
+
+    // 3. جلب إعدادات المتجر والبانرات
+    db.collection("settings").doc("main").get().then((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.name) storeSettings.name = data.name;
+            if (data.slogan) storeSettings.slogan = data.slogan;
+            if (data.logoUrl) storeSettings.logoUrl = data.logoUrl;
+            if (data.pass) storeSettings.pass = data.pass;
+            if (data.msgSuccess) storeSettings.msgSuccess = data.msgSuccess;
+            if (data.msgWarning) storeSettings.msgWarning = data.msgWarning;
+            if (data.brands) brands = data.brands;
+            if (typeof updateAppHeaderInfo === 'function') updateAppHeaderInfo();
+        }
+    });
+}
+
+// تشغيل دالة جلب البيانات تلقائياً عند فتح الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    initLuxurySplashScreen();
+    loadStoreDataFromFirebase();
+});
