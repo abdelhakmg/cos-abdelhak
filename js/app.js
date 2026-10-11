@@ -5,23 +5,23 @@ let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
-// 🌟 شاشة الافتتاح الفاخرة (تظهر مع كل تحديث للصفحة وتختفي بسلاسة بعد 4 ثوانٍ)
+// 🌟 شاشة الافتتاح الفاخرة (تعمل مع كل تحديث للصفحة لمدة 4 ثوانٍ وتختفي بسلاسة دون التأثير على محتوى المتجر)
 function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
 
-    // التأكد من أن الشاشة تبدأ ظاهرة
-    splash.style.opacity = '1';
+    // ضمان ظهور الشاشة في البداية
     splash.style.display = 'flex';
+    splash.style.opacity = '1';
+    splash.style.transition = 'opacity 0.7s ease-in-out';
 
-    // الانتظار لمدة 4 ثوانٍ تماماً لتغطية تحميل الملفات
+    // عداد زمني لمدة 4 ثوانٍ لتغطية تحميل الملفات والبيانات
     setTimeout(() => {
-        splash.style.opacity = '0'; // بدء التلاشي السلس
+        splash.style.opacity = '0'; // بدء التلاشي الناعم
         setTimeout(() => {
-            splash.style.display = 'none'; // إخفاء الشاشة تماماً بعد انتهاء التلاشي
-        }, 700); // 700 ملي ثانية مدة تأثير التلاشي (transition)
+            splash.style.display = 'none'; // إخفاء العنصر نهائياً ليعمل المتجر بكامل محتوياته
+        }, 700); // 700 ملي ثانية مدة تأثير التلاشي
     }, 4000); // 4000 ملي ثانية = 4 ثوانٍ
-    }
 }
 
 // دالة نقر الشعار لفتح النافذة
