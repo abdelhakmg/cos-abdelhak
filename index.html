@@ -763,20 +763,5 @@
     <script src="js/app.js?v=4"></script>
     <script src="js/landing.js?v=4"></script>
     <script src="js/admin.js?v=4"></script>
-    <script>
-    // حل مباشر وقوي لإخفاء الشاشة الافتتاحية بعد 4 ثوانٍ تماماً دون أي توقف
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            const splash = document.getElementById('luxury-splash-screen');
-            if (splash) {
-                splash.style.transition = 'opacity 0.7s ease';
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                }, 700);
-            }
-        }, 4000); // 4000 = 4 ثوانٍ
-    });
-</script>
 </body>
 </html>
