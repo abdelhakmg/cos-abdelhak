@@ -832,3 +832,141 @@ function handleSaveCategory(e) {
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
     });
 }
+// ==========================================
+// 🎁 قسم إدارة زر هديتك من لوحة التحكم (مُدمج خصيصاً)
+// ==========================================
+
+function renderAdminGiftSettings() {
+    // 1. إدارة المناسبات
+    const occContainer = document.getElementById('admin-gift-occasions-list');
+    if (occContainer && typeof defaultGiftOccasions !== 'undefined') {
+        occContainer.innerHTML = defaultGiftOccasions.map((occ, idx) => `
+            <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border text-xs my-1">
+                <span class="font-bold text-gray-900">${occ}</span>
+                <button type="button" onclick="removeGiftOccasion(${idx})" class="text-red-500 font-bold px-3 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition">حذف</button>
+            </div>
+        `).join('');
+    }
+
+    // 2. إدارة التغليف
+    const wrapContainer = document.getElementById('admin-gift-wrapping-list');
+    if (wrapContainer && typeof giftWrappingOptions !== 'undefined') {
+        wrapContainer.innerHTML = giftWrappingOptions.map((w, idx) => `
+            <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border text-xs my-1">
+                <div class="flex items-center gap-3">
+                    <img src="${w.image}" class="w-10 h-10 object-contain bg-black rounded-lg border">
+                    <div>
+                        <strong class="block text-gray-900">${w.name}</strong>
+                        <span class="text-[#B8860B] font-bold">${w.price.toLocaleString()} دج</span>
+                    </div>
+                </div>
+                <button type="button" onclick="removeGiftWrapping(${idx})" class="text-red-500 font-bold px-3 py-1 bg-red-50 rounded-lg hover:bg-red-100 transition">حذف</button>
+            </div>
+        `).join('');
+    }
+
+    // 3. ألوان الأشرطة
+    const ribbonContainer = document.getElementById('admin-ribbon-colors-list');
+    if (ribbonContainer && typeof giftRibbonColors !== 'undefined') {
+        ribbonContainer.innerHTML = giftRibbonColors.map((col, idx) => `
+            <span class="bg-gray-100 border px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm">
+                ${col} <button type="button" onclick="removeRibbonColor(${idx})" class="text-red-500 font-bold hover:scale-125 transition">×</button>
+            </span>
+        `).join('');
+    }
+
+    // 4. ألوان الغلافات
+    const wrapperContainer = document.getElementById('admin-wrapper-colors-list');
+    if (wrapperContainer && typeof giftWrapperColors !== 'undefined') {
+        wrapperContainer.innerHTML = giftWrapperColors.map((col, idx) => `
+            <span class="bg-gray-100 border px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm">
+                ${col} <button type="button" onclick="removeWrapperColor(${idx})" class="text-red-500 font-bold hover:scale-125 transition">×</button>
+            </span>
+        `).join('');
+    }
+}
+
+function handleAddGiftOccasion() {
+    const input = document.getElementById('new-gift-occ-name');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+    if (typeof defaultGiftOccasions !== 'undefined') defaultGiftOccasions.push(val);
+    input.value = '';
+    renderAdminGiftSettings();
+    showCustomAlert('تمت الإضافة', 'تمت إضافة المناسبة بنجاح!', true);
+}
+
+function removeGiftOccasion(idx) {
+    if (typeof defaultGiftOccasions !== 'undefined') {
+        defaultGiftOccasions.splice(idx, 1);
+        renderAdminGiftSettings();
+    }
+}
+
+function handleAddGiftWrapping() {
+    const name = document.getElementById('new-wrap-name')?.value.trim();
+    const price = parseFloat(document.getElementById('new-wrap-price')?.value) || 0;
+    const image = document.getElementById('new-wrap-img-url')?.value.trim() || 'https://via.placeholder.com/100';
+    if (!name) {
+        showCustomAlert('تنبيه', 'يرجى كتابة اسم التغليف!', false);
+        return;
+    }
+    if (typeof giftWrappingOptions !== 'undefined') {
+        giftWrappingOptions.push({ id: 'wrap-' + Date.now(), name, price, image });
+    }
+    if (document.getElementById('new-wrap-name')) document.getElementById('new-wrap-name').value = '';
+    if (document.getElementById('new-wrap-price')) document.getElementById('new-wrap-price').value = '';
+    if (document.getElementById('new-wrap-img-url')) document.getElementById('new-wrap-img-url').value = '';
+    if (document.getElementById('new-wrap-img-file')) document.getElementById('new-wrap-img-file').value = '';
+    renderAdminGiftSettings();
+    showCustomAlert('تمت الإضافة', 'تم إضافة نوع التغليف بنجاح!', true);
+}
+
+function removeGiftWrapping(idx) {
+    if (typeof giftWrappingOptions !== 'undefined') {
+        giftWrappingOptions.splice(idx, 1);
+        renderAdminGiftSettings();
+    }
+}
+
+function handleAddRibbonColor() {
+    const input = document.getElementById('new-ribbon-color');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+    if (typeof giftRibbonColors !== 'undefined') giftRibbonColors.push(val);
+    input.value = '';
+    renderAdminGiftSettings();
+}
+
+function removeRibbonColor(idx) {
+    if (typeof giftRibbonColors !== 'undefined') {
+        giftRibbonColors.splice(idx, 1);
+        renderAdminGiftSettings();
+    }
+}
+
+function handleAddWrapperColor() {
+    const input = document.getElementById('new-wrapper-color');
+    if (!input) return;
+    const val = input.value.trim();
+    if (!val) return;
+    if (typeof giftWrapperColors !== 'undefined') giftWrapperColors.push(val);
+    input.value = '';
+    renderAdminGiftSettings();
+}
+
+function removeWrapperColor(idx) {
+    if (typeof giftWrapperColors !== 'undefined') {
+        giftWrapperColors.splice(idx, 1);
+        renderAdminGiftSettings();
+    }
+}
+
+// تحديث دالة تبديل التبويبات لدعم قسم هديتك
+const originalSwitchAdminTab = window.switchAdminTab;
+window.switchAdminTab = function(tabName) {
+    if (typeof originalSwitchAdminTab === 'function') originalSwitchAdminTab(tabName);
+    if (tabName === 'gift-settings') renderAdminGiftSettings();
+};
