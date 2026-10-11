@@ -4,16 +4,25 @@ let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
+// دالة شاشة الافتتاح الفاخرة مع مؤقت أمان إجباري لضمان عدم توقف الشاشة أبداً
 function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
+
     splash.style.display = 'flex';
     splash.style.opacity = '1';
     splash.style.transition = 'opacity 0.7s ease-in-out';
-    setTimeout(() => {
+
+    // إخفاء تلقائي بعد 3 ثوانٍ
+    const hideSplash = () => {
+        if (splash.style.display === 'none') return;
         splash.style.opacity = '0';
-        setTimeout(() => { splash.style.display = 'none'; }, 700);
-    }, 3000);
+        setTimeout(() => {
+            splash.style.display = 'none';
+        }, 700);
+    };
+
+    setTimeout(hideSplash, 3000);
 }
 
 function handleLogoClick(event) {
@@ -56,7 +65,7 @@ function renderSingleProductCard(p) {
     const isFav = Array.isArray(favorites) && favorites.includes(p.id);
 
     return `
-        <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
+        <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/25 transition-all duration-300 transform hover:-translate-y-2 group relative">
             <button onclick="event.stopPropagation(); toggleFavorite('${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm cursor-pointer">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
@@ -103,7 +112,7 @@ function addToCart(id) {
     }
 }
 
-// 🌟 نظام "صمّم هديتك بنفسك 🎁" المحدث والمتكامل 🌟
+// 🌟 نظام "صمّم هديتك بنفسك 🎁" المتطور 🌟
 let giftState = {
     step: 1,
     occasion: 'عيد ميلاد',
@@ -193,7 +202,7 @@ function goToGiftStep(stepNum) {
 function renderBuilderProducts() {
     const grid = document.getElementById('builder-products-grid');
     if (!grid) return;
-    const available = products.filter(p => p.inStock !== false && (!p.category || !p.category.includes('علب')));
+    const available = (typeof products !== 'undefined' && Array.isArray(products)) ? products.filter(p => p.inStock !== false && (!p.category || !p.category.includes('علب'))) : [];
 
     grid.innerHTML = available.map(p => {
         const selectedItem = giftState.selectedProducts.find(sp => sp.product.id === p.id);
@@ -261,7 +270,7 @@ function validateAndGoToStep(targetStep) {
 function renderBuilderBoxes() {
     const grid = document.getElementById('builder-boxes-grid');
     if (!grid) return;
-    const realBoxes = products.filter(p => p.category && p.category.includes('علب'));
+    const realBoxes = (typeof products !== 'undefined' && Array.isArray(products)) ? products.filter(p => p.category && p.category.includes('علب')) : [];
     const boxesToDisplay = realBoxes.length > 0 ? realBoxes : [
         { id: 'b1', name: 'علبة الفخامة السوداء والذهبية', price: 600, image: 'https://via.placeholder.com/150' },
         { id: 'b2', name: 'علبة الأميرة البيضاء الناعمة', price: 500, image: 'https://via.placeholder.com/150' }
@@ -284,7 +293,7 @@ function renderBuilderBoxes() {
 }
 
 function selectGiftBox(boxId) {
-    const realBox = products.find(p => p.id === boxId);
+    const realBox = (typeof products !== 'undefined') ? products.find(p => p.id === boxId) : null;
     giftState.selectedBox = realBox || { id: boxId, name: 'علبة فاخرة', price: 500, image: 'https://via.placeholder.com/150' };
     renderBuilderBoxes();
     updateLiveBuilderTotal();
@@ -394,7 +403,7 @@ function populateGiftWilayas() {
 
 function handleGiftWilayaChange() {
     const code = document.getElementById('gift-cust-wilaya').value;
-    const wilaya = WILAYAS.find(w => w.code === code);
+    const wilaya = (typeof WILAYAS !== 'undefined') ? WILAYAS.find(w => w.code === code) : null;
     const communeSelect = document.getElementById('gift-cust-commune');
     if (wilaya && communeSelect) {
         const communesList = wilaya.communesData || [];
@@ -415,7 +424,7 @@ function submitGiftOrder() {
         return;
     }
 
-    const wilaya = WILAYAS.find(w => w.code === wilayaCode);
+    const wilaya = (typeof WILAYAS !== 'undefined') ? WILAYAS.find(w => w.code === wilayaCode) : null;
     const communeObj = (wilaya?.communesData || []).find(c => c.name === commune);
     const shipCost = communeObj ? communeObj.cost : (wilaya?.officeCost || 0);
 
@@ -426,7 +435,6 @@ function submitGiftOrder() {
 
     const prodsSummaryStr = giftState.selectedProducts.map(sp => `${sp.product.name} (x${sp.quantity})`).join(', ');
 
-    // إذا لم يكتب الزبون شيئاً في الرسالة، لا يتم إرسال حقل الرسالة نهائياً
     let messageStr = '';
     if (giftState.messageText && giftState.messageText.trim().length > 0) {
         messageStr = ` - [رسالة من ${giftState.senderName} إلى ${giftState.recipientName}: "${giftState.messageText}"]`;
@@ -445,10 +453,25 @@ function submitGiftOrder() {
         createdAt: new Date()
     };
 
-    db.collection("orders").add(newGiftOrder).then(() => {
-        showCustomAlert('تم استلام الهدية بنجاح! 🎉', 'شكرًا لك! تم استلام طلب هديتك وسنقوم بتجهيزها بعناية فائقة.', true);
-        showPage('home');
-    }).catch(err => {
-        showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
-    });
+    if (typeof db !== 'undefined') {
+        db.collection("orders").add(newGiftOrder).then(() => {
+            showCustomAlert('تم استلام الهدية بنجاح! 🎉', 'شكرًا لك! تم استلام طلب هديتك وسنقوم بتجهيزها بعناية فائقة.', true);
+            showPage('home');
+        }).catch(err => {
+            showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
+        });
+    }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    initLuxurySplashScreen();
+    if (typeof safeCall === 'function') {
+        safeCall('updateAppHeaderInfo');
+        safeCall('updateBadges');
+        safeCall('renderHeroSlider');
+        safeCall('renderProducts');
+        safeCall('initBannerRealtimeSync');
+        safeCall('initRealOrdersTicker');
+        safeCall('renderDynamicSidebarFilters');
+    }
+});
