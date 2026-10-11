@@ -10,18 +10,16 @@ function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
 
-    // ضمان ظهور الشاشة في البداية
     splash.style.display = 'flex';
     splash.style.opacity = '1';
     splash.style.transition = 'opacity 0.7s ease-in-out';
 
-    // عداد زمني لمدة 4 ثوانٍ لتغطية تحميل الملفات والبيانات
     setTimeout(() => {
-        splash.style.opacity = '0'; // بدء التلاشي الناعم
+        splash.style.opacity = '0';
         setTimeout(() => {
-            splash.style.display = 'none'; // إخفاء العنصر نهائياً ليعمل المتجر بكامل محتوياته
-        }, 700); // 700 ملي ثانية مدة تأثير التلاشي
-    }, 3000); // 4000 ملي ثانية = 4 ثوانٍ
+            splash.style.display = 'none';
+        }, 700);
+    }, 3000);
 }
 
 // دالة نقر الشعار لفتح النافذة
@@ -199,108 +197,6 @@ function renderDynamicSidebarFilters() {
             </div>
         `;
     } 
-    else if (activeCat.includes('كوسمتيك')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ منطقة الاستخدام:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للوجه" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للوجه</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للجسد" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للجسد</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للشعر" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للشعر</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للتدليك والعناية" onchange="applyFilters()" class="cos-area-cb accent-[#D4AF37]"> للتدليك والعناية</label>
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${availableSkinTypes.map(st => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>`).join('')}
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${availableHairTypes.map(ht => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ht}" onchange="applyFilters()" class="hair-filter-cb accent-[#D4AF37]"> ${ht}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat.includes('بلاكيور') || activeCat.includes('اصي')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع المعدن:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بلاكيور أور" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> بلاكيور أور</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="أسي إينوكسيدابل / Steel" onchange="applyFilters()" class="metal-cb accent-[#D4AF37]"> أسي إينوكسيدابل / Steel</label>
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع القطعة:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    ${["سلسلة", "خاتم", "قورمات", "بارور", "مناقش", "خلخال"].map(pt => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pt}" onchange="applyFilters()" class="jewelry-type-cb accent-[#D4AF37]"> ${pt}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat === 'علب' || activeCat.includes('علب')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 شكل ومادة الصندوق:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
-                    ${shapes.map(sh => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${sh}" onchange="applyFilters()" class="giftshape-cb accent-[#D4AF37]"> ${sh}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat.includes('مايكاب')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💄 نوع منتج المايكاب:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-52 overflow-y-auto pr-1">
-                    ${makeups.map(mk => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${mk}" onchange="applyFilters()" class="makeup-cb accent-[#D4AF37]"> ${mk}</label>`).join('')}
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${availableSkinTypes.map(st => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="applyFilters()" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat.includes('عطور')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🌸 فئة العطر والاستخدام:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    ${perfumes.map(pf => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${pf}" onchange="applyFilters()" class="perfume-cb accent-[#D4AF37]"> ${pf}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat.includes('اكسسوارات شعر')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎀 نوع الإكسسوار:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
-                    ${hairaccs.map(ha => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ha}" onchange="applyFilters()" class="hairacc-cb accent-[#D4AF37]"> ${ha}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat === 'هدايا' || activeCat.includes('هدايا')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 نوع الهدية:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    ${gifts.map(g => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${g}" onchange="applyFilters()" class="gift-cb accent-[#D4AF37]"> ${g}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
     else {
         html = '';
     }
@@ -330,46 +226,6 @@ function applyFilters() {
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
-    }
-
-    const selCosAreas = Array.from(document.querySelectorAll('.cos-area-cb:checked')).map(cb => cb.value);
-    if (selCosAreas.length > 0) filtered = filtered.filter(p => selCosAreas.includes(p.cosmeticArea));
-
-    const selMetals = Array.from(document.querySelectorAll('.metal-cb:checked')).map(cb => cb.value);
-    if (selMetals.length > 0) filtered = filtered.filter(p => selMetals.includes(p.jewelryMetal));
-
-    const selJewelryTypes = Array.from(document.querySelectorAll('.jewelry-type-cb:checked')).map(cb => cb.value);
-    if (selJewelryTypes.length > 0) filtered = filtered.filter(p => selJewelryTypes.includes(p.jewelryType));
-
-    const selGiftShapes = Array.from(document.querySelectorAll('.giftshape-cb:checked')).map(cb => cb.value);
-    if (selGiftShapes.length > 0) filtered = filtered.filter(p => selGiftShapes.includes(p.giftboxShape));
-
-    const selMakeups = Array.from(document.querySelectorAll('.makeup-cb:checked')).map(cb => cb.value);
-    if (selMakeups.length > 0) filtered = filtered.filter(p => selMakeups.includes(p.makeupType));
-
-    const selPerfumes = Array.from(document.querySelectorAll('.perfume-cb:checked')).map(cb => cb.value);
-    if (selPerfumes.length > 0) filtered = filtered.filter(p => selPerfumes.includes(p.perfumeTarget));
-
-    const selHairaccs = Array.from(document.querySelectorAll('.hairacc-cb:checked')).map(cb => cb.value);
-    if (selHairaccs.length > 0) filtered = filtered.filter(p => selHairaccs.includes(p.hairaccType));
-
-    const selGifts = Array.from(document.querySelectorAll('.gift-cb:checked')).map(cb => cb.value);
-    if (selGifts.length > 0) filtered = filtered.filter(p => selGifts.includes(p.giftOccasion));
-
-    const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
-    if (selectedSkinTypes.length > 0) {
-        filtered = filtered.filter(p => {
-            const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
-            return selectedSkinTypes.some(st => pSkins.includes(st));
-        });
-    }
-
-    const selectedHairTypes = Array.from(document.querySelectorAll('.hair-filter-cb:checked')).map(cb => cb.value);
-    if (selectedHairTypes.length > 0) {
-        filtered = filtered.filter(p => {
-            const pHairs = Array.isArray(p.hairTypes) ? p.hairTypes : (p.hairType ? [p.hairType] : []);
-            return selectedHairTypes.some(ht => pHairs.includes(ht));
-        });
     }
 
     const sortSelect = document.getElementById('sort-select');
@@ -482,16 +338,25 @@ function setHeroSlide(idx) {
 }
 
 function showPage(pageId) {
-    document.querySelectorAll('.page-sec').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.page-sec').forEach(el => el.classList.remove('active', 'hidden'));
+    document.querySelectorAll('.page-sec').forEach(el => {
+        if(el.id !== 'page-' + pageId) el.classList.add('hidden');
+    });
+    
     const targetPage = document.getElementById('page-' + pageId);
-    if (targetPage) targetPage.classList.add('active');
+    if (targetPage) {
+        targetPage.classList.remove('hidden');
+        targetPage.classList.add('active');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
     if (pageId === 'admin' && typeof renderAdminDashboard === 'function') renderAdminDashboard();
     if (pageId === 'cart') {
         renderCart();
         populateCartWilayas();
     }
     if (pageId === 'wishlist') renderWishlistPage();
+    if (pageId === 'gift-builder') initGiftBuilderUI();
 }
 
 function toggleMobileMenu() {
@@ -829,6 +694,357 @@ function initRealOrdersTicker() {
 
         currentOrderTickerIndex++;
     }, 12000);
+}
+
+
+// 🌟 GIFT BUILDER INTERACTIVE SYSTEM (نظام تصميم الهدايا المتكامل) 🌟
+let giftState = {
+    step: 1,
+    occasion: 'عيد ميلاد',
+    budget: 5000,
+    selectedProducts: [],
+    selectedBox: null,
+    ribbonColor: 'ذهبي',
+    recipientName: '',
+    senderName: '',
+    messageText: ''
+};
+
+const defaultOccasions = [
+    { name: 'عيد ميلاد', icon: 'fa-cake-candles' },
+    { name: 'للحبيبة / الزوجة', icon: 'fa-heart' },
+    { name: 'للأم', icon: 'fa-person-breastfeeding' },
+    { name: 'للأب / الرجال', icon: 'fa-user-tie' },
+    { name: 'تخرج ونجاح', icon: 'fa-graduation-cap' },
+    { name: 'مفاجأة خاصة', icon: 'fa-wand-magic-sparkles' }
+];
+
+const giftMsgTemplates = [
+    "عيد ميلاد سعيد، أتمنى لك أجمل الأيام! 🎉",
+    "إلى أغلى إنسانة في حياتي، هدية بسيطة من القلب. ❤️",
+    "ألف مبروك النجاح والتخرج، أتمنى لك مستقبلاً رائعاً! 🎓",
+    "كل الحب والتقدير، هدية صغيرة لشخص غالٍ. ✨"
+];
+
+function initGiftBuilderUI() {
+    renderOccasionsGrid();
+    renderBudgetOptions();
+    renderGiftMsgTemplates();
+    populateGiftWilayas();
+}
+
+function renderOccasionsGrid() {
+    const grid = document.getElementById('gift-occasions-grid');
+    if (!grid) return;
+    grid.innerHTML = defaultOccasions.map(occ => `
+        <button type="button" onclick="selectGiftOccasion('${occ.name}')" class="occ-card border p-3 rounded-2xl text-center flex flex-col items-center justify-center gap-2 transition cursor-pointer ${giftState.occasion === occ.name ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-gray-800 bg-black/40'}">
+            <i class="fa-solid ${occ.icon} text-lg text-[#D4AF37]"></i>
+            <span class="text-xs font-bold text-white">${occ.name}</span>
+        </button>
+    `).join('');
+}
+
+function selectGiftOccasion(occName) {
+    giftState.occasion = occName;
+    renderOccasionsGrid();
+}
+
+function renderBudgetOptions() {
+    const container = document.getElementById('gift-budget-options');
+    if (!container) return;
+    const options = [2000, 3000, 5000, 10000];
+    container.innerHTML = options.map(b => `
+        <button type="button" onclick="setGiftBudget(${b})" class="px-4 py-2 rounded-xl text-xs font-bold border transition ${giftState.budget === b ? 'border-[#D4AF37] gold-gradient text-black' : 'border-gray-800 bg-black text-gray-300'}">
+            ${b.toLocaleString()} دج
+        </button>
+    `).join('');
+}
+
+function setGiftBudget(amount) {
+    giftState.budget = amount;
+    const customInput = document.getElementById('gift-custom-budget');
+    if (customInput) customInput.value = '';
+    renderBudgetOptions();
+}
+
+function setCustomGiftBudget(val) {
+    giftState.budget = parseFloat(val) || 0;
+    renderBudgetOptions();
+}
+
+function goToGiftStep(stepNum) {
+    giftState.step = stepNum;
+    document.querySelectorAll('.gift-step-content').forEach(el => el.classList.add('hidden'));
+    const currentStepEl = document.getElementById(`gift-step-${stepNum}`);
+    if (currentStepEl) currentStepEl.classList.remove('hidden');
+
+    for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`step-btn-${i}`);
+        if (btn) {
+            const circle = btn.querySelector('div');
+            if (i <= stepNum) {
+                circle.className = "w-9 h-9 rounded-full gold-gradient text-black font-black text-xs flex items-center justify-center shadow-md";
+            } else {
+                circle.className = "w-9 h-9 rounded-full bg-gray-800 text-gray-400 font-black text-xs flex items-center justify-center shadow-md";
+            }
+        }
+    }
+
+    if (stepNum === 2) renderBuilderProducts();
+    if (stepNum === 3) renderBuilderBoxes();
+    if (stepNum === 5) renderGiftFinalPreview();
+}
+
+function renderBuilderProducts(categoryFilter = 'الجميع') {
+    const grid = document.getElementById('builder-products-grid');
+    const tabs = document.getElementById('builder-cat-filter-tabs');
+    if (!grid) return;
+
+    const realAvailableProducts = typeof products !== 'undefined' ? products.filter(p => p.inStock !== false && !p.category?.includes('علب')) : [];
+
+    if (tabs && typeof categories !== 'undefined') {
+        const catsList = ['الجميع', ...categories.map(c => c.name)];
+        tabs.innerHTML = catsList.map(c => `
+            <button type="button" onclick="renderBuilderProducts('${c}')" class="px-3 py-1.5 rounded-xl text-[11px] font-bold border whitespace-nowrap transition ${categoryFilter === c ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-black text-gray-400 border-gray-800'}">
+                ${c}
+            </button>
+        `).join('');
+    }
+
+    let displayed = realAvailableProducts;
+    if (categoryFilter !== 'الجميع') {
+        displayed = realAvailableProducts.filter(p => p.category === categoryFilter);
+    }
+
+    grid.innerHTML = displayed.map(p => {
+        const selectedItem = giftState.selectedProducts.find(sp => sp.product.id === p.id);
+        const qty = selectedItem ? selectedItem.quantity : 0;
+        const img = (p.images && p.images[0]) || p.image || 'https://via.placeholder.com/150';
+
+        return `
+            <div class="bg-[#121212] border border-gray-800 rounded-2xl p-3 text-right flex flex-col justify-between">
+                <img src="${img}" class="w-full h-28 object-contain rounded-xl bg-black mb-2">
+                <h4 class="text-xs font-bold text-white truncate">${p.name}</h4>
+                <p class="text-[11px] gold-text font-black my-1">${p.price.toLocaleString()} دج</p>
+                <div class="flex items-center justify-between mt-2 bg-black p-1.5 rounded-xl border border-gray-800">
+                    <button type="button" onclick="updateGiftProductQty('${p.id}', -1)" class="w-7 h-7 bg-gray-800 text-white rounded-lg font-bold text-xs">-</button>
+                    <span class="text-xs font-black text-white">${qty}</span>
+                    <button type="button" onclick="updateGiftProductQty('${p.id}', 1)" class="w-7 h-7 gold-gradient text-black rounded-lg font-bold text-xs">+</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    updateLiveBuilderTotal();
+}
+
+function updateGiftProductQty(prodId, change) {
+    const prod = products.find(p => p.id === prodId);
+    if (!prod) return;
+
+    let existing = giftState.selectedProducts.find(sp => sp.product.id === prodId);
+    if (existing) {
+        existing.quantity += change;
+        if (existing.quantity <= 0) {
+            giftState.selectedProducts = giftState.selectedProducts.filter(sp => sp.product.id !== prodId);
+        }
+    } else if (change > 0) {
+        giftState.selectedProducts.push({ product: prod, quantity: 1 });
+    }
+
+    renderBuilderProducts();
+}
+
+function updateLiveBuilderTotal() {
+    const totalEl = document.getElementById('builder-live-total');
+    const prodsTotal = giftState.selectedProducts.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    if (totalEl) totalEl.innerText = prodsTotal.toLocaleString() + ' دج';
+}
+
+function validateAndGoToStep(targetStep) {
+    if (giftState.selectedProducts.length === 0) {
+        if (typeof showCustomAlert === 'function') {
+            showCustomAlert('تنبيه 🎁', 'يرجى اختيار منتج واحد على الأقل لإضافته إلى هديتك!', false);
+        } else {
+            alert('يرجى اختيار منتج واحد على الأقل!');
+        }
+        return;
+    }
+    goToGiftStep(targetStep);
+}
+
+function renderBuilderBoxes() {
+    const grid = document.getElementById('builder-boxes-grid');
+    if (!grid) return;
+
+    const realBoxes = products.filter(p => p.category && p.category.includes('علب'));
+    let boxesToDisplay = realBoxes.length > 0 ? realBoxes : [
+        { id: 'box-black', name: 'علبة الفخامة السوداء والذهبية', price: 600, image: 'https://via.placeholder.com/150' },
+        { id: 'box-white', name: 'علبة الأميرة البيضاء الناعمة', price: 500, image: 'https://via.placeholder.com/150' },
+        { id: 'box-pink', name: 'علبة وردية مع شريط ستان', price: 500, image: 'https://via.placeholder.com/150' }
+    ];
+
+    if (!giftState.selectedBox && boxesToDisplay.length > 0) {
+        giftState.selectedBox = boxesToDisplay[0];
+    }
+
+    grid.innerHTML = boxesToDisplay.map(box => {
+        const isSelected = giftState.selectedBox && giftState.selectedBox.id === box.id;
+        const img = (box.images && box.images[0]) || box.image;
+        return `
+            <div onclick="selectGiftBox('${box.id}')" class="border p-3 rounded-2xl flex items-center gap-3 cursor-pointer transition ${isSelected ? 'border-[#D4AF37] bg-[#D4AF37]/10' : 'border-gray-800 bg-black/40'}">
+                <img src="${img}" class="w-14 h-14 object-contain bg-black rounded-xl border border-gray-800">
+                <div class="text-right flex-1">
+                    <h4 class="text-xs font-bold text-white">${box.name}</h4>
+                    <p class="text-[11px] gold-text font-black mt-1">${box.price.toLocaleString()} دج</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectGiftBox(boxId) {
+    const realBox = products.find(p => p.id === boxId);
+    if (realBox) {
+        giftState.selectedBox = realBox;
+    } else {
+        giftState.selectedBox = { id: boxId, name: 'علبة فاخرة مخصصة', price: 500, image: 'https://via.placeholder.com/150' };
+    }
+    renderBuilderBoxes();
+}
+
+function selectRibbonColor(colorName) {
+    giftState.ribbonColor = colorName;
+    if (typeof showCustomAlert === 'function') {
+        showCustomAlert('تم الاختيار 🎀', `تم اختيار لون الشريط: ${colorName}`, true);
+    }
+}
+
+function renderGiftMsgTemplates() {
+    const container = document.getElementById('gift-msg-templates');
+    if (!container) return;
+    container.innerHTML = giftMsgTemplates.map(tmpl => `
+        <button type="button" onclick="applyGiftMsgTemplate('${tmpl}')" class="text-[10px] bg-black border border-gray-800 hover:border-[#D4AF37] text-gray-300 p-2 rounded-xl text-right">
+            ${tmpl}
+        </button>
+    `).join('');
+}
+
+function applyGiftMsgTemplate(tmpl) {
+    const txtArea = document.getElementById('gift-message-text');
+    if (txtArea) {
+        txtArea.value = tmpl;
+        updateMsgCharCount(tmpl);
+    }
+}
+
+function updateMsgCharCount(val) {
+    giftState.messageText = val;
+    const cnt = document.getElementById('msg-char-count');
+    if (cnt) cnt.innerText = val.length;
+}
+
+function renderGiftFinalPreview() {
+    giftState.recipientName = document.getElementById('gift-recipient-name')?.value.trim() || 'أغلى الناس';
+    giftState.senderName = document.getElementById('gift-sender-name')?.value.trim() || 'صديق مخلص';
+
+    document.getElementById('preview-to-name').innerText = giftState.recipientName;
+    document.getElementById('preview-from-name').innerText = giftState.senderName;
+    document.getElementById('preview-card-body').innerText = giftState.messageText || 'أتمنى لك أجمل الأيام واللحظات السعيدة!';
+    document.getElementById('preview-occasion-badge').innerText = giftState.occasion;
+    document.getElementById('preview-ribbon-text').innerText = giftState.ribbonColor;
+
+    if (giftState.selectedBox) {
+        const boxImg = (giftState.selectedBox.images && giftState.selectedBox.images[0]) || giftState.selectedBox.image;
+        document.getElementById('preview-box-img').src = boxImg;
+    }
+
+    const prodsPreviewContainer = document.getElementById('preview-products-list');
+    if (prodsPreviewContainer) {
+        prodsPreviewContainer.innerHTML = giftState.selectedProducts.map(sp => {
+            const pImg = (sp.product.images && sp.product.images[0]) || sp.product.image;
+            return `
+                <div class="bg-gray-900 border border-gray-800 p-1.5 rounded-xl flex items-center gap-1.5">
+                    <img src="${pImg}" class="w-6 h-6 object-contain rounded-md bg-black">
+                    <span class="text-[10px] font-bold text-white">${sp.product.name} (x${sp.quantity})</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const prodsTotal = giftState.selectedProducts.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const boxCost = giftState.selectedBox ? giftState.selectedBox.price : 500;
+
+    document.getElementById('summary-prods-price').innerText = prodsTotal.toLocaleString() + ' دج';
+    document.getElementById('summary-box-price').innerText = boxCost.toLocaleString() + ' دج';
+    document.getElementById('summary-grand-total').innerText = (prodsTotal + boxCost).toLocaleString() + ' دج';
+}
+
+function populateGiftWilayas() {
+    const select = document.getElementById('gift-cust-wilaya');
+    if (!select || typeof WILAYAS === 'undefined') return;
+    select.innerHTML = '<option value="">اختر الولاية...</option>' + 
+        WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
+}
+
+function handleGiftWilayaChange() {
+    const code = document.getElementById('gift-cust-wilaya').value;
+    const wilaya = typeof WILAYAS !== 'undefined' ? WILAYAS.find(w => w.code === code) : null;
+    const communeSelect = document.getElementById('gift-cust-commune');
+    if (wilaya && communeSelect) {
+        const communesList = wilaya.communesData || [];
+        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
+            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
+    }
+}
+
+function submitGiftOrder() {
+    const name = document.getElementById('gift-cust-name')?.value.trim();
+    const phone = document.getElementById('gift-cust-phone')?.value.trim();
+    const wilayaCode = document.getElementById('gift-cust-wilaya')?.value;
+    const commune = document.getElementById('gift-cust-commune')?.value;
+
+    if (!name || !wilayaCode || !phone) {
+        alert('يرجى كتابة كافة معلومات اسمك ورقم الهاتف والولاية لتأكيد التسليم!');
+        return;
+    }
+
+    const btn = document.getElementById('submit-gift-order-btn');
+    if (btn) { btn.disabled = true; btn.innerText = 'جاري إرسال طلب الهدية... ⏳'; }
+
+    const wilaya = typeof WILAYAS !== 'undefined' ? WILAYAS.find(w => w.code === wilayaCode) : null;
+    const communeObj = (wilaya?.communesData || []).find(c => c.name === commune);
+    const shipCost = communeObj ? communeObj.cost : (wilaya?.officeCost || 0);
+
+    const prodsTotal = giftState.selectedProducts.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const boxCost = giftState.selectedBox ? giftState.selectedBox.price : 500;
+    const grandTotal = prodsTotal + boxCost + shipCost;
+
+    const prodsSummaryStr = giftState.selectedProducts.map(sp => `${sp.product.name} (x${sp.quantity})`).join(', ');
+
+    const newGiftOrder = {
+        customer: name,
+        phone: phone,
+        wilaya: wilaya ? wilaya.name : wilayaCode,
+        commune: commune || 'المكتب',
+        product: `🎁 هدية مخصصة (${giftState.occasion}): [منتجات: ${prodsSummaryStr}] - [العلبة: ${giftState.selectedBox?.name || 'فاخرة'}] - [شريط: ${giftState.ribbonColor}] - [رسالة من ${giftState.senderName} إلى ${giftState.recipientName}: "${giftState.messageText}"]`,
+        total: grandTotal,
+        status: 'جديد',
+        isGiftOrder: true,
+        date: new Date().toLocaleDateString('ar-DZ'),
+        createdAt: new Date()
+    };
+
+    if (typeof db !== 'undefined') {
+        db.collection("orders").add(newGiftOrder).then(() => {
+            alert('شكرًا لك! تم استلام طلب هديتك بنجاح وسنقوم بتجهيزها بعناية فائقة.');
+            if (typeof showPage === 'function') showPage('home');
+        }).catch(err => {
+            alert('تعذر إرسال الطلب: ' + err.message);
+        }).finally(() => {
+            if (btn) { btn.disabled = false; btn.innerText = 'تأكيد طلب الهدية الآن (الدفع عند الاستلام) 🎁'; }
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
