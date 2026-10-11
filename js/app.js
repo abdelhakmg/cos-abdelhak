@@ -5,6 +5,26 @@ let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
+// 🌟 دالة إظهار وإخفاء شاشة الافتتاح الفاخرة (تظهر مرة واحدة لكل جلسة)
+function initLuxurySplashScreen() {
+    const splash = document.getElementById('luxury-splash-screen');
+    if (!splash) return;
+
+    const hasSeenSplash = sessionStorage.getItem('has_seen_splash');
+
+    if (hasSeenSplash) {
+        splash.style.display = 'none';
+    } else {
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                sessionStorage.setItem('has_seen_splash', 'true');
+            }, 700);
+        }, 1800);
+    }
+}
+
 // دالة نقر الشعار لفتح النافذة
 function handleLogoClick(event) {
     if (event) event.preventDefault();
@@ -480,7 +500,6 @@ function toggleMobileMenu() {
     if (drawer) drawer.classList.toggle('hidden');
 }
 
-// عرض كرت المنتج بطريقة تضمن فتح المودل ونقر الأزرار بدون استثناء
 function renderSingleProductCard(p) {
     let displayImg = 'https://via.placeholder.com/300';
     if (p.images && Array.isArray(p.images) && p.images.length > 0 && p.images[0]) {
@@ -814,6 +833,7 @@ function initRealOrdersTicker() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initLuxurySplashScreen();
     safeCall('updateAppHeaderInfo');
     safeCall('updateBadges');
     safeCall('renderHeroSlider');
