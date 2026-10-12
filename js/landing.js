@@ -50,7 +50,7 @@ function openLandingPage(productId) {
 
         thumbsContainer.innerHTML = imagesList.map((imgUrl) => `
             <div onclick="swapLandingMainImage('${imgUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
-                <img src="${imgUrl}" class="w-full h-full object-contain">
+                <img src="${imgUrl}" class="w-full h-full object-contain" loading="lazy">
             </div>
         `).join('');
     }
@@ -190,12 +190,12 @@ function calculateLandingTotal() {
             shipCost = wilaya.officeCost || 0;
         } else {
             const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
-            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : 0);
+            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
         }
     }
 
     const homePriceEl = document.getElementById('price-shipping-home');
-    if (homePriceEl) homePriceEl.innerText = (wilaya && communeName) ? shipCost + ' دج' : 'حدد البلدية';
+    if (homePriceEl) homePriceEl.innerText = (wilaya && communeName) ? shipCost + ' دج' : (wilaya ? 'اختر البلدية' : 'حدد الولاية');
 
     const sumProdEl = document.getElementById('sum-prod-price');
     if (sumProdEl) sumProdEl.innerText = basePrice.toLocaleString() + ' دج';
