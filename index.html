@@ -279,10 +279,8 @@
                             <select id="cust-wilaya" onchange="handleWilayaChange()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-2 text-gray-300">البلدية *</label>
-                            <select id="cust-commune" onchange="calculateLandingTotal()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]">
-                                <option value="">اختر البلدية...</option>
-                            </select>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">العنوان التفصيلي / الحي / الشارع *</label>
+                            <input type="text" id="cust-commune" placeholder="أدخل العنوان ورقم المنزل أو الحي" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                     </div>
                     <div>
@@ -343,10 +341,8 @@
                                 <select id="cart-cust-wilaya" onchange="handleCartWilayaChange()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">البلدية *</label>
-                                <select id="cart-cust-commune" onchange="updateCartCalculations()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
-                                    <option value="">اختر البلدية...</option>
-                                </select>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">العنوان التفصيلي / الحي / الشارع *</label>
+                                <input type="text" id="cart-cust-commune" placeholder="أدخل العنوان التفصيلي..." class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-gray-300">مكان التسليم *</label>
