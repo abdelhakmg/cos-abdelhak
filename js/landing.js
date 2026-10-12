@@ -158,19 +158,18 @@ function populateWilayas() {
 function handleWilayaChange() {
     const code = document.getElementById('cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const communeSelect = document.getElementById('cust-commune');
     
-    if (wilaya && communeSelect) {
-        const communesList = wilaya.communesData || [];
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
-            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
-            
+    if (wilaya) {
         const officePriceEl = document.getElementById('price-shipping-office');
         if (officePriceEl) officePriceEl.innerText = (wilaya.officeCost || 0) + ' دج';
-    } else if (communeSelect) {
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
+
+        const homePriceEl = document.getElementById('price-shipping-home');
+        if (homePriceEl) homePriceEl.innerText = (wilaya.homeCost || 0) + ' دج';
+    } else {
         const officePriceEl = document.getElementById('price-shipping-office');
         if (officePriceEl) officePriceEl.innerText = 'حدد الولاية';
+        const homePriceEl = document.getElementById('price-shipping-home');
+        if (homePriceEl) homePriceEl.innerText = 'حدد الولاية';
     }
     calculateLandingTotal();
 }
@@ -178,12 +177,10 @@ function handleWilayaChange() {
 function calculateLandingTotal() {
     if (!currentLandingProduct) return;
     const wilayaEl = document.getElementById('cust-wilaya');
-    const communeEl = document.getElementById('cust-commune');
-    if (!wilayaEl || !communeEl) return;
+    if (!wilayaEl) return;
     
     const code = wilayaEl.value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const communeName = communeEl.value;
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     
     let basePrice = currentLandingProduct.price || 0;
@@ -193,27 +190,19 @@ function calculateLandingTotal() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
-            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
+            shipCost = wilaya.homeCost || wilaya.officeCost || 0;
         }
     }
-
-    const homePriceEl = document.getElementById('price-shipping-home');
-    if (homePriceEl) homePriceEl.innerText = (wilaya && communeName) ? shipCost + ' دج' : (wilaya ? 'اختر البلدية' : 'حدد الولاية');
 
     const sumProdEl = document.getElementById('sum-prod-price');
     if (sumProdEl) sumProdEl.innerText = basePrice.toLocaleString() + ' دج';
 
     const sumShipEl = document.getElementById('sum-ship-price');
-    if (sumShipEl) sumShipEl.innerText = shipCost.toLocaleString() + ' دج';
+    if (sumShipEl) sumShipEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية';
 
     const sumTotalEl = document.getElementById('sum-total-price');
     if (sumTotalEl) sumTotalEl.innerText = (basePrice + shipCost).toLocaleString() + ' دج';
-    
-    const stickyPrice = document.getElementById('sticky-bar-price');
-    if (stickyPrice) stickyPrice.innerText = (basePrice + shipCost).toLocaleString() + ' دج';
 }
-
 function isValidDzPhone(phone) {
     const cleanPhone = phone.trim();
     const dzPhoneRegex = /^(05|06|07)[0-9]{8}$/;
@@ -224,10 +213,10 @@ function submitLandingOrder() {
     const name = document.getElementById('cust-name').value.trim();
     const phone = document.getElementById('cust-phone').value.trim();
     const wilayaCode = document.getElementById('cust-wilaya').value;
-    const commune = document.getElementById('cust-commune').value;
+    const commune = document.getElementById('cust-commune').value.trim(); // العنوان النصي الذي كتبه الزبون
 
-    if (!name || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+    if (!name || !wilayaCode || !commune) {
+        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة والعنوان الضروري!', false);
         return;
     }
 
@@ -244,8 +233,7 @@ function submitLandingOrder() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
-            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+            shipCost = wilaya.homeCost || wilaya.officeCost || 0;
         }
     }
 
@@ -256,11 +244,13 @@ function submitLandingOrder() {
     if (selectedColor) productDetails += ` (اللون: ${selectedColor})`;
     if (selectedNum) productDetails += ` (الدرجة: ${selectedNum})`;
 
+    const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
+
     const newOrder = {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: commune || 'المكتب',
+        commune: `${commune} (${shippingTypeText})`,
         product: productDetails,
         total: (currentLandingProduct.price || 0) + shipCost,
         status: 'جديد',
@@ -275,7 +265,6 @@ function submitLandingOrder() {
         showCustomAlert('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, false);
     });
 }
-
 function startCountdownTimer(hours) {
     let duration = hours * 3600;
     if (window.cdInterval) clearInterval(window.cdInterval);
