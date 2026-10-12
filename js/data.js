@@ -66,7 +66,6 @@ function closeCustomAlert() {
     }
 }
 
-// 🟢 قائمة الولايات الـ 58 الجزائرية وتعبئتها التلقائية في Firebase إذا كانت فارغة
 const INITIAL_WILAYAS_58 = [
     { code: "01", name: "أدرار", officeCost: 900, communesData: [{ name: "أدرار", cost: 1000 }, { name: "تيميمون", cost: 1200 }, { name: "رقان", cost: 1300 }] },
     { code: "02", name: "الشلف", officeCost: 500, communesData: [{ name: "الشلف", cost: 600 }, { name: "تنس", cost: 700 }, { name: "بوقادير", cost: 700 }] },
@@ -153,9 +152,7 @@ function initFirebaseSync() {
             WILAYAS.push({ id: doc.id, ...doc.data() });
         });
         
-        // إذا كانت قاعدة البيانات فارغة تماماً من الولايات، نقوم بحقن الـ 58 ولاية تلقائياً
         if (WILAYAS.length === 0) {
-            console.log("الولايات فارغة، جاري حقن الـ 58 ولاية تلقائياً...");
             INITIAL_WILAYAS_58.forEach(w => {
                 db.collection("wilayas").doc(w.code).set(w);
             });
