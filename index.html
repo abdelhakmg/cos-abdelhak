@@ -279,10 +279,8 @@
                             <select id="cust-wilaya" onchange="handleWilayaChange()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-2 text-gray-300">البلدية *</label>
-                            <select id="cust-commune" onchange="calculateLandingTotal()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]">
-                                <option value="">اختر البلدية...</option>
-                            </select>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">العنوان (البلدية / الحي) *</label>
+                            <input type="text" id="cust-address" placeholder="مثال: دار الشيوخ، حي السلام..." class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                     </div>
                     <div>
@@ -290,7 +288,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <label class="border border-gray-800 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37] transition">
                                 <input type="radio" name="shipping_type" value="home" checked onchange="calculateLandingTotal()" class="accent-[#D4AF37]">
-                                <span class="text-xs font-bold text-white">توصيل للمنزل / البلدية</span>
+                                <span class="text-xs font-bold text-white">توصيل للمنزل</span>
                                 <span id="price-shipping-home" class="text-xs font-bold text-[#D4AF37]">حدد الولاية</span>
                             </label>
                             <label class="border border-gray-800 rounded-xl p-4 flex items-center justify-between cursor-pointer bg-black/40 hover:border-[#D4AF37] transition">
@@ -343,10 +341,8 @@
                                 <select id="cart-cust-wilaya" onchange="handleCartWilayaChange()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold mb-1 text-gray-300">البلدية *</label>
-                                <select id="cart-cust-commune" onchange="updateCartCalculations()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
-                                    <option value="">اختر البلدية...</option>
-                                </select>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">العنوان (البلدية / الحي) *</label>
+                                <input type="text" id="cart-cust-address" placeholder="مثال: دار الشيوخ، حي النصر..." class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-gray-300">مكان التسليم *</label>
@@ -577,7 +573,7 @@
                                 <thead class="bg-gray-100 border-b text-gray-700">
                                     <tr>
                                         <th class="p-3">الزبون والهاتف</th>
-                                        <th class="p-3">العنوان (الولاية / البلدية)</th>
+                                        <th class="p-3">العنوان (الولاية / العنوان)</th>
                                         <th class="p-3">المنتج والمبلغ</th>
                                         <th class="p-3">حالة الطلب</th>
                                         <th class="p-3">الاتصال والإجراءات</th>
@@ -611,7 +607,7 @@
                         <form onsubmit="handleSaveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <input type="text" id="cat-name-input" placeholder="اسم الفئة *" required class="border p-3 rounded-xl text-sm">
                             <input type="url" id="cat-img-input" placeholder="رابط صورة الفئة (URL) *" required class="border p-3 rounded-xl text-sm md:col-span-2">
-                            <button type="submit" class="bg-black text-[#0f0f0f] font-bold py-3 rounded-xl md:col-span-3">حفظ الفئة</button>
+                            <button type="submit" class="bg-black text-white font-bold py-3 rounded-xl md:col-span-3">حفظ الفئة</button>
                         </form>
                     </div>
                     <div class="bg-white p-6 rounded-2xl border">
@@ -755,7 +751,7 @@
         </div>
     </div>
 
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
             <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
             <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
