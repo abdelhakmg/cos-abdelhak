@@ -501,8 +501,8 @@ function renderAdminProductsTable() {
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
                 <td class="p-3 text-xs"><span class="${p.inStock !== false ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock !== false ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
                 <td class="p-3 flex items-center gap-2">
-                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
-                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
+                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">تعديل</button>
+                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">حذف</button>
                 </td>
             </tr>
         `;
@@ -557,7 +557,7 @@ function resetWilayaForm() {
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
 }
 
-// 🟢 دوال التعديل والحذف للولايات مصححة وتعمل بنقرة واحدة
+// 🟢 دوال التعديل والحذف للولايات مفعلة ومضمونة الاستجابة
 function editWilaya(code) {
     const w = WILAYAS.find(wil => wil.code === code);
     if (!w) return;
@@ -581,11 +581,19 @@ function editWilaya(code) {
     window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
 
-function deleteWilaya(code) {
+function deleteWilaya(docIdOrCode) {
     if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية؟')) {
-        db.collection("wilayas").doc(code).delete().then(() => {
+        // البحث عن المستند بالـ ID الفعلي في فايربيس أو الكود
+        db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
             renderAdminWilayasList();
             showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
+        }).catch(err => {
+            // كاحتياط في حال كان المخزن مستنداً عشوائياً
+            db.collection("wilayas").where("code", "==", docIdOrCode).get().then(snap => {
+                snap.forEach(d => d.ref.delete());
+                renderAdminWilayasList();
+                showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
+            });
         });
     }
 }
@@ -601,6 +609,7 @@ function renderAdminWilayasList() {
 
     container.innerHTML = WILAYAS.map(w => {
         const communesList = w.communesData || [];
+        const docKey = w.id || w.code;
         return `
             <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
                 <div>
@@ -619,7 +628,7 @@ function renderAdminWilayasList() {
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
-                    <button type="button" onclick="deleteWilaya('${w.code}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
+                    <button type="button" onclick="deleteWilaya('${docKey}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
                 </div>
             </div>
         `;
@@ -682,7 +691,7 @@ function addBannerText() {
 
 function removeBannerText(index) {
     const targetText = bannerMessages[index];
-    if (!targetText) return;
+    if (!targetTest) return;
     db.collection("settings").doc("main").update({
         bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
     }).then(() => {
