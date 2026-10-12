@@ -265,29 +265,3 @@ function submitLandingOrder() {
         showCustomAlert('خطأ', 'حدث خطأ أثناء إرسال الطلب: ' + err.message, false);
     });
 }
-
-function startCountdownTimer(hours) {
-    let duration = hours * 3600;
-    if (window.cdInterval) clearInterval(window.cdInterval);
-
-    window.cdInterval = setInterval(() => {
-        if (duration <= 0) {
-            clearInterval(window.cdInterval);
-            return;
-        }
-        duration--;
-
-        const h = Math.floor(duration / 3600);
-        const m = Math.floor((duration % 3600) / 60);
-        const s = duration % 60;
-
-        if (document.getElementById('cd-hours')) document.getElementById('cd-hours').innerText = String(h).padStart(2, '0');
-        if (document.getElementById('cd-minutes')) document.getElementById('cd-minutes').innerText = String(m).padStart(2, '0');
-        if (document.getElementById('cd-seconds')) document.getElementById('cd-seconds').innerText = String(s).padStart(2, '0');
-    }, 1000);
-}
-
-function scrollToOrderForm() {
-    const orderSection = document.getElementById('order-form-section');
-    if (orderSection) orderSection.scrollIntoView({ behavior: 'smooth' });
-}
