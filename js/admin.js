@@ -525,6 +525,7 @@ function addCommunePriceRow(name = '', cost = '') {
 
 function handleSaveWilaya(e) {
     if (e) e.preventDefault();
+    const docId = document.getElementById('editing-wilaya-id').value;
     const code = document.getElementById('wilaya-code').value.trim();
     const name = document.getElementById('wilaya-name').value.trim();
     const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
@@ -540,12 +541,14 @@ function handleSaveWilaya(e) {
 
     if (!code || !name) return;
 
-    db.collection("wilayas").doc(code).set({
+    const targetDocId = docId || code;
+
+    db.collection("wilayas").doc(targetDocId).set({
         code, name, officeCost, communesData
-    }).then(() => {
+    }, { merge: true }).then(() => {
         resetWilayaForm();
         renderAdminWilayasList();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية والبلديات بنجاح!', true);
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية بنجاح!', true);
     });
 }
 
@@ -557,14 +560,14 @@ function resetWilayaForm() {
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
 }
 
-// 🟢 دوال التعديل والحذف للولايات مفعلة ومضمونة الاستجابة
-function editWilaya(code) {
-    const w = WILAYAS.find(wil => wil.code === code);
+// 🟢 دوال التعديل والحذف المعتمدة على المعرف الحقيقي لفايربيس لضمان العمل الفوري
+function editWilaya(docId) {
+    const w = WILAYAS.find(wil => wil.id === docId || wil.code === docId);
     if (!w) return;
 
-    document.getElementById('editing-wilaya-id').value = w.code;
-    document.getElementById('wilaya-code').value = w.code;
-    document.getElementById('wilaya-name').value = w.name;
+    document.getElementById('editing-wilaya-id').value = w.id;
+    document.getElementById('wilaya-code').value = w.code || '';
+    document.getElementById('wilaya-name').value = w.name || '';
     document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
 
     const communesContainer = document.getElementById('communes-custom-list');
@@ -581,19 +584,13 @@ function editWilaya(code) {
     window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
 
-function deleteWilaya(docIdOrCode) {
+function deleteWilaya(docId) {
     if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية؟')) {
-        // البحث عن المستند بالـ ID الفعلي في فايربيس أو الكود
-        db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
+        db.collection("wilayas").doc(docId).delete().then(() => {
             renderAdminWilayasList();
             showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
         }).catch(err => {
-            // كاحتياط في حال كان المخزن مستنداً عشوائياً
-            db.collection("wilayas").where("code", "==", docIdOrCode).get().then(snap => {
-                snap.forEach(d => d.ref.delete());
-                renderAdminWilayasList();
-                showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
-            });
+            showCustomAlert('خطأ', 'تعذر الحذف: ' + err.message, false);
         });
     }
 }
@@ -609,12 +606,12 @@ function renderAdminWilayasList() {
 
     container.innerHTML = WILAYAS.map(w => {
         const communesList = w.communesData || [];
-        const docKey = w.id || w.code;
+        const targetId = w.id;
         return `
             <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="bg-[#B8860B] text-white font-bold px-2 py-0.5 rounded-lg text-[10px]">${w.code}</span>
+                        <span class="bg-[#B8860B] text-white font-bold px-2 py-0.5 rounded-lg text-[10px]">${w.code || ''}</span>
                         <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
                         <span class="text-gray-500 font-bold">(المكتب: ${w.officeCost || 0} دج)</span>
                     </div>
@@ -627,8 +624,8 @@ function renderAdminWilayasList() {
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
-                    <button type="button" onclick="deleteWilaya('${docKey}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
+                    <button type="button" onclick="editWilaya('${targetId}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
+                    <button type="button" onclick="deleteWilaya('${targetId}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
                 </div>
             </div>
         `;
@@ -691,7 +688,7 @@ function addBannerText() {
 
 function removeBannerText(index) {
     const targetText = bannerMessages[index];
-    if (!targetTest) return;
+    if (!targetText) return; // تم إصلاح الخطأ الإملائي هنا
     db.collection("settings").doc("main").update({
         bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
     }).then(() => {
@@ -768,4 +765,26 @@ function handleSaveCategory(e) {
         document.getElementById('cat-img-input').value = '';
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
     });
+}
+
+function exportOrdersToExcel() {
+    if (!orders || orders.length === 0) {
+        showCustomAlert('تنبيه', 'لا توجد طلبيات للتصدير.', false);
+        return;
+    }
+    const dataToExport = orders.map(o => ({
+        "اسم الزبون": o.customer,
+        "رقم الهاتف": o.phone,
+        "الولاية": o.wilaya,
+        "البلدية": o.commune,
+        "المنتج المطلبي": o.product,
+        "المجموع (دج)": o.total,
+        "الحالة": o.status || 'جديد',
+        "التاريخ": o.date || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "الطلبيات");
+    XLSX.writeFile(workbook, `orders_export_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
