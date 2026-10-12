@@ -626,17 +626,6 @@ function populateCartWilayas() {
 }
 
 function handleCartWilayaChange() {
-    const code = document.getElementById('cart-cust-wilaya').value;
-    const wilaya = WILAYAS.find(w => w.code === code);
-    const communeSelect = document.getElementById('cart-cust-commune');
-    
-    if (wilaya && communeSelect) {
-        const communesList = wilaya.communesData || [];
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
-            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
-    } else if (communeSelect) {
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
-    }
     updateCartCalculations();
 }
 
@@ -646,13 +635,11 @@ function updateCartCalculations() {
     const shipCostEl = document.getElementById('cart-shipping-cost');
     const totalEl = document.getElementById('total');
     const wilayaSelect = document.getElementById('cart-cust-wilaya');
-    const communeSelect = document.getElementById('cart-cust-commune');
 
     let subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
     const wilayaCode = wilayaSelect ? wilayaSelect.value : '';
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const communeName = communeSelect ? communeSelect.value : '';
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
 
     let shipCost = 0;
@@ -660,18 +647,16 @@ function updateCartCalculations() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
-            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
+            shipCost = wilaya.homeCost || wilaya.officeCost || 0;
         }
     }
 
     if (subtotalEl) subtotalEl.innerText = subtotal.toLocaleString() + ' دج';
-    if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية والبلدية';
+    if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية';
     
     const grandTotal = subtotal + shipCost;
     if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' دج';
 }
-
 function removeFromCart(idx) {
     cart.splice(idx, 1);
     localStorage.setItem('lb_cart_v7', JSON.stringify(cart));
@@ -688,10 +673,10 @@ function submitCartCheckout() {
     const name = document.getElementById('cart-cust-name')?.value.trim();
     const phone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
-    const commune = document.getElementById('cart-cust-commune')?.value;
+    const commune = document.getElementById('cart-cust-commune')?.value.trim();
 
-    if (!name || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+    if (!name || !wilayaCode || !commune) {
+        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة والعنوان الضروري!', false);
         return;
     }
 
@@ -708,19 +693,19 @@ function submitCartCheckout() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
-            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+            shipCost = wilaya.homeCost || wilaya.officeCost || 0;
         }
     }
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
     const itemsNames = cart.map(item => item.name).join(' + ');
+    const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
     const newOrder = {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: commune || 'المكتب',
+        commune: `${commune} (${shippingTypeText})`,
         product: `طلبية سلة: (${itemsNames})`,
         total: subtotal + shipCost,
         status: 'جديد',
