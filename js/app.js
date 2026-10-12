@@ -626,21 +626,10 @@ function populateCartWilayas() {
 }
 
 function handleCartWilayaChange() {
-    const code = document.getElementById('cart-cust-wilaya').value;
-    const wilaya = WILAYAS.find(w => w.code === code);
-    const communeSelect = document.getElementById('cart-cust-commune');
-    
-    if (wilaya && communeSelect) {
-        const communesList = wilaya.communesData || [];
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
-            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
-    } else if (communeSelect) {
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
-    }
     updateCartCalculations();
 }
 
-// 🟢 التحديث الجديد الموحد والدقيق لحساب التوصيل في السلة
+// 🟢 التحديث الجديد الموحد والدقيق لحساب التوصيل في السلة (يعتمد على الولاية وسعر المكتب/المنزل المحدد في لوحة التحكم)
 function updateCartCalculations() {
     const subtotalEl = document.getElementById('subtotal');
     const shipCostEl = document.getElementById('cart-shipping-cost');
@@ -650,7 +639,6 @@ function updateCartCalculations() {
 
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const communeName = document.getElementById('cart-cust-commune')?.value;
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
 
     let shipCost = 0;
@@ -658,13 +646,12 @@ function updateCartCalculations() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
-            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
+            shipCost = (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
         }
     }
 
     if (subtotalEl) subtotalEl.innerText = subtotal.toLocaleString() + ' دج';
-    if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية والبلدية';
+    if (shipCostEl) shipCostEl.innerText = wilaya ? (shipCost.toLocaleString() + ' دج') : 'حدد الولاية';
     
     const grandTotal = subtotal + shipCost;
     if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' دج';
@@ -686,10 +673,10 @@ function submitCartCheckout() {
     const name = document.getElementById('cart-cust-name')?.value.trim();
     const phone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
-    const commune = document.getElementById('cart-cust-commune')?.value;
+    const address = document.getElementById('cart-cust-address')?.value.trim() || '';
 
-    if (!name || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+    if (!name || !wilayaCode || !address) {
+        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية (الاسم، الهاتف، الولاية والعنوان)!', false);
         return;
     }
 
@@ -706,8 +693,7 @@ function submitCartCheckout() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
-            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+            shipCost = (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
         }
     }
 
@@ -718,7 +704,7 @@ function submitCartCheckout() {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: commune || 'المكتب',
+        commune: address, // تخزين العنوان المكتوب يدوياً في خانة العنوان
         product: `طلبية سلة: (${itemsNames})`,
         total: subtotal + shipCost,
         status: 'جديد',
