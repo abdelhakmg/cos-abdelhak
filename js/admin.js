@@ -42,7 +42,6 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
-// دالة التحقق من كلمة السر وإظهار لوحة التحكم مباشرة
 function checkAdminPassword() {
     const passInput = document.getElementById('admin-pass-input');
     if (!passInput) return;
@@ -107,7 +106,6 @@ function renderCategorySpecificAdminFields() {
     if (!catSelect || !container) return;
 
     const selectedCategory = (catSelect.value || '').trim().toLowerCase();
-
     let html = '';
 
     if (selectedCategory.includes('كوسمتيك')) {
@@ -315,102 +313,52 @@ function renderCategorySpecificAdminFields() {
 
 function handleSaveProduct(e) {
     if (e) e.preventDefault();
-
     try {
-        const editId = document.getElementById('editing-product-id') ? document.getElementById('editing-product-id').value : '';
-        const nameInput = document.getElementById('prod-name');
-        const priceInput = document.getElementById('prod-price');
-        const catSelect = document.getElementById('prod-category-select');
-        const img1Input = document.getElementById('prod-img-main');
-
-        if (!nameInput || !priceInput || !catSelect || !img1Input) return;
-
-        const name = nameInput.value.trim();
-        const price = parseFloat(priceInput.value) || 0;
-        const oldPriceVal = document.getElementById('prod-old-price') ? document.getElementById('prod-old-price').value : '';
+        const editId = document.getElementById('editing-product-id').value;
+        const name = document.getElementById('prod-name').value.trim();
+        const price = parseFloat(document.getElementById('prod-price').value) || 0;
+        const oldPriceVal = document.getElementById('prod-old-price').value;
         const oldPrice = oldPriceVal ? parseFloat(oldPriceVal) : null;
-        const category = catSelect.value;
-        const brand = document.getElementById('prod-brand-select') ? document.getElementById('prod-brand-select').value : '';
-        const inStock = document.getElementById('prod-in-stock') ? (document.getElementById('prod-in-stock').value === 'true') : true;
+        const category = document.getElementById('prod-category-select').value;
+        const brand = document.getElementById('prod-brand-select').value;
+        const inStock = document.getElementById('prod-in-stock').value === 'true';
 
         const selectedSkins = Array.from(document.querySelectorAll('.prod-skin-cb:checked')).map(cb => cb.value);
         const selectedHairs = Array.from(document.querySelectorAll('.prod-hair-cb:checked')).map(cb => cb.value);
 
-        const cosmeticArea = document.getElementById('prod-cosmetic-area')?.value || '';
-        const cosmeticType = document.getElementById('prod-cosmetic-type')?.value || '';
-        const jewelryMetal = document.getElementById('prod-jewelry-metal')?.value || '';
-        const jewelryType = document.getElementById('prod-jewelry-type')?.value || '';
-        const giftboxShape = document.getElementById('prod-giftbox-shape')?.value || '';
-        const makeupType = document.getElementById('prod-makeup-type')?.value || '';
-        const perfumeTarget = document.getElementById('prod-perfume-target')?.value || '';
-        const hairaccType = document.getElementById('prod-hairacc-type')?.value || '';
-        const giftOccasion = document.getElementById('prod-gift-occasion')?.value || '';
-
-        const colors = document.getElementById('prod-colors') ? document.getElementById('prod-colors').value.trim() : '';
-        const numbers = document.getElementById('prod-numbers') ? document.getElementById('prod-numbers').value.trim() : '';
-
-        const desc = document.getElementById('prod-desc') ? document.getElementById('prod-desc').value.trim() : '';
-        const img1 = img1Input.value.trim();
-        const img2 = document.getElementById('prod-img-2') ? document.getElementById('prod-img-2').value.trim() : '';
-        const img3 = document.getElementById('prod-img-3') ? document.getElementById('prod-img-3').value.trim() : '';
-
-        if (!name || !price || !category || !img1) {
-            showCustomAlert('تنبيه', 'يرجى ملء كافة الخانات الإجبارية!', false);
-            return;
-        }
-
-        const images = [img1, img2, img3].filter(img => img && img.length > 0);
-
         const productData = {
-            name: name,
-            price: price,
-            oldPrice: oldPrice,
-            category: category,
-            brand: brand,
-            inStock: inStock,
+            name, price, oldPrice, category, brand, inStock,
             skinTypes: selectedSkins,
             hairTypes: selectedHairs,
-            cosmeticArea: cosmeticArea,
-            cosmeticType: cosmeticType,
-            jewelryMetal: jewelryMetal,
-            jewelryType: jewelryType,
-            giftboxShape: giftboxShape,
-            makeupType: makeupType,
-            perfumeTarget: perfumeTarget,
-            hairaccType: hairaccType,
-            giftOccasion: giftOccasion,
-            colors: colors,
-            numbers: numbers,
-            desc: desc,
-            images: images,
+            cosmeticArea: document.getElementById('prod-cosmetic-area')?.value || '',
+            cosmeticType: document.getElementById('prod-cosmetic-type')?.value || '',
+            jewelryMetal: document.getElementById('prod-jewelry-metal')?.value || '',
+            jewelryType: document.getElementById('prod-jewelry-type')?.value || '',
+            giftboxShape: document.getElementById('prod-giftbox-shape')?.value || '',
+            makeupType: document.getElementById('prod-makeup-type')?.value || '',
+            perfumeTarget: document.getElementById('prod-perfume-target')?.value || '',
+            hairaccType: document.getElementById('prod-hairacc-type')?.value || '',
+            giftOccasion: document.getElementById('prod-gift-occasion')?.value || '',
+            colors: document.getElementById('prod-colors')?.value.trim() || '',
+            numbers: document.getElementById('prod-numbers')?.value.trim() || '',
+            desc: document.getElementById('prod-desc')?.value.trim() || '',
+            images: [
+                document.getElementById('prod-img-main').value.trim(),
+                document.getElementById('prod-img-2')?.value.trim(),
+                document.getElementById('prod-img-3')?.value.trim()
+            ].filter(Boolean),
             updatedAt: new Date()
         };
-
-        const saveBtn = document.getElementById('save-product-btn');
-        if (saveBtn) {
-            saveBtn.disabled = true;
-            saveBtn.innerText = 'جاري الحفظ... ⏳';
-        }
 
         if (editId) {
             db.collection("products").doc(editId).update(productData).then(() => {
                 resetProductForm();
                 showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
-            }).finally(() => {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = 'تحديث بيانات المنتج';
-                }
             });
         } else {
             db.collection("products").add({ ...productData, createdAt: new Date() }).then(() => {
                 resetProductForm();
                 showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
-            }).finally(() => {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = 'حفظ المنتج';
-                }
             });
         }
     } catch (err) {
@@ -419,12 +367,10 @@ function handleSaveProduct(e) {
 }
 
 function resetProductForm() {
-    const form = document.getElementById('product-edit-form');
-    if (form) form.reset();
+    document.getElementById('product-edit-form').reset();
     document.getElementById('editing-product-id').value = '';
-    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج (مع التحديد الديناميكي لكل قسم)';
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
-    document.getElementById('save-product-btn').innerText = 'حفظ المنتج';
     renderCategorySpecificAdminFields();
 }
 
@@ -438,30 +384,11 @@ function editProduct(id) {
     document.getElementById('prod-old-price').value = p.oldPrice || '';
     document.getElementById('prod-category-select').value = p.category || '';
     document.getElementById('prod-brand-select').value = p.brand || '';
-    document.getElementById('prod-in-stock').value = p.inStock ? 'true' : 'false';
+    document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
 
     renderCategorySpecificAdminFields();
 
-    if (document.getElementById('prod-cosmetic-area')) document.getElementById('prod-cosmetic-area').value = p.cosmeticArea || 'للوجه';
-    if (document.getElementById('prod-cosmetic-type')) document.getElementById('prod-cosmetic-type').value = p.cosmeticType || '';
-    if (document.getElementById('prod-jewelry-metal')) document.getElementById('prod-jewelry-metal').value = p.jewelryMetal || 'بلاكيور أور';
-    if (document.getElementById('prod-jewelry-type')) document.getElementById('prod-jewelry-type').value = p.jewelryType || 'سلسلة';
-    if (document.getElementById('prod-giftbox-shape')) document.getElementById('prod-giftbox-shape').value = p.giftboxShape || 'شكل قلب';
-    if (document.getElementById('prod-makeup-type')) document.getElementById('prod-makeup-type').value = p.makeupType || 'فوندوتان';
-    if (document.getElementById('prod-perfume-target')) document.getElementById('prod-perfume-target').value = p.perfumeTarget || 'نساء';
-    if (document.getElementById('prod-hairacc-type')) document.getElementById('prod-hairacc-type').value = p.hairaccType || 'مساك';
-    if (document.getElementById('prod-gift-occasion')) document.getElementById('prod-gift-occasion').value = p.giftOccasion || 'رجالية';
-
-    const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
-    document.querySelectorAll('.prod-skin-cb').forEach(cb => { cb.checked = pSkins.includes(cb.value); });
-
-    const pHairs = Array.isArray(p.hairTypes) ? p.hairTypes : (p.hairType ? [p.hairType] : []);
-    document.querySelectorAll('.prod-hair-cb').forEach(cb => { cb.checked = pHairs.includes(cb.value); });
-
-    document.getElementById('prod-colors').value = p.colors || '';
-    document.getElementById('prod-numbers').value = p.numbers || '';
     document.getElementById('prod-desc').value = p.desc || '';
-
     const imgs = p.images || [];
     document.getElementById('prod-img-main').value = imgs[0] || '';
     document.getElementById('prod-img-2').value = imgs[1] || '';
@@ -469,8 +396,6 @@ function editProduct(id) {
 
     document.getElementById('product-form-title').innerText = 'تعديل المنتج: ' + p.name;
     document.getElementById('cancel-edit-btn').classList.remove('hidden');
-    document.getElementById('save-product-btn').innerText = 'تحديث بيانات المنتج';
-
     window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
 
@@ -514,7 +439,6 @@ function renderAdminDashboard() {
 
                 let cleanPhone = (o.phone || '').replace(/\s+/g, '');
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
-
                 const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${storeSettings.name} لتأكيد طلبكم الخاص بـ: ${o.product}. المبلغ الإجمالي: ${o.total} دج.`);
 
                 return `
@@ -568,26 +492,17 @@ function renderAdminProductsTable() {
 
     tbody.innerHTML = products.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
-        let badgeInfo = [];
-        
-        if (p.jewelryMetal || p.jewelryType) badgeInfo.push(`${p.jewelryMetal || ''} ${p.jewelryType || ''}`);
-        if (p.giftboxShape) badgeInfo.push(`شكل: ${p.giftboxShape}`);
-        if (p.makeupType) badgeInfo.push(`مايكاب: ${p.makeupType}`);
-        if (p.perfumeTarget) badgeInfo.push(`عطر: ${p.perfumeTarget}`);
-        if (p.hairaccType) badgeInfo.push(`إكسسوار: ${p.hairaccType}`);
-        if (p.giftOccasion) badgeInfo.push(`هدية: ${p.giftOccasion}`);
-
         return `
             <tr class="border-b hover:bg-gray-50">
-                <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black"></td>
+                <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black" loading="lazy"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
-                <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${badgeInfo.join(' | ') || 'افتراضي'}</td>
+                <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.category || ''}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
                 <td class="p-3 text-xs"><span class="${p.inStock !== false ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock !== false ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
                 <td class="p-3 flex items-center gap-2">
-                    <button onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
-                    <button onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
+                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
+                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
                 </td>
             </tr>
         `;
@@ -599,7 +514,7 @@ function addCommunePriceRow(name = '', cost = '') {
     if (!container) return;
 
     const div = document.createElement('div');
-    div.className = "flex items-center gap-2 commune-price-row";
+    div.className = "flex items-center gap-2 commune-price-row mb-2";
     div.innerHTML = `
         <input type="text" placeholder="اسم البلدية" value="${name}" class="border p-2.5 rounded-xl text-xs flex-1 commune-name-input" required>
         <input type="number" placeholder="سعر التوصيل (دج)" value="${cost}" class="border p-2.5 rounded-xl text-xs w-36 commune-cost-input" required>
@@ -626,25 +541,53 @@ function handleSaveWilaya(e) {
     if (!code || !name) return;
 
     db.collection("wilayas").doc(code).set({
-        code: code,
-        name: name,
-        officeCost: officeCost,
-        communesData: communesData
+        code, name, officeCost, communesData
     }).then(() => {
         resetWilayaForm();
         renderAdminWilayasList();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية والبلديات!', true);
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية والبلديات بنجاح!', true);
     });
 }
 
 function resetWilayaForm() {
-    const form = document.getElementById('wilaya-edit-form');
-    if (form) form.reset();
+    document.getElementById('wilaya-edit-form').reset();
     document.getElementById('editing-wilaya-id').value = '';
     document.getElementById('communes-custom-list').innerHTML = '';
     document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية بأسعار تفصيلية للمكتب والبلديات';
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
-    document.getElementById('save-wilaya-btn').innerText = 'حفظ بيانات الولاية والتسعير التفصيلي';
+}
+
+// 🟢 دوال التعديل والحذف للولايات مصححة وتعمل بنقرة واحدة
+function editWilaya(code) {
+    const w = WILAYAS.find(wil => wil.code === code);
+    if (!w) return;
+
+    document.getElementById('editing-wilaya-id').value = w.code;
+    document.getElementById('wilaya-code').value = w.code;
+    document.getElementById('wilaya-name').value = w.name;
+    document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
+
+    const communesContainer = document.getElementById('communes-custom-list');
+    communesContainer.innerHTML = '';
+    
+    if (w.communesData && Array.isArray(w.communesData)) {
+        w.communesData.forEach(c => {
+            addCommunePriceRow(c.name, c.cost);
+        });
+    }
+
+    document.getElementById('wilaya-form-title').innerText = 'تعديل الولاية: ' + w.name;
+    document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
+    window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
+}
+
+function deleteWilaya(code) {
+    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية؟')) {
+        db.collection("wilayas").doc(code).delete().then(() => {
+            renderAdminWilayasList();
+            showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
+        });
+    }
 }
 
 function renderAdminWilayasList() {
@@ -674,10 +617,9 @@ function renderAdminWilayasList() {
                         `).join('') : '<span class="text-gray-400">لا توجد بلديات مفصلة</span>'}
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2">
-                    <button onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl">تعديل</button>
-                    <button onclick="deleteWilaya('${w.code}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl">حذف</button>
+                    <button type="button" onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
+                    <button type="button" onclick="deleteWilaya('${w.code}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
                 </div>
             </div>
         `;
@@ -709,16 +651,6 @@ function handleSaveBrand(e) {
     });
 }
 
-function deleteBrand(index) {
-    if (typeof brands !== 'undefined' && brands[index]) {
-        brands.splice(index, 1);
-        db.collection("settings").doc("main").set({ brands: brands }, { merge: true }).then(() => {
-            populateAdminDropdowns();
-            showCustomAlert('تم الحذف', 'تم حذف العلامة التجارية.', true);
-        });
-    }
-}
-
 function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
@@ -729,9 +661,7 @@ function renderBannerTextsList() {
     container.innerHTML = bannerMessages.map((msg, idx) => `
         <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
             <span class="font-bold text-gray-800">${msg}</span>
-            <button onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">
-                <i class="fa-solid fa-trash-can"></i> حذف
-            </button>
+            <button type="button" onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">حذف</button>
         </div>
     `).join('');
 }
@@ -808,10 +738,9 @@ function handleSaveHeroSlide(e) {
     const title = document.getElementById('hero-title-input').value.trim();
     const desc = document.getElementById('hero-desc-input').value.trim();
     const image = document.getElementById('hero-img-input').value.trim();
-
     if (!title || !desc || !image) return;
 
-    db.collection("heroSlides").add({ title: title, desc: desc, image: image, createdAt: new Date() }).then(() => {
+    db.collection("heroSlides").add({ title, desc, image, createdAt: new Date() }).then(() => {
         document.getElementById('hero-title-input').value = '';
         document.getElementById('hero-desc-input').value = '';
         document.getElementById('hero-img-input').value = '';
@@ -823,10 +752,9 @@ function handleSaveCategory(e) {
     if (e) e.preventDefault();
     const name = document.getElementById('cat-name-input').value.trim();
     const image = document.getElementById('cat-img-input').value.trim();
-
     if (!name || !image) return;
 
-    db.collection("categories").add({ name: name, image: image, createdAt: new Date() }).then(() => {
+    db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
         document.getElementById('cat-name-input').value = '';
         document.getElementById('cat-img-input').value = '';
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
