@@ -81,7 +81,7 @@ function handleLiveSearch(query) {
     } else {
         htmlContent = matches.map(p => `
             <div onclick="openLandingPage('${p.id}'); hideAllDropdowns();" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
-                <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black">
+                <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black" loading="lazy">
                 <div class="text-right">
                     <p class="text-xs font-bold text-white truncate">${p.name}</p>
                     <p class="text-[10px] text-[#D4AF37] font-bold">${(p.price || 0).toLocaleString()} دج</p>
@@ -459,7 +459,7 @@ function renderHeroSlider() {
 
     container.innerHTML = `
         <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
-            <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Hero Banner">
+            <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Hero Banner" loading="lazy">
             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12 transition-opacity duration-500 group-hover:opacity-0 pointer-events-none">
                 <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">✨ التشكيلة الحصرية 2026</span>
                 <h1 class="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-2xl max-w-3xl leading-tight">${currentSlide.title}</h1>
@@ -517,7 +517,7 @@ function renderSingleProductCard(p) {
 
             <div class="cursor-pointer" onclick="openLandingPage('${p.id}')">
                 <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden">
-                    <img src="${displayImg}" class="max-h-full object-contain group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300'">
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300'">
                 </div>
 
                 <div class="flex items-center gap-1.5 mb-1.5">
@@ -605,7 +605,7 @@ function renderCart() {
         return `
             <div class="flex items-center justify-between border-b border-gray-800 pb-4">
                 <div class="flex items-center gap-4">
-                    <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-black border border-gray-800">
+                    <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-black border border-gray-800" loading="lazy">
                     <div>
                         <h4 class="font-bold text-sm text-white">${prod.name}</h4>
                         <span class="text-xs text-[#D4AF37] font-bold">${(prod.price || 0).toLocaleString()} دج</span>
@@ -799,12 +799,92 @@ function updateAppHeaderInfo() {
         homeCatGrid.innerHTML = categories.map(c => `
             <div onclick="filterCategory('${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
                 <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
-                    <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black">
+                    <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black" loading="lazy">
                 </div>
                 <h3 class="text-white font-bold text-sm tracking-wide group-hover:text-[#D4AF37]">${c.name}</h3>
             </div>
         `).join('');
     }
+}
+
+// دالة تتبع الطلبات عبر رقم الهاتف
+function searchOrderTracking() {
+    const input = document.getElementById('track-phone-input');
+    const container = document.getElementById('tracking-results-container');
+    if (!input || !container) return;
+
+    const phone = input.value.trim();
+    if (!phone || phone.length < 10) {
+        showCustomAlert('تنبيه', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام!', false);
+        return;
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs">جاري البحث عن الطلبيات... ⏳</p>';
+
+    db.collection("orders").where("phone", "==", phone).get().then((snapshot) => {
+        if (snapshot.empty) {
+            container.innerHTML = `
+                <div class="bg-black/50 border border-gray-800 rounded-2xl p-6 text-center space-y-2">
+                    <i class="fa-solid fa-box-open text-3xl text-gray-600"></i>
+                    <p class="text-sm font-bold text-gray-300">لم نجد أي طلب مسجل برقم الهاتف هذا (${phone})</p>
+                    <p class="text-xs text-gray-500">تأكد من إدخال الرقم الصحيح الذي تم تسجيل الطلب به.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<h3 class="font-bold text-sm text-[#D4AF37] mb-3">📋 الطلبات المسجلة برقمك:</h3>';
+        
+        snapshot.forEach((doc) => {
+            const o = doc.data();
+            const status = o.status || 'جديد';
+            
+            let statusBadge = 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40';
+            let statusText = '🟡 قيد المراجعة والانتظار';
+            let statusDesc = 'تم استلام طلبك وسيتصل بك فريقنا قريباً لتأكيده.';
+
+            if (status === 'مؤكد') {
+                statusBadge = 'bg-blue-500/20 text-blue-400 border-blue-500/40';
+                statusText = '🔵 تم تأكيد الطلب هاتفياً';
+                statusDesc = 'تم تأكيد طلبك بنجاح وهو قيد التجهيز للتسليم للناقل.';
+            } else if (status === 'قيد الشحن') {
+                statusBadge = 'bg-purple-500/20 text-purple-400 border-purple-500/40';
+                statusText = '🟣 الطلب قيد الشحن والتوصيل';
+                statusDesc = 'طلبك حالياً في الطريق إليك مع شركة التوصيل.';
+            } else if (status === 'مكتملاً') {
+                statusBadge = 'bg-green-500/20 text-green-400 border-green-500/40';
+                statusText = '🟢 تم تسليم الطلب بنجاح';
+                statusDesc = 'نتمنى أن تكون سعيداً بمشترياتك من كوسمتيك عبد الحق!';
+            } else if (status === 'ملغى') {
+                statusBadge = 'bg-red-500/20 text-red-400 border-red-500/40';
+                statusText = '🔴 ملغى';
+                statusDesc = 'تم إلغاء هذا الطلب.';
+            }
+
+            html += `
+                <div class="bg-black/60 border border-gray-800 rounded-2xl p-5 space-y-3 text-right shadow-md">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                        <span class="text-xs text-gray-400 font-mono">${o.date || ''}</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold border ${statusBadge}">${statusText}</span>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-white">${o.product}</h4>
+                        <p class="text-xs text-gray-400 mt-1"><i class="fa-solid fa-location-dot text-[#D4AF37]"></i> العنوان: ${o.wilaya || ''} - ${o.commune || ''}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-800 text-xs">
+                        <span class="text-gray-400">المبلغ الإجمالي:</span>
+                        <span class="gold-text font-black text-sm">${(o.total || 0).toLocaleString()} دج</span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 bg-gray-900/80 p-2.5 rounded-xl border border-gray-800/80">${statusDesc}</p>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }).catch((err) => {
+        container.innerHTML = '<p class="text-center text-red-500 text-xs py-4">حدث خطأ أثناء البحث، يرجى المحاولة لاحقاً.</p>';
+    });
 }
 
 let currentOrderTickerIndex = 0;
