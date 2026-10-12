@@ -645,12 +645,14 @@ function updateCartCalculations() {
     const subtotalEl = document.getElementById('subtotal');
     const shipCostEl = document.getElementById('cart-shipping-cost');
     const totalEl = document.getElementById('total');
+    const wilayaSelect = document.getElementById('cart-cust-wilaya');
+    const communeSelect = document.getElementById('cart-cust-commune');
 
     let subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
 
-    const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
+    const wilayaCode = wilayaSelect ? wilayaSelect.value : '';
     const wilaya = WILAYAS.find(w => w.code === wilayaCode);
-    const communeName = document.getElementById('cart-cust-commune')?.value;
+    const communeName = communeSelect ? communeSelect.value : '';
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
 
     let shipCost = 0;
