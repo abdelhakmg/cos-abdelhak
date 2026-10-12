@@ -528,36 +528,28 @@ function handleSaveWilaya(e) {
     const code = document.getElementById('wilaya-code').value.trim();
     const name = document.getElementById('wilaya-name').value.trim();
     const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
-
-    const rows = document.querySelectorAll('.commune-price-row');
-    const communesData = [];
-
-    rows.forEach(r => {
-        const cName = r.querySelector('.commune-name-input').value.trim();
-        const cCost = parseFloat(r.querySelector('.commune-cost-input').value) || 0;
-        if (cName) communesData.push({ name: cName, cost: cCost });
-    });
+    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
 
     if (!code || !name) return;
 
     db.collection("wilayas").doc(code).set({
-        code, name, officeCost, communesData
+        code, name, officeCost, homeCost
     }).then(() => {
         resetWilayaForm();
         renderAdminWilayasList();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية والبلديات بنجاح!', true);
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية وتسعير المكتب والمنزل بنجاح!', true);
     });
 }
 
 function resetWilayaForm() {
     document.getElementById('wilaya-edit-form').reset();
     document.getElementById('editing-wilaya-id').value = '';
-    document.getElementById('communes-custom-list').innerHTML = '';
-    document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية بأسعار تفصيلية للمكتب والبلديات';
+    const homeCostInput = document.getElementById('wilaya-home-cost');
+    if (homeCostInput) homeCostInput.value = '';
+    document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية وتحديد أسعار المكتب والمنزل';
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
 }
 
-// 🟢 دوال التعديل والحذف للولايات مفعلة ومضمونة الاستجابة
 function editWilaya(code) {
     const w = WILAYAS.find(wil => wil.code === code);
     if (!w) return;
@@ -566,15 +558,9 @@ function editWilaya(code) {
     document.getElementById('wilaya-code').value = w.code;
     document.getElementById('wilaya-name').value = w.name;
     document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
-
-    const communesContainer = document.getElementById('communes-custom-list');
-    communesContainer.innerHTML = '';
     
-    if (w.communesData && Array.isArray(w.communesData)) {
-        w.communesData.forEach(c => {
-            addCommunePriceRow(c.name, c.cost);
-        });
-    }
+    const homeCostInput = document.getElementById('wilaya-home-cost');
+    if (homeCostInput) homeCostInput.value = w.homeCost || 0;
 
     document.getElementById('wilaya-form-title').innerText = 'تعديل الولاية: ' + w.name;
     document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
@@ -583,12 +569,10 @@ function editWilaya(code) {
 
 function deleteWilaya(docIdOrCode) {
     if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية؟')) {
-        // البحث عن المستند بالـ ID الفعلي في فايربيس أو الكود
         db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
             renderAdminWilayasList();
             showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
         }).catch(err => {
-            // كاحتياط في حال كان المخزن مستنداً عشوائياً
             db.collection("wilayas").where("code", "==", docIdOrCode).get().then(snap => {
                 snap.forEach(d => d.ref.delete());
                 renderAdminWilayasList();
@@ -608,22 +592,17 @@ function renderAdminWilayasList() {
     }
 
     container.innerHTML = WILAYAS.map(w => {
-        const communesList = w.communesData || [];
         const docKey = w.id || w.code;
         return `
             <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
                 <div>
-                    <div class="flex items-center gap-2">
-                        <span class="bg-[#B8860B] text-white font-bold px-2 py-0.5 rounded-lg text-[10px]">${w.code}</span>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-[#B8860B] text-white font-bold px-2.5 py-1 rounded-lg text-[10px]">${w.code}</span>
                         <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
-                        <span class="text-gray-500 font-bold">(المكتب: ${w.officeCost || 0} دج)</span>
                     </div>
-                    <div class="flex flex-wrap gap-1.5 mt-2">
-                        ${communesList.length > 0 ? communesList.map(c => `
-                            <span class="bg-white border text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
-                                ${c.name}: <strong class="text-[#B8860B]">${c.cost} دج</strong>
-                            </span>
-                        `).join('') : '<span class="text-gray-400">لا توجد بلديات مفصلة</span>'}
+                    <div class="flex gap-4 mt-2 text-gray-700">
+                        <span>📦 توصيل المكتب: <strong class="text-[#B8860B]">${w.officeCost || 0} دج</strong></span>
+                        <span>🏡 توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost || 0} دج</strong></span>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -634,7 +613,6 @@ function renderAdminWilayasList() {
         `;
     }).join('');
 }
-
 function saveShippingApiSettings() {
     const key = document.getElementById('shipping-api-key').value.trim();
     const token = document.getElementById('shipping-api-token').value.trim();
