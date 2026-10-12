@@ -158,19 +158,19 @@ function populateWilayas() {
 function handleWilayaChange() {
     const code = document.getElementById('cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const communeSelect = document.getElementById('cust-commune');
     
-    if (wilaya && communeSelect) {
-        const communesList = wilaya.communesData || [];
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>' + 
-            communesList.map(c => `<option value="${c.name}">${c.name} (${c.cost} دج)</option>`).join('');
-            
+    if (wilaya) {
         const officePriceEl = document.getElementById('price-shipping-office');
         if (officePriceEl) officePriceEl.innerText = (wilaya.officeCost || 0) + ' دج';
-    } else if (communeSelect) {
-        communeSelect.innerHTML = '<option value="">اختر البلدية...</option>';
+
+        const homeCost = (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
+        const homePriceEl = document.getElementById('price-shipping-home');
+        if (homePriceEl) homePriceEl.innerText = homeCost + ' دج';
+    } else {
         const officePriceEl = document.getElementById('price-shipping-office');
         if (officePriceEl) officePriceEl.innerText = 'حدد الولاية';
+        const homePriceEl = document.getElementById('price-shipping-home');
+        if (homePriceEl) homePriceEl.innerText = 'حدد الولاية';
     }
     calculateLandingTotal();
 }
@@ -179,7 +179,6 @@ function calculateLandingTotal() {
     if (!currentLandingProduct) return;
     const code = document.getElementById('cust-wilaya').value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const communeName = document.getElementById('cust-commune').value;
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     
     let basePrice = currentLandingProduct.price || 0;
@@ -189,13 +188,9 @@ function calculateLandingTotal() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
-            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
+            shipCost = (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
         }
     }
-
-    const homePriceEl = document.getElementById('price-shipping-home');
-    if (homePriceEl) homePriceEl.innerText = (wilaya && communeName) ? shipCost + ' دج' : (wilaya ? 'اختر البلدية' : 'حدد الولاية');
 
     const sumProdEl = document.getElementById('sum-prod-price');
     if (sumProdEl) sumProdEl.innerText = basePrice.toLocaleString() + ' دج';
@@ -220,10 +215,10 @@ function submitLandingOrder() {
     const name = document.getElementById('cust-name').value.trim();
     const phone = document.getElementById('cust-phone').value.trim();
     const wilayaCode = document.getElementById('cust-wilaya').value;
-    const commune = document.getElementById('cust-commune').value;
+    const address = document.getElementById('cust-address')?.value.trim() || '';
 
-    if (!name || !wilayaCode) {
-        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية!', false);
+    if (!name || !wilayaCode || !address) {
+        showCustomAlert('تنبيه هام!', storeSettings.msgWarning || 'يرجى ملء كافة معلومات الاستمارة الضرورية (الاسم، الهاتف، الولاية والعنوان)!', false);
         return;
     }
 
@@ -240,8 +235,7 @@ function submitLandingOrder() {
         if (shipType === 'office') {
             shipCost = wilaya.officeCost || 0;
         } else {
-            const communeObj = (wilaya.communesData || []).find(c => c.name === commune);
-            shipCost = communeObj ? communeObj.cost : (wilaya.officeCost || 0);
+            shipCost = (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
         }
     }
 
@@ -256,7 +250,7 @@ function submitLandingOrder() {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: commune || 'المكتب',
+        commune: address, // تخزين العنوان المكتوب يدوياً (مثل دار الشيوخ)
         product: productDetails,
         total: (currentLandingProduct.price || 0) + shipCost,
         status: 'جديد',
