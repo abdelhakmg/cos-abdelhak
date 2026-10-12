@@ -691,7 +691,7 @@ function addBannerText() {
 
 function removeBannerText(index) {
     const targetText = bannerMessages[index];
-    if (!targetTest) return;
+    if (!targetText) return;
     db.collection("settings").doc("main").update({
         bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
     }).then(() => {
