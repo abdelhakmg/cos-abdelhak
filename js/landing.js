@@ -177,9 +177,13 @@ function handleWilayaChange() {
 
 function calculateLandingTotal() {
     if (!currentLandingProduct) return;
-    const code = document.getElementById('cust-wilaya').value;
+    const wilayaEl = document.getElementById('cust-wilaya');
+    const communeEl = document.getElementById('cust-commune');
+    if (!wilayaEl || !communeEl) return;
+    
+    const code = wilayaEl.value;
     const wilaya = WILAYAS.find(w => w.code === code);
-    const communeName = document.getElementById('cust-commune').value;
+    const communeName = communeEl.value;
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     
     let basePrice = currentLandingProduct.price || 0;
