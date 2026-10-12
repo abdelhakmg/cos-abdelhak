@@ -642,20 +642,27 @@
                             <input type="hidden" id="editing-wilaya-id">
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <input type="text" id="wilaya-code" placeholder="رمز الولاية (مثال: 17) *" required class="border p-3 rounded-xl text-sm">
-                                <input type="text" id="wilaya-name" placeholder="اسم الولاية (مثال: الجلفة) *" required class="border p-3 rounded-xl text-sm">
-                                <input type="number" id="wilaya-office-cost" placeholder="سعر التوصيل للمكتب (دج) *" required class="border p-3 rounded-xl text-sm">
-                            </div>
-
-                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <h4 class="font-bold text-xs text-[#B8860B]"><i class="fa-solid fa-map-location-dot"></i> تحديد أسعار البلديات التابعة تفصيلياً:</h4>
-                                    <button type="button" onclick="addCommunePriceRow()" class="bg-black text-white text-xs px-3 py-1.5 rounded-lg font-bold">+ إضافة بلدية وسعرها</button>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">رمز الولاية *</label>
+                                    <input type="text" id="wilaya-code" placeholder="مثال: 17" required class="border p-3 rounded-xl text-sm w-full bg-white">
                                 </div>
-                                <div id="communes-custom-list" class="space-y-2"></div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">اسم الولاية *</label>
+                                    <input type="text" id="wilaya-name" placeholder="مثال: الجلفة" required class="border p-3 rounded-xl text-sm w-full bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">سعر توصيل المكتب (دج) *</label>
+                                    <input type="number" id="wilaya-office-cost" placeholder="مثال: 500" required class="border p-3 rounded-xl text-sm w-full bg-white">
+                                </div>
                             </div>
 
-                            <button type="submit" id="save-wilaya-btn" class="w-full bg-black text-white font-bold py-3.5 rounded-xl hover:bg-[#D4AF37] hover:text-black transition">حفظ بيانات الولاية والتسعير التفصيلي</button>
+                            <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 space-y-2">
+                                <label class="block text-xs font-bold text-emerald-800 mb-1"><i class="fa-solid fa-house"></i> سعر التوصيل للمنزل / باب المنزل (دج) *</label>
+                                <input type="number" id="wilaya-home-cost" placeholder="مثال: 700" required class="border p-3 rounded-xl text-sm w-full bg-white">
+                                <p class="text-[11px] text-emerald-700">هذا السعر يطبق مباشرة عندما يختار الزبون التوصيل للمنزل في هذه الولاية.</p>
+                            </div>
+
+                            <button type="submit" id="save-wilaya-btn" class="w-full bg-black text-white font-bold py-3.5 rounded-xl hover:bg-[#D4AF37] hover:text-black transition">حفظ بيانات الولاية والتسعير</button>
                         </form>
                     </div>
 
