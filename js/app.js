@@ -10,21 +10,18 @@ function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
 
-    // ضمان ظهور الشاشة في البداية
     splash.style.display = 'flex';
     splash.style.opacity = '1';
     splash.style.transition = 'opacity 0.7s ease-in-out';
 
-    // عداد زمني لمدة 4 ثوانٍ لتغطية تحميل الملفات والبيانات
     setTimeout(() => {
-        splash.style.opacity = '0'; // بدء التلاشي الناعم
+        splash.style.opacity = '0';
         setTimeout(() => {
-            splash.style.display = 'none'; // إخفاء العنصر نهائياً ليعمل المتجر بكامل محتوياته
-        }, 700); // 700 ملي ثانية مدة تأثير التلاشي
-    }, 3000); // 4000 ملي ثانية = 4 ثوانٍ
+            splash.style.display = 'none';
+        }, 700);
+    }, 3000);
 }
 
-// دالة نقر الشعار لفتح النافذة
 function handleLogoClick(event) {
     if (event) event.preventDefault();
     logoClickCount++;
@@ -643,6 +640,7 @@ function handleCartWilayaChange() {
     updateCartCalculations();
 }
 
+// 🟢 التحديث الجديد الموحد والدقيق لحساب التوصيل في السلة
 function updateCartCalculations() {
     const subtotalEl = document.getElementById('subtotal');
     const shipCostEl = document.getElementById('cart-shipping-cost');
@@ -661,7 +659,7 @@ function updateCartCalculations() {
             shipCost = wilaya.officeCost || 0;
         } else {
             const communeObj = (wilaya.communesData || []).find(c => c.name === communeName);
-            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : 0);
+            shipCost = communeObj ? communeObj.cost : (wilaya.communesData && wilaya.communesData[0] ? wilaya.communesData[0].cost : (wilaya.officeCost || 0));
         }
     }
 
@@ -807,7 +805,6 @@ function updateAppHeaderInfo() {
     }
 }
 
-// دالة تتبع الطلبات عبر رقم الهاتف
 function searchOrderTracking() {
     const input = document.getElementById('track-phone-input');
     const container = document.getElementById('tracking-results-container');
