@@ -760,11 +760,17 @@
 
     <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
-            <h3 class="text-xl font-black">دخول لوحة التحكم</h3>
-            <p class="text-xs text-gray-500">أدخل كلمة المرور الخاصة بالمسؤول</p>
-            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none">
-            <div class="flex gap-3">
-                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl">دخول</button>
+            <h3 class="text-xl font-black">دخول لوحة التحكم الآمنة</h3>
+            <p class="text-xs text-gray-500">أدخل البريد الإلكتروني وكلمة المرور للإدارة</p>
+            
+            <!-- حقل البريد الإلكتروني الجديد -->
+            <input type="email" id="admin-email-input" placeholder="البريد الإلكتروني للإدارة..." class="w-full border p-3.5 rounded-xl text-center outline-none text-sm bg-gray-50">
+            
+            <!-- حقل كلمة المرور -->
+            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none text-sm bg-gray-50">
+            
+            <div class="flex gap-3 pt-2">
+                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md">دخول</button>
                 <button onclick="document.getElementById('admin-auth-modal').style.display='none'" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
             </div>
         </div>
@@ -777,7 +783,7 @@
     <!-- Firebase SDKs & Config -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
