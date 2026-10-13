@@ -111,6 +111,9 @@ firebase.auth().onAuthStateChanged((user) => {
 
 // 🟢 3. دالة تسجيل الخروج الآمن
 function adminSignOut() {
+    // مسح حالة تسجيل الدخول المحفوظة محلياً
+    localStorage.removeItem('cosAdminLoggedIn');
+
     firebase.auth().signOut().then(() => {
         showCustomAlert('تم تسجيل الخروج', 'تم تأمين وإنهاء الجلسة بنجاح.', true);
         showPage('home');
@@ -878,3 +881,14 @@ function exportOrdersToExcel() {
 
     showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات بصيغة Excel احترافية.', true);
 }
+// 🟢 التحقق الفوري من حالة تسجيل الدخول عند تحديث الصفحة لتجاوز شاشة الشعار وثبات الجلسة
+window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        const authModal = document.getElementById('admin-auth-modal');
+        if (authModal) {
+            authModal.style.display = 'none';
+            authModal.classList.add('hidden');
+            authModal.classList.remove('flex');
+        }
+    }
+});
