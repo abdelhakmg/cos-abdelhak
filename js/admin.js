@@ -1011,11 +1011,13 @@ function injectBulkAndSearchUI() {
     // إذا تم الحقن مسبقاً، لا تقم بشيء
     if (document.getElementById('dynamic-bulk-search-wrapper')) return;
 
-    // البحث عن الفلتر القديم وإزالته إن وجد لمنع التكرار
+    // البحث عن القسم القديم أو الفلتر القديم وإزالته لتفادي التكرار
     const oldFilter = document.getElementById('order-status-filter');
     if (oldFilter) {
-        const oldWrapper = oldFilter.closest('.flex.flex-wrap');
-        if (oldWrapper) oldWrapper.remove();
+        const parentBox = oldFilter.closest('.flex.flex-wrap') || oldFilter.parentElement;
+        if (parentBox && parentBox !== ordersContainer) {
+            parentBox.remove();
+        }
     }
 
     const wrapper = document.createElement('div');
@@ -1059,6 +1061,9 @@ function injectBulkAndSearchUI() {
             </div>
         </div>
     `;
+
+    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
+}
 
     ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
 }
