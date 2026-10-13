@@ -1,5 +1,5 @@
 let pendingDeleteOrderId = null;
-
+let selectedOrderIds = []; // مصفوفة لتخزين معرفات الطلبات المحددة
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
@@ -479,15 +479,28 @@ function renderAdminDashboard() {
     if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
 
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
+    const searchQuery = document.getElementById('order-search-input') ? document.getElementById('order-search-input').value.trim().toLowerCase() : '';
+    
     let displayedOrders = orders;
+    
+    // تصفية حسب الحالة
     if (filterVal && filterVal !== 'الجميع') {
-        displayedOrders = orders.filter(o => (o.status || 'جديد') === filterVal);
+        displayedOrders = displayedOrders.filter(o => (o.status || 'جديد') === filterVal);
+    }
+
+    // تصفية حسب البحث (الاسم، الهاتف، أو الولاية)
+    if (searchQuery) {
+        displayedOrders = displayedOrders.filter(o => 
+            (o.customer && o.customer.toLowerCase().includes(searchQuery)) ||
+            (o.phone && o.phone.toLowerCase().includes(searchQuery)) ||
+            (o.wilaya && o.wilaya.toLowerCase().includes(searchQuery))
+        );
     }
 
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
         if (displayedOrders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات تطابق هذه التصفية</td></tr>';
+            ordersTbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">لا توجد طلبيات تطابق بحثك أو تصفيتك</td></tr>';
         } else {
             ordersTbody.innerHTML = displayedOrders.map(o => {
                 const status = o.status || 'جديد';
@@ -501,8 +514,13 @@ function renderAdminDashboard() {
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
                 const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${storeSettings.name} لتأكيد طلبكم الخاص بـ: ${o.product}. المبلغ الإجمالي: ${o.total} دج.`);
 
+                const isChecked = selectedOrderIds.includes(o.id) ? 'checked' : '';
+
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-3">
+                            <input type="checkbox" value="${o.id}" onchange="toggleOrderSelection('${o.id}')" ${isChecked} class="order-checkbox accent-[#D4AF37] w-4 h-4 rounded cursor-pointer">
+                        </td>
                         <td class="p-3">
                             <div class="font-bold text-gray-900">${o.customer}</div>
                             <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
@@ -525,9 +543,9 @@ function renderAdminDashboard() {
                             </select>
                         </td>
                         <td class="p-3 flex items-center gap-2">
-                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700">📞</a>
-                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600">💬</a>
-                            <button onclick="promptDeleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200">🗑️</button>
+                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700" title="اتصال هძاتفي">📞</a>
+                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600" title="مراسلة واتساب">💬</a>
+                            <button onclick="promptDeleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200" title="حذف الطلب">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -540,7 +558,6 @@ function renderAdminDashboard() {
     renderBannerTextsList();
     renderAdminWilayasList();
 }
-
 function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
     if (!tbody) return;
@@ -892,3 +909,122 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+// تحديد أو إلغاء تحديد طلب فردي
+function toggleOrderSelection(id) {
+    const index = selectedOrderIds.indexOf(id);
+    if (index > -1) {
+        selectedOrderIds.splice(index, 1);
+    } else {
+        selectedOrderIds.push(id);
+    }
+    updateBulkActionsBar();
+}
+
+// تحديد أو إلغاء تحديد الكل في الصفحة
+function toggleSelectAllOrders(source) {
+    const checkboxes = document.querySelectorAll('.order-checkbox');
+    selectedOrderIds = [];
+    
+    if (source.checked) {
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            selectedOrderIds.push(cb.value);
+        });
+    } else {
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    }
+    updateBulkActionsBar();
+}
+
+// إظهار أو إخفاء شريط الإجراءات الجماعية بناءً على التحديد
+function updateBulkActionsBar() {
+    let bar = document.getElementById('bulk-actions-bar');
+    if (!bar) {
+        // إنشاء الشريط ديناميكياً إذا لم يكن موجوداً فوق الجدول
+        const tableContainer = document.querySelector('#order-status-filter').closest('.bg-white');
+        if (tableContainer) {
+            bar = document.createElement('div');
+            bar.id = 'bulk-actions-bar';
+            bar.className = 'bg-amber-50 border border-amber-200 p-3 rounded-xl mb-4 flex flex-wrap justify-between items-center gap-3 hidden';
+            bar.innerHTML = `
+                <span class="text-xs font-bold text-amber-900">تم تحديد <span id="selected-count">0</span> طلبية</span>
+                <div class="flex items-center gap-2 flex-wrap">
+    <!-- حقل البحث السريع الجديد -->
+    <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="بحث بالاسم، الهاتف، الولاية..." class="border p-2 rounded-xl text-xs outline-none bg-gray-50 w-48">
+
+    <select id="order-status-filter" onchange="renderAdminDashboard()" class="border p-2 rounded-xl text-xs font-bold outline-none bg-gray-50">
+        <option value="الجميع">جميع الطلبيات 📋</option>
+        <option value="جديد">🟡 الجديدة فقط</option>
+        <option value="مؤكد">🔵 المؤكدة هاتفياً</option>
+        <option value="قيد الشحن">🟣 قيد الشحن</option>
+        <option value="مكتملاً">🟢 المكتملة</option>
+        <option value="ملغى">🔴 الملغاة</option>
+    </select>
+
+    <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
+        <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
+    </button>
+</div>
+            `;
+            tableContainer.insertBefore(bar, tableContainer.children[1]);
+        }
+    }
+
+    const countSpan = document.getElementById('selected-count');
+    if (countSpan) countSpan.innerText = selectedOrderIds.length;
+
+    if (bar) {
+        if (selectedOrderIds.length > 0) {
+            bar.classList.remove('hidden');
+        } else {
+            bar.classList.add('hidden');
+        }
+    }
+}
+
+// تنفيذ تغيير الحالة جماعياً
+function applyBulkStatusChange() {
+    const newStatus = document.getElementById('bulk-status-select').value;
+    if (!newStatus) {
+        showCustomAlert('تنبيه', 'يرجى اختيار الحالة الجديدة أولاً!', false);
+        return;
+    }
+    if (selectedOrderIds.length === 0) return;
+
+    const batch = db.batch();
+    selectedOrderIds.forEach(id => {
+        const ref = db.collection("orders").doc(id);
+        batch.update(ref, { status: newStatus });
+    });
+
+    batch.commit().then(() => {
+        selectedOrderIds = [];
+        updateBulkActionsBar();
+        showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير حالة الطلبات المحددة دفعة واحدة.', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'تعذر تحديث الحالات: ' + err.message, false);
+    });
+}
+
+// تأكيد وحذف الطلبات المحددة جماعياً
+function promptBulkDeleteOrders() {
+    if (selectedOrderIds.length === 0) return;
+    
+    if (confirm(`هل أنت متأكد من رغبتك في حذف ${selectedOrderIds.length} طلبية نهائياً؟`)) {
+        const batch = db.batch();
+        selectedOrderIds.forEach(id => {
+            const ref = db.collection("orders").doc(id);
+            batch.delete(ref);
+        });
+
+        batch.commit().then(() => {
+            selectedOrderIds = [];
+            updateBulkActionsBar();
+            showCustomAlert('تم الحذف', 'تم حذف الطلبات المحددة بنجاح.', true);
+        }).catch(err => {
+            showCustomAlert('خطأ', 'تعذر حذف الطلبات: ' + err.message, false);
+        });
+    }
+}
