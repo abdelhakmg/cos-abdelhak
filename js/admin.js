@@ -1,5 +1,5 @@
 let pendingDeleteOrderId = null;
-let selectedOrderIds = []; // مصفوفة لتخزين معرفات الطلبات المحددة
+
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
     if (!file) return;
@@ -519,8 +519,8 @@ function renderAdminDashboard() {
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-3">
-                            <input type="checkbox" value="${o.id}" onchange="toggleOrderSelection('${o.id}')" ${isChecked} class="order-checkbox accent-[#D4AF37] w-4 h-4 rounded cursor-pointer">
-                        </td>
+                          <input type="checkbox" value="${o.id}" onchange="toggleOrderSelection('${o.id}')" class="order-checkbox accent-[#D4AF37] w-4 h-4 rounded cursor-pointer">
+                          </td>
                         <td class="p-3">
                             <div class="font-bold text-gray-900">${o.customer}</div>
                             <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
@@ -995,6 +995,150 @@ function promptBulkDeleteOrders() {
             showCustomAlert('تم الحذف', 'تم حذف الطلبات المحددة بنجاح.', true);
         }).catch(err => {
             showCustomAlert('خطأ', 'تعذر حذف الطلبات: ' + err.message, false);
+        });
+    }
+}
+// ==========================================
+// ميزات البحث والتحديد والحذف الجماعي الآمنة
+// ==========================================
+
+let selectedOrderIds = [];
+
+// حقن واجهة البحث والتحديد الجماعي ديناميكياً فوق جدول الطلبات دون المساس بـ index.html
+function injectBulkAndSearchUI() {
+    const ordersContainer = document.querySelector('#admin-tab-analytics .bg-white');
+    if (!ordersContainer) return;
+
+    // منع تكرار الحقن إذا كان موجوداً مسبقاً
+    if (document.getElementById('dynamic-bulk-search-wrapper')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'dynamic-bulk-search-wrapper';
+    wrapper.className = 'space-y-4 mb-4';
+    wrapper.innerHTML = `
+        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
+            <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+                <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="بحث بالاسم، الهاتف، الولاية..." class="border p-2 rounded-xl text-xs outline-none bg-gray-50 w-48">
+                <div id="original-filter-placeholder"></div>
+                <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
+                    <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- شريط الإجراءات الجماعية (مخفي افتراضياً) -->
+        <div id="bulk-actions-bar" class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex flex-wrap justify-between items-center gap-3 hidden">
+            <span class="text-xs font-bold text-amber-900">تم تحديد <span id="selected-count" class="text-amber-600 font-black">0</span> طلبية</span>
+            <div class="flex items-center gap-2 flex-wrap">
+                <select id="bulk-status-select" class="border p-2 rounded-xl text-xs font-bold bg-white outline-none cursor-pointer">
+                    <option value="">-- تغيير الحالة جماعياً --</option>
+                    <option value="جديد">🟡 جديد</option>
+                    <option value="مؤكد">🔵 مؤكد</option>
+                    <option value="قيد الشحن">🟣 قيد الشحن</option>
+                    <option value="مكتملاً">🟢 تم التسليم</option>
+                    <option value="ملغى">🔴 ملغى</option>
+                </select>
+                <button onclick="applyBulkStatusChange()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">تطبيق الحالة</button>
+                <button onclick="promptBulkDeleteOrders()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">🗑️ حذف المختار</button>
+            </div>
+        </div>
+    `;
+
+    // نقل فلاتر الطلبات الأصلية إلى الحاوية الجديدة
+    const originalFilter = document.getElementById('order-status-filter');
+    if (originalFilter) {
+        wrapper.querySelector('#original-filter-placeholder').appendChild(originalFilter);
+    }
+
+    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
+}
+
+// تشغيل دالة الحقن عند تحميل لوحة التحكم أو الانتقال لتبويب المبيعات
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(injectBulkAndSearchUI, 1000);
+});
+
+// دوال التحديد والحذف وتغيير الحالة الجماعي
+function toggleOrderSelection(id) {
+    const index = selectedOrderIds.indexOf(id);
+    if (index > -1) {
+        selectedOrderIds.splice(index, 1);
+    } else {
+        selectedOrderIds.push(id);
+    }
+    updateBulkActionsBar();
+}
+
+function toggleSelectAllOrders(source) {
+    const checkboxes = document.querySelectorAll('.order-checkbox');
+    selectedOrderIds = [];
+    if (source.checked) {
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            selectedOrderIds.push(cb.value);
+        });
+    } else {
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    }
+    updateBulkActionsBar();
+}
+
+function updateBulkActionsBar() {
+    const bar = document.getElementById('bulk-actions-bar');
+    const countSpan = document.getElementById('selected-count');
+    if (countSpan) countSpan.innerText = selectedOrderIds.length;
+    if (bar) {
+        if (selectedOrderIds.length > 0) {
+            bar.classList.remove('hidden');
+        } else {
+            bar.classList.add('hidden');
+        }
+    }
+}
+
+function applyBulkStatusChange() {
+    const newStatus = document.getElementById('bulk-status-select').value;
+    if (!newStatus) {
+        alert('يرجى اختيار الحالة الجديدة أولاً!');
+        return;
+    }
+    if (selectedOrderIds.length === 0) return;
+
+    const batch = db.batch();
+    selectedOrderIds.forEach(id => {
+        const ref = db.collection("orders").doc(id);
+        batch.update(ref, { status: newStatus });
+    });
+
+    batch.commit().then(() => {
+        selectedOrderIds = [];
+        updateBulkActionsBar();
+        renderAdminDashboard();
+        alert('تم تغيير حالة الطلبات المحددة بنجاح.');
+    }).catch(err => {
+        alert('خطأ: ' + err.message);
+    });
+}
+
+function promptBulkDeleteOrders() {
+    if (selectedOrderIds.length === 0) return;
+    if (confirm(`هل أنت متأكد من حذف ${selectedOrderIds.length} طلبية نهائياً؟`)) {
+        const batch = db.batch();
+        selectedOrderIds.forEach(id => {
+            const ref = db.collection("orders").doc(id);
+            batch.delete(ref);
+        });
+
+        batch.commit().then(() => {
+            selectedOrderIds = [];
+            updateBulkActionsBar();
+            renderAdminDashboard();
+            alert('تم حذف الطلبات المحددة بنجاح.');
+        }).catch(err => {
+            alert('خطأ: ' + err.message);
         });
     }
 }
