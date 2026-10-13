@@ -42,24 +42,68 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
+// 🟢 1. دالة تسجيل الدخول الآمنة عبر البريد الإلكتروني وكلمة المرور
 function checkAdminPassword() {
+    const emailInput = document.getElementById('admin-email-input');
     const passInput = document.getElementById('admin-pass-input');
-    if (!passInput) return;
-    const pass = passInput.value.trim();
-    const correctPass = (typeof storeSettings !== 'undefined' && storeSettings.pass) ? storeSettings.pass : 'admin123';
+    
+    if (!emailInput || !passInput) return;
+    
+    const email = emailInput.value.trim();
+    const password = passInput.value.trim();
 
-    if (pass === correctPass) {
-        const authModal = document.getElementById('admin-auth-modal');
-        if (authModal) {
-            authModal.style.display = 'none';
-            authModal.classList.add('hidden');
-            authModal.classList.remove('flex');
-        }
-        passInput.value = '';
-        showPage('admin');
-    } else {
-        showCustomAlert('خطأ', 'كلمة المرور غير صحيحة!', false);
+    if (!email || !password) {
+        showCustomAlert('تنبيه', 'يرجى إدخال البريد الإلكتروني وكلمة المرور!', false);
+        return;
     }
+
+    // 🔐 التحقق عبر Firebase Authentication
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            
+            // 🛡️ حدد هنا بريدك الإلكتروني المعتمد للمسؤول (استبدل البريد أدناه ببريدك الخاص)
+            const allowedAdminEmail = "admin@cos-abdelhak.com"; 
+            
+            if (user.email !== allowedAdminEmail) {
+                firebase.auth().signOut();
+                showCustomAlert('غير مخول', 'عذراً، هذا الحساب ليس له صلاحيات إدارية!', false);
+                return;
+            }
+
+            const authModal = document.getElementById('admin-auth-modal');
+            if (authModal) {
+                authModal.style.display = 'none';
+                authModal.classList.add('hidden');
+                authModal.classList.remove('flex');
+            }
+            emailInput.value = '';
+            passInput.value = '';
+            showPage('admin');
+            showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
+        })
+        .catch((error) => {
+            showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة البريد أو كلمة المرور.', false);
+        });
+}
+
+// 🟢 2. مراقبة الجلسة باستمرار عند تحديث الصفحة
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        console.log("المسؤول متصل حالياً:", user.email);
+    } else {
+        console.log("لا يوجد مسؤول مسجل الدخول حالياً.");
+    }
+});
+
+// 🟢 3. دالة تسجيل الخروج الآمن
+function adminSignOut() {
+    firebase.auth().signOut().then(() => {
+        showCustomAlert('تم تسجيل الخروج', 'تم تأمين وإنهاء الجلسة بنجاح.', true);
+        showPage('home');
+    }).catch((error) => {
+        console.error('خطأ أثناء تسجيل الخروج:', error);
+    });
 }
 
 function switchAdminTab(tabName) {
