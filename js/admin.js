@@ -705,6 +705,8 @@ function exportOrdersToExcel() {
 }
 
 // 🟢 دوال التحديد الجماعي والإدارة
+let selectedOrderIds = [];
+
 function toggleOrderSelection(id) {
     const index = selectedOrderIds.indexOf(id);
     if (index > -1) {
@@ -718,7 +720,6 @@ function toggleOrderSelection(id) {
 function toggleSelectAllOrders(source) {
     const checkboxes = document.querySelectorAll('.order-checkbox');
     selectedOrderIds = [];
-    
     if (source.checked) {
         checkboxes.forEach(cb => {
             cb.checked = true;
@@ -735,9 +736,7 @@ function toggleSelectAllOrders(source) {
 function updateBulkActionsBar() {
     const bar = document.getElementById('bulk-actions-bar');
     const countSpan = document.getElementById('selected-count');
-    
     if (countSpan) countSpan.innerText = selectedOrderIds.length;
-
     if (bar) {
         if (selectedOrderIds.length > 0) {
             bar.classList.remove('hidden');
@@ -764,6 +763,7 @@ function applyBulkStatusChange() {
     batch.commit().then(() => {
         selectedOrderIds = [];
         updateBulkActionsBar();
+        renderAdminDashboard();
         showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير حالة الطلبات المحددة دفعة واحدة.', true);
     }).catch(err => {
         showCustomAlert('خطأ', 'تعذر تحديث الحالات: ' + err.message, false);
@@ -772,7 +772,6 @@ function applyBulkStatusChange() {
 
 function promptBulkDeleteOrders() {
     if (selectedOrderIds.length === 0) return;
-    
     if (confirm(`هل أنت متأكد من رغبتك في حذف ${selectedOrderIds.length} طلبية نهائياً؟`)) {
         const batch = db.batch();
         selectedOrderIds.forEach(id => {
@@ -781,11 +780,9 @@ function promptBulkDeleteOrders() {
         });
 
         batch.commit().then(() => {
-            selectedOrderIds.forEach(id => {
-                const idx = selectedOrderIds.indexOf(id);
-                if (idx > -1) selectedOrderIds.splice(idx, 1);
-            });
+            selectedOrderIds = [];
             updateBulkActionsBar();
+            renderAdminDashboard();
             showCustomAlert('تم الحذف', 'تم حذف الطلبات المحددة بنجاح.', true);
         }).catch(err => {
             showCustomAlert('خطأ', 'تعذر حذف الطلبات: ' + err.message, false);
