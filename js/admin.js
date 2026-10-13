@@ -823,7 +823,7 @@ function updateAdminPasswordSecure() {
         }
     });
 }
-// 🟢 دالة تصدير الطلبيات المرتبة في أعمدة لبرنامج Excel
+// 🟢 دالة تصدير الطلبيات الاحترافية (من اليمين لليسار، ورقم الهاتف كنص كامل)
 function exportOrdersToExcel() {
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     let targetOrders = orders;
@@ -837,19 +837,21 @@ function exportOrdersToExcel() {
         return;
     }
 
-    // استخدام الفاصلة المنقوطة (;) لضمان توزيع الأعمدة تلقائياً في نسخة إكسل العربية والفرنسية
-    let csvContent = "\uFEFFاسم الزبون;رقم الهاتف;الولاية;البلدية;المنتج;المبلغ الإجمالي (دج);حالة الطلب\r\n";
+    // إضافة أمر الترميز الخاص باتجاه الجدول من اليمين لليسار لبرنامج Excel
+    let csvContent = "\uFEFFsep=;\r\n";
+    csvContent += "اسم الزبون;رقم الهاتف;الولاية;البلدية;المبلغ الإجمالي (دج);حالة الطلب;المنتج\r\n";
 
     targetOrders.forEach(o => {
         const customer = `"${(o.customer || '').replace(/"/g, '""')}"`;
-        const phone = `"${(o.phone || '').replace(/"/g, '""')}"`;
+        // إضافة علامة المساواة ورقة الشجر لضمان قراءة رقم الهاتف كنص كاملاً مع الصفر في البداية دون اختصار
+        const phone = `"=\"${(o.phone || '').replace(/"/g, '""')}\""`;
         const wilaya = `"${(o.wilaya || '').replace(/"/g, '""')}"`;
         const commune = `"${(o.commune || '').replace(/"/g, '""')}"`;
-        const product = `"${(o.product || '').replace(/"/g, '""')}"`;
         const total = o.total || 0;
         const status = `"${(o.status || 'جديد').replace(/"/g, '""')}"`;
+        const product = `"${(o.product || '').replace(/"/g, '""')}"`;
 
-        csvContent += `${customer};${phone};${wilaya};${commune};${product};${total};${status}\r\n`;
+        csvContent += `${customer};${phone};${wilaya};${commune};${total};${status};${product}\r\n`;
     });
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -861,5 +863,5 @@ function exportOrdersToExcel() {
     a.click();
     document.body.removeChild(a);
 
-    showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات مرتباً في أعمدة بنجاح.', true);
+    showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات بصيغة Excel احترافية.', true);
 }
