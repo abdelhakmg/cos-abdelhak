@@ -1004,21 +1004,13 @@ function promptBulkDeleteOrders() {
 
 let selectedOrderIds = [];
 
+// حقن واجهة البحث والتحديد الجماعي ديناميكياً فوق جدول الطلبات دون المساس بـ index.html
 function injectBulkAndSearchUI() {
     const ordersContainer = document.querySelector('#admin-tab-analytics .bg-white');
     if (!ordersContainer) return;
 
-    // إذا تم الحقن مسبقاً، لا تقم بشيء
+    // منع تكرار الحقن إذا كان موجوداً مسبقاً
     if (document.getElementById('dynamic-bulk-search-wrapper')) return;
-
-    // البحث عن القسم القديم أو الفلتر القديم وإزالته لتفادي التكرار
-    const oldFilter = document.getElementById('order-status-filter');
-    if (oldFilter) {
-        const parentBox = oldFilter.closest('.flex.flex-wrap') || oldFilter.parentElement;
-        if (parentBox && parentBox !== ordersContainer) {
-            parentBox.remove();
-        }
-    }
 
     const wrapper = document.createElement('div');
     wrapper.id = 'dynamic-bulk-search-wrapper';
@@ -1028,16 +1020,7 @@ function injectBulkAndSearchUI() {
             <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
             <div class="flex items-center gap-2 flex-wrap">
                 <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="بحث بالاسم، الهاتف، الولاية..." class="border p-2 rounded-xl text-xs outline-none bg-gray-50 w-48">
-                
-                <select id="order-status-filter" onchange="renderAdminDashboard()" class="border p-2 rounded-xl text-xs font-bold outline-none bg-gray-50">
-                    <option value="الجميع">جميع الطلبيات 📋</option>
-                    <option value="جديد">🟡 الجديدة فقط</option>
-                    <option value="مؤكد">🔵 المؤكدة هاتفياً</option>
-                    <option value="قيد الشحن">🟣 قيد الشحن</option>
-                    <option value="مكتملاً">🟢 المكتملة</option>
-                    <option value="ملغى">🔴 الملغاة</option>
-                </select>
-
+                <div id="original-filter-placeholder"></div>
                 <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
                     <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
                 </button>
@@ -1062,13 +1045,6 @@ function injectBulkAndSearchUI() {
         </div>
     `;
 
-    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
-}
-    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
-}
-
-    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
-}
     // نقل فلاتر الطلبات الأصلية إلى الحاوية الجديدة
     const originalFilter = document.getElementById('order-status-filter');
     if (originalFilter) {
