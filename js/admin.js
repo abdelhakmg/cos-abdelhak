@@ -823,3 +823,44 @@ function updateAdminPasswordSecure() {
         }
     });
 }
+// 🟢 دالة تصدير الطلبيات الحالية إلى ملف Excel / CSV
+function exportOrdersToExcel() {
+    const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
+    let targetOrders = orders;
+    
+    if (filterVal && filterVal !== 'الجميع') {
+        targetOrders = orders.filter(o => (o.status || 'جديد') === filterVal);
+    }
+
+    if (!targetOrders || targetOrders.length === 0) {
+        showCustomAlert('تنبيه', 'لا توجد طلبيات مطابقة لتصديرها حالياً!', false);
+        return;
+    }
+
+    // بناء محتوى ملف CSV يدعم اللغة العربية مع ترميز BOM
+    let csvContent = "\uFEFFاسم الزبون,رقم الهاتف,الولاية,البلدية,المنتج,المبلغ الإجمالي (دج),حالة الطلب\r\n";
+
+    targetOrders.forEach(o => {
+        const customer = `"${(o.customer || '').replace(/"/g, '""')}"`;
+        const phone = `"${(o.phone || '').replace(/"/g, '""')}"`;
+        const wilaya = `"${(o.wilaya || '').replace(/"/g, '""')}"`;
+        const commune = `"${(o.commune || '').replace(/"/g, '""')}"`;
+        const product = `"${(o.product || '').replace(/"/g, '""')}"`;
+        const total = o.total || 0;
+        const status = `"${(o.status || 'جديد').replace(/"/g, '""')}"`;
+
+        csvContent += `${customer},${phone},${wilaya},${commune},${product},${total},${status}\r\n`;
+    });
+
+    // إنشاء ملف وتنزيله تلقائياً للمستخدم
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `orders_export_${filterVal}_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات بصيغة Excel/CSV بنجاح.', true);
+}
