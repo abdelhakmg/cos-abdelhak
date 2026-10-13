@@ -805,6 +805,10 @@
         firebase.initializeApp(firebaseConfig);
       }
       const db = firebase.firestore();
+        if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        const splash = document.getElementById('luxury-splash-screen');
+        if (splash) splash.style.display = 'none';
+    }
     </script>
 
     <script src="js/data.js?v=4"></script>
