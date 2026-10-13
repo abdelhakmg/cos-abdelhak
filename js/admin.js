@@ -63,7 +63,7 @@ function checkAdminPassword() {
             const user = userCredential.user;
             
             // 🛡️ حدد هنا بريدك الإلكتروني المعتمد للمسؤول (استبدل البريد أدناه ببريدك الخاص)
-            const allowedAdminEmail = "admin@cos-abdelhak.com"; 
+            const allowedAdminEmail = "mohamed.pato@gmail.com"; 
             
             if (user.email !== allowedAdminEmail) {
                 firebase.auth().signOut();
