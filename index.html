@@ -575,13 +575,14 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-right text-sm">
                                 <thead class="bg-gray-100 border-b text-gray-700">
-                                    <tr>
-                                        <th class="p-3">الزبون والهاتف</th>
-                                        <th class="p-3">العنوان (الولاية / البلدية)</th>
-                                        <th class="p-3">المنتج والمبلغ</th>
-                                        <th class="p-3">حالة الطلب</th>
-                                        <th class="p-3">الاتصال والإجراءات</th>
-                                    </tr>
+                                   <tr>
+                                         <th class="p-3 w-10"><input type="checkbox" onchange="toggleSelectAllOrders(this)" class="accent-[#D4AF37] w-4 h-4 rounded cursor-pointer" title="تحديد الكل"></th>
+                                         <th class="p-3">الزبون والهاتف</th>
+                                         <th class="p-3">العنوان (الولاية / البلدية)</th>
+                                         <th class="p-3">المنتج والمبلغ</th>
+                                         <th class="p-3">حالة الطلب</th>
+                                         <th class="p-3">الاتصال والإجراءات</th>
+                                   </tr>
                                 </thead>
                                 <tbody id="admin-orders-log"></tbody>
                             </table>
