@@ -1,4 +1,5 @@
 let pendingDeleteOrderId = null;
+let selectedOrderIds = [];
 
 function handleImageUpload(event, targetInputId) {
     const file = event.target.files[0];
@@ -57,7 +58,6 @@ function checkAdminPassword() {
         return;
     }
 
-    // 🔐 تعيين استمرارية الجلسة محلياً لكي لا تُفقد عند تحديث الصفحة
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         .then(() => {
             return firebase.auth().signInWithEmailAndPassword(email, password);
@@ -90,18 +90,16 @@ function checkAdminPassword() {
         });
 }
 
-// 🟢 2. مراقبة الجلسة وفتح لوحة التحكم تلقائياً عند تحديث الصفحة إذا كان مسجلاً
+// 🟢 2. مراقبة الجلسة
 firebase.auth().onAuthStateChanged((user) => {
     const authModal = document.getElementById('admin-auth-modal');
     if (user && user.email === "mohamed.pato@gmail.com") {
-        console.log("المسؤول متصل حالياً:", user.email);
         if (authModal) {
             authModal.style.display = 'none';
             authModal.classList.add('hidden');
             authModal.classList.remove('flex');
         }
     } else {
-        console.log("لا يوجد مسؤول مسجل الدخول حالياً.");
         if (authModal && typeof currentActivePage !== 'undefined' && currentActivePage === 'admin') {
             authModal.style.display = 'flex';
             authModal.classList.remove('hidden');
@@ -111,14 +109,10 @@ firebase.auth().onAuthStateChanged((user) => {
 
 // 🟢 3. دالة تسجيل الخروج الآمن
 function adminSignOut() {
-    // مسح حالة تسجيل الدخول المحفوظة محلياً
     localStorage.removeItem('cosAdminLoggedIn');
-
     firebase.auth().signOut().then(() => {
         showCustomAlert('تم تسجيل الخروج', 'تم تأمين وإنهاء الجلسة بنجاح.', true);
         showPage('home');
-    }).catch((error) => {
-        console.error('خطأ أثناء تسجيل الخروج:', error);
     });
 }
 
@@ -199,147 +193,6 @@ function renderCategorySpecificAdminFields() {
                 </div>
             </div>
         `;
-    } else if (selectedCategory.includes('بلاكيور') || selectedCategory.includes('اصي')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">💍 خصائص قسم بلاكيور + أسي:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المعدن *</label>
-                        <select id="prod-jewelry-metal" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="بلاكيور أور">بلاكيور أور</option>
-                            <option value="أسي إينوكسيدابل / Steel">أسي إينوكسيدابل / Steel</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع القطعة *</label>
-                        <select id="prod-jewelry-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="سلسلة">سلسلة</option>
-                            <option value="خاتم">خاتم</option>
-                            <option value="قورمات">قورمات</option>
-                            <option value="بارور">بارور</option>
-                            <option value="مناقش">مناقش</option>
-                            <option value="خلخال">خلخال</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory === 'علب' || selectedCategory.includes('علب')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎁 خصائص قسم العلب:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">شكل ومادة الصندوق *</label>
-                    <select id="prod-giftbox-shape" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="شكل قلب">شكل قلب</option>
-                        <option value="شكل مربع">شكل مربع</option>
-                        <option value="شكل مستطيل">شكل مستطيل</option>
-                        <option value="شكل رسالة">شكل رسالة</option>
-                        <option value="شكل دائري">شكل دائري</option>
-                        <option value="علب فوركس">علب فوركس</option>
-                        <option value="علب زجاج">علب زجاج</option>
-                        <option value="صاك كرتون">صاك كرتون</option>
-                        <option value="صاك شفاف">صاك شفاف</option>
-                        <option value="PMMA">PMMA</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory.includes('مايكاب')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">💄 خصائص قسم المايكاب:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع منتج المايكاب *</label>
-                        <select id="prod-makeup-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="فوندوتان">فوندوتان</option>
-                            <option value="كونسيلر">كونسيلر</option>
-                            <option value="ماسكارا">ماسكارا</option>
-                            <option value="طراسور">طراسور</option>
-                            <option value="روج لافر">روج لافر</option>
-                            <option value="قلوص">قلوص</option>
-                            <option value="هايلايتر">هايلايتر</option>
-                            <option value="كونتور">كونتور</option>
-                            <option value="بالات">بالات</option>
-                            <option value="برايمر">برايمر</option>
-                            <option value="ليوناغ">ليوناغ</option>
-                            <option value="فرشاة">فرشاة</option>
-                            <option value="بونجة">بونجة</option>
-                            <option value="آلات">آلات</option>
-                            <option value="أشفار">أشفار</option>
-                            <option value="أظافر">أظافر</option>
-                            <option value="لسقة أشفار">لسقة أشفار</option>
-                            <option value="لسقة أظافر">لسقة أظافر</option>
-                            <option value="فلامينغو">فلامينغو</option>
-                            <option value="فارني">فارني</option>
-                            <option value="أخرى">أخرى</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">نوع البشرة المناسبة:</label>
-                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-2 rounded-xl border max-h-28 overflow-y-auto text-xs"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory.includes('عطور')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🌸 خصائص قسم العطور:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">فئة العطر والاستخدام *</label>
-                    <select id="prod-perfume-target" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="نساء">نساء</option>
-                        <option value="رجال">رجال</option>
-                        <option value="أطفال">أطفال</option>
-                        <option value="للجنسين">للجنسين</option>
-                        <option value="عطور جسم">عطور جسم</option>
-                        <option value="عطور غرف">عطور غرف</option>
-                        <option value="عطور ملابس">عطور ملابس</option>
-                        <option value="عطور سيارات">عطور سيارات</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory.includes('اكسسوارات شعر')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎀 خصائص قسم إكسسوارات الشعر:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">نوع الإكسسوار *</label>
-                    <select id="prod-hairacc-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="مساك">مساك</option>
-                        <option value="شوشو">شوشو</option>
-                        <option value="كخاب">كخاب</option>
-                        <option value="بوندانة">بوندانة</option>
-                        <option value="سيغتات">سيغتات</option>
-                        <option value="مناقش">مناقش</option>
-                        <option value="سنسلة">سنسلة</option>
-                        <option value="خاتم">خاتم</option>
-                        <option value="قورمات">قورمات</option>
-                        <option value="خلخال">خلخال</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory === 'هدايا' || selectedCategory.includes('هدايا')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎁 خصائص قسم الهدايا:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">نوع ومناسبة الهدية *</label>
-                    <select id="prod-gift-occasion" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="رجالية">رجالية</option>
-                        <option value="نسائية">نسائية</option>
-                        <option value="بوكي ورد">بوكي ورد</option>
-                        <option value="بيبي">بيبي</option>
-                        <option value="تغليف">تغليف</option>
-                    </select>
-                </div>
-            </div>
-        `;
     } else {
         html = `
             <div class="bg-gray-50 p-4 rounded-xl border text-center text-xs text-gray-500">
@@ -383,22 +236,8 @@ function handleSaveProduct(e) {
         const brand = document.getElementById('prod-brand-select').value;
         const inStock = document.getElementById('prod-in-stock').value === 'true';
 
-        const selectedSkins = Array.from(document.querySelectorAll('.prod-skin-cb:checked')).map(cb => cb.value);
-        const selectedHairs = Array.from(document.querySelectorAll('.prod-hair-cb:checked')).map(cb => cb.value);
-
         const productData = {
             name, price, oldPrice, category, brand, inStock,
-            skinTypes: selectedSkins,
-            hairTypes: selectedHairs,
-            cosmeticArea: document.getElementById('prod-cosmetic-area')?.value || '',
-            cosmeticType: document.getElementById('prod-cosmetic-type')?.value || '',
-            jewelryMetal: document.getElementById('prod-jewelry-metal')?.value || '',
-            jewelryType: document.getElementById('prod-jewelry-type')?.value || '',
-            giftboxShape: document.getElementById('prod-giftbox-shape')?.value || '',
-            makeupType: document.getElementById('prod-makeup-type')?.value || '',
-            perfumeTarget: document.getElementById('prod-perfume-target')?.value || '',
-            hairaccType: document.getElementById('prod-hairacc-type')?.value || '',
-            giftOccasion: document.getElementById('prod-gift-occasion')?.value || '',
             colors: document.getElementById('prod-colors')?.value.trim() || '',
             numbers: document.getElementById('prod-numbers')?.value.trim() || '',
             desc: document.getElementById('prod-desc')?.value.trim() || '',
@@ -467,6 +306,7 @@ function deleteProduct(id) {
     }
 }
 
+// 🟢 دالة عرض لوحة التحكم وإدارة الطلبات والبحث والفلترة
 function renderAdminDashboard() {
     const confirmedOrders = orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
     const totalSales = confirmedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -483,12 +323,10 @@ function renderAdminDashboard() {
     
     let displayedOrders = orders;
     
-    // تصفية حسب الحالة
     if (filterVal && filterVal !== 'الجميع') {
         displayedOrders = displayedOrders.filter(o => (o.status || 'جديد') === filterVal);
     }
 
-    // تصفية حسب البحث (الاسم، الهاتف، أو الولاية)
     if (searchQuery) {
         displayedOrders = displayedOrders.filter(o => 
             (o.customer && o.customer.toLowerCase().includes(searchQuery)) ||
@@ -514,13 +352,11 @@ function renderAdminDashboard() {
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
                 const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${storeSettings.name} لتأكيد طلبكم الخاص بـ: ${o.product}. المبلغ الإجمالي: ${o.total} دج.`);
 
-                const isChecked = selectedOrderIds.includes(o.id) ? 'checked' : '';
-
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-3">
-                          <input type="checkbox" value="${o.id}" onchange="toggleOrderSelection('${o.id}')" class="order-checkbox accent-[#D4AF37] w-4 h-4 rounded cursor-pointer">
-                          </td>
+                            <input type="checkbox" value="${o.id}" onchange="toggleOrderSelection('${o.id}')" class="order-checkbox accent-[#D4AF37] w-4 h-4 rounded cursor-pointer">
+                        </td>
                         <td class="p-3">
                             <div class="font-bold text-gray-900">${o.customer}</div>
                             <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
@@ -543,9 +379,9 @@ function renderAdminDashboard() {
                             </select>
                         </td>
                         <td class="p-3 flex items-center gap-2">
-                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700" title="اتصال هძاتفي">📞</a>
-                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600" title="مراسلة واتساب">💬</a>
-                            <button onclick="promptDeleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200" title="حذف الطلب">🗑️</button>
+                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700" title="اتصال">📞</a>
+                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600" title="واتساب">💬</a>
+                            <button onclick="promptDeleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200" title="حذف">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -558,6 +394,7 @@ function renderAdminDashboard() {
     renderBannerTextsList();
     renderAdminWilayasList();
 }
+
 function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
     if (!tbody) return;
@@ -574,30 +411,16 @@ function renderAdminProductsTable() {
                 <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black" loading="lazy"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
-                <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.category || ''}</td>
+                <td class="p-3 text-[11px] text-gray-600">${p.category || ''}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
                 <td class="p-3 text-xs"><span class="${p.inStock !== false ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock !== false ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
                 <td class="p-3 flex items-center gap-2">
-                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">تعديل</button>
-                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">حذف</button>
+                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
+                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
                 </td>
             </tr>
         `;
     }).join('');
-}
-
-function addCommunePriceRow(name = '', cost = '') {
-    const container = document.getElementById('communes-custom-list');
-    if (!container) return;
-
-    const div = document.createElement('div');
-    div.className = "flex items-center gap-2 commune-price-row mb-2";
-    div.innerHTML = `
-        <input type="text" placeholder="اسم البلدية" value="${name}" class="border p-2.5 rounded-xl text-xs flex-1 commune-name-input" required>
-        <input type="number" placeholder="سعر التوصيل (دج)" value="${cost}" class="border p-2.5 rounded-xl text-xs w-36 commune-cost-input" required>
-        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold p-2"><i class="fa-solid fa-trash-can"></i></button>
-    `;
-    container.appendChild(div);
 }
 
 function handleSaveWilaya(e) {
@@ -614,7 +437,7 @@ function handleSaveWilaya(e) {
     }).then(() => {
         resetWilayaForm();
         renderAdminWilayasList();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية وتسعير المكتب والمنزل بنجاح!', true);
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية بنجاح!', true);
     });
 }
 
@@ -623,7 +446,7 @@ function resetWilayaForm() {
     document.getElementById('editing-wilaya-id').value = '';
     const homeCostInput = document.getElementById('wilaya-home-cost');
     if (homeCostInput) homeCostInput.value = '';
-    document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية وتحديد أسعار المكتب والمنزل';
+    document.getElementById('wilaya-form-title').innerText = 'إضافة / تعديل ولاية';
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
 }
 
@@ -635,13 +458,10 @@ function editWilaya(code) {
     document.getElementById('wilaya-code').value = w.code;
     document.getElementById('wilaya-name').value = w.name;
     document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
-    
-    const homeCostInput = document.getElementById('wilaya-home-cost');
-    if (homeCostInput) homeCostInput.value = w.homeCost || 0;
+    document.getElementById('wilaya-home-cost').value = w.homeCost || 0;
 
     document.getElementById('wilaya-form-title').innerText = 'تعديل الولاية: ' + w.name;
     document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
-    window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
 
 function deleteWilaya(docIdOrCode) {
@@ -649,7 +469,7 @@ function deleteWilaya(docIdOrCode) {
         db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
             renderAdminWilayasList();
             showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
-        }).catch(err => {
+        }).catch(() => {
             db.collection("wilayas").where("code", "==", docIdOrCode).get().then(snap => {
                 snap.forEach(d => d.ref.delete());
                 renderAdminWilayasList();
@@ -668,33 +488,29 @@ function renderAdminWilayasList() {
         return;
     }
 
-    container.innerHTML = WILAYAS.map(w => {
-        const docKey = w.id || w.code;
-        return `
-            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <span class="bg-[#B8860B] text-white font-bold px-2.5 py-1 rounded-lg text-[10px]">${w.code}</span>
-                        <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
-                    </div>
-                    <div class="flex gap-4 mt-2 text-gray-700">
-                        <span>📦 توصيل المكتب: <strong class="text-[#B8860B]">${w.officeCost || 0} دج</strong></span>
-                        <span>🏡 توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost || 0} دج</strong></span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
-                    <button type="button" onclick="deleteWilaya('${docKey}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
+    container.innerHTML = WILAYAS.map(w => `
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex justify-between items-center text-xs shadow-sm my-2">
+            <div>
+                <span class="bg-[#B8860B] text-white font-bold px-2 py-1 rounded-lg text-[10px]">${w.code}</span>
+                <span class="font-bold text-sm text-gray-900 mr-2">${w.name}</span>
+                <div class="flex gap-4 mt-1 text-gray-700">
+                    <span>توصيل المكتب: <strong>${w.officeCost || 0} دج</strong></span>
+                    <span>توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost || 0} دج</strong></span>
                 </div>
             </div>
-        `;
-    }).join('');
+            <div class="flex gap-2">
+                <button onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl">تعديل</button>
+                <button onclick="deleteWilaya('${w.id || w.code}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl">حذف</button>
+            </div>
+        </div>
+    `).join('');
 }
+
 function saveShippingApiSettings() {
     const key = document.getElementById('shipping-api-key').value.trim();
     const token = document.getElementById('shipping-api-token').value.trim();
     db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
-        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API لشركة التوصيل!', true);
+        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API بنجاح!', true);
     });
 }
 
@@ -723,9 +539,9 @@ function renderBannerTextsList() {
         return;
     }
     container.innerHTML = bannerMessages.map((msg, idx) => `
-        <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
+        <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border text-xs my-1.5">
             <span class="font-bold text-gray-800">${msg}</span>
-            <button type="button" onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">حذف</button>
+            <button onclick="removeBannerText(${idx})" class="text-red-500 font-bold px-3 py-1 bg-red-50 rounded-lg">حذف</button>
         </div>
     `).join('');
 }
@@ -740,7 +556,7 @@ function addBannerText() {
         bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
     }).then(() => {
         input.value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها!', true);
+        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي!', true);
     });
 }
 
@@ -750,7 +566,7 @@ function removeBannerText(index) {
     db.collection("settings").doc("main").update({
         bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
     }).then(() => {
-        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
+        showCustomAlert('تم الحذف', 'تم حذف الجملة بنجاح.', true);
     });
 }
 
@@ -788,7 +604,6 @@ function handleSaveSettings(e) {
         name: document.getElementById('set-store-name').value,
         slogan: document.getElementById('set-store-slogan').value,
         logoUrl: document.getElementById('set-logo-url').value,
-        pass: document.getElementById('set-pass').value,
         msgSuccess: document.getElementById('set-msg-success').value,
         msgWarning: document.getElementById('set-msg-warning').value
     };
@@ -824,39 +639,31 @@ function handleSaveCategory(e) {
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
     });
 }
-// 🟢 دالة تحديث كلمة المرور بأمان عبر نظام Firebase Authentication
+
 function updateAdminPasswordSecure() {
     const passwordInput = document.getElementById('new-admin-password');
     if (!passwordInput) return;
-
     const newPassword = passwordInput.value.trim();
 
     if (!newPassword || newPassword.length < 6) {
-        showCustomAlert('تنبيه أمني', 'يرجى إدخال كلمة مرور جديدة تتكون من 6 أحرف أو أرقام على الأقل.', false);
+        showCustomAlert('تنبيه أمني', 'يرجى إدخال كلمة مرور جديدة من 6 أحرف أو أرقام على الأقل.', false);
         return;
     }
 
     const user = firebase.auth().currentUser;
-
     if (!user) {
         showCustomAlert('غير مسجل', 'يجب تسجيل الدخول كمسؤول أولاً لتغيير كلمة المرور.', false);
         return;
     }
 
-    // استدعاء دالة فايربيس المشفرة لتحديث كلمة المرور
     user.updatePassword(newPassword).then(() => {
         passwordInput.value = '';
-        showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير كلمة مرور الإدارة وتشفيرها في نظام المصادقة الآمن.', true);
+        showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير كلمة مرور الإدارة وتشفيرها في نظام المصادقة.', true);
     }).catch((error) => {
-        // في حال انتهت صلاحية الجلسة، يطلب النظام إعادة تسجيل الدخول لأسباب أمنية
-        if (error.code === 'auth/requires-recent-login') {
-            showCustomAlert('إعادة تسجيل الدخول مطلوبة', 'لأسباب أمنية، يرجى تسجيل الخروج ثم إعادة تسجيل الدخول لتغيير كلمة المرور.', false);
-        } else {
-            showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false);
-        }
+        showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false);
     });
 }
-// 🟢 دالة تصدير الطلبيات الاحترافية (من اليمين لليسار، ورقم الهاتف كنص كامل)
+
 function exportOrdersToExcel() {
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     let targetOrders = orders;
@@ -870,13 +677,11 @@ function exportOrdersToExcel() {
         return;
     }
 
-    // إضافة أمر الترميز الخاص باتجاه الجدول من اليمين لليسار لبرنامج Excel
     let csvContent = "\uFEFFsep=;\r\n";
     csvContent += "اسم الزبون;رقم الهاتف;الولاية;البلدية;المبلغ الإجمالي (دج);حالة الطلب;المنتج\r\n";
 
     targetOrders.forEach(o => {
         const customer = `"${(o.customer || '').replace(/"/g, '""')}"`;
-        // إضافة علامة المساواة ورقة الشجر لضمان قراءة رقم الهاتف كنص كاملاً مع الصفر في البداية دون اختصار
         const phone = `"=\"${(o.phone || '').replace(/"/g, '""')}\""`;
         const wilaya = `"${(o.wilaya || '').replace(/"/g, '""')}"`;
         const commune = `"${(o.commune || '').replace(/"/g, '""')}"`;
@@ -898,18 +703,8 @@ function exportOrdersToExcel() {
 
     showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات بصيغة Excel احترافية.', true);
 }
-// 🟢 التحقق الفوري من حالة تسجيل الدخول عند تحديث الصفحة لتجاوز شاشة الشعار وثبات الجلسة
-window.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
-        const authModal = document.getElementById('admin-auth-modal');
-        if (authModal) {
-            authModal.style.display = 'none';
-            authModal.classList.add('hidden');
-            authModal.classList.remove('flex');
-        }
-    }
-});
-// تحديد أو إلغاء تحديد طلب فردي
+
+// 🟢 دوال التحديد الجماعي والإدارة
 function toggleOrderSelection(id) {
     const index = selectedOrderIds.indexOf(id);
     if (index > -1) {
@@ -920,7 +715,6 @@ function toggleOrderSelection(id) {
     updateBulkActionsBar();
 }
 
-// تحديد أو إلغاء تحديد الكل في الصفحة
 function toggleSelectAllOrders(source) {
     const checkboxes = document.querySelectorAll('.order-checkbox');
     selectedOrderIds = [];
@@ -938,7 +732,6 @@ function toggleSelectAllOrders(source) {
     updateBulkActionsBar();
 }
 
-// تحديث إظهار/إخفاء الشريط الثابت بناءً على العناصر المحددة
 function updateBulkActionsBar() {
     const bar = document.getElementById('bulk-actions-bar');
     const countSpan = document.getElementById('selected-count');
@@ -954,7 +747,6 @@ function updateBulkActionsBar() {
     }
 }
 
-// تنفيذ تغيير الحالة جماعياً
 function applyBulkStatusChange() {
     const newStatus = document.getElementById('bulk-status-select').value;
     if (!newStatus) {
@@ -978,7 +770,6 @@ function applyBulkStatusChange() {
     });
 }
 
-// تأكيد وحذف الطلبات المحددة جماعياً
 function promptBulkDeleteOrders() {
     if (selectedOrderIds.length === 0) return;
     
@@ -990,155 +781,14 @@ function promptBulkDeleteOrders() {
         });
 
         batch.commit().then(() => {
-            selectedOrderIds = [];
+            selectedOrderIds.forEach(id => {
+                const idx = selectedOrderIds.indexOf(id);
+                if (idx > -1) selectedOrderIds.splice(idx, 1);
+            });
             updateBulkActionsBar();
             showCustomAlert('تم الحذف', 'تم حذف الطلبات المحددة بنجاح.', true);
         }).catch(err => {
             showCustomAlert('خطأ', 'تعذر حذف الطلبات: ' + err.message, false);
-        });
-    }
-}
-// ==========================================
-// ميزات البحث والتحديد والحذف الجماعي الآمنة
-// ==========================================
-
-let selectedOrderIds = [];
-
-// حقن واجهة البحث والتحديد الجماعي ديناميكياً فوق جدول الطلبات دون المساس بـ index.html
-function injectBulkAndSearchUI() {
-    const ordersContainer = document.querySelector('#admin-tab-analytics .bg-white');
-    if (!ordersContainer) return;
-
-    // منع تكرار الحقن إذا كان موجوداً مسبقاً
-    if (document.getElementById('dynamic-bulk-search-wrapper')) return;
-
-    const wrapper = document.createElement('div');
-    wrapper.id = 'dynamic-bulk-search-wrapper';
-    wrapper.className = 'space-y-4 mb-4';
-    wrapper.innerHTML = `
-        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
-            <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
-            <div class="flex items-center gap-2 flex-wrap">
-                <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="بحث بالاسم، الهاتف، الولاية..." class="border p-2 rounded-xl text-xs outline-none bg-gray-50 w-48">
-                <div id="original-filter-placeholder"></div>
-                <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
-                    <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
-                </button>
-            </div>
-        </div>
-
-        <!-- شريط الإجراءات الجماعية (مخفي افتراضياً) -->
-        <div id="bulk-actions-bar" class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex flex-wrap justify-between items-center gap-3 hidden">
-            <span class="text-xs font-bold text-amber-900">تم تحديد <span id="selected-count" class="text-amber-600 font-black">0</span> طلبية</span>
-            <div class="flex items-center gap-2 flex-wrap">
-                <select id="bulk-status-select" class="border p-2 rounded-xl text-xs font-bold bg-white outline-none cursor-pointer">
-                    <option value="">-- تغيير الحالة جماعياً --</option>
-                    <option value="جديد">🟡 جديد</option>
-                    <option value="مؤكد">🔵 مؤكد</option>
-                    <option value="قيد الشحن">🟣 قيد الشحن</option>
-                    <option value="مكتملاً">🟢 تم التسليم</option>
-                    <option value="ملغى">🔴 ملغى</option>
-                </select>
-                <button onclick="applyBulkStatusChange()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">تطبيق الحالة</button>
-                <button onclick="promptBulkDeleteOrders()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">🗑️ حذف المختار</button>
-            </div>
-        </div>
-    `;
-
-    // نقل فلاتر الطلبات الأصلية إلى الحاوية الجديدة
-    const originalFilter = document.getElementById('order-status-filter');
-    if (originalFilter) {
-        wrapper.querySelector('#original-filter-placeholder').appendChild(originalFilter);
-    }
-
-    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
-}
-
-// تشغيل دالة الحقن عند تحميل لوحة التحكم أو الانتقال لتبويب المبيعات
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(injectBulkAndSearchUI, 1000);
-});
-
-// دوال التحديد والحذف وتغيير الحالة الجماعي
-function toggleOrderSelection(id) {
-    const index = selectedOrderIds.indexOf(id);
-    if (index > -1) {
-        selectedOrderIds.splice(index, 1);
-    } else {
-        selectedOrderIds.push(id);
-    }
-    updateBulkActionsBar();
-}
-
-function toggleSelectAllOrders(source) {
-    const checkboxes = document.querySelectorAll('.order-checkbox');
-    selectedOrderIds = [];
-    if (source.checked) {
-        checkboxes.forEach(cb => {
-            cb.checked = true;
-            selectedOrderIds.push(cb.value);
-        });
-    } else {
-        checkboxes.forEach(cb => {
-            cb.checked = false;
-        });
-    }
-    updateBulkActionsBar();
-}
-
-function updateBulkActionsBar() {
-    const bar = document.getElementById('bulk-actions-bar');
-    const countSpan = document.getElementById('selected-count');
-    if (countSpan) countSpan.innerText = selectedOrderIds.length;
-    if (bar) {
-        if (selectedOrderIds.length > 0) {
-            bar.classList.remove('hidden');
-        } else {
-            bar.classList.add('hidden');
-        }
-    }
-}
-
-function applyBulkStatusChange() {
-    const newStatus = document.getElementById('bulk-status-select').value;
-    if (!newStatus) {
-        alert('يرجى اختيار الحالة الجديدة أولاً!');
-        return;
-    }
-    if (selectedOrderIds.length === 0) return;
-
-    const batch = db.batch();
-    selectedOrderIds.forEach(id => {
-        const ref = db.collection("orders").doc(id);
-        batch.update(ref, { status: newStatus });
-    });
-
-    batch.commit().then(() => {
-        selectedOrderIds = [];
-        updateBulkActionsBar();
-        renderAdminDashboard();
-        alert('تم تغيير حالة الطلبات المحددة بنجاح.');
-    }).catch(err => {
-        alert('خطأ: ' + err.message);
-    });
-}
-
-function promptBulkDeleteOrders() {
-    if (selectedOrderIds.length === 0) return;
-    if (confirm(`هل أنت متأكد من حذف ${selectedOrderIds.length} طلبية نهائياً؟`)) {
-        const batch = db.batch();
-        selectedOrderIds.forEach(id => {
-            const ref = db.collection("orders").doc(id);
-            batch.delete(ref);
-        });
-
-        batch.commit().then(() => {
-            selectedOrderIds = [];
-            updateBulkActionsBar();
-            renderAdminDashboard();
-            alert('تم حذف الطلبات المحددة بنجاح.');
-        }).catch(err => {
-            alert('خطأ: ' + err.message);
         });
     }
 }
