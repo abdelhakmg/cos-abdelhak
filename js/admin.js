@@ -789,3 +789,79 @@ function promptBulkDeleteOrders() {
         });
     }
 }
+// ==========================================
+// إضافة حقن شريط البحث والتحديد الجماعي أوتوماتيكياً
+// ==========================================
+function injectBulkAndSearchUI() {
+    const ordersContainer = document.querySelector('#admin-tab-analytics .bg-white');
+    if (!ordersContainer) return;
+
+    // منع تكرار الحقن إذا كان موجوداً مسبقاً
+    if (document.getElementById('dynamic-bulk-search-wrapper')) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'dynamic-bulk-search-wrapper';
+    wrapper.className = 'space-y-4 mb-4';
+    wrapper.innerHTML = `
+        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
+            <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+                <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="بحث بالاسم، الهاتف، الولاية..." class="border p-2 rounded-xl text-xs outline-none bg-gray-50 w-48">
+                
+                <select id="order-status-filter" onchange="renderAdminDashboard()" class="border p-2 rounded-xl text-xs font-bold outline-none bg-gray-50">
+                    <option value="الجميع">جميع الطلبيات 📋</option>
+                    <option value="جديد">🟡 الجديدة فقط</option>
+                    <option value="مؤكد">🔵 المؤكدة هاتفياً</option>
+                    <option value="قيد الشحن">🟣 قيد الشحن</option>
+                    <option value="مكتملاً">🟢 المكتملة</option>
+                    <option value="ملغى">🔴 الملغاة</option>
+                </select>
+
+                <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
+                    <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- شريط الإجراءات الجماعية (مخفي افتراضياً) -->
+        <div id="bulk-actions-bar" class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex flex-wrap justify-between items-center gap-3 hidden">
+            <span class="text-xs font-bold text-amber-900">تم تحديد <span id="selected-count" class="text-amber-600 font-black">0</span> طلبية</span>
+            <div class="flex items-center gap-2 flex-wrap">
+                <select id="bulk-status-select" class="border p-2 rounded-xl text-xs font-bold bg-white outline-none cursor-pointer">
+                    <option value="">-- تغيير الحالة جماعياً --</option>
+                    <option value="جديد">🟡 جديد</option>
+                    <option value="مؤكد">🔵 مؤكد</option>
+                    <option value="قيد الشحن">🟣 قيد الشحن</option>
+                    <option value="مكتملاً">🟢 تم التسليم</option>
+                    <option value="ملغى">🔴 ملغى</option>
+                </select>
+                <button onclick="applyBulkStatusChange()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">تطبيق الحالة</button>
+                <button onclick="promptBulkDeleteOrders()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl shadow-sm transition">🗑️ حذف المختار</button>
+            </div>
+        </div>
+    `;
+
+    // إزالة الفلتر القديم الموجود في HTML لتفادي التكرار
+    const oldFilter = document.getElementById('order-status-filter');
+    if (oldFilter && oldFilter.parentElement) {
+        // نحتفظ بوظيفة الفلتر فقط ونزيل الحاوية القديمة المرتبكة
+    }
+
+    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
+}
+
+// تشغيل دالة الحقن تلقائياً عند الانتقال لتبويب المبيعات
+const originalSwitchAdminTab = window.switchAdminTab;
+window.switchAdminTab = function(tabName) {
+    if (typeof originalSwitchAdminTab === 'function') {
+        originalSwitchAdminTab(tabName);
+    }
+    if (tabName === 'analytics') {
+        setTimeout(injectBulkAndSearchUI, 100);
+    }
+};
+
+// تشغيل الحقن أيضاً عند تحميل الصفحة إذا كان تبويب المبيعات هو الافتراضي
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(injectBulkAndSearchUI, 500);
+});
