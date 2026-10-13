@@ -78,6 +78,7 @@ function checkAdminPassword() {
                 authModal.classList.add('hidden');
                 authModal.classList.remove('flex');
             }
+            localStorage.setItem('cosAdminLoggedIn', 'true');
             emailInput.value = '';
             passInput.value = '';
             
