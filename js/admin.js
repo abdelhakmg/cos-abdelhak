@@ -823,7 +823,7 @@ function updateAdminPasswordSecure() {
         }
     });
 }
-// 🟢 دالة تصدير الطلبيات الحالية إلى ملف Excel / CSV
+// 🟢 دالة تصدير الطلبيات المرتبة في أعمدة لبرنامج Excel
 function exportOrdersToExcel() {
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     let targetOrders = orders;
@@ -837,8 +837,8 @@ function exportOrdersToExcel() {
         return;
     }
 
-    // بناء محتوى ملف CSV يدعم اللغة العربية مع ترميز BOM
-    let csvContent = "\uFEFFاسم الزبون,رقم الهاتف,الولاية,البلدية,المنتج,المبلغ الإجمالي (دج),حالة الطلب\r\n";
+    // استخدام الفاصلة المنقوطة (;) لضمان توزيع الأعمدة تلقائياً في نسخة إكسل العربية والفرنسية
+    let csvContent = "\uFEFFاسم الزبون;رقم الهاتف;الولاية;البلدية;المنتج;المبلغ الإجمالي (دج);حالة الطلب\r\n";
 
     targetOrders.forEach(o => {
         const customer = `"${(o.customer || '').replace(/"/g, '""')}"`;
@@ -849,10 +849,9 @@ function exportOrdersToExcel() {
         const total = o.total || 0;
         const status = `"${(o.status || 'جديد').replace(/"/g, '""')}"`;
 
-        csvContent += `${customer},${phone},${wilaya},${commune},${product},${total},${status}\r\n`;
+        csvContent += `${customer};${phone};${wilaya};${commune};${product};${total};${status}\r\n`;
     });
 
-    // إنشاء ملف وتنزيله تلقائياً للمستخدم
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -862,5 +861,5 @@ function exportOrdersToExcel() {
     a.click();
     document.body.removeChild(a);
 
-    showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات بصيغة Excel/CSV بنجاح.', true);
+    showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات مرتباً في أعمدة بنجاح.', true);
 }
