@@ -791,3 +791,35 @@ function handleSaveCategory(e) {
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
     });
 }
+// 🟢 دالة تحديث كلمة المرور بأمان عبر نظام Firebase Authentication
+function updateAdminPasswordSecure() {
+    const passwordInput = document.getElementById('new-admin-password');
+    if (!passwordInput) return;
+
+    const newPassword = passwordInput.value.trim();
+
+    if (!newPassword || newPassword.length < 6) {
+        showCustomAlert('تنبيه أمني', 'يرجى إدخال كلمة مرور جديدة تتكون من 6 أحرف أو أرقام على الأقل.', false);
+        return;
+    }
+
+    const user = firebase.auth().currentUser;
+
+    if (!user) {
+        showCustomAlert('غير مسجل', 'يجب تسجيل الدخول كمسؤول أولاً لتغيير كلمة المرور.', false);
+        return;
+    }
+
+    // استدعاء دالة فايربيس المشفرة لتحديث كلمة المرور
+    user.updatePassword(newPassword).then(() => {
+        passwordInput.value = '';
+        showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير كلمة مرور الإدارة وتشفيرها في نظام المصادقة الآمن.', true);
+    }).catch((error) => {
+        // في حال انتهت صلاحية الجلسة، يطلب النظام إعادة تسجيل الدخول لأسباب أمنية
+        if (error.code === 'auth/requires-recent-login') {
+            showCustomAlert('إعادة تسجيل الدخول مطلوبة', 'لأسباب أمنية، يرجى تسجيل الخروج ثم إعادة تسجيل الدخول لتغيير كلمة المرور.', false);
+        } else {
+            showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false);
+        }
+    });
+}
