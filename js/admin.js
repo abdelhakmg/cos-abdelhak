@@ -42,7 +42,7 @@ function handleImageUpload(event, targetInputId) {
     reader.readAsDataURL(file);
 }
 
-// 🟢 1. دالة تسجيل الدخول الآمنة عبر البريد الإلكتروني وكلمة المرور
+// 🟢 1. دالة تسجيل الدخول الآمنة مع تثبيت الجلسة في المتصفح
 function checkAdminPassword() {
     const emailInput = document.getElementById('admin-email-input');
     const passInput = document.getElementById('admin-pass-input');
@@ -57,12 +57,13 @@ function checkAdminPassword() {
         return;
     }
 
-    // 🔐 التحقق عبر Firebase Authentication
-    firebase.auth().signInWithEmailAndPassword(email, password)
+    // 🔐 تعيين استمرارية الجلسة محلياً لكي لا تُفقد عند تحديث الصفحة
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            return firebase.auth().signInWithEmailAndPassword(email, password);
+        })
         .then((userCredential) => {
             const user = userCredential.user;
-            
-            // 🛡️ حدد هنا بريدك الإلكتروني المعتمد للمسؤول (استبدل البريد أدناه ببريدك الخاص)
             const allowedAdminEmail = "mohamed.pato@gmail.com"; 
             
             if (user.email !== allowedAdminEmail) {
@@ -79,6 +80,7 @@ function checkAdminPassword() {
             }
             emailInput.value = '';
             passInput.value = '';
+            
             showPage('admin');
             showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
         })
@@ -87,12 +89,22 @@ function checkAdminPassword() {
         });
 }
 
-// 🟢 2. مراقبة الجلسة باستمرار عند تحديث الصفحة
+// 🟢 2. مراقبة الجلسة وفتح لوحة التحكم تلقائياً عند تحديث الصفحة إذا كان مسجلاً
 firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
+    const authModal = document.getElementById('admin-auth-modal');
+    if (user && user.email === "mohamed.pato@gmail.com") {
         console.log("المسؤول متصل حالياً:", user.email);
+        if (authModal) {
+            authModal.style.display = 'none';
+            authModal.classList.add('hidden');
+            authModal.classList.remove('flex');
+        }
     } else {
         console.log("لا يوجد مسؤول مسجل الدخول حالياً.");
+        if (authModal && typeof currentActivePage !== 'undefined' && currentActivePage === 'admin') {
+            authModal.style.display = 'flex';
+            authModal.classList.remove('hidden');
+        }
     }
 });
 
