@@ -694,7 +694,14 @@
                             <div><label class="block text-xs font-bold mb-1">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm"></div>
                             <div><label class="block text-xs font-bold mb-1">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm"></div>
-                            <div><label class="block text-xs font-bold mb-1">كلمة مرور لوحة التحكم</label><input type="password" id="set-pass" class="w-full border p-3 rounded-xl text-sm"></div>
+                            <div class="md:col-span-2 bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+    <h4 class="font-bold text-xs text-[#B8860B]">🔐 تغيير كلمة مرور الإدارة بأمان (عبر Firebase Auth)</h4>
+    <div class="flex flex-col sm:flex-row gap-3">
+        <input type="password" id="new-admin-password" placeholder="أدخل كلمة المرور الجديدة..." class="border p-3 rounded-xl text-sm flex-1 bg-white">
+        <button type="button" onclick="updateAdminPasswordSecure()" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition shadow-sm">تحديث كلمة المرور</button>
+    </div>
+    <p class="text-[11px] text-gray-500">سيتم تحديث كلمة المرور في نظام المصادقة الآمن فوراً ولن يتم تخزينها كنص عادي.</p>
+</div>
                             <button type="submit" class="gold-gradient text-black font-extrabold py-3.5 rounded-xl md:col-span-2 shadow-md">حفظ كافة الإعدادات والرسائل</button>
                         </form>
                     </div>
