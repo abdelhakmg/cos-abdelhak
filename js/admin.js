@@ -938,41 +938,11 @@ function toggleSelectAllOrders(source) {
     updateBulkActionsBar();
 }
 
-// إظهار أو إخفاء شريط الإجراءات الجماعية بناءً على التحديد
+// تحديث إظهار/إخفاء الشريط الثابت بناءً على العناصر المحددة
 function updateBulkActionsBar() {
-    let bar = document.getElementById('bulk-actions-bar');
-    if (!bar) {
-        // إنشاء الشريط ديناميكياً إذا لم يكن موجوداً فوق الجدول
-        const tableContainer = document.querySelector('#order-status-filter').closest('.bg-white');
-        if (tableContainer) {
-            bar = document.createElement('div');
-            bar.id = 'bulk-actions-bar';
-            bar.className = 'bg-amber-50 border border-amber-200 p-3 rounded-xl mb-4 flex flex-wrap justify-between items-center gap-3 hidden';
-            bar.innerHTML = `
-                <span class="text-xs font-bold text-amber-900">تم تحديد <span id="selected-count">0</span> طلبية</span>
-                <div class="flex items-center gap-2 flex-wrap">
-    <!-- حقل البحث السريع الجديد -->
-    <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="بحث بالاسم، الهاتف، الولاية..." class="border p-2 rounded-xl text-xs outline-none bg-gray-50 w-48">
-
-    <select id="order-status-filter" onchange="renderAdminDashboard()" class="border p-2 rounded-xl text-xs font-bold outline-none bg-gray-50">
-        <option value="الجميع">جميع الطلبيات 📋</option>
-        <option value="جديد">🟡 الجديدة فقط</option>
-        <option value="مؤكد">🔵 المؤكدة هاتفياً</option>
-        <option value="قيد الشحن">🟣 قيد الشحن</option>
-        <option value="مكتملاً">🟢 المكتملة</option>
-        <option value="ملغى">🔴 الملغاة</option>
-    </select>
-
-    <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
-        <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
-    </button>
-</div>
-            `;
-            tableContainer.insertBefore(bar, tableContainer.children[1]);
-        }
-    }
-
+    const bar = document.getElementById('bulk-actions-bar');
     const countSpan = document.getElementById('selected-count');
+    
     if (countSpan) countSpan.innerText = selectedOrderIds.length;
 
     if (bar) {
