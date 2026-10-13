@@ -10,6 +10,12 @@ function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
     if (!splash) return;
 
+    // إذا كان المسؤول مسجلاً مسبقاً، أخفِ الشعار فوراً ولا تعرضه لتجنب إزعاج الإدارة عند التحديث
+    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        splash.style.display = 'none';
+        return;
+    }
+
     splash.style.display = 'flex';
     splash.style.opacity = '1';
     splash.style.transition = 'opacity 0.7s ease-in-out';
@@ -904,4 +910,9 @@ document.addEventListener('DOMContentLoaded', () => {
     safeCall('initBannerRealtimeSync');
     safeCall('initRealOrdersTicker');
     safeCall('renderDynamicSidebarFilters');
+
+    // 🟢 إذا كان المسؤول مسجلاً، افتح لوحة التحكم مباشرة عند التحديث لتثبيت الجلسة
+    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        showPage('admin');
+    }
 });
