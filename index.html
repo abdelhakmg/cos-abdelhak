@@ -721,9 +721,9 @@
             <i class="fa-solid fa-border-all text-lg"></i>
             <span>المنتجات</span>
         </button>
-        <button onclick="showCustomAlert('🎁 هديتك الخاصة', 'تسوق بقيمة أكثر من 10,000 دج واحصل على توصيل مجاني وهدية قيمة عند الاستلام!', true)" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce">
-            <div class="w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center text-sm shadow-lg">🎁</div>
-            <span>هديتك</span>
+        <button onclick="openGiftBuilder()" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce">
+    <div class="w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center text-sm shadow-lg">🎁</div>
+           <span>هديتك</span>
         </button>
         <button onclick="showPage('wishlist')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
             <i class="fa-solid fa-heart text-lg"></i>
@@ -815,5 +815,36 @@
     <script src="js/app.js?v=4"></script>
     <script src="js/landing.js?v=4"></script>
     <script src="js/admin.js?v=4"></script>
+    <script src="js/gift-builder.js?v=4"></script>
+    <!-- 🎁 نافذة تصنيع الهدية المخصصة (Gift Builder Wizard Modal) -->
+<div id="gift-builder-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-2xl w-full text-right space-y-6 shadow-2xl relative my-8">
+        <!-- زر الإغلاق -->
+        <button onclick="closeGiftBuilder()" class="absolute top-5 left-5 text-gray-400 hover:text-white bg-black/50 p-2 rounded-full border border-gray-800">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <!-- العنوان ومؤشر الخطوات -->
+        <div class="text-center space-y-2 border-b border-gray-800 pb-4">
+            <div class="w-12 h-12 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-xl shadow-lg">🎁</div>
+            <h3 class="text-xl font-black text-white gold-text">صمم هديتك الفاخرة بنفسك</h3>
+            <div id="gift-step-indicator" class="text-xs text-[#D4AF37] font-bold">الخطوة 1 من 6: اختيار المستلم</div>
+        </div>
+
+        <!-- محتوى خطوات الـ Wizard -->
+        <div id="gift-wizard-content" class="space-y-4 min-h-[300px]"></div>
+
+        <!-- أزرار التنقل (السابق / التالي) -->
+        <div class="flex justify-between items-center pt-4 border-t border-gray-800">
+            <button id="gift-prev-btn" onclick="prevGiftStep()" class="px-5 py-2.5 bg-gray-800 text-gray-300 font-bold rounded-xl text-xs hover:bg-gray-700 transition hidden">
+                <i class="fa-solid fa-arrow-right ml-1"></i> السابق
+            </button>
+            <div class="mr-auto"></div>
+            <button id="gift-next-btn" onclick="nextGiftStep()" class="px-6 py-2.5 gold-gradient text-black font-extrabold rounded-xl text-xs shadow-md hover:opacity-90 transition">
+                التالي <i class="fa-solid fa-arrow-left mr-1"></i>
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
