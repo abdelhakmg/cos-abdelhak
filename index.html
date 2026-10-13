@@ -528,62 +528,90 @@
                     </div>
                 </div>
 
-                <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات المؤكدة</span>
-                            <span id="stat-total-sales" class="text-2xl font-black text-[#B8860B]">0 دج</span>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي الطلبات</span>
-                            <span id="stat-orders-count" class="text-2xl font-black">0</span>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">متوسط قيمة الطلب</span>
-                            <span id="stat-avg-order" class="text-2xl font-black text-blue-600">0 دج</span>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border shadow-sm">
-                            <span class="text-xs text-gray-400 font-bold block mb-1">نسبة النجاح / التوصيل</span>
-                            <span id="stat-success-rate" class="text-2xl font-black text-green-600">0%</span>
-                        </div>
-                    </div>
+                let selectedOrderIds = [];
 
-                    <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
-                        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
-                            <h3 class="font-bold text-lg text-gray-900">سجل الطلبيات التفصيلي وإدارة التوصيل</h3>
-                            
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <select id="order-status-filter" onchange="renderAdminDashboard()" class="border p-2 rounded-xl text-xs font-bold outline-none bg-gray-50">
-                                    <option value="الجميع">جميع الطلبيات 📋</option>
-                                    <option value="جديد">🟡 الجديدة فقط</option>
-                                    <option value="مؤكد">🔵 المؤكدة هاتفياً</option>
-                                    <option value="قيد الشحن">🟣 قيد الشحن</option>
-                                    <option value="مكتملاً">🟢 المكتملة</option>
-                                    <option value="ملغى">🔴 الملغاة</option>
-                                </select>
+function toggleOrderSelection(id) {
+    const index = selectedOrderIds.indexOf(id);
+    if (index > -1) {
+        selectedOrderIds.splice(index, 1);
+    } else {
+        selectedOrderIds.push(id);
+    }
+    updateBulkActionsBar();
+}
 
-                                <button onclick="exportOrdersToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition">
-                                    <i class="fa-solid fa-file-excel"></i> تصدير لـ Excel
-                                </button>
-                            </div>
-                        </div>
+function toggleSelectAllOrders(source) {
+    const checkboxes = document.querySelectorAll('.order-checkbox');
+    selectedOrderIds = [];
+    if (source.checked) {
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            selectedOrderIds.push(cb.value);
+        });
+    } else {
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+        });
+    }
+    updateBulkActionsBar();
+}
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-right text-sm">
-                                <thead class="bg-gray-100 border-b text-gray-700">
-                                    <tr>
-                                        <th class="p-3">الزبون والهاتف</th>
-                                        <th class="p-3">العنوان (الولاية / البلدية)</th>
-                                        <th class="p-3">المنتج والمبلغ</th>
-                                        <th class="p-3">حالة الطلب</th>
-                                        <th class="p-3">الاتصال والإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-orders-log"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+function updateBulkActionsBar() {
+    const bar = document.getElementById('bulk-actions-bar');
+    const countSpan = document.getElementById('selected-count');
+    if (countSpan) countSpan.innerText = selectedOrderIds.length;
+    if (bar) {
+        if (selectedOrderIds.length > 0) {
+            bar.classList.remove('hidden');
+        } else {
+            bar.classList.add('hidden');
+        }
+    }
+}
+
+function applyBulkStatusChange() {
+    const newStatus = document.getElementById('bulk-status-select').value;
+    if (!newStatus) {
+        showCustomAlert('تنبيه', 'يرجى اختيار الحالة الجديدة أولاً!', false);
+        return;
+    }
+    if (selectedOrderIds.length === 0) return;
+
+    const batch = db.batch();
+    selectedOrderIds.forEach(id => {
+        const ref = db.collection("orders").doc(id);
+        batch.update(ref, { status: newStatus });
+    });
+
+    batch.commit().then(() => {
+        selectedOrderIds = [];
+        updateBulkActionsBar();
+        renderAdminDashboard();
+        showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير حالة الطلبات المحددة دفعة واحدة.', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'تعذر تحديث الحالات: ' + err.message, false);
+    });
+}
+
+function promptBulkDeleteOrders() {
+    if (selectedOrderIds.length === 0) return;
+    if (confirm(`هل أنت متأكد من رغبتك في حذف ${selectedOrderIds.length} طلبية نهائياً؟`)) {
+        const batch = db.batch();
+        selectedOrderIds.forEach(id => {
+            const ref = db.collection("orders").doc(id);
+            batch.delete(ref);
+        });
+
+        batch.commit().then(() => {
+            selectedOrderIds = [];
+            updateBulkActionsBar();
+            renderAdminDashboard();
+            showCustomAlert('تم الحذف', 'تم حذف الطلبات المحددة بنجاح.', true);
+        }).catch(err => {
+            showCustomAlert('خطأ', 'تعذر حذف الطلبات: ' + err.message, false);
+        });
+    }
+}
 
                 <div id="admin-tab-hero" class="tab-content space-y-6 text-gray-900">
                     <div class="bg-white p-6 rounded-2xl border space-y-4">
