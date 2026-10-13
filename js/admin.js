@@ -1064,6 +1064,8 @@ function injectBulkAndSearchUI() {
 
     ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
 }
+    ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
+}
 
     ordersContainer.insertBefore(wrapper, ordersContainer.firstChild);
 }
