@@ -69,6 +69,7 @@ export function initFirebaseSync() {
         safeCall('renderDynamicSidebarFilters');
         safeCall('populateAdminDropdowns');
         safeCall('renderAdminAttributesTab');
+        safeCall('startBannerTicker');
     }, (error) => console.error("Error fetching settings:", error));
 
     // 5. مزامنة الطلبيات (للإدارة)
