@@ -353,7 +353,26 @@ export function setHeroSlide(idx) {
     window.currentHeroIdx = idx;
     renderHeroSlider();
 }
+export function startBannerTicker() {
+    const bannerEl = document.getElementById('top-announcement-text');
+    if (!bannerEl || !state.bannerMessages || state.bannerMessages.length === 0) return;
+    
+    if (window.bannerTickerTimer) clearInterval(window.bannerTickerTimer);
+    
+    window.currentBannerIdx = 0;
+    bannerEl.innerText = state.bannerMessages[window.currentBannerIdx];
 
+    window.bannerTickerTimer = setInterval(() => {
+        bannerEl.style.opacity = '0';
+        setTimeout(() => {
+            window.currentBannerIdx = (window.currentBannerIdx + 1) % state.bannerMessages.length;
+            bannerEl.innerText = state.bannerMessages[window.currentBannerIdx];
+            bannerEl.style.opacity = '1';
+        }, 300);
+    }, 3000);
+}
+// أضف هذا السطر في نهاية الملف مع باقي الروابط:
+window.startBannerTicker = startBannerTicker;
 // ==========================================
 // 6. ربط كافة الدوال بالواجهة (Window Bindings) 
 // ==========================================
