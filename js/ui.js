@@ -133,3 +133,119 @@ window.toggleFavorite = toggleFavorite;
 window.renderWishlistPage = renderWishlistPage;
 window.handleLiveSearch = handleLiveSearch;
 window.hideAllDropdowns = hideAllDropdowns;
+// --- تابع لملف js/ui.js (وظائف الأقسام والفلاتر والبانر) ---
+
+window.activeCategoryFilter = 'جميع المنتجات';
+window.currentHeroIdx = 0;
+
+// 1. رسم الأقسام في القائمة العلوية والجانبية والصفحة الرئيسية
+export function updateAppHeaderInfo() {
+    const navEl = document.getElementById('header-nav');
+    if (navEl) {
+        navEl.innerHTML = `<button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">جميع المنتجات</button>` 
+            + state.categories.map(c => `<button onclick="safeCall('filterCategory', '${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
+    }
+
+    const mobileListEl = document.getElementById('mobile-drawer-categories');
+    if (mobileListEl) {
+        mobileListEl.innerHTML = `<button onclick="safeCall('showPage', 'home'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-[#D4AF37] font-bold mb-2">الرئيسية</button>
+            <button onclick="safeCall('filterCategory', 'جميع المنتجات'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">جميع المنتجات</button>` 
+            + state.categories.map(c => `<button onclick="safeCall('filterCategory', '${c.name}'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
+    }
+
+    const homeCatGrid = document.getElementById('home-category-cards');
+    if (homeCatGrid) {
+        homeCatGrid.innerHTML = state.categories.map(c => `
+            <div onclick="safeCall('filterCategory', '${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
+                <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
+                    <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black" loading="lazy">
+                </div>
+                <h3 class="text-white font-bold text-sm tracking-wide group-hover:text-[#D4AF37]">${c.name}</h3>
+            </div>
+        `).join('');
+    }
+}
+
+// 2. التحكم في القائمة الجانبية للهاتف
+export function toggleMobileMenu() {
+    const drawer = document.getElementById('mobile-drawer');
+    if (drawer) drawer.classList.toggle('hidden');
+}
+
+// 3. فلترة المنتجات حسب القسم عند الضغط عليه
+export function filterCategory(catName) {
+    window.activeCategoryFilter = catName.trim();
+    const breadcrumb = document.getElementById('breadcrumb-current');
+    if (breadcrumb) breadcrumb.innerText = window.activeCategoryFilter;
+
+    safeCall('applyFilters');
+    safeCall('showPage', 'catalog');
+}
+
+// 4. تطبيق الفلاتر وعرض النتائج في صفحة "جميع المنتجات"
+export function applyFilters() {
+    if (!state.products) return;
+    let filtered = [...state.products];
+
+    // فلترة حسب القسم
+    if (window.activeCategoryFilter && window.activeCategoryFilter !== 'جميع المنتجات') {
+        const targetCat = window.activeCategoryFilter.toLowerCase();
+        filtered = filtered.filter(p => (p.category || '').toLowerCase().includes(targetCat));
+    }
+
+    // فلترة المتوفر في المخزون فقط
+    const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
+    if (inStockOnly) {
+        filtered = filtered.filter(p => p.inStock === true);
+    }
+
+    const catalogGrid = document.getElementById('catalog-products');
+    const badge = document.getElementById('products-count-badge');
+    if (badge) badge.innerText = filtered.length;
+
+    if (catalogGrid) {
+        catalogGrid.innerHTML = filtered.length === 0 ? 
+            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لهذا القسم حالياً.</p><button onclick="safeCall(\'filterCategory\', \'جميع المنتجات\')" class="text-xs text-[#D4AF37] underline font-bold cursor-pointer">عرض جميع المنتجات</button></div>' :
+            filtered.map(renderSingleProductCard).join('');
+    }
+}
+
+// 5. رسم البانر الإعلاني (Hero Slider)
+export function renderHeroSlider() {
+    const container = document.getElementById('hero-slider-container');
+    const dotsContainer = document.getElementById('hero-slider-dots');
+    if (!container || !state.heroSlides || state.heroSlides.length === 0) return;
+
+    const currentSlide = state.heroSlides[window.currentHeroIdx];
+
+    container.innerHTML = `
+        <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
+            <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 md:p-12 transition-opacity duration-500 group-hover:opacity-0 pointer-events-none">
+                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs md:text-sm font-bold mb-4 backdrop-blur-md">✨ التشكيلة الحصرية</span>
+                <h1 class="text-3xl md:text-5xl font-black text-white mb-4 drop-shadow-2xl">${currentSlide.title}</h1>
+                <p class="text-gray-200 text-sm md:text-lg mb-6 drop-shadow-lg">${currentSlide.desc}</p>
+                <button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">تسوقي الآن 🔥</button>
+            </div>
+        </div>
+    `;
+
+    if (dotsContainer) {
+        dotsContainer.innerHTML = state.heroSlides.map((_, idx) => `
+            <button onclick="safeCall('setHeroSlide', ${idx})" class="h-2.5 rounded-full transition-all duration-300 ${idx === window.currentHeroIdx ? 'bg-[#D4AF37] w-8' : 'bg-gray-600 w-2.5'}"></button>
+        `).join('');
+    }
+}
+
+export function setHeroSlide(idx) {
+    window.currentHeroIdx = idx;
+    renderHeroSlider();
+}
+
+// 6. ربط الدوال الجديدة بالواجهة لتعمل الأزرار
+window.updateAppHeaderInfo = updateAppHeaderInfo;
+window.toggleMobileMenu = toggleMobileMenu;
+window.filterCategory = filterCategory;
+window.applyFilters = applyFilters;
+window.renderHeroSlider = renderHeroSlider;
+window.setHeroSlide = setHeroSlide;
