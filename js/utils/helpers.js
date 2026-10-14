@@ -75,3 +75,5 @@ export function safeCall(fnName, ...args) {
 window.showCustomAlert = showCustomAlert;
 window.closeCustomAlert = closeCustomAlert;
 window.isValidDzPhone = isValidDzPhone;
+window.safeCall = safeCall;
+window.formatPrice = formatPrice;
