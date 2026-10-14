@@ -1,4 +1,7 @@
-// 🎁 Gift Builder Wizard Modal Logic (Vanilla JS)
+// --- ملف js/gift-builder.js ---
+
+import { state } from './store/state.js';
+import { showCustomAlert, calculateShippingCost, safeCall } from './utils/helpers.js';
 
 let currentGiftStep = 1;
 let giftData = {
@@ -15,20 +18,12 @@ let giftData = {
     shippingType: 'home'
 };
 
-function openGiftBuilder() {
+export function openGiftBuilder() {
     currentGiftStep = 1;
     giftData = { 
-        recipient: 'نفسي', 
-        budget: 5000, 
-        selectedProducts: [], 
-        selectedBox: null, 
-        wrappingColor: 'ذهبي', 
-        giftMessage: '', 
-        customerName: '', 
-        customerPhone: '', 
-        customerWilaya: '', 
-        customerCommune: '', 
-        shippingType: 'home' 
+        recipient: 'نفسي', budget: 5000, selectedProducts: [], selectedBox: null, 
+        wrappingColor: 'ذهبي', giftMessage: '', customerName: '', customerPhone: '', 
+        customerWilaya: '', customerCommune: '', shippingType: 'home' 
     };
     renderGiftStep();
     const modal = document.getElementById('gift-builder-modal');
@@ -38,7 +33,7 @@ function openGiftBuilder() {
     }
 }
 
-function closeGiftBuilder() {
+export function closeGiftBuilder() {
     const modal = document.getElementById('gift-builder-modal');
     if (modal) {
         modal.classList.add('hidden');
@@ -46,7 +41,7 @@ function closeGiftBuilder() {
     }
 }
 
-function renderGiftStep() {
+export function renderGiftStep() {
     const container = document.getElementById('gift-wizard-content');
     const indicator = document.getElementById('gift-step-indicator');
     const prevBtn = document.getElementById('gift-prev-btn');
@@ -77,9 +72,6 @@ function renderGiftStep() {
                             </button>
                         `).join('')}
                     </div>
-                    <div class="bg-black/60 p-4 rounded-xl border border-gray-800 text-center">
-                        <p class="text-xs text-[#D4AF37] font-bold">✨ رسالة تفاعلية: هدية رائعة لـ "${giftData.recipient}" ستترك انطباعاً لا يُنسى اليوم!</p>
-                    </div>
                 </div>
             `;
             break;
@@ -97,25 +89,21 @@ function renderGiftStep() {
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1 text-gray-400">أو أدخل ميزانية مخصصة:</label>
-                        <input type="number" id="custom-budget-input" value="${giftData.budget}" oninput="setGiftBudget(this.value)" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]">
+                        <input type="number" value="${giftData.budget}" oninput="setGiftBudget(this.value)" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]">
                     </div>
                 </div>
             `;
             break;
 
         case 3:
-            const allowedProducts = (typeof products !== 'undefined' ? products : []).filter(p => {
-                const cat = (p.category || '').toLowerCase();
-                return !cat.includes('علب') && !cat.includes('تغليف');
-            });
+            const allowedProducts = state.products.filter(p => !((p.category || '').toLowerCase().includes('علب') || (p.category || '').toLowerCase().includes('تغليف')));
             const currentTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
             const progressPercent = giftData.budget > 0 ? Math.min(Math.round((currentTotal / giftData.budget) * 100), 100) : 0;
 
             html = `
                 <div class="space-y-4">
                     <div class="flex justify-between items-center bg-black/60 p-3 rounded-xl border border-gray-800 text-xs">
-                        <span>إجمالي المنتجات: <strong class="text-[#D4AF37]">${currentTotal.toLocaleString()} دج</strong> / الميزانية: <strong>${giftData.budget.toLocaleString()} دج</strong></span>
-                        <span class="${currentTotal >= giftData.budget ? 'text-red-400 font-bold' : 'text-green-400'}">${progressPercent}%</span>
+                        <span>الإجمالي: <strong class="text-[#D4AF37]">${currentTotal.toLocaleString()} دج</strong> / الميزانية: <strong>${giftData.budget.toLocaleString()} دج</strong></span>
                     </div>
                     <div class="w-full h-2 bg-gray-900 rounded-full overflow-hidden border border-gray-800">
                         <div class="h-full gold-gradient transition-all duration-300" style="width: ${progressPercent}%"></div>
@@ -147,10 +135,7 @@ function renderGiftStep() {
             break;
 
         case 4:
-            const boxProducts = (typeof products !== 'undefined' ? products : []).filter(p => {
-                const cat = (p.category || '').toLowerCase();
-                return cat.includes('علب');
-            });
+            const boxProducts = state.products.filter(p => (p.category || '').toLowerCase().includes('علب'));
             html = `
                 <div class="space-y-4">
                     <h4 class="font-bold text-sm text-gray-200">اختر صندوق/علبة الهدية الفاخرة:</h4>
@@ -158,7 +143,7 @@ function renderGiftStep() {
                         ${boxProducts.map(b => {
                             const isSelected = giftData.selectedBox && giftData.selectedBox.id === b.id;
                             return `
-                                <div onclick="selectGiftBox('${b.id}')" class="bg-black/40 p-3 rounded-2xl border cursor-pointer transition text-center space-y-2 ${isSelected ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)] bg-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
+                                <div onclick="selectGiftBox('${b.id}')" class="bg-black/40 p-3 rounded-2xl border cursor-pointer transition text-center space-y-2 ${isSelected ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)] bg-[#D4AF37]/10' : 'border-gray-800'}">
                                     <img src="${(b.images && b.images[0]) || b.image || ''}" class="w-20 h-20 object-contain mx-auto rounded-xl bg-black">
                                     <p class="font-bold text-xs text-white truncate">${b.name}</p>
                                     <p class="text-[#D4AF37] font-bold text-xs">${(b.price || 0).toLocaleString()} دج</p>
@@ -187,40 +172,28 @@ function renderGiftStep() {
                     </div>
                     <div>
                         <label class="block text-xs font-bold mb-1 text-gray-400">رسالة بطاقة الإهداء:</label>
-                        <textarea id="gift-msg-textarea" oninput="giftData.giftMessage=this.value" rows="3" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]" placeholder="اكتب رسالة الإهداء هنا...">${giftData.giftMessage}</textarea>
+                        <textarea oninput="giftData.giftMessage=this.value" rows="3" class="w-full bg-black border border-gray-800 p-3 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]">${giftData.giftMessage}</textarea>
                     </div>
                 </div>
             `;
             break;
 
         case 6:
-            const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            const boxPrice = giftData.selectedBox ? (giftData.selectedBox.price || 0) : 0;
-            const subTotalSum = prodTotal + boxPrice;
-
             html = `
                 <div class="space-y-4 text-xs">
                     <div class="bg-black/60 p-4 rounded-2xl border border-gray-800 space-y-2">
                         <h4 class="font-bold text-[#D4AF37] border-b border-gray-800 pb-2">📋 ملخص الهدية المخصصة:</h4>
                         <p><strong>المستلم:</strong> ${giftData.recipient}</p>
-                        <p><strong>المنتجات (${giftData.selectedProducts.length}):</strong> ${giftData.selectedProducts.map(i => `${i.name} (x${i.qty})`).join(', ') || 'لا توجد منتجات'}</p>
-                        <p><strong>العلبة:</strong> ${giftData.selectedBox ? giftData.selectedBox.name : 'لم يتم اختيار علبة'}</p>
-                        <p><strong>التغليف والشريط:</strong> ${giftData.wrappingColor}</p>
-                        <p><strong>رسالة الإهداء:</strong> "${giftData.giftMessage || 'بدون رسالة'}"</p>
+                        <p><strong>المنتجات:</strong> ${giftData.selectedProducts.map(i => `${i.name} (x${i.qty})`).join(', ') || 'لا يوجد'}</p>
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                         <input type="text" id="g-name" placeholder="الاسم واللقب *" class="bg-black border border-gray-800 p-3 rounded-xl text-white outline-none">
-                        <input type="tel" id="g-phone" maxlength="10" placeholder="رقم الهاتف (06/07/05) *" class="bg-black border border-gray-800 p-3 rounded-xl text-white outline-none">
+                        <input type="tel" id="g-phone" maxlength="10" placeholder="رقم الهاتف *" class="bg-black border border-gray-800 p-3 rounded-xl text-white outline-none">
                         <select id="g-wilaya" class="bg-black border border-gray-800 p-3 rounded-xl text-white outline-none">
                             <option value="">اختر الولاية...</option>
-                            ${(typeof WILAYAS !== 'undefined' ? WILAYAS : []).map(w => `<option value="${w.code}">${w.code} -${w.name}</option>`).join('')}
+                            ${state.WILAYAS.map(w => `<option value="${w.code}">${w.code} -${w.name}</option>`).join('')}
                         </select>
-                        <input type="text" id="g-commune" placeholder="العنوان التفصيلي / الحي *" class="bg-black border border-gray-800 p-3 rounded-xl text-white outline-none">
-                    </div>
-
-                    <div class="bg-emerald-950/30 border border-emerald-500/30 p-3 rounded-xl text-center text-emerald-400 font-bold">
-                        🚚 التوصيل متوفر والدفع عند الاستلام: كي تلحقك فريفي من بعد خلص!
+                        <input type="text" id="g-commune" placeholder="العنوان التفصيلي *" class="bg-black border border-gray-800 p-3 rounded-xl text-white outline-none">
                     </div>
                 </div>
             `;
@@ -230,18 +203,15 @@ function renderGiftStep() {
     container.innerHTML = html;
 }
 
-function setGiftRecipient(r) {
-    giftData.recipient = r;
-    renderGiftStep();
+export function setGiftRecipient(r) { giftData.recipient = r; renderGiftStep(); }
+export function setGiftBudget(val) { giftData.budget = parseFloat(val) || 0; renderGiftStep(); }
+export function selectGiftBox(boxId) { 
+    giftData.selectedBox = state.products.find(p => p.id === boxId); 
+    renderGiftStep(); 
 }
 
-function setGiftBudget(val) {
-    giftData.budget = parseFloat(val) || 0;
-    renderGiftStep();
-}
-
-function updateGiftProductQty(prodId, delta) {
-    const prod = products.find(p => p.id === prodId);
+export function updateGiftProductQty(prodId, delta) {
+    const prod = state.products.find(p => p.id === prodId);
     if (!prod) return;
 
     const currentTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -252,45 +222,25 @@ function updateGiftProductQty(prodId, delta) {
             showCustomAlert('تنبيه الميزانية 💰', 'عذراً، لقد وصلت إلى الحد الأقصى لميزانيتك المحددة!', false);
             return;
         }
-        if (existing) {
-            existing.qty += 1;
-        } else {
-            giftData.selectedProducts.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 });
-        }
+        if (existing) existing.qty += 1;
+        else giftData.selectedProducts.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 });
     } else if (delta < 0 && existing) {
         existing.qty -= 1;
-        if (existing.qty <= 0) {
-            giftData.selectedProducts = giftData.selectedProducts.filter(item => item.id !== prodId);
-        }
+        if (existing.qty <= 0) giftData.selectedProducts = giftData.selectedProducts.filter(item => item.id !== prodId);
     }
     renderGiftStep();
 }
 
-function selectGiftBox(boxId) {
-    const box = products.find(p => p.id === boxId);
-    if (box) {
-        giftData.selectedBox = box;
-        renderGiftStep();
-    }
-}
-
-function nextGiftStep() {
-    if (currentGiftStep === 6) {
-        submitGiftOrder();
-        return;
-    }
+export function nextGiftStep() {
+    if (currentGiftStep === 6) { submitGiftOrder(); return; }
     currentGiftStep++;
     renderGiftStep();
 }
-
-function prevGiftStep() {
-    if (currentGiftStep > 1) {
-        currentGiftStep--;
-        renderGiftStep();
-    }
+export function prevGiftStep() {
+    if (currentGiftStep > 1) { currentGiftStep--; renderGiftStep(); }
 }
 
-function submitGiftOrder() {
+export function submitGiftOrder() {
     const name = document.getElementById('g-name')?.value.trim();
     const phone = document.getElementById('g-phone')?.value.trim();
     const wilayaCode = document.getElementById('g-wilaya')?.value;
@@ -300,36 +250,45 @@ function submitGiftOrder() {
         showCustomAlert('تنبيه', 'يرجى ملء كافة معلومات الاسم والولاية والعنوان!', false);
         return;
     }
-    if (typeof isValidDzPhone === 'function' && !isValidDzPhone(phone)) {
+    if (typeof window.isValidDzPhone === 'function' && !window.isValidDzPhone(phone)) {
         showCustomAlert('رقم الهاتف غير صحيح', 'يرجى إدخال رقم هاتف جزائري صحيح من 10 أرقام.', false);
         return;
     }
 
-    const wilaya = (typeof WILAYAS !== 'undefined' ? WILAYAS : []).find(w => w.code === wilayaCode);
+    const wilaya = state.WILAYAS.find(w => w.code === wilayaCode);
+    const shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, 'home');
     const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const boxPrice = giftData.selectedBox ? (giftData.selectedBox.price || 0) : 0;
-    const shipCost = wilaya ? (wilaya.homeCost || wilaya.officeCost || 500) : 500;
-    const grandTotal = prodTotal + boxPrice + shipCost;
-
+    
     const itemsSummary = giftData.selectedProducts.map(i => `${i.name} (x${i.qty})`).join(' + ');
 
     const newOrder = {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: `${commune} (هدية مخصصة لـ: ${giftData.recipient})`,
-        product: `🎁 هدية مخصصة: [العلبة: ${giftData.selectedBox ? giftData.selectedBox.name : 'بدون'}] | [المنتجات: ${itemsSummary}] | [الإهداء: ${giftData.giftMessage}]`,
-        total: grandTotal,
+        commune: `${commune} (هدية لـ: ${giftData.recipient})`,
+        product: `🎁 هدية مخصصة: [العلبة: ${giftData.selectedBox ? giftData.selectedBox.name : 'بدون'}] | [المنتجات: ${itemsSummary}]`,
+        total: prodTotal + boxPrice + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
     };
 
-    db.collection("orders").add(newOrder).then(() => {
-        closeGiftBuilder();
-        showCustomAlert('تم إرسال هديتك بنجاح! 🎉', 'تم حفظ الهدية المخصصة وإرسالها للأدمن بنجاح. سنتصل بك قريباً!', true);
-        showPage('home');
-    }).catch(err => {
-        showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
-    });
+    if (typeof db !== 'undefined') {
+        db.collection("orders").add(newOrder).then(() => {
+            closeGiftBuilder();
+            showCustomAlert('تم إرسال هديتك بنجاح! 🎉', 'تم حفظ الهدية المخصصة وإرسالها بنجاح.', true);
+            safeCall('showPage', 'home');
+        }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
+    }
 }
+
+// Window Bindings
+window.openGiftBuilder = openGiftBuilder;
+window.closeGiftBuilder = closeGiftBuilder;
+window.setGiftRecipient = setGiftRecipient;
+window.setGiftBudget = setGiftBudget;
+window.selectGiftBox = selectGiftBox;
+window.updateGiftProductQty = updateGiftProductQty;
+window.nextGiftStep = nextGiftStep;
+window.prevGiftStep = prevGiftStep;
