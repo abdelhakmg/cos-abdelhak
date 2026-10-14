@@ -537,7 +537,61 @@ export function renderAdminProductsTable() {
         `;
     }).join('');
 }
+export function renderAdminAttributesTab() {
+    const skinList = document.getElementById('admin-skin-types-list');
+    const hairList = document.getElementById('admin-hair-types-list');
+    
+    if (skinList) {
+        skinList.innerHTML = state.availableSkinTypes.map((st, idx) => `
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border text-xs">
+                <span class="font-bold">${st}</span>
+                <button onclick="deleteSkinType(${idx})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-100 rounded-lg">حذف</button>
+            </div>
+        `).join('');
+    }
+    
+    if (hairList) {
+        hairList.innerHTML = state.availableHairTypes.map((ht, idx) => `
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border text-xs">
+                <span class="font-bold">${ht}</span>
+                <button onclick="deleteHairType(${idx})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-100 rounded-lg">حذف</button>
+            </div>
+        `).join('');
+    }
+}
 
+export function handleAddSkinType(e) {
+    e.preventDefault();
+    const input = document.getElementById('new-skin-type-input');
+    if (!input || !input.value.trim()) return;
+    const newTypes = [...state.availableSkinTypes, input.value.trim()];
+    db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
+}
+
+export function deleteSkinType(idx) {
+    const newTypes = state.availableSkinTypes.filter((_, i) => i !== idx);
+    db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
+}
+
+export function handleAddHairType(e) {
+    e.preventDefault();
+    const input = document.getElementById('new-hair-type-input');
+    if (!input || !input.value.trim()) return;
+    const newTypes = [...state.availableHairTypes, input.value.trim()];
+    db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
+}
+
+export function deleteHairType(idx) {
+    const newTypes = state.availableHairTypes.filter((_, i) => i !== idx);
+    db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
+}
+
+// أضف هذه الأسطر في نهاية ملف admin.js لتعمل الأزرار
+window.renderAdminAttributesTab = renderAdminAttributesTab;
+window.handleAddSkinType = handleAddSkinType;
+window.deleteSkinType = deleteSkinType;
+window.handleAddHairType = handleAddHairType;
+window.deleteHairType = deleteHairType;
 export function handleSaveWilaya(e) {
     if (e) e.preventDefault();
     const code = document.getElementById('wilaya-code').value.trim();
