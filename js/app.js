@@ -215,5 +215,61 @@ window.populateCartWilayas = populateCartWilayas;
 window.updateCartCalculations = updateCartCalculations;
 window.submitCartCheckout = submitCartCheckout;
 window.updateBadges = updateBadges;
-// ملاحظة: لتبسيط الكود، قمنا بتضمين الوظائف الأساسية للسلة والتنقل. 
-// سيتم نقل باقي دوال الواجهة (الفلاتر والبحث) في الخطوة القادمة أو إضافتها هنا.
+
+export function searchOrderTracking() {
+    const input = document.getElementById('track-phone-input');
+    const container = document.getElementById('tracking-results-container');
+    if (!input || !container) return;
+
+    const phone = input.value.trim();
+    if (!phone || phone.length < 10) {
+        showCustomAlert('تنبيه', 'يرجى إدخال رقم هاتف جزائري صحيح!', false);
+        return;
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs">جاري البحث عن الطلبيات... ⏳</p>';
+
+    if (typeof db !== 'undefined') {
+        db.collection("orders").where("phone", "==", phone).get().then((snapshot) => {
+            if (snapshot.empty) {
+                container.innerHTML = `<div class="bg-black/50 border border-gray-800 rounded-2xl p-6 text-center space-y-2"><i class="fa-solid fa-box-open text-3xl text-gray-600"></i><p class="text-sm font-bold text-gray-300">لم نجد أي طلب مسجل برقم الهاتف هذا (${phone})</p></div>`;
+                return;
+            }
+            let html = '<h3 class="font-bold text-sm text-[#D4AF37] mb-3">📋 الطلبات المسجلة برقمك:</h3>';
+            snapshot.forEach((doc) => {
+                const o = doc.data();
+                html += `<div class="bg-black/60 border border-gray-800 rounded-2xl p-5 mt-2 text-right shadow-md">
+                    <p class="text-[#D4AF37] font-bold">${o.status || 'جديد'}</p>
+                    <h4 class="font-bold text-sm text-white">${o.product}</h4>
+                    <p class="text-xs text-gray-400 mt-1">المبلغ الإجمالي: ${(o.total || 0).toLocaleString()} دج</p>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }).catch(() => container.innerHTML = '<p class="text-center text-red-500 text-xs py-4">حدث خطأ أثناء البحث.</p>');
+    }
+}
+
+let currentOrderTickerIndex = 0;
+export function initRealOrdersTicker() {
+    const toast = document.getElementById('social-proof-toast');
+    const spCustomer = document.getElementById('sp-customer');
+    const spProduct = document.getElementById('sp-product');
+    if (!toast || !spCustomer || !spProduct) return;
+    if (window.ordersTickerTimer) clearInterval(window.ordersTickerTimer);
+
+    window.ordersTickerTimer = setInterval(() => {
+        if (!state.orders || state.orders.length === 0) return;
+        if (currentOrderTickerIndex >= state.orders.length) currentOrderTickerIndex = 0;
+        const currentOrder = state.orders[currentOrderTickerIndex];
+        spCustomer.innerText = `${currentOrder.customer || 'زبون'} من ${currentOrder.wilaya || 'الجزائر'}`;
+        spProduct.innerText = `اشترى منتجاً منذ قليل`;
+        toast.classList.remove('translate-y-28', 'opacity-0');
+        setTimeout(() => toast.classList.add('translate-y-28', 'opacity-0'), 4500);
+        currentOrderTickerIndex++;
+    }, 12000);
+}
+
+window.searchOrderTracking = searchOrderTracking;
+window.initRealOrdersTicker = initRealOrdersTicker;
+
