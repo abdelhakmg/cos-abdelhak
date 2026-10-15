@@ -805,11 +805,22 @@
         firebase.initializeApp(firebaseConfig);
       }
        window.db = firebase.firestore();
-       window.firebase = firebase;
+        window.firebase = firebase;
+
+        // كود تثبيت جلسة الإدارة حتى عند التحديث (Refresh)
+        window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+        window.firebase.auth().onAuthStateChanged(function(user) {
+            if (user && user.email === 'mohamed.pato@gmail.com') {
+                localStorage.setItem('cosAdminLoggedIn', 'true');
+            } else {
+                localStorage.removeItem('cosAdminLoggedIn');
+            }
+        });
+
         if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
-        const splash = document.getElementById('luxury-splash-screen');
-        if (splash) splash.style.display = 'none';
-    }
+            const splash = document.getElementById('luxury-splash-screen');
+            if (splash) splash.style.display = 'none';
+        }
     </script>
 
     <!-- استدعاء الملف الرئيسي بنظام Modules -->
