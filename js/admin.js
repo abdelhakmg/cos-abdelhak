@@ -61,15 +61,15 @@ export function checkAdminPassword() {
         return;
     }
 
-    if (typeof firebase !== 'undefined') {
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-            .then(() => firebase.auth().signInWithEmailAndPassword(email, password))
+    if (typeof window.firebase !== 'undefined') {
+        window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => window.firebase.auth().signInWithEmailAndPassword(email, password))
             .then((userCredential) => {
                 const user = userCredential.user;
                 const allowedAdminEmail = "mohamed.pato@gmail.com"; 
                 
                 if (user.email !== allowedAdminEmail) {
-                    firebase.auth().signOut();
+                    window.firebase.auth().signOut();
                     showCustomAlert('غير مخول', 'عذراً، هذا الحساب ليس له صلاحيات إدارية!', false);
                     return;
                 }
@@ -93,8 +93,8 @@ export function checkAdminPassword() {
 
 export function adminSignOut() {
     localStorage.removeItem('cosAdminLoggedIn');
-    if (typeof firebase !== 'undefined') {
-        firebase.auth().signOut().then(() => {
+    if (typeof window.firebase !== 'undefined') {
+        window.firebase.auth().signOut().then(() => {
             showCustomAlert('تم تسجيل الخروج', 'تم تأمين وإنهاء الجلسة بنجاح.', true);
             safeCall('showPage', 'home');
         }).catch((error) => console.error('خطأ أثناء تسجيل الخروج:', error));
@@ -118,6 +118,8 @@ export function switchAdminTab(tabName) {
     }
 
     if (tabName === 'shipping') renderAdminWilayasList();
+    if (tabName === 'brands') renderAdminBrandsList();
+    if (tabName === 'categories') renderAdminCategoriesList();
 }
 
 export function populateAdminDropdowns() {
@@ -381,12 +383,12 @@ export function handleSaveProduct(e) {
         };
 
         if (editId) {
-            db.collection("products").doc(editId).update(productData).then(() => {
+            window.db.collection("products").doc(editId).update(productData).then(() => {
                 resetProductForm();
                 showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
             });
         } else {
-            db.collection("products").add({ ...productData, createdAt: new Date() }).then(() => {
+            window.db.collection("products").add({ ...productData, createdAt: new Date() }).then(() => {
                 resetProductForm();
                 showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
             });
@@ -431,7 +433,7 @@ export function editProduct(id) {
 
 export function deleteProduct(id) {
     if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج؟')) {
-        db.collection("products").doc(id).delete().then(() => {
+        window.db.collection("products").doc(id).delete().then(() => {
             showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
         });
     }
@@ -537,6 +539,7 @@ export function renderAdminProductsTable() {
         `;
     }).join('');
 }
+
 export function renderAdminAttributesTab() {
     const skinList = document.getElementById('admin-skin-types-list');
     const hairList = document.getElementById('admin-hair-types-list');
@@ -565,12 +568,12 @@ export function handleAddSkinType(e) {
     const input = document.getElementById('new-skin-type-input');
     if (!input || !input.value.trim()) return;
     const newTypes = [...state.availableSkinTypes, input.value.trim()];
-    db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
+    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
 }
 
 export function deleteSkinType(idx) {
     const newTypes = state.availableSkinTypes.filter((_, i) => i !== idx);
-    db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
+    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
 }
 
 export function handleAddHairType(e) {
@@ -578,20 +581,14 @@ export function handleAddHairType(e) {
     const input = document.getElementById('new-hair-type-input');
     if (!input || !input.value.trim()) return;
     const newTypes = [...state.availableHairTypes, input.value.trim()];
-    db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
+    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
 }
 
 export function deleteHairType(idx) {
     const newTypes = state.availableHairTypes.filter((_, i) => i !== idx);
-    db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
+    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
 }
 
-// أضف هذه الأسطر في نهاية ملف admin.js لتعمل الأزرار
-window.renderAdminAttributesTab = renderAdminAttributesTab;
-window.handleAddSkinType = handleAddSkinType;
-window.deleteSkinType = deleteSkinType;
-window.handleAddHairType = handleAddHairType;
-window.deleteHairType = deleteHairType;
 export function handleSaveWilaya(e) {
     if (e) e.preventDefault();
     const code = document.getElementById('wilaya-code').value.trim();
@@ -601,7 +598,7 @@ export function handleSaveWilaya(e) {
 
     if (!code || !name) return;
 
-    db.collection("wilayas").doc(code).set({
+    window.db.collection("wilayas").doc(code).set({
         code, name, officeCost, homeCost
     }).then(() => {
         resetWilayaForm();
@@ -635,7 +632,7 @@ export function editWilaya(code) {
 
 export function deleteWilaya(docIdOrCode) {
     if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية؟')) {
-        db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
+        window.db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
             showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
         });
     }
@@ -676,11 +673,12 @@ export function renderAdminWilayasList() {
 export function saveShippingApiSettings() {
     const key = document.getElementById('shipping-api-key').value.trim();
     const token = document.getElementById('shipping-api-token').value.trim();
-    db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
+    window.db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
         showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API لشركة التوصيل!', true);
     });
 }
 
+// === إضافات إدارة الماركات ===
 export function handleSaveBrand(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('brand-name-input');
@@ -690,13 +688,83 @@ export function handleSaveBrand(e) {
 
     if (!state.brands.includes(brandName)) state.brands.push(brandName);
 
-    db.collection("settings").doc("main").set({ brands: state.brands }, { merge: true }).then(() => {
+    window.db.collection("settings").doc("main").set({ brands: state.brands }, { merge: true }).then(() => {
         input.value = '';
         populateAdminDropdowns();
+        renderAdminBrandsList();
         showCustomAlert('تم الحفظ', 'تمت إضافة العلامة التجارية بنجاح!', true);
     });
 }
 
+export function renderAdminBrandsList() {
+    const container = document.getElementById('admin-brands-list');
+    if (!container) return;
+    
+    if (!state.brands || state.brands.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد ماركات مضافة.</p>';
+        return;
+    }
+
+    container.innerHTML = state.brands.map((b, idx) => {
+        const brandName = typeof b === 'object' ? b.name : b;
+        return `
+        <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs">
+            <span class="font-bold">${brandName}</span>
+            <button onclick="deleteBrand(${idx})" class="text-red-600 bg-red-100 px-3 py-1 rounded-lg font-bold">حذف</button>
+        </div>
+    `}).join('');
+}
+
+export function deleteBrand(idx) {
+    if (confirm('هل أنت متأكد من حذف هذه الماركة؟')) {
+        const newBrands = state.brands.filter((_, i) => i !== idx);
+        window.db.collection("settings").doc("main").update({ brands: newBrands }).then(() => {
+            showCustomAlert('تم', 'تم حذف الماركة بنجاح', true);
+        });
+    }
+}
+
+// === إضافات إدارة الفئات ===
+export function handleSaveCategory(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('cat-name-input').value.trim();
+    const image = document.getElementById('cat-img-input').value.trim();
+    if (!name || !image) return;
+
+    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
+        document.getElementById('cat-name-input').value = '';
+        document.getElementById('cat-img-input').value = '';
+        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
+    });
+}
+
+export function renderAdminCategoriesList() {
+    const container = document.getElementById('admin-categories-list');
+    if (!container) return;
+    
+    if (!state.categories || state.categories.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد فئات مضافة.</p>';
+        return;
+    }
+
+    container.innerHTML = state.categories.map(c => `
+        <div class="bg-gray-50 p-4 rounded-xl border flex flex-col items-center gap-2 text-xs text-center shadow-sm">
+            <img src="${c.image}" class="w-12 h-12 rounded-full object-cover border border-[#D4AF37]">
+            <span class="font-bold text-gray-900">${c.name}</span>
+            <button onclick="deleteCategory('${c.id}')" class="text-red-600 bg-red-100 px-4 py-1.5 rounded-lg w-full font-bold mt-2">حذف الفئة</button>
+        </div>
+    `).join('');
+}
+
+export function deleteCategory(id) {
+    if (confirm('هل أنت متأكد من حذف هذه الفئة نهائياً؟')) {
+        window.db.collection("categories").doc(id).delete().then(() => {
+            showCustomAlert('تم', 'تم حذف الفئة بنجاح', true);
+        });
+    }
+}
+
+// === البانر العلوي ===
 export function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
@@ -753,7 +821,7 @@ export function closeCustomConfirm() {
 
 export function confirmDeleteOrder() {
     if (pendingDeleteOrderId) {
-        db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
+        window.db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
             closeCustomConfirm();
             showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
         });
@@ -761,7 +829,7 @@ export function confirmDeleteOrder() {
 }
 
 export function updateOrderStatus(id, newStatus) {
-    db.collection("orders").doc(id).update({ status: newStatus });
+    window.db.collection("orders").doc(id).update({ status: newStatus });
 }
 
 export function handleSaveSettings(e) {
@@ -773,7 +841,7 @@ export function handleSaveSettings(e) {
         msgSuccess: document.getElementById('set-msg-success').value,
         msgWarning: document.getElementById('set-msg-warning').value
     };
-    db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
+    window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
         showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل بنجاح!', true);
     });
 }
@@ -785,24 +853,11 @@ export function handleSaveHeroSlide(e) {
     const image = document.getElementById('hero-img-input').value.trim();
     if (!title || !desc || !image) return;
 
-    db.collection("heroSlides").add({ title, desc, image, createdAt: new Date() }).then(() => {
+    window.db.collection("heroSlides").add({ title, desc, image, createdAt: new Date() }).then(() => {
         document.getElementById('hero-title-input').value = '';
         document.getElementById('hero-desc-input').value = '';
         document.getElementById('hero-img-input').value = '';
         showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
-    });
-}
-
-export function handleSaveCategory(e) {
-    if (e) e.preventDefault();
-    const name = document.getElementById('cat-name-input').value.trim();
-    const image = document.getElementById('cat-img-input').value.trim();
-    if (!name || !image) return;
-
-    db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
-        document.getElementById('cat-name-input').value = '';
-        document.getElementById('cat-img-input').value = '';
-        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
     });
 }
 
@@ -857,7 +912,7 @@ export function updateAdminPasswordSecure() {
         return;
     }
 
-    const user = firebase.auth().currentUser;
+    const user = window.firebase.auth().currentUser;
 
     if (!user) {
         showCustomAlert('غير مسجل', 'يجب تسجيل الدخول كمسؤول أولاً لتغيير كلمة المرور.', false);
@@ -889,6 +944,11 @@ window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
 window.renderAdminDashboard = renderAdminDashboard;
 window.renderAdminProductsTable = renderAdminProductsTable;
+window.renderAdminAttributesTab = renderAdminAttributesTab;
+window.handleAddSkinType = handleAddSkinType;
+window.deleteSkinType = deleteSkinType;
+window.handleAddHairType = handleAddHairType;
+window.deleteHairType = deleteHairType;
 window.handleSaveWilaya = handleSaveWilaya;
 window.resetWilayaForm = resetWilayaForm;
 window.editWilaya = editWilaya;
@@ -896,6 +956,11 @@ window.deleteWilaya = deleteWilaya;
 window.renderAdminWilayasList = renderAdminWilayasList;
 window.saveShippingApiSettings = saveShippingApiSettings;
 window.handleSaveBrand = handleSaveBrand;
+window.renderAdminBrandsList = renderAdminBrandsList;
+window.deleteBrand = deleteBrand;
+window.handleSaveCategory = handleSaveCategory;
+window.renderAdminCategoriesList = renderAdminCategoriesList;
+window.deleteCategory = deleteCategory;
 window.renderBannerTextsList = renderBannerTextsList;
 window.addBannerText = addBannerText;
 window.removeBannerText = removeBannerText;
@@ -905,6 +970,5 @@ window.confirmDeleteOrder = confirmDeleteOrder;
 window.updateOrderStatus = updateOrderStatus;
 window.handleSaveSettings = handleSaveSettings;
 window.handleSaveHeroSlide = handleSaveHeroSlide;
-window.handleSaveCategory = handleSaveCategory;
 window.exportOrdersToExcel = exportOrdersToExcel;
 window.updateAdminPasswordSecure = updateAdminPasswordSecure;
