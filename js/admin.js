@@ -1,4 +1,4 @@
-// --- ملف js/admin.js (النسخة الكاملة والمعدلة) ---
+// --- ملف js/admin.js (النسخة المتطورة الذكية) ---
 
 import { state } from './store/state.js';
 import { showCustomAlert, safeCall } from './utils/helpers.js';
@@ -102,25 +102,21 @@ export function adminSignOut() {
 }
 
 export function switchAdminTab(tabName) {
-    // إخفاء كل التبويبات وإزالة الألوان النشطة من الأزرار
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
         b.classList.remove('bg-black', 'text-white', 'border-[#D4AF37]/30');
         b.classList.add('bg-gray-800', 'text-gray-300');
     });
 
-    // إظهار التبويب المطلوب
     const activeTab = document.getElementById('admin-tab-' + tabName);
     if (activeTab) activeTab.classList.add('active');
 
-    // تلوين الزر المضغوط
     const btn = document.getElementById('tab-btn-' + tabName);
     if (btn) {
         btn.classList.remove('bg-gray-800', 'text-gray-300');
         btn.classList.add('bg-black', 'text-white', 'border-[#D4AF37]/30');
     }
 
-    // تشغيل دوال الجلب من قاعدة البيانات بناءً على التبويب المدمج الجديد
     if (tabName === 'shipping_settings') {
         if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
     }
@@ -134,6 +130,7 @@ export function switchAdminTab(tabName) {
         if (typeof renderAdminHeroSlidesList === 'function') renderAdminHeroSlidesList();
     }
 }
+
 export function populateAdminDropdowns() {
     const catSelect = document.getElementById('prod-category-select');
     if (catSelect) {
@@ -151,6 +148,7 @@ export function populateAdminDropdowns() {
     renderCategorySpecificAdminFields();
 }
 
+// 🧠 المحرك الذكي لخصائص المنتجات (Smart Attributes Engine)
 export function renderCategorySpecificAdminFields() {
     const catSelect = document.getElementById('prod-category-select');
     const container = document.getElementById('category-dynamic-fields-container');
@@ -159,10 +157,18 @@ export function renderCategorySpecificAdminFields() {
     const selectedCategory = (catSelect.value || '').trim().toLowerCase();
     let html = '';
 
-    if (selectedCategory.includes('كوسمتيك')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">✨ خصائص قسم الكوسمتيك:</h4>
+    // تحليل ذكي لاسم القسم لإظهار الفلاتر المناسبة حتى لو كان القسم مركباً
+    const isCosmetics = selectedCategory.includes('كوسمتيك') || selectedCategory.includes('عناية') || selectedCategory.includes('بشرة') || selectedCategory.includes('شعر');
+    const isMakeup = selectedCategory.includes('مايكاب') || selectedCategory.includes('مكياج');
+    const isJewelry = selectedCategory.includes('بلاكيور') || selectedCategory.includes('اصي') || selectedCategory.includes('اكسسوار') || selectedCategory.includes('مجوهرات') || selectedCategory.includes('ساعات');
+    const isBoxes = selectedCategory.includes('علب') || selectedCategory.includes('تغليف') || selectedCategory.includes('صناديق');
+    const isPerfumes = selectedCategory.includes('عطور') || selectedCategory.includes('بارفان');
+    const isGifts = selectedCategory.includes('هدايا') || selectedCategory.includes('بوكس');
+
+    if (isCosmetics || isMakeup) {
+        html += `
+            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
+                <h4 class="font-bold text-xs text-[#B8860B]">✨ خصائص العناية والمكياج:</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1">منطقة الاستخدام:</label>
@@ -170,80 +176,12 @@ export function renderCategorySpecificAdminFields() {
                             <option value="للوجه">للوجه</option>
                             <option value="للجسد">للجسد</option>
                             <option value="للشعر">للشعر</option>
-                            <option value="للتدليك والعناية">للتدليك والعناية (يدين وقدمين)</option>
+                            <option value="للتدليك والعناية">للتدليك والعناية</option>
                         </select>
                     </div>
+                    ${isMakeup ? `
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المنتج الفرعي:</label>
-                        <input type="text" id="prod-cosmetic-type" placeholder="مثال: شامبو، جل دش، كريم مرطب..." class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع البشرة المناسبة:</label>
-                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-32 overflow-y-auto text-xs"></div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع الشعر المناسبة:</label>
-                        <div id="admin-prod-hair-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-32 overflow-y-auto text-xs"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory.includes('بلاكيور') || selectedCategory.includes('اصي')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">💍 خصائص قسم بلاكيور + أسي:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المعدن *</label>
-                        <select id="prod-jewelry-metal" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="بلاكيور أور">بلاكيور أور</option>
-                            <option value="أسي إينوكسيدابل / Steel">أسي إينوكسيدابل / Steel</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع القطعة *</label>
-                        <select id="prod-jewelry-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="سلسلة">سلسلة</option>
-                            <option value="خاتم">خاتم</option>
-                            <option value="قورمات">قورمات</option>
-                            <option value="بارور">بارور</option>
-                            <option value="مناقش">مناقش</option>
-                            <option value="خلخال">خلخال</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory === 'علب' || selectedCategory.includes('علب')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎁 خصائص قسم العلب:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">شكل ومادة الصندوق *</label>
-                    <select id="prod-giftbox-shape" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="شكل قلب">شكل قلب</option>
-                        <option value="شكل مربع">شكل مربع</option>
-                        <option value="شكل مستطيل">شكل مستطيل</option>
-                        <option value="شكل رسالة">شكل رسالة</option>
-                        <option value="شكل دائري">شكل دائري</option>
-                        <option value="علب فوركس">علب فوركس</option>
-                        <option value="علب زجاج">علب زجاج</option>
-                        <option value="صاك كرتون">صاك كرتون</option>
-                        <option value="صاك شفاف">صاك شفاف</option>
-                        <option value="PMMA">PMMA</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory.includes('مايكاب')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">💄 خصائص قسم المايكاب:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع منتج المايكاب *</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المايكاب *</label>
                         <select id="prod-makeup-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
                             <option value="فوندوتان">فوندوتان</option>
                             <option value="كونسيلر">كونسيلر</option>
@@ -254,31 +192,84 @@ export function renderCategorySpecificAdminFields() {
                             <option value="هايلايتر">هايلايتر</option>
                             <option value="كونتور">كونتور</option>
                             <option value="بالات">بالات</option>
-                            <option value="برايمر">برايمر</option>
-                            <option value="ليوناغ">ليوناغ</option>
                             <option value="فرشاة">فرشاة</option>
-                            <option value="بونجة">بونجة</option>
-                            <option value="آلات">آلات</option>
-                            <option value="أشفار">أشفار</option>
-                            <option value="أظافر">أظافر</option>
-                            <option value="لسقة أشفار">لسقة أشفار</option>
-                            <option value="لسقة أظافر">لسقة أظافر</option>
-                            <option value="فلامينغو">فلامينغو</option>
-                            <option value="فارني">فارني</option>
                             <option value="أخرى">أخرى</option>
                         </select>
+                    </div>` : `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المنتج الفرعي:</label>
+                        <input type="text" id="prod-cosmetic-type" placeholder="مثال: شامبو، جل دش، كريم مرطب..." class="w-full border p-2.5 rounded-xl text-xs bg-white">
+                    </div>`}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع البشرة المناسبة (اختيار متعدد):</label>
+                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-32 overflow-y-auto text-xs"></div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">نوع البشرة المناسبة:</label>
-                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-2 rounded-xl border max-h-28 overflow-y-auto text-xs"></div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع الشعر المناسبة (اختيار متعدد):</label>
+                        <div id="admin-prod-hair-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-32 overflow-y-auto text-xs"></div>
                     </div>
                 </div>
             </div>
         `;
-    } else if (selectedCategory.includes('عطور')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🌸 خصائص قسم العطور:</h4>
+    }
+
+    if (isJewelry) {
+        html += `
+            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
+                <h4 class="font-bold text-xs text-[#B8860B]">💍 خصائص المجوهرات والساعات:</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المعدن *</label>
+                        <select id="prod-jewelry-metal" class="w-full border p-2.5 rounded-xl text-xs bg-white">
+                            <option value="بلاكيور أور">بلاكيور أور</option>
+                            <option value="أسي إينوكسيدابل / Steel">أسي إينوكسيدابل / Steel</option>
+                            <option value="جلد">جلد (ساعات)</option>
+                            <option value="سيليكون">سيليكون</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع القطعة *</label>
+                        <select id="prod-jewelry-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
+                            <option value="ساعة">ساعة</option>
+                            <option value="سلسلة">سلسلة</option>
+                            <option value="خاتم">خاتم</option>
+                            <option value="قورمات">قورمات</option>
+                            <option value="بارور">بارور</option>
+                            <option value="مناقش">مناقش</option>
+                            <option value="مساك">مساك شعر</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (isBoxes) {
+        html += `
+            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
+                <h4 class="font-bold text-xs text-[#B8860B]">🎁 خصائص العلب والتغليف:</h4>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">شكل ومادة الصندوق *</label>
+                    <select id="prod-giftbox-shape" class="w-full border p-2.5 rounded-xl text-xs bg-white">
+                        <option value="شكل قلب">شكل قلب</option>
+                        <option value="شكل مربع">شكل مربع</option>
+                        <option value="شكل مستطيل">شكل مستطيل</option>
+                        <option value="شكل دائري">شكل دائري</option>
+                        <option value="علب فوركس">علب فوركس</option>
+                        <option value="صاك كرتون">صاك كرتون</option>
+                        <option value="صاك شفاف">صاك شفاف</option>
+                    </select>
+                </div>
+            </div>
+        `;
+    }
+
+    if (isPerfumes) {
+        html += `
+            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
+                <h4 class="font-bold text-xs text-[#B8860B]">🌸 خصائص العطور:</h4>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">فئة العطر والاستخدام *</label>
                     <select id="prod-perfume-target" class="w-full border p-2.5 rounded-xl text-xs bg-white">
@@ -288,37 +279,16 @@ export function renderCategorySpecificAdminFields() {
                         <option value="للجنسين">للجنسين</option>
                         <option value="عطور جسم">عطور جسم</option>
                         <option value="عطور غرف">عطور غرف</option>
-                        <option value="عطور ملابس">عطور ملابس</option>
-                        <option value="عطور سيارات">عطور سيارات</option>
                     </select>
                 </div>
             </div>
         `;
-    } else if (selectedCategory.includes('اكسسوارات شعر')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎀 خصائص قسم إكسسوارات الشعر:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">نوع الإكسسوار *</label>
-                    <select id="prod-hairacc-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="مساك">مساك</option>
-                        <option value="شوشو">شوشو</option>
-                        <option value="كخاب">كخاب</option>
-                        <option value="بوندانة">بوندانة</option>
-                        <option value="سيغتات">سيغتات</option>
-                        <option value="مناقش">مناقش</option>
-                        <option value="سنسلة">سنسلة</option>
-                        <option value="خاتم">خاتم</option>
-                        <option value="قورمات">قورمات</option>
-                        <option value="خلخال">خلخال</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    } else if (selectedCategory === 'هدايا' || selectedCategory.includes('هدايا')) {
-        html = `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎁 خصائص قسم الهدايا:</h4>
+    }
+
+    if (isGifts) {
+        html += `
+            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
+                <h4 class="font-bold text-xs text-[#B8860B]">🎀 خصائص الهدايا:</h4>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">نوع ومناسبة الهدية *</label>
                     <select id="prod-gift-occasion" class="w-full border p-2.5 rounded-xl text-xs bg-white">
@@ -331,12 +301,15 @@ export function renderCategorySpecificAdminFields() {
                 </div>
             </div>
         `;
-    } else {
-        html = `<div class="bg-gray-50 p-4 rounded-xl border text-center text-xs text-gray-500">هذا القسم ينطبق على الخصائص المباشرة للمنتج (السعر والتوافر).</div>`;
+    }
+
+    if (!isCosmetics && !isMakeup && !isJewelry && !isBoxes && !isPerfumes && !isGifts) {
+        html = `<div class="bg-gray-50 p-4 rounded-xl border text-center text-xs text-gray-500 mb-3">القسم المحدد ينطبق على الخصائص العامة المباشرة للمنتج (السعر والتوافر والألوان أسفله).</div>`;
     }
 
     container.innerHTML = html;
 
+    // تفعيل فلاتر البشرة والشعر إذا كانت موجودة في الـ HTML
     const skinCbContainer = document.getElementById('admin-prod-skin-checkboxes');
     if (skinCbContainer && state.availableSkinTypes) {
         skinCbContainer.innerHTML = state.availableSkinTypes.map(st => `
@@ -535,7 +508,7 @@ export function renderAdminProductsTable() {
 
     tbody.innerHTML = state.products.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
-        const isStock = p.inStock !== false; // التحقق من حالة المخزون
+        const isStock = p.inStock !== false;
         
         return `
             <tr class="border-b hover:bg-gray-50 transition">
@@ -557,16 +530,12 @@ export function renderAdminProductsTable() {
         `;
     }).join('');
 }
+
 export function toggleProductStock(id, currentStatus) {
-    const newStatus = !currentStatus; // عكس الحالة الحالية
+    const newStatus = !currentStatus;
     window.db.collection("products").doc(id).update({ inStock: newStatus })
-        .then(() => {
-            // يتم التحديث في الخلفية بصمت لعدم إزعاجك، والجدول سيتحدث تلقائياً بفضل Firebase!
-            console.log(`تم تغيير حالة المخزون للمنتج ${id} إلى ${newStatus}`);
-        })
-        .catch(err => {
-            showCustomAlert('خطأ', 'لم يتم تحديث المخزون: ' + err.message, false);
-        });
+        .then(() => console.log(`تم تغيير حالة المخزون للمنتج ${id} إلى ${newStatus}`))
+        .catch(err => showCustomAlert('خطأ', 'لم يتم تحديث المخزون: ' + err.message, false));
 }
 
 export function renderAdminAttributesTab() {
@@ -592,30 +561,49 @@ export function renderAdminAttributesTab() {
     }
 }
 
+// ⚡ التحديث الفوري (Optimistic Updates) لأنواع البشرة والشعر
 export function handleAddSkinType(e) {
     e.preventDefault();
     const input = document.getElementById('new-skin-type-input');
     if (!input || !input.value.trim()) return;
-    const newTypes = [...state.availableSkinTypes, input.value.trim()];
-    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
+    const newVal = input.value.trim();
+    const newTypes = [...(state.availableSkinTypes || []), newVal];
+    
+    state.availableSkinTypes = newTypes; // تحديث فوري للشاشة
+    renderAdminAttributesTab();
+    
+    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => {
+        input.value = '';
+    });
 }
 
 export function deleteSkinType(idx) {
     const newTypes = state.availableSkinTypes.filter((_, i) => i !== idx);
-    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
+    state.availableSkinTypes = newTypes; // تحديث فوري
+    renderAdminAttributesTab();
+    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true });
 }
 
 export function handleAddHairType(e) {
     e.preventDefault();
     const input = document.getElementById('new-hair-type-input');
     if (!input || !input.value.trim()) return;
-    const newTypes = [...state.availableHairTypes, input.value.trim()];
-    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => { input.value = ''; showCustomAlert('تم', 'تمت الإضافة', true); });
+    const newVal = input.value.trim();
+    const newTypes = [...(state.availableHairTypes || []), newVal];
+    
+    state.availableHairTypes = newTypes; // تحديث فوري
+    renderAdminAttributesTab();
+
+    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => { 
+        input.value = ''; 
+    });
 }
 
 export function deleteHairType(idx) {
     const newTypes = state.availableHairTypes.filter((_, i) => i !== idx);
-    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => showCustomAlert('تم', 'تم الحذف', true));
+    state.availableHairTypes = newTypes; // تحديث فوري
+    renderAdminAttributesTab();
+    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true });
 }
 
 export function handleSaveWilaya(e) {
@@ -707,7 +695,7 @@ export function saveShippingApiSettings() {
     });
 }
 
-// === إضافات إدارة الماركات ===
+// ⚡ التحديث الفوري (Optimistic Updates) للماركات
 export function handleSaveBrand(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('brand-name-input');
@@ -715,13 +703,14 @@ export function handleSaveBrand(e) {
     const brandName = input.value.trim();
     if (!brandName) return;
 
-    if (!state.brands.includes(brandName)) state.brands.push(brandName);
+    if (!state.brands.includes(brandName)) {
+        state.brands.push(brandName);
+        renderAdminBrandsList(); // تحديث فوري
+        populateAdminDropdowns(); // تحديث القائمة المنسدلة للمنتجات
+    }
 
     window.db.collection("settings").doc("main").set({ brands: state.brands }, { merge: true }).then(() => {
         input.value = '';
-        populateAdminDropdowns();
-        renderAdminBrandsList();
-        showCustomAlert('تم الحفظ', 'تمت إضافة العلامة التجارية بنجاح!', true);
     });
 }
 
@@ -747,20 +736,25 @@ export function renderAdminBrandsList() {
 export function deleteBrand(idx) {
     if (confirm('هل أنت متأكد من حذف هذه الماركة؟')) {
         const newBrands = state.brands.filter((_, i) => i !== idx);
-        window.db.collection("settings").doc("main").update({ brands: newBrands }).then(() => {
-            showCustomAlert('تم', 'تم حذف الماركة بنجاح', true);
-        });
+        state.brands = newBrands; // تحديث فوري
+        renderAdminBrandsList();
+        populateAdminDropdowns();
+        window.db.collection("settings").doc("main").update({ brands: newBrands });
     }
 }
 
-// === إضافات إدارة الفئات ===
+// ⚡ التحديث الفوري (Optimistic Updates) للفئات
 export function handleSaveCategory(e) {
     if (e) e.preventDefault();
     const name = document.getElementById('cat-name-input').value.trim();
     const image = document.getElementById('cat-img-input').value.trim();
     if (!name || !image) return;
 
-    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
+    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then((docRef) => {
+        // تحديث فوري بدون انتظار تحميل الصفحة
+        state.categories.push({ id: docRef.id, name, image });
+        renderAdminCategoriesList();
+        populateAdminDropdowns();
         document.getElementById('cat-name-input').value = '';
         document.getElementById('cat-img-input').value = '';
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
@@ -788,7 +782,9 @@ export function renderAdminCategoriesList() {
 export function deleteCategory(id) {
     if (confirm('هل أنت متأكد من حذف هذه الفئة نهائياً؟')) {
         window.db.collection("categories").doc(id).delete().then(() => {
-            showCustomAlert('تم', 'تم حذف الفئة بنجاح', true);
+            state.categories = state.categories.filter(c => c.id !== id); // تحديث فوري
+            renderAdminCategoriesList();
+            populateAdminDropdowns();
         });
     }
 }
