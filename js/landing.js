@@ -145,14 +145,13 @@ export function submitLandingOrder() {
         createdAt: new Date()
     };
 
-    if (typeof db !== 'undefined') {
-        db.collection("orders").add(newOrder).then(() => {
+    if (typeof window.db !== 'undefined') {
+        window.db.collection("orders").add(newOrder).then(() => {
             showCustomAlert('تم استلام طلبك! 🎉', state.storeSettings.msgSuccess, true);
             safeCall('showPage', 'home');
         }).catch(err => showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false));
     }
 }
-
 function renderLandingDynamicOptions(p) {
     const container = document.getElementById('landing-options-container');
     if (!container) return;
