@@ -509,6 +509,7 @@ export function saveShippingApiSettings() {
     });
 }
 
+// استبدل الدالة القديمة بهذه
 export function renderAdminDashboard() {
     const confirmedOrders = state.orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
     const totalSales = confirmedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
@@ -520,18 +521,11 @@ export function renderAdminDashboard() {
     if (document.getElementById('stat-avg-order')) document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
     if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
 
-    // 🔍 قراءة فلاتر البحث والحالة
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     const searchVal = document.getElementById('order-search-input') ? document.getElementById('order-search-input').value.trim().toLowerCase() : '';
 
     let displayedOrders = state.orders;
-    
-    // تطبيق فلتر الحالة
-    if (filterVal && filterVal !== 'الجميع') {
-        displayedOrders = displayedOrders.filter(o => (o.status || 'جديد') === filterVal);
-    }
-
-    // 🔍 تطبيق فلتر البحث الذكي (يبحث في الاسم، الهاتف، ورقم الطلب)
+    if (filterVal && filterVal !== 'الجميع') displayedOrders = displayedOrders.filter(o => (o.status || 'جديد') === filterVal);
     if (searchVal) {
         displayedOrders = displayedOrders.filter(o => 
             (o.customer && o.customer.toLowerCase().includes(searchVal)) ||
@@ -540,10 +534,15 @@ export function renderAdminDashboard() {
         );
     }
 
+    // إخفاء زر الحذف الجماعي وإزالة التحديد عند تحديث الجدول
+    const selectAllCb = document.getElementById('select-all-orders');
+    if(selectAllCb) selectAllCb.checked = false;
+    if(typeof checkBulkDeleteStatus === 'function') checkBulkDeleteStatus();
+
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
         if (displayedOrders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-400 font-bold"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>لا توجد طلبيات تطابق بحثك حالياً</td></tr>';
+            ordersTbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-gray-400 font-bold"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>لا توجد طلبيات تطابق بحثك حالياً</td></tr>';
         } else {
             ordersTbody.innerHTML = displayedOrders.map(o => {
                 const status = o.status || 'جديد';
@@ -557,19 +556,18 @@ export function renderAdminDashboard() {
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
                 const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${state.storeSettings.name} لتأكيد طلبكم.`);
 
-                // ⏱️ معالجة التاريخ والوقت بذكاء
                 let dateStr = 'غير معروف';
                 if (o.createdAt) {
                     const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
-                    // تنسيق جميل: 15 أكتوبر 2026 - 14:30
                     dateStr = d.toLocaleDateString('ar-DZ', { month: 'short', day: 'numeric' }) + ' - ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
                 }
-                
-                // #️⃣ توليد رقم طلب قصير (أول 6 حروف من الـ ID)
                 const shortId = o.id ? o.id.substring(0, 6).toUpperCase() : '000000';
 
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
+                        <td class="p-4 text-center">
+                            <input type="checkbox" value="${o.id}" class="order-cb accent-red-600 w-4 h-4 cursor-pointer" onchange="checkBulkDeleteStatus()">
+                        </td>
                         <td class="p-4">
                             <div class="font-black text-xs text-[#B8860B] mb-1 tracking-wider">#${shortId}</div>
                             <div class="text-[10px] text-gray-500 font-bold flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
@@ -605,7 +603,51 @@ export function renderAdminDashboard() {
             }).join('');
         }
     }
-    renderAdminProductsTable();
+    if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+}
+
+// ==========================================
+// دوال الحذف الجماعي الجديدة (ضعها هنا)
+// ==========================================
+export function toggleAllOrders(source) {
+    const checkboxes = document.querySelectorAll('.order-cb');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+    checkBulkDeleteStatus();
+}
+
+export function checkBulkDeleteStatus() {
+    const checkedBoxes = document.querySelectorAll('.order-cb:checked');
+    const bulkBtn = document.getElementById('bulk-delete-btn');
+    const bulkCount = document.getElementById('bulk-delete-count');
+    
+    if (bulkBtn && bulkCount) {
+        if (checkedBoxes.length > 0) {
+            bulkBtn.classList.remove('hidden');
+            bulkCount.innerText = checkedBoxes.length;
+        } else {
+            bulkBtn.classList.add('hidden');
+        }
+    }
+}
+
+export function deleteSelectedOrders() {
+    const checkedBoxes = document.querySelectorAll('.order-cb:checked');
+    if (checkedBoxes.length === 0) return;
+    
+    if (confirm(`تحذير ⚠️: هل أنت متأكد من رغبتك في حذف ${checkedBoxes.length} طلبية نهائياً؟ (لا يمكن التراجع عن هذا الإجراء)`)) {
+        const batch = window.db.batch();
+        checkedBoxes.forEach(cb => {
+            const orderRef = window.db.collection('orders').doc(cb.value);
+            batch.delete(orderRef);
+        });
+        
+        batch.commit().then(() => {
+            showCustomAlert('تم الحذف', `تم حذف ${checkedBoxes.length} طلبية بنجاح.`, true);
+            checkBulkDeleteStatus(); // إخفاء الزر بعد الحذف
+        }).catch(err => {
+            showCustomAlert('خطأ', 'حدث خطأ أثناء الحذف الجماعي: ' + err.message, false);
+        });
+    }
 }
 
 export function renderAdminProductsTable() {
@@ -787,7 +829,9 @@ window.handleSaveHeroSlide = handleSaveHeroSlide;
 window.exportOrdersToExcel = exportOrdersToExcel;
 window.updateAdminPasswordSecure = updateAdminPasswordSecure;
 window.toggleProductStock = toggleProductStock;
-
+window.toggleAllOrders = toggleAllOrders;
+window.checkBulkDeleteStatus = checkBulkDeleteStatus;
+window.deleteSelectedOrders = deleteSelectedOrders;
 // الدوال الجديدة الخاصة بصانع الفلاتر الشامل
 window.selectCategoryForFilter = selectCategoryForFilter;
 window.populateFilterCategories = populateFilterCategories;
