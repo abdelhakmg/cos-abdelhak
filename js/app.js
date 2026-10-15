@@ -170,7 +170,18 @@ export function submitCartCheckout() {
     const subtotal = state.cart.reduce((sum, item) => sum + (item.price || 0), 0);
     const itemsNames = state.cart.map(item => item.name).join(' + ');
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
-
+// إرسال الطلب لفايربيس
+    if (typeof window.db !== 'undefined') {
+        window.db.collection("orders").add(newOrder).then(() => {
+            state.cart = [];
+            saveCartToLocal();
+            updateBadges();
+            renderCart();
+            showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess, true);
+            showPage('home');
+        }).catch(err => showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false));
+    }
+}
     const newOrder = {
         customer: name,
         phone: phone,
