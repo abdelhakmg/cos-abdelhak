@@ -157,13 +157,13 @@ export function renderCategorySpecificAdminFields() {
     const selectedCategory = (catSelect.value || '').trim().toLowerCase();
     let html = '';
 
-    // تحليل ذكي لاسم القسم لإظهار الفلاتر المناسبة حتى لو كان القسم مركباً
     const isCosmetics = selectedCategory.includes('كوسمتيك') || selectedCategory.includes('عناية') || selectedCategory.includes('بشرة') || selectedCategory.includes('شعر');
     const isMakeup = selectedCategory.includes('مايكاب') || selectedCategory.includes('مكياج');
     const isJewelry = selectedCategory.includes('بلاكيور') || selectedCategory.includes('اصي') || selectedCategory.includes('اكسسوار') || selectedCategory.includes('مجوهرات') || selectedCategory.includes('ساعات');
     const isBoxes = selectedCategory.includes('علب') || selectedCategory.includes('تغليف') || selectedCategory.includes('صناديق');
     const isPerfumes = selectedCategory.includes('عطور') || selectedCategory.includes('بارفان');
     const isGifts = selectedCategory.includes('هدايا') || selectedCategory.includes('بوكس');
+    const isToys = selectedCategory.includes('العاب') || selectedCategory.includes('ألعاب') || selectedCategory.includes('لعب');
 
     if (isCosmetics || isMakeup) {
         html += `
@@ -303,13 +303,49 @@ export function renderCategorySpecificAdminFields() {
         `;
     }
 
-    if (!isCosmetics && !isMakeup && !isJewelry && !isBoxes && !isPerfumes && !isGifts) {
-        html = `<div class="bg-gray-50 p-4 rounded-xl border text-center text-xs text-gray-500 mb-3">القسم المحدد ينطبق على الخصائص العامة المباشرة للمنتج (السعر والتوافر والألوان أسفله).</div>`;
+    if (isToys) {
+        html += `
+            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
+                <h4 class="font-bold text-xs text-[#B8860B]">🧸 خصائص قسم الألعاب:</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">الفئة المستهدفة *</label>
+                        <select id="prod-toy-target" class="w-full border p-2.5 rounded-xl text-xs bg-white">
+                            <option value="أولاد">أولاد</option>
+                            <option value="بنات">بنات</option>
+                            <option value="للجنسين">للجنسين</option>
+                            <option value="أطفال صغار">أطفال صغار (رضع)</option>
+                            <option value="كبار">كبار</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">المادة / النوع *</label>
+                        <select id="prod-toy-material" class="w-full border p-2.5 rounded-xl text-xs bg-white">
+                            <option value="نيلو">نيلو / بلاستيك</option>
+                            <option value="حديد">حديد / معدن</option>
+                            <option value="خشب">خشب</option>
+                            <option value="قماش">قماش / محشوة</option>
+                            <option value="تعليمية">تعليمية / ذكاء</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (!isCosmetics && !isMakeup && !isJewelry && !isBoxes && !isPerfumes && !isGifts && !isToys) {
+        html = `
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-3 space-y-2">
+                <h4 class="font-bold text-xs text-blue-800"><i class="fa-solid fa-tags"></i> تصنيفات وفلاتر مخصصة لهذا القسم الجديد:</h4>
+                <p class="text-[10px] text-blue-600">اكتب هنا التصنيفات (مثال: صيفي، قطن، رياضي...) لتظهر كفلاتر بحث للزبائن.</p>
+                <input type="text" id="prod-custom-tags" placeholder="مثال: ولادي, حديد, كبير (افصل بينها بفاصلة)" class="w-full border p-2.5 rounded-xl text-xs bg-white focus:border-blue-400 outline-none">
+            </div>
+        `;
     }
 
     container.innerHTML = html;
 
-    // تفعيل فلاتر البشرة والشعر إذا كانت موجودة في الـ HTML
     const skinCbContainer = document.getElementById('admin-prod-skin-checkboxes');
     if (skinCbContainer && state.availableSkinTypes) {
         skinCbContainer.innerHTML = state.availableSkinTypes.map(st => `
@@ -330,7 +366,6 @@ export function renderCategorySpecificAdminFields() {
         `).join('');
     }
 }
-
 export function handleSaveProduct(e) {
     if (e) e.preventDefault();
     try {
@@ -356,6 +391,9 @@ export function handleSaveProduct(e) {
             perfumeTarget: document.getElementById('prod-perfume-target')?.value || '',
             hairaccType: document.getElementById('prod-hairacc-type')?.value || '',
             giftOccasion: document.getElementById('prod-gift-occasion')?.value || '',
+            toyTarget: document.getElementById('prod-toy-target')?.value || '',
+            toyMaterial: document.getElementById('prod-toy-material')?.value || '',
+            customTags: document.getElementById('prod-custom-tags')?.value.trim() || '',
             colors: document.getElementById('prod-colors')?.value.trim() || '',
             numbers: document.getElementById('prod-numbers')?.value.trim() || '',
             desc: document.getElementById('prod-desc')?.value.trim() || '',
@@ -382,7 +420,6 @@ export function handleSaveProduct(e) {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     }
 }
-
 export function resetProductForm() {
     document.getElementById('product-edit-form').reset();
     document.getElementById('editing-product-id').value = '';
@@ -404,6 +441,10 @@ export function editProduct(id) {
     document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
 
     renderCategorySpecificAdminFields();
+
+    if (document.getElementById('prod-toy-target')) document.getElementById('prod-toy-target').value = p.toyTarget || 'أولاد';
+    if (document.getElementById('prod-toy-material')) document.getElementById('prod-toy-material').value = p.toyMaterial || 'نيلو';
+    if (document.getElementById('prod-custom-tags')) document.getElementById('prod-custom-tags').value = p.customTags || '';
 
     document.getElementById('prod-desc').value = p.desc || '';
     const imgs = p.images || [];
