@@ -4,7 +4,6 @@ import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
 export function initFirebaseSync() {
-    // التعديل 1: استخدام window للفايربيس
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
         console.error("لم يتم تهيئة Firebase بشكل صحيح.");
         return;
@@ -50,27 +49,30 @@ export function initFirebaseSync() {
         });
         safeCall('updateAppHeaderInfo');
         safeCall('populateAdminDropdowns');
-        safeCall('renderAdminCategoriesList'); // التعديل 2: إضافة تحديث قائمة الإدارة
+        safeCall('renderAdminCategoriesList');
     }, (error) => console.error("Error fetching categories:", error));
 
-    // 4. مزامنة الإعدادات العامة للمتجر
+    // 4. مزامنة الإعدادات العامة للمتجر (هنا تم حل مشكلة فقدان الذاكرة!)
     window.db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
             state.storeSettings = { ...state.storeSettings, ...data };
             if (data.brands) state.brands = data.brands;
-            // إضافة مزامنة البانر
             if (data.bannerMessages) state.bannerMessages = data.bannerMessages;
 
+            // 🚀 السطر السحري: جلب الفلاتر الديناميكية التي تصنعها في الإدارة
+            if (data.categoryFilters) state.categoryFilters = data.categoryFilters;
+
+            // الإبقاء على الفلاتر القديمة لعدم كسر المنتجات السابقة
             state.availableSkinTypes = (data.skinTypes && data.skinTypes.length > 0) ? data.skinTypes : state.availableSkinTypes;
             state.availableHairTypes = (data.hairTypes && data.hairTypes.length > 0) ? data.hairTypes : state.availableHairTypes;
         }
-        safeCall('updateAppHeaderInfo');
-        safeCall('renderDynamicSidebarFilters'); // حافظت عليه من ملفك الأصلي
-        safeCall('populateAdminDropdowns');
-        safeCall('renderAdminAttributesTab'); // حافظت عليه من ملفك الأصلي
         
-        // التعديل 3: إضافات الإدارة الجديدة
+        // تحديث الواجهات فوراً بعد جلب الإعدادات والفلاتر
+        safeCall('updateAppHeaderInfo');
+        safeCall('renderDynamicSidebarFilters'); // تحديث فلاتر الزبون
+        safeCall('populateAdminDropdowns'); // تحديث فلاتر الإدارة
+        safeCall('renderAdminAttributesTab'); 
         safeCall('renderAdminBrandsList'); 
         safeCall('renderBannerTextsList'); 
         safeCall('startBannerTicker'); 
