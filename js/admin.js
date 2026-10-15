@@ -102,26 +102,38 @@ export function adminSignOut() {
 }
 
 export function switchAdminTab(tabName) {
+    // إخفاء كل التبويبات وإزالة الألوان النشطة من الأزرار
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
-        b.classList.remove('bg-black', 'text-white');
+        b.classList.remove('bg-black', 'text-white', 'border-[#D4AF37]/30');
         b.classList.add('bg-gray-800', 'text-gray-300');
     });
 
+    // إظهار التبويب المطلوب
     const activeTab = document.getElementById('admin-tab-' + tabName);
     if (activeTab) activeTab.classList.add('active');
 
+    // تلوين الزر المضغوط
     const btn = document.getElementById('tab-btn-' + tabName);
     if (btn) {
         btn.classList.remove('bg-gray-800', 'text-gray-300');
-        btn.classList.add('bg-black', 'text-white');
+        btn.classList.add('bg-black', 'text-white', 'border-[#D4AF37]/30');
     }
 
-    if (tabName === 'shipping') renderAdminWilayasList();
-    if (tabName === 'brands') renderAdminBrandsList();
-    if (tabName === 'categories') renderAdminCategoriesList();
+    // تشغيل دوال الجلب من قاعدة البيانات بناءً على التبويب المدمج الجديد
+    if (tabName === 'shipping_settings') {
+        if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
+    }
+    if (tabName === 'categories_attributes') {
+        if (typeof renderAdminBrandsList === 'function') renderAdminBrandsList();
+        if (typeof renderAdminCategoriesList === 'function') renderAdminCategoriesList();
+        if (typeof renderAdminAttributesTab === 'function') renderAdminAttributesTab();
+    }
+    if (tabName === 'marketing_ui') {
+        if (typeof renderBannerTextsList === 'function') renderBannerTextsList();
+        if (typeof renderAdminHeroSlidesList === 'function') renderAdminHeroSlidesList();
+    }
 }
-
 export function populateAdminDropdowns() {
     const catSelect = document.getElementById('prod-category-select');
     if (catSelect) {
