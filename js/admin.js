@@ -714,12 +714,9 @@ export function renderBannerTextsList() {
 
 export function addBannerText() {
     const input = document.getElementById('new-banner-text');
-    if (!input) return;
-    const newText = input.value.trim();
-    if (!newText) return;
-
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayUnion(newText)
+    if (!input || !input.value.trim()) return;
+    window.db.collection("settings").doc("main").update({
+        bannerMessages: window.firebase.firestore.FieldValue.arrayUnion(input.value.trim())
     }).then(() => {
         input.value = '';
         showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها!', true);
@@ -729,8 +726,8 @@ export function addBannerText() {
 export function removeBannerText(index) {
     const targetText = state.bannerMessages[index];
     if (!targetText) return;
-    db.collection("settings").doc("main").update({
-        bannerMessages: firebase.firestore.FieldValue.arrayRemove(targetText)
+    window.db.collection("settings").doc("main").update({
+        bannerMessages: window.firebase.firestore.FieldValue.arrayRemove(targetText)
     }).then(() => {
         showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
     });
