@@ -520,52 +520,85 @@ export function renderAdminDashboard() {
     if (document.getElementById('stat-avg-order')) document.getElementById('stat-avg-order').innerText = confirmedOrders.length ? Math.round(totalSales / confirmedOrders.length).toLocaleString() + ' دج' : '0 دج';
     if (document.getElementById('stat-success-rate')) document.getElementById('stat-success-rate').innerText = successRate + '%';
 
+    // 🔍 قراءة فلاتر البحث والحالة
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
+    const searchVal = document.getElementById('order-search-input') ? document.getElementById('order-search-input').value.trim().toLowerCase() : '';
+
     let displayedOrders = state.orders;
-    if (filterVal && filterVal !== 'الجميع') displayedOrders = state.orders.filter(o => (o.status || 'جديد') === filterVal);
+    
+    // تطبيق فلتر الحالة
+    if (filterVal && filterVal !== 'الجميع') {
+        displayedOrders = displayedOrders.filter(o => (o.status || 'جديد') === filterVal);
+    }
+
+    // 🔍 تطبيق فلتر البحث الذكي (يبحث في الاسم، الهاتف، ورقم الطلب)
+    if (searchVal) {
+        displayedOrders = displayedOrders.filter(o => 
+            (o.customer && o.customer.toLowerCase().includes(searchVal)) ||
+            (o.phone && o.phone.includes(searchVal)) ||
+            (o.id && o.id.toLowerCase().includes(searchVal))
+        );
+    }
 
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
         if (displayedOrders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات</td></tr>';
+            ordersTbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-gray-400 font-bold"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>لا توجد طلبيات تطابق بحثك حالياً</td></tr>';
         } else {
             ordersTbody.innerHTML = displayedOrders.map(o => {
                 const status = o.status || 'جديد';
-                let statusBadgeClass = 'bg-yellow-100 text-yellow-800';
-                if (status === 'مؤكد') statusBadgeClass = 'bg-blue-100 text-blue-800';
-                if (status === 'قيد الشحن') statusBadgeClass = 'bg-purple-100 text-purple-800';
-                if (status === 'مكتملاً') statusBadgeClass = 'bg-green-100 text-green-800';
-                if (status === 'ملغى') statusBadgeClass = 'bg-red-100 text-red-800';
+                let statusBadgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                if (status === 'مؤكد') statusBadgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
+                if (status === 'قيد الشحن') statusBadgeClass = 'bg-purple-100 text-purple-800 border-purple-200';
+                if (status === 'مكتملاً') statusBadgeClass = 'bg-green-100 text-green-800 border-green-200';
+                if (status === 'ملغى') statusBadgeClass = 'bg-red-100 text-red-800 border-red-200';
+                
                 let cleanPhone = (o.phone || '').replace(/\s+/g, '');
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
                 const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${state.storeSettings.name} لتأكيد طلبكم.`);
+
+                // ⏱️ معالجة التاريخ والوقت بذكاء
+                let dateStr = 'غير معروف';
+                if (o.createdAt) {
+                    const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+                    // تنسيق جميل: 15 أكتوبر 2026 - 14:30
+                    dateStr = d.toLocaleDateString('ar-DZ', { month: 'short', day: 'numeric' }) + ' - ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+                }
+                
+                // #️⃣ توليد رقم طلب قصير (أول 6 حروف من الـ ID)
+                const shortId = o.id ? o.id.substring(0, 6).toUpperCase() : '000000';
+
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
-                        <td class="p-3">
+                        <td class="p-4">
+                            <div class="font-black text-xs text-[#B8860B] mb-1 tracking-wider">#${shortId}</div>
+                            <div class="text-[10px] text-gray-500 font-bold flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+                        </td>
+                        <td class="p-4">
                             <div class="font-bold text-gray-900">${o.customer}</div>
-                            <div class="text-xs text-gray-500 font-mono">${o.phone}</div>
+                            <div class="text-xs text-gray-500 font-mono mt-1">${o.phone}</div>
                         </td>
-                        <td class="p-3">
+                        <td class="p-4">
                             <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
-                            <div class="text-[11px] text-gray-500">${o.commune || ''}</div>
+                            <div class="text-[11px] text-gray-500 mt-1">${o.commune || ''}</div>
                         </td>
-                        <td class="p-3">
-                            <div class="font-bold text-xs text-gray-900">${o.product}</div>
-                            <div class="font-black text-xs text-[#B8860B]">${o.total ? o.total.toLocaleString() : 0} دج</div>
+                        <td class="p-4">
+                            <div class="font-bold text-xs text-gray-900 leading-relaxed max-w-[200px]">${o.product}</div>
+                            <div class="font-black text-xs text-[#B8860B] mt-1">${o.total ? o.total.toLocaleString() : 0} دج</div>
                         </td>
-                        <td class="p-3">
-                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold p-1.5 rounded-lg border outline-none cursor-pointer ${statusBadgeClass}">
+                        <td class="p-4 text-center">
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold p-2 rounded-lg border outline-none cursor-pointer ${statusBadgeClass} shadow-sm w-28 text-center appearance-none">
                                 <option value="جديد" ${status === 'جديد' ? 'selected' : ''}>🟡 جديد</option>
                                 <option value="مؤكد" ${status === 'مؤكد' ? 'selected' : ''}>🔵 مؤكد</option>
-                                <option value="قيد الشحن" ${status === 'قيد الشحن' ? 'selected' : ''}>🟣 شحن</option>
+                                <option value="قيد الشحن" ${status === 'قيد الشحن' ? 'selected' : ''}>🟣 قيد الشحن</option>
                                 <option value="مكتملاً" ${status === 'مكتملاً' ? 'selected' : ''}>🟢 تم التسليم</option>
                                 <option value="ملغى" ${status === 'ملغى' ? 'selected' : ''}>🔴 ملغى</option>
                             </select>
                         </td>
-                        <td class="p-3 flex items-center gap-2">
-                            <a href="tel:${o.phone}" class="bg-green-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-green-700">📞</a>
-                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-600">💬</a>
-                            <button onclick="promptDeleteOrder('${o.id}')" class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1.5 rounded-lg hover:bg-red-200">🗑️</button>
+                        <td class="p-4 flex items-center justify-center gap-2">
+                            <a href="tel:${o.phone}" title="اتصال هاتفي" class="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold p-2.5 rounded-xl hover:bg-blue-100 hover:scale-105 transition"><i class="fa-solid fa-phone"></i></a>
+                            <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" title="مراسلة واتساب" class="bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold p-2.5 rounded-xl hover:bg-emerald-100 hover:scale-105 transition"><i class="fa-brands fa-whatsapp text-sm"></i></a>
+                            <button onclick="promptDeleteOrder('${o.id}')" title="حذف الطلب" class="bg-red-50 text-red-500 border border-red-200 text-xs font-bold p-2.5 rounded-xl hover:bg-red-100 hover:scale-105 transition"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
                     </tr>
                 `;
