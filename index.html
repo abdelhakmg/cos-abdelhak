@@ -583,28 +583,38 @@
                             <div id="admin-brands-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2"></div>
                         </div>
 
-                        <!-- إدارة أنواع البشرة -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-sparkles text-[#B8860B]"></i> إدارة أنواع البشرة</h3>
-                            <div class="flex gap-2">
-                                <input type="text" id="new-skin-type-input" placeholder="مثال: بشرة مختلطة..." class="border p-3 rounded-xl text-sm flex-1 bg-gray-50">
-                                <button type="button" onclick="handleAddSkinType(event)" class="bg-black text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">+ إضافة</button>
+                        <!-- 🌟 صانع الفلاتر والخصائص الشامل (الجديد) 🌟 -->
+                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5 lg:col-span-2 mt-4">
+                            <div class="border-b pb-3">
+                                <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-filter text-[#B8860B]"></i> صانع الفلاتر والخصائص الشامل للأقسام</h3>
+                                <p class="text-xs text-gray-500 mt-1">من هنا يمكنك صناعة فلاتر بحث احترافية (Checkboxes) لأي قسم جديد (مثل: نوع اللعبة، الفئة المستهدفة، المادة، نوع القماش...).</p>
                             </div>
-                            <div id="admin-skin-types-list" class="space-y-2 pt-2 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
-                        </div>
+                            
+                            <form onsubmit="handleSaveDynamicAttribute(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-5 rounded-xl border border-gray-200">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-2">1. اختر القسم المستهدف *</label>
+                                    <select id="new-attr-category" required class="w-full border p-3 rounded-xl text-sm bg-white outline-none focus:border-[#D4AF37] cursor-pointer"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-2">2. اسم الفلتر (الخاصية) *</label>
+                                    <input type="text" id="new-attr-name" placeholder="مثال: الفئة المستهدفة" required class="w-full border p-3 rounded-xl text-sm bg-white outline-none focus:border-[#D4AF37]">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-700 mb-2">3. الخيارات المتاحة (افصل بينها بفاصلة) *</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="new-attr-options" placeholder="مثال: أولاد, بنات, رضع..." required class="flex-1 border p-3 rounded-xl text-sm bg-white outline-none focus:border-[#D4AF37]">
+                                        <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition whitespace-nowrap"><i class="fa-solid fa-plus"></i> إضافة الفلتر</button>
+                                    </div>
+                                </div>
+                            </form>
 
-                        <!-- إدارة أنواع الشعر -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-wand-magic-sparkles text-[#B8860B]"></i> إدارة أنواع الشعر والعلاج</h3>
-                            <div class="flex gap-2">
-                                <input type="text" id="new-hair-type-input" placeholder="مثال: شعر جاف..." class="border p-3 rounded-xl text-sm flex-1 bg-gray-50">
-                                <button type="button" onclick="handleAddHairType(event)" class="bg-black text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">+ إضافة</button>
+                            <div class="pt-4">
+                                <h4 class="font-bold text-sm mb-3 text-gray-800">الفلاتر المخصصة المضافة حالياً:</h4>
+                                <div id="admin-dynamic-attributes-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                                    <!-- سيتم عرض الفلاتر هنا تلقائياً -->
+                                </div>
                             </div>
-                            <div id="admin-hair-types-list" class="space-y-2 pt-2 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
                         </div>
-                    </div>
-                </div>
-
                 <!-- التبويب 4: الواجهة والتسويق -->
                 <div id="admin-tab-marketing_ui" class="tab-content space-y-6 text-gray-900">
                     <!-- البانر الإعلاني الرئيسي -->
