@@ -149,120 +149,108 @@ export function filterCategory(catName) {
     safeCall('showPage', 'catalog');
 }
 
+// ==========================================
+// 4. نظام الفلاتر الديناميكي الذكي للزبائن 🚀
+// ==========================================
+
 export function renderDynamicSidebarFilters() {
     const dynamicContainer = document.getElementById('dynamic-category-filters');
     if (!dynamicContainer) return;
 
-    const activeCat = (window.activeCategoryFilter || 'جميع المنتجات').trim().toLowerCase();
+    const activeCat = (window.activeCategoryFilter || 'جميع المنتجات').trim();
     let html = '';
 
-    const shapes = ["شكل قلب", "شكل مربع", "شكل مستطيل", "شكل رسالة", "شكل دائري", "علب فوركس", "علب زجاج", "صاك كرتون", "صاك شفاف", "PMMA"];
-    const makeups = ["فوندوتان", "كونسيلر", "ماسكارا", "طراسور", "روج لافر", "قلوص", "هايلايتر", "كونتور", "بالات", "برايمر", "فرشاة", "أخرى"];
-    const perfumes = ["نساء", "رجال", "أطفال", "للجنسين", "عطور جسم", "عطور سيارات"];
-    const hairaccs = ["مساك", "شوشو", "بوندانة", "سيغتات"];
-    const gifts = ["رجالية", "نسائية", "بوكي ورد", "تغليف"];
-
-    // دالة مساعدة لرسم الفلاتر بسهولة
-    const buildFilterGroup = (title, items, cbClass) => {
+    // دالة مساعدة لرسم الفلتر بستايل فاخر
+    const buildFilterGroup = (title, items, attrName) => {
+        if (!items || items.length === 0) return '';
         return `
         <div class="space-y-3">
-            <h4 class="font-bold text-xs text-[#D4AF37]">${title}</h4>
-            <div class="space-y-1 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1">
-                ${items.map(item => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${item}" onchange="window.applyFilters()" class="${cbClass} accent-[#D4AF37]"> ${item}</label>`).join('')}
+            <h4 class="font-bold text-xs text-[#D4AF37]"><i class="fa-solid fa-caret-left"></i> ${title}</h4>
+            <div class="space-y-1 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1 custom-scrollbar">
+                ${items.map(item => `
+                <label class="flex items-center gap-2 cursor-pointer py-0.5 hover:text-white transition">
+                    <input type="checkbox" value="${item}" data-filter-name="${attrName}" onchange="window.applyFilters()" class="dynamic-customer-cb accent-[#D4AF37] w-3 h-3 cursor-pointer"> 
+                    <span>${item}</span>
+                </label>`).join('')}
             </div>
         </div><hr class="border-gray-800">`;
     };
 
-    if (activeCat === 'جميع المنتجات' || activeCat === 'الجميع' || activeCat === '') {
-        // إظهار جميع الفلاتر مجمعة
-        html += buildFilterGroup('✨ نوع البشرة', state.availableSkinTypes, 'skin-filter-cb');
-        html += buildFilterGroup('✨ نوع الشعر والعلاج', state.availableHairTypes, 'hair-filter-cb');
-        html += buildFilterGroup('💍 نوع المعدن', ['بلاكيور أور', 'أسي إينوكسيدابل / Steel'], 'metal-cb');
-        html += buildFilterGroup('🎁 شكل الصندوق', shapes, 'giftshape-cb');
-        html += buildFilterGroup('💄 المايكاب', makeups, 'makeup-cb');
-        html += buildFilterGroup('🌸 العطور', perfumes, 'perfume-cb');
-        html += buildFilterGroup('🎀 إكسسوارات الشعر', hairaccs, 'hairacc-cb');
-        html += buildFilterGroup('🎁 الهدايا', gifts, 'gift-cb');
-    } else {
-        // إظهار الفلاتر حسب القسم
-        if (activeCat.includes('كوسمتيك') || activeCat.includes('عناية')) {
-            html += buildFilterGroup('✨ منطقة الاستخدام', ['للوجه', 'للجسد', 'للشعر', 'للتدليك والعناية'], 'cos-area-cb');
-            html += buildFilterGroup('✨ نوع البشرة', state.availableSkinTypes, 'skin-filter-cb');
-            html += buildFilterGroup('✨ نوع الشعر', state.availableHairTypes, 'hair-filter-cb');
-        }
-        if (activeCat.includes('بلاكيور') || activeCat.includes('اصي') || activeCat.includes('اكسسوارات')) {
-            html += buildFilterGroup('💍 نوع المعدن', ['بلاكيور أور', 'أسي إينوكسيدابل / Steel'], 'metal-cb');
-        }
-        if (activeCat.includes('علب')) {
-            html += buildFilterGroup('🎁 شكل الصندوق', shapes, 'giftshape-cb');
-        }
-        if (activeCat.includes('مايكاب') || activeCat.includes('مكياج')) {
-            html += buildFilterGroup('💄 نوع المايكاب', makeups, 'makeup-cb');
-        }
-        if (activeCat.includes('عطور') || activeCat.includes('بارفان')) {
-            html += buildFilterGroup('🌸 فئة العطر', perfumes, 'perfume-cb');
-        }
-        if (activeCat.includes('هدايا')) {
-            html += buildFilterGroup('🎁 نوع الهدية', gifts, 'gift-cb');
-        }
+    // 1. جلب الفلاتر الديناميكية التي صنعها المدير في لوحة التحكم!
+    if (state.categoryFilters && state.categoryFilters[activeCat] && state.categoryFilters[activeCat].length > 0) {
+        state.categoryFilters[activeCat].forEach(filter => {
+            html += buildFilterGroup(filter.name, filter.options, filter.name);
+        });
+    } else if (activeCat === 'جميع المنتجات') {
+        html += '<p class="text-[10px] text-gray-500 text-center py-4 bg-black/40 rounded-xl border border-gray-800">يرجى تحديد قسم (مثل ألعاب أو ديكور) لظهور فلاتر البحث الدقيقة.</p>';
     }
-    
+
     dynamicContainer.innerHTML = html;
 }
+
 export function applyFilters() {
     if (!state.products || !Array.isArray(state.products)) return;
     let filtered = [...state.products];
 
-    // فلترة القسم النشط
+    // 1. فلترة القسم
     if (window.activeCategoryFilter && window.activeCategoryFilter !== 'جميع المنتجات') {
         const targetCat = window.activeCategoryFilter.trim().toLowerCase();
         filtered = filtered.filter(p => (p.category || '').toLowerCase().includes(targetCat));
     }
 
-    // فلتر المخزون
+    // 2. فلتر المخزون
     const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
     if (inStockOnly) filtered = filtered.filter(p => p.inStock === true);
 
-    // فلتر السعر
+    // 3. فلتر السعر
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
     }
 
-    // فلاتر الخصائص الديناميكية (Dynamic Checkboxes)
-    const selCosAreas = Array.from(document.querySelectorAll('.cos-area-cb:checked')).map(cb => cb.value);
-    if (selCosAreas.length > 0) filtered = filtered.filter(p => selCosAreas.includes(p.cosmeticArea));
+    // 4. الفلاتر الديناميكية للزبائن (Smart Dynamic Filtering)
+    const dynamicCheckboxes = document.querySelectorAll('.dynamic-customer-cb:checked');
+    if (dynamicCheckboxes.length > 0) {
+        const selectedFilters = {};
+        // تجميع الاختيارات حسب اسم الفلتر
+        dynamicCheckboxes.forEach(cb => {
+            const attrName = cb.getAttribute('data-filter-name');
+            if (!selectedFilters[attrName]) selectedFilters[attrName] = [];
+            selectedFilters[attrName].push(cb.value);
+        });
 
-    const selMetals = Array.from(document.querySelectorAll('.metal-cb:checked')).map(cb => cb.value);
-    if (selMetals.length > 0) filtered = filtered.filter(p => selMetals.includes(p.jewelryMetal));
-
-    const selectedSkinTypes = Array.from(document.querySelectorAll('.skin-filter-cb:checked')).map(cb => cb.value);
-    if (selectedSkinTypes.length > 0) {
+        // تطبيق الفلتر على المنتجات
         filtered = filtered.filter(p => {
-            const pSkins = Array.isArray(p.skinTypes) ? p.skinTypes : (p.skinType ? [p.skinType] : []);
-            return selectedSkinTypes.some(st => pSkins.includes(st));
+            // إذا كان المنتج قديماً وليس له خصائص ديناميكية، يتم استبعاده من البحث الدقيق
+            if (!p.attributes) return false;
+
+            // يجب أن يطابق المنتج *جميع* أنواع الفلاتر المحددة (AND logic)
+            return Object.keys(selectedFilters).every(attrName => {
+                const productAttrValues = p.attributes[attrName] || [];
+                // يكفي أن يمتلك المنتج *أحد* الخيارات المحددة داخل هذا الفلتر (OR logic)
+                return selectedFilters[attrName].some(val => productAttrValues.includes(val));
+            });
         });
     }
 
-    // الترتيب (Sorting)
+    // 5. الترتيب (Sorting)
     const sortVal = document.getElementById('sort-select')?.value || 'best';
     if (sortVal === 'low') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     else if (sortVal === 'high') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
     else filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
 
-    // تحديث الواجهة
+    // تحديث الواجهة والعداد
     const catalogGrid = document.getElementById('catalog-products');
     const badge = document.getElementById('products-count-badge');
     if (badge) badge.innerText = filtered.length;
 
     if (catalogGrid) {
         catalogGrid.innerHTML = filtered.length === 0 ? 
-            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة.</p></div>' :
+            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لخيارات الفلترة.</p></div>' :
             filtered.map(renderSingleProductCard).join('');
     }
 }
-
 export function resetFilters() {
     window.activeCategoryFilter = 'جميع المنتجات';
     const inStockCb = document.getElementById('filter-in-stock-only');
