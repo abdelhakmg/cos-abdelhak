@@ -157,73 +157,58 @@ export function renderDynamicSidebarFilters() {
     let html = '';
 
     const shapes = ["شكل قلب", "شكل مربع", "شكل مستطيل", "شكل رسالة", "شكل دائري", "علب فوركس", "علب زجاج", "صاك كرتون", "صاك شفاف", "PMMA"];
-    const makeups = ["فوندوتان", "كونسيلر", "ماسكارا", "طراسور", "روج لافر", "قلوص", "هايلايتر", "كونتور", "بالات", "برايمر", "ليوناغ", "فرشاة", "بونجة", "آلات", "أشفار", "أظافر", "لسقة أشفار", "لسقة أظافر", "فلامينغو", "فارني", "أخرى"];
-    const perfumes = ["نساء", "رجال", "أطفال", "للجنسين", "عطور جسم", "عطور غرف", "عطور ملابس", "عطور سيارات"];
-    const hairaccs = ["مساك", "شوشو", "كخاب", "بوندانة", "سيغتات", "مناقش", "سنسلة", "خاتم", "قورمات", "خلخال"];
-    const gifts = ["رجالية", "نسائية", "بوكي ورد", "بيبي", "تغليف"];
+    const makeups = ["فوندوتان", "كونسيلر", "ماسكارا", "طراسور", "روج لافر", "قلوص", "هايلايتر", "كونتور", "بالات", "برايمر", "فرشاة", "أخرى"];
+    const perfumes = ["نساء", "رجال", "أطفال", "للجنسين", "عطور جسم", "عطور سيارات"];
+    const hairaccs = ["مساك", "شوشو", "بوندانة", "سيغتات"];
+    const gifts = ["رجالية", "نسائية", "بوكي ورد", "تغليف"];
+
+    // دالة مساعدة لرسم الفلاتر بسهولة
+    const buildFilterGroup = (title, items, cbClass) => {
+        return `
+        <div class="space-y-3">
+            <h4 class="font-bold text-xs text-[#D4AF37]">${title}</h4>
+            <div class="space-y-1 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1">
+                ${items.map(item => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${item}" onchange="window.applyFilters()" class="${cbClass} accent-[#D4AF37]"> ${item}</label>`).join('')}
+            </div>
+        </div><hr class="border-gray-800">`;
+    };
 
     if (activeCat === 'جميع المنتجات' || activeCat === 'الجميع' || activeCat === '') {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${state.availableSkinTypes.map(st => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="safeCall('applyFilters')" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>`).join('')}
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع الشعر والعلاج</h4>
-                <div class="space-y-1 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1">
-                    ${state.availableHairTypes.map(ht => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${ht}" onchange="safeCall('applyFilters')" class="hair-filter-cb accent-[#D4AF37]"> ${ht}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat.includes('كوسمتيك')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ منطقة الاستخدام:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للوجه" onchange="safeCall('applyFilters')" class="cos-area-cb accent-[#D4AF37]"> للوجه</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للجسد" onchange="safeCall('applyFilters')" class="cos-area-cb accent-[#D4AF37]"> للجسد</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="للشعر" onchange="safeCall('applyFilters')" class="cos-area-cb accent-[#D4AF37]"> للشعر</label>
-                </div>
-            </div>
-            <hr class="border-gray-800">
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">✨ نوع البشرة:</h4>
-                <div class="space-y-1 text-xs text-gray-300">
-                    ${state.availableSkinTypes.map(st => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${st}" onchange="safeCall('applyFilters')" class="skin-filter-cb accent-[#D4AF37]"> ${st}</label>`).join('')}
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat.includes('بلاكيور') || activeCat.includes('اصي')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">💍 نوع المعدن:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300">
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="بلاكيور أور" onchange="safeCall('applyFilters')" class="metal-cb accent-[#D4AF37]"> بلاكيور أور</label>
-                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="أسي إينوكسيدابل / Steel" onchange="safeCall('applyFilters')" class="metal-cb accent-[#D4AF37]"> أسي إينوكسيدابل / Steel</label>
-                </div>
-            </div>
-        `;
-    } 
-    else if (activeCat === 'علب' || activeCat.includes('علب')) {
-        html = `
-            <div class="space-y-3">
-                <h4 class="font-bold text-xs text-[#D4AF37]">🎁 شكل الصندوق:</h4>
-                <div class="space-y-1.5 text-xs text-gray-300 max-h-48 overflow-y-auto pr-1">
-                    ${shapes.map(sh => `<label class="flex items-center gap-2 cursor-pointer py-0.5"><input type="checkbox" value="${sh}" onchange="safeCall('applyFilters')" class="giftshape-cb accent-[#D4AF37]"> ${sh}</label>`).join('')}
-                </div>
-            </div>
-        `;
+        // إظهار جميع الفلاتر مجمعة
+        html += buildFilterGroup('✨ نوع البشرة', state.availableSkinTypes, 'skin-filter-cb');
+        html += buildFilterGroup('✨ نوع الشعر والعلاج', state.availableHairTypes, 'hair-filter-cb');
+        html += buildFilterGroup('💍 نوع المعدن', ['بلاكيور أور', 'أسي إينوكسيدابل / Steel'], 'metal-cb');
+        html += buildFilterGroup('🎁 شكل الصندوق', shapes, 'giftshape-cb');
+        html += buildFilterGroup('💄 المايكاب', makeups, 'makeup-cb');
+        html += buildFilterGroup('🌸 العطور', perfumes, 'perfume-cb');
+        html += buildFilterGroup('🎀 إكسسوارات الشعر', hairaccs, 'hairacc-cb');
+        html += buildFilterGroup('🎁 الهدايا', gifts, 'gift-cb');
+    } else {
+        // إظهار الفلاتر حسب القسم
+        if (activeCat.includes('كوسمتيك') || activeCat.includes('عناية')) {
+            html += buildFilterGroup('✨ منطقة الاستخدام', ['للوجه', 'للجسد', 'للشعر', 'للتدليك والعناية'], 'cos-area-cb');
+            html += buildFilterGroup('✨ نوع البشرة', state.availableSkinTypes, 'skin-filter-cb');
+            html += buildFilterGroup('✨ نوع الشعر', state.availableHairTypes, 'hair-filter-cb');
+        }
+        if (activeCat.includes('بلاكيور') || activeCat.includes('اصي') || activeCat.includes('اكسسوارات')) {
+            html += buildFilterGroup('💍 نوع المعدن', ['بلاكيور أور', 'أسي إينوكسيدابل / Steel'], 'metal-cb');
+        }
+        if (activeCat.includes('علب')) {
+            html += buildFilterGroup('🎁 شكل الصندوق', shapes, 'giftshape-cb');
+        }
+        if (activeCat.includes('مايكاب') || activeCat.includes('مكياج')) {
+            html += buildFilterGroup('💄 نوع المايكاب', makeups, 'makeup-cb');
+        }
+        if (activeCat.includes('عطور') || activeCat.includes('بارفان')) {
+            html += buildFilterGroup('🌸 فئة العطر', perfumes, 'perfume-cb');
+        }
+        if (activeCat.includes('هدايا')) {
+            html += buildFilterGroup('🎁 نوع الهدية', gifts, 'gift-cb');
+        }
     }
-    // يمكنك الاستمرار في إضافة باقي الشروط حسب الأقسام (مكياج، عطور...) بنفس النمط.
     
     dynamicContainer.innerHTML = html;
 }
-
 export function applyFilters() {
     if (!state.products || !Array.isArray(state.products)) return;
     let filtered = [...state.products];
