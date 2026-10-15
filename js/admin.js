@@ -1,58 +1,17 @@
-// --- ملف js/admin.js (النسخة المتطورة الذكية) ---
+// --- ملف js/admin.js (عقل المنصة والمحرك الديناميكي الشامل) ---
 
 import { state } from './store/state.js';
 import { showCustomAlert, safeCall } from './utils/helpers.js';
 
 let pendingDeleteOrderId = null;
 
-export function handleImageUpload(event, targetInputId) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    showCustomAlert('جاري المعالجة...', 'جاري تحضير الصورة وضغطها للعرض السريع.', true);
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const maxDimension = 800;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-                if (width > maxDimension) {
-                    height *= maxDimension / width;
-                    width = maxDimension;
-                }
-            } else {
-                if (height > maxDimension) {
-                    width *= maxDimension / height;
-                    height = maxDimension;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
-            document.getElementById(targetInputId).value = compressedDataUrl;
-
-            showCustomAlert('تم الرفع بنجاح! 📸', 'تم إدراج الصورة المرفوعة بنجاح في الحقل.', true);
-        };
-    };
-    reader.readAsDataURL(file);
-}
-
+// =====================================
+// دوال النظام والمصادقة
+// =====================================
 export function checkAdminPassword() {
     const emailInput = document.getElementById('admin-email-input');
     const passInput = document.getElementById('admin-pass-input');
-    
     if (!emailInput || !passInput) return;
-    
     const email = emailInput.value.trim();
     const password = passInput.value.trim();
 
@@ -66,28 +25,22 @@ export function checkAdminPassword() {
             .then(() => window.firebase.auth().signInWithEmailAndPassword(email, password))
             .then((userCredential) => {
                 const user = userCredential.user;
-                const allowedAdminEmail = "mohamed.pato@gmail.com"; 
-                
-                if (user.email !== allowedAdminEmail) {
+                if (user.email !== "mohamed.pato@gmail.com") {
                     window.firebase.auth().signOut();
                     showCustomAlert('غير مخول', 'عذراً، هذا الحساب ليس له صلاحيات إدارية!', false);
                     return;
                 }
-
                 const authModal = document.getElementById('admin-auth-modal');
                 if (authModal) {
                     authModal.style.display = 'none';
                     authModal.classList.add('hidden');
-                    authModal.classList.remove('flex');
                 }
                 localStorage.setItem('cosAdminLoggedIn', 'true');
-                emailInput.value = '';
-                passInput.value = '';
-                
+                emailInput.value = ''; passInput.value = '';
                 safeCall('showPage', 'admin');
                 showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
             })
-            .catch(() => showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة البريد أو كلمة المرور.', false));
+            .catch(() => showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة البيانات.', false));
     }
 }
 
@@ -97,7 +50,7 @@ export function adminSignOut() {
         window.firebase.auth().signOut().then(() => {
             showCustomAlert('تم تسجيل الخروج', 'تم تأمين وإنهاء الجلسة بنجاح.', true);
             safeCall('showPage', 'home');
-        }).catch((error) => console.error('خطأ أثناء تسجيل الخروج:', error));
+        });
     }
 }
 
@@ -117,13 +70,11 @@ export function switchAdminTab(tabName) {
         btn.classList.add('bg-black', 'text-white', 'border-[#D4AF37]/30');
     }
 
-    if (tabName === 'shipping_settings') {
-        if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
-    }
+    if (tabName === 'shipping_settings') if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
     if (tabName === 'categories_attributes') {
         if (typeof renderAdminBrandsList === 'function') renderAdminBrandsList();
         if (typeof renderAdminCategoriesList === 'function') renderAdminCategoriesList();
-        if (typeof renderAdminAttributesTab === 'function') renderAdminAttributesTab();
+        populateFilterCategories(); // تحديث صانع الفلاتر
     }
     if (tabName === 'marketing_ui') {
         if (typeof renderBannerTextsList === 'function') renderBannerTextsList();
@@ -140,238 +91,157 @@ export function populateAdminDropdowns() {
 
     const brandSelect = document.getElementById('prod-brand-select');
     if (brandSelect) {
-        const brandList = state.brands.length > 0 ? state.brands : ["Dior", "Chanel", "Gucci", "Versace", "عام"];
+        const brandList = state.brands.length > 0 ? state.brands : ["عام"];
         brandSelect.innerHTML = '<option value="">-- اختر العلامة التجارية (الماركة) --</option>' + 
             brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
     }
 
+    populateFilterCategories();
     renderCategorySpecificAdminFields();
 }
 
-// 🧠 المحرك الذكي لخصائص المنتجات (Smart Attributes Engine)
+// =====================================
+// 🚀 المحرك الذكي: ربط الأقسام بصانع الفلاتر
+// =====================================
+
+// 1. عند الضغط على بطاقة القسم، ينزل بك لصانع الفلاتر
+export function selectCategoryForFilter(catName) {
+    const select = document.getElementById('new-attr-category');
+    if (select) {
+        select.value = catName;
+        renderDynamicAttributesList(); // جلب الفلاتر فوراً
+        select.scrollIntoView({ behavior: 'smooth', block: 'center' }); // نزول سلس للشاشة
+        showCustomAlert('تم التحديد', `تم تحديد قسم (${catName}) بنجاح، يمكنك إضافة فلاتر له الآن أسفله.`, true);
+    }
+}
+
+export function populateFilterCategories() {
+    const select = document.getElementById('new-attr-category');
+    if (select) {
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">-- اختر القسم المستهدف --</option>' + 
+            state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        select.value = currentValue;
+        select.addEventListener('change', renderDynamicAttributesList);
+    }
+}
+
+export function handleSaveDynamicAttribute(e) {
+    e.preventDefault();
+    const catName = document.getElementById('new-attr-category').value;
+    const attrName = document.getElementById('new-attr-name').value.trim();
+    const attrOptionsStr = document.getElementById('new-attr-options').value.trim();
+
+    if (!catName || !attrName || !attrOptionsStr) return;
+
+    const options = attrOptionsStr.split(',').map(o => o.trim()).filter(Boolean);
+    
+    if (!state.categoryFilters) state.categoryFilters = {};
+    if (!state.categoryFilters[catName]) state.categoryFilters[catName] = [];
+
+    // إضافة الفلتر الجديد
+    state.categoryFilters[catName].push({ name: attrName, options: options });
+
+    // حفظ في فايربيس
+    window.db.collection("settings").doc("main").set({ categoryFilters: state.categoryFilters }, { merge: true }).then(() => {
+        document.getElementById('new-attr-name').value = '';
+        document.getElementById('new-attr-options').value = '';
+        renderDynamicAttributesList(); // تحديث القائمة فوراً
+        showCustomAlert('تم الحفظ 🛠️', `تمت إضافة فلتر (${attrName}) لقسم (${catName}) بنجاح!`, true);
+    });
+}
+
+export function renderDynamicAttributesList() {
+    const catName = document.getElementById('new-attr-category')?.value;
+    const listContainer = document.getElementById('admin-dynamic-attributes-list');
+    if (!listContainer) return;
+
+    if (!catName || !state.categoryFilters || !state.categoryFilters[catName] || state.categoryFilters[catName].length === 0) {
+        listContainer.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد فلاتر مخصصة لهذا القسم بعد. صمم أول فلتر من الأعلى!</p>';
+        return;
+    }
+
+    listContainer.innerHTML = state.categoryFilters[catName].map((attr, idx) => `
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-xs space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <span class="font-black text-[#B8860B]"><i class="fa-solid fa-filter"></i> ${attr.name}</span>
+                <button type="button" onclick="deleteDynamicAttribute('${catName}', ${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg font-bold transition">حذف الفلتر</button>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+                ${attr.options.map(opt => `<span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg border border-gray-200 font-bold">${opt}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+export function deleteDynamicAttribute(catName, idx) {
+    if (confirm('هل أنت متأكد من حذف هذا الفلتر نهائياً؟ ستفقده المنتجات المرتبطة به.')) {
+        state.categoryFilters[catName].splice(idx, 1);
+        window.db.collection("settings").doc("main").set({ categoryFilters: state.categoryFilters }, { merge: true }).then(() => {
+            renderDynamicAttributesList();
+        });
+    }
+}
+
+// =====================================
+// 🎯 عرض الفلاتر الديناميكية عند "إضافة منتج"
+// =====================================
 export function renderCategorySpecificAdminFields() {
     const catSelect = document.getElementById('prod-category-select');
     const container = document.getElementById('category-dynamic-fields-container');
     if (!catSelect || !container) return;
 
-    const selectedCategory = (catSelect.value || '').trim().toLowerCase();
+    const selectedCategory = (catSelect.value || '').trim();
     let html = '';
 
-    const isCosmetics = selectedCategory.includes('كوسمتيك') || selectedCategory.includes('عناية') || selectedCategory.includes('بشرة') || selectedCategory.includes('شعر');
-    const isMakeup = selectedCategory.includes('مايكاب') || selectedCategory.includes('مكياج');
-    const isJewelry = selectedCategory.includes('بلاكيور') || selectedCategory.includes('اصي') || selectedCategory.includes('اكسسوار') || selectedCategory.includes('مجوهرات') || selectedCategory.includes('ساعات');
-    const isBoxes = selectedCategory.includes('علب') || selectedCategory.includes('تغليف') || selectedCategory.includes('صناديق');
-    const isPerfumes = selectedCategory.includes('عطور') || selectedCategory.includes('بارفان');
-    const isGifts = selectedCategory.includes('هدايا') || selectedCategory.includes('بوكس');
-    const isToys = selectedCategory.includes('العاب') || selectedCategory.includes('ألعاب') || selectedCategory.includes('لعب');
-
-    if (isCosmetics || isMakeup) {
-        html += `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">✨ خصائص العناية والمكياج:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">منطقة الاستخدام:</label>
-                        <select id="prod-cosmetic-area" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="للوجه">للوجه</option>
-                            <option value="للجسد">للجسد</option>
-                            <option value="للشعر">للشعر</option>
-                            <option value="للتدليك والعناية">للتدليك والعناية</option>
-                        </select>
-                    </div>
-                    ${isMakeup ? `
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المايكاب *</label>
-                        <select id="prod-makeup-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="فوندوتان">فوندوتان</option>
-                            <option value="كونسيلر">كونسيلر</option>
-                            <option value="ماسكارا">ماسكارا</option>
-                            <option value="طراسور">طراسور</option>
-                            <option value="روج لافر">روج لافر</option>
-                            <option value="قلوص">قلوص</option>
-                            <option value="هايلايتر">هايلايتر</option>
-                            <option value="كونتور">كونتور</option>
-                            <option value="بالات">بالات</option>
-                            <option value="فرشاة">فرشاة</option>
-                            <option value="أخرى">أخرى</option>
-                        </select>
-                    </div>` : `
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المنتج الفرعي:</label>
-                        <input type="text" id="prod-cosmetic-type" placeholder="مثال: شامبو، جل دش، كريم مرطب..." class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                    </div>`}
+    // قراءة الفلاتر المرتبطة بهذا القسم من قاعدة البيانات
+    if (state.categoryFilters && state.categoryFilters[selectedCategory] && state.categoryFilters[selectedCategory].length > 0) {
+        html += `<div class="bg-gray-50 p-5 rounded-2xl border border-[#D4AF37]/40 space-y-5 mb-4 shadow-sm">
+            <h4 class="font-black text-sm text-[#B8860B]"><i class="fa-solid fa-layer-group"></i> فلاتر قسم (${selectedCategory}) المخصصة:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">`;
+        
+        state.categoryFilters[selectedCategory].forEach((attr, index) => {
+            html += `
+            <div>
+                <label class="block text-xs font-bold text-gray-800 mb-2">${attr.name}</label>
+                <div class="flex flex-wrap gap-2 bg-white p-3 rounded-xl border border-gray-200 max-h-32 overflow-y-auto">
+                    ${attr.options.map(opt => `
+                        <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-gray-700 hover:text-black">
+                            <input type="checkbox" value="${opt}" data-attr-name="${attr.name}" class="dynamic-attr-cb accent-[#D4AF37] w-4 h-4 cursor-pointer">
+                            <span>${opt}</span>
+                        </label>
+                    `).join('')}
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع البشرة المناسبة (اختيار متعدد):</label>
-                        <div id="admin-prod-skin-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-32 overflow-y-auto text-xs"></div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">أنواع الشعر المناسبة (اختيار متعدد):</label>
-                        <div id="admin-prod-hair-checkboxes" class="grid grid-cols-2 gap-2 bg-white p-3 rounded-xl border max-h-32 overflow-y-auto text-xs"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+            </div>`;
+        });
 
-    if (isJewelry) {
-        html += `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">💍 خصائص المجوهرات والساعات:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع المعدن *</label>
-                        <select id="prod-jewelry-metal" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="بلاكيور أور">بلاكيور أور</option>
-                            <option value="أسي إينوكسيدابل / Steel">أسي إينوكسيدابل / Steel</option>
-                            <option value="جلد">جلد (ساعات)</option>
-                            <option value="سيليكون">سيليكون</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">نوع القطعة *</label>
-                        <select id="prod-jewelry-type" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="ساعة">ساعة</option>
-                            <option value="سلسلة">سلسلة</option>
-                            <option value="خاتم">خاتم</option>
-                            <option value="قورمات">قورمات</option>
-                            <option value="بارور">بارور</option>
-                            <option value="مناقش">مناقش</option>
-                            <option value="مساك">مساك شعر</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    if (isBoxes) {
-        html += `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎁 خصائص العلب والتغليف:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">شكل ومادة الصندوق *</label>
-                    <select id="prod-giftbox-shape" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="شكل قلب">شكل قلب</option>
-                        <option value="شكل مربع">شكل مربع</option>
-                        <option value="شكل مستطيل">شكل مستطيل</option>
-                        <option value="شكل دائري">شكل دائري</option>
-                        <option value="علب فوركس">علب فوركس</option>
-                        <option value="صاك كرتون">صاك كرتون</option>
-                        <option value="صاك شفاف">صاك شفاف</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    }
-
-    if (isPerfumes) {
-        html += `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🌸 خصائص العطور:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">فئة العطر والاستخدام *</label>
-                    <select id="prod-perfume-target" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="نساء">نساء</option>
-                        <option value="رجال">رجال</option>
-                        <option value="أطفال">أطفال</option>
-                        <option value="للجنسين">للجنسين</option>
-                        <option value="عطور جسم">عطور جسم</option>
-                        <option value="عطور غرف">عطور غرف</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    }
-
-    if (isGifts) {
-        html += `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🎀 خصائص الهدايا:</h4>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-1">نوع ومناسبة الهدية *</label>
-                    <select id="prod-gift-occasion" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                        <option value="رجالية">رجالية</option>
-                        <option value="نسائية">نسائية</option>
-                        <option value="بوكي ورد">بوكي ورد</option>
-                        <option value="بيبي">بيبي</option>
-                        <option value="تغليف">تغليف</option>
-                    </select>
-                </div>
-            </div>
-        `;
-    }
-
-    if (isToys) {
-        html += `
-            <div class="bg-gray-50 p-4 rounded-xl border space-y-3 mb-3">
-                <h4 class="font-bold text-xs text-[#B8860B]">🧸 خصائص قسم الألعاب:</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">الفئة المستهدفة *</label>
-                        <select id="prod-toy-target" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="أولاد">أولاد</option>
-                            <option value="بنات">بنات</option>
-                            <option value="للجنسين">للجنسين</option>
-                            <option value="أطفال صغار">أطفال صغار (رضع)</option>
-                            <option value="كبار">كبار</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">المادة / النوع *</label>
-                        <select id="prod-toy-material" class="w-full border p-2.5 rounded-xl text-xs bg-white">
-                            <option value="نيلو">نيلو / بلاستيك</option>
-                            <option value="حديد">حديد / معدن</option>
-                            <option value="خشب">خشب</option>
-                            <option value="قماش">قماش / محشوة</option>
-                            <option value="تعليمية">تعليمية / ذكاء</option>
-                            <option value="أخرى">أخرى</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    if (!isCosmetics && !isMakeup && !isJewelry && !isBoxes && !isPerfumes && !isGifts && !isToys) {
-        html = `
-            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-3 space-y-2">
-                <h4 class="font-bold text-xs text-blue-800"><i class="fa-solid fa-tags"></i> تصنيفات وفلاتر مخصصة لهذا القسم الجديد:</h4>
-                <p class="text-[10px] text-blue-600">اكتب هنا التصنيفات (مثال: صيفي، قطن، رياضي...) لتظهر كفلاتر بحث للزبائن.</p>
-                <input type="text" id="prod-custom-tags" placeholder="مثال: ولادي, حديد, كبير (افصل بينها بفاصلة)" class="w-full border p-2.5 rounded-xl text-xs bg-white focus:border-blue-400 outline-none">
-            </div>
-        `;
+        html += `</div></div>`;
+    } else if (selectedCategory) {
+         html = `<div class="bg-blue-50 p-4 rounded-xl border border-blue-200 mb-4 space-y-2">
+            <h4 class="font-bold text-xs text-blue-800"><i class="fa-solid fa-circle-info"></i> لا توجد فلاتر مخصصة</h4>
+            <p class="text-[10px] text-blue-600">يمكنك صنع فلاتر احترافية (Checkboxes) لهذا القسم من تبويب "الأقسام والخصائص".</p>
+        </div>`;
     }
 
     container.innerHTML = html;
-
-    const skinCbContainer = document.getElementById('admin-prod-skin-checkboxes');
-    if (skinCbContainer && state.availableSkinTypes) {
-        skinCbContainer.innerHTML = state.availableSkinTypes.map(st => `
-            <label class="flex items-center gap-1.5 cursor-pointer">
-                <input type="checkbox" value="${st}" class="prod-skin-cb accent-[#D4AF37]">
-                <span>${st}</span>
-            </label>
-        `).join('');
-    }
-
-    const hairCbContainer = document.getElementById('admin-prod-hair-checkboxes');
-    if (hairCbContainer && state.availableHairTypes) {
-        hairCbContainer.innerHTML = state.availableHairTypes.map(ht => `
-            <label class="flex items-center gap-1.5 cursor-pointer">
-                <input type="checkbox" value="${ht}" class="prod-hair-cb accent-[#D4AF37]">
-                <span>${ht}</span>
-            </label>
-        `).join('');
-    }
 }
+
+// =====================================
+// إضافة وحفظ المنتجات باستخدام المحرك الجديد
+// =====================================
 export function handleSaveProduct(e) {
     if (e) e.preventDefault();
     try {
         const editId = document.getElementById('editing-product-id').value;
-        const selectedSkins = Array.from(document.querySelectorAll('.prod-skin-cb:checked')).map(cb => cb.value);
-        const selectedHairs = Array.from(document.querySelectorAll('.prod-hair-cb:checked')).map(cb => cb.value);
+        
+        // 🚀 السحر هنا: تجميع الفلاتر الديناميكية المختارة بذكاء
+        const dynamicCheckboxes = document.querySelectorAll('.dynamic-attr-cb:checked');
+        const customAttributes = {};
+        dynamicCheckboxes.forEach(cb => {
+            const attrName = cb.getAttribute('data-attr-name');
+            if (!customAttributes[attrName]) customAttributes[attrName] = [];
+            customAttributes[attrName].push(cb.value);
+        });
 
         const productData = {
             name: document.getElementById('prod-name').value.trim(),
@@ -380,20 +250,9 @@ export function handleSaveProduct(e) {
             category: document.getElementById('prod-category-select').value,
             brand: document.getElementById('prod-brand-select').value,
             inStock: document.getElementById('prod-in-stock').value === 'true',
-            skinTypes: selectedSkins,
-            hairTypes: selectedHairs,
-            cosmeticArea: document.getElementById('prod-cosmetic-area')?.value || '',
-            cosmeticType: document.getElementById('prod-cosmetic-type')?.value || '',
-            jewelryMetal: document.getElementById('prod-jewelry-metal')?.value || '',
-            jewelryType: document.getElementById('prod-jewelry-type')?.value || '',
-            giftboxShape: document.getElementById('prod-giftbox-shape')?.value || '',
-            makeupType: document.getElementById('prod-makeup-type')?.value || '',
-            perfumeTarget: document.getElementById('prod-perfume-target')?.value || '',
-            hairaccType: document.getElementById('prod-hairacc-type')?.value || '',
-            giftOccasion: document.getElementById('prod-gift-occasion')?.value || '',
-            toyTarget: document.getElementById('prod-toy-target')?.value || '',
-            toyMaterial: document.getElementById('prod-toy-material')?.value || '',
-            customTags: document.getElementById('prod-custom-tags')?.value.trim() || '',
+            
+            attributes: customAttributes, // هنا تُحفظ كل الفلاتر مهما كان القسم!
+            
             colors: document.getElementById('prod-colors')?.value.trim() || '',
             numbers: document.getElementById('prod-numbers')?.value.trim() || '',
             desc: document.getElementById('prod-desc')?.value.trim() || '',
@@ -420,13 +279,6 @@ export function handleSaveProduct(e) {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     }
 }
-export function resetProductForm() {
-    document.getElementById('product-edit-form').reset();
-    document.getElementById('editing-product-id').value = '';
-    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج';
-    document.getElementById('cancel-edit-btn').classList.add('hidden');
-    renderCategorySpecificAdminFields();
-}
 
 export function editProduct(id) {
     const p = state.products.find(prod => prod.id === id);
@@ -440,11 +292,19 @@ export function editProduct(id) {
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
 
+    // 1. نرسم الفلاتر المخصصة لهذا القسم أولاً
     renderCategorySpecificAdminFields();
 
-    if (document.getElementById('prod-toy-target')) document.getElementById('prod-toy-target').value = p.toyTarget || 'أولاد';
-    if (document.getElementById('prod-toy-material')) document.getElementById('prod-toy-material').value = p.toyMaterial || 'نيلو';
-    if (document.getElementById('prod-custom-tags')) document.getElementById('prod-custom-tags').value = p.customTags || '';
+    // 2. نقوم بوضع علامة (صح) على الخصائص التي اختارها المدير مسبقاً
+    if (p.attributes) {
+        const dynamicCheckboxes = document.querySelectorAll('.dynamic-attr-cb');
+        dynamicCheckboxes.forEach(cb => {
+            const attrName = cb.getAttribute('data-attr-name');
+            if (p.attributes[attrName] && p.attributes[attrName].includes(cb.value)) {
+                cb.checked = true;
+            }
+        });
+    }
 
     document.getElementById('prod-desc').value = p.desc || '';
     const imgs = p.images || [];
@@ -457,12 +317,196 @@ export function editProduct(id) {
     window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
 
+export function resetProductForm() {
+    document.getElementById('product-edit-form').reset();
+    document.getElementById('editing-product-id').value = '';
+    document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج';
+    document.getElementById('cancel-edit-btn').classList.add('hidden');
+    renderCategorySpecificAdminFields();
+}
+
 export function deleteProduct(id) {
     if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج؟')) {
-        window.db.collection("products").doc(id).delete().then(() => {
-            showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
+        window.db.collection("products").doc(id).delete().then(() => showCustomAlert('تم الحذف', 'تم الحذف بنجاح.', true));
+    }
+}
+
+export function toggleProductStock(id, currentStatus) {
+    const newStatus = !currentStatus;
+    window.db.collection("products").doc(id).update({ inStock: newStatus })
+        .catch(err => showCustomAlert('خطأ', 'لم يتم تحديث المخزون: ' + err.message, false));
+}
+
+// =====================================
+// إدارة الأقسام والماركات (محدثة برمجياً)
+// =====================================
+export function renderAdminCategoriesList() {
+    const container = document.getElementById('admin-categories-list');
+    if (!container) return;
+    
+    if (!state.categories || state.categories.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد فئات مضافة.</p>';
+        return;
+    }
+
+    // 🚀 السحر: عند الضغط على القسم، يتم استدعاء دالة selectCategoryForFilter
+    container.innerHTML = state.categories.map(c => `
+        <div onclick="selectCategoryForFilter('${c.name}')" class="bg-gray-50 p-4 rounded-xl border flex flex-col items-center gap-2 text-xs text-center shadow-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-lg transition transform hover:-translate-y-1">
+            <img src="${c.image}" class="w-12 h-12 rounded-full object-cover border border-[#D4AF37]">
+            <span class="font-bold text-gray-900">${c.name}</span>
+            <button onclick="event.stopPropagation(); deleteCategory('${c.id}')" class="text-red-600 bg-red-100 px-4 py-1.5 rounded-lg w-full font-bold mt-2 hover:bg-red-200">حذف الفئة</button>
+        </div>
+    `).join('');
+}
+
+export function handleSaveCategory(e) {
+    if (e) e.preventDefault();
+    const name = document.getElementById('cat-name-input').value.trim();
+    const image = document.getElementById('cat-img-input').value.trim();
+    if (!name || !image) return;
+
+    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then((docRef) => {
+        state.categories.push({ id: docRef.id, name, image });
+        renderAdminCategoriesList();
+        populateAdminDropdowns();
+        document.getElementById('cat-name-input').value = '';
+        document.getElementById('cat-img-input').value = '';
+        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
+    });
+}
+
+export function deleteCategory(id) {
+    if (confirm('هل أنت متأكد من حذف هذه الفئة نهائياً؟')) {
+        window.db.collection("categories").doc(id).delete().then(() => {
+            state.categories = state.categories.filter(c => c.id !== id);
+            renderAdminCategoriesList();
+            populateAdminDropdowns();
         });
     }
+}
+
+export function handleSaveBrand(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('brand-name-input');
+    if (!input || !input.value.trim()) return;
+    const brandName = input.value.trim();
+
+    if (!state.brands.includes(brandName)) {
+        state.brands.push(brandName);
+        renderAdminBrandsList();
+        populateAdminDropdowns();
+    }
+    window.db.collection("settings").doc("main").set({ brands: state.brands }, { merge: true }).then(() => {
+        input.value = '';
+    });
+}
+
+export function renderAdminBrandsList() {
+    const container = document.getElementById('admin-brands-list');
+    if (!container) return;
+    if (!state.brands || state.brands.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد ماركات مضافة.</p>';
+        return;
+    }
+    container.innerHTML = state.brands.map((b, idx) => {
+        const brandName = typeof b === 'object' ? b.name : b;
+        return `
+        <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs">
+            <span class="font-bold">${brandName}</span>
+            <button onclick="deleteBrand(${idx})" class="text-red-600 bg-red-100 px-3 py-1 rounded-lg font-bold">حذف</button>
+        </div>
+    `}).join('');
+}
+
+export function deleteBrand(idx) {
+    if (confirm('هل أنت متأكد من حذف هذه الماركة؟')) {
+        const newBrands = state.brands.filter((_, i) => i !== idx);
+        state.brands = newBrands;
+        renderAdminBrandsList();
+        populateAdminDropdowns();
+        window.db.collection("settings").doc("main").update({ brands: newBrands });
+    }
+}
+
+// =====================================
+// دوال متفرقة (التوصيل، الصور، الطلبيات)
+// =====================================
+export function handleImageUploadWrapper(event, target) { handleImageUpload(event, target); }
+
+export function handleSaveWilaya(e) {
+    if (e) e.preventDefault();
+    const code = document.getElementById('wilaya-code').value.trim();
+    const name = document.getElementById('wilaya-name').value.trim();
+    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
+    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
+    if (!code || !name) return;
+    window.db.collection("wilayas").doc(code).set({ code, name, officeCost, homeCost }).then(() => {
+        resetWilayaForm();
+        showCustomAlert('تم الحفظ 🎉', 'تم حفظ التسعير بنجاح!', true);
+    });
+}
+
+export function resetWilayaForm() {
+    document.getElementById('wilaya-edit-form').reset();
+    document.getElementById('editing-wilaya-id').value = '';
+    if (document.getElementById('wilaya-home-cost')) document.getElementById('wilaya-home-cost').value = '';
+    document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
+}
+
+export function editWilaya(code) {
+    const w = state.WILAYAS.find(wil => wil.code === code);
+    if (!w) return;
+    document.getElementById('editing-wilaya-id').value = w.code;
+    document.getElementById('wilaya-code').value = w.code;
+    document.getElementById('wilaya-name').value = w.name;
+    document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
+    if (document.getElementById('wilaya-home-cost')) document.getElementById('wilaya-home-cost').value = w.homeCost || 0;
+    document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
+    window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
+}
+
+export function deleteWilaya(docIdOrCode) {
+    if (confirm('هل أنت تأكد من الحذف؟')) {
+        window.db.collection("wilayas").doc(docIdOrCode).delete().then(() => showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true));
+    }
+}
+
+export function renderAdminWilayasList() {
+    const container = document.getElementById('admin-wilayas-list');
+    if (!container) return;
+    if (!state.WILAYAS || state.WILAYAS.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">لا توجد ولايات مسجلة.</p>';
+        return;
+    }
+    container.innerHTML = state.WILAYAS.map(w => {
+        const docKey = w.id || w.code;
+        return `
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-[#B8860B] text-white font-bold px-2.5 py-1 rounded-lg text-[10px]">${w.code}</span>
+                        <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
+                    </div>
+                    <div class="flex gap-4 mt-2 text-gray-700">
+                        <span>📦 توصيل المكتب: <strong class="text-[#B8860B]">${w.officeCost || 0} دج</strong></span>
+                        <span>🏡 توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost || 0} دج</strong></span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
+                    <button type="button" onclick="deleteWilaya('${docKey}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+export function saveShippingApiSettings() {
+    const key = document.getElementById('shipping-api-key').value.trim();
+    const token = document.getElementById('shipping-api-token').value.trim();
+    window.db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
+        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API!', true);
+    });
 }
 
 export function renderAdminDashboard() {
@@ -478,14 +522,12 @@ export function renderAdminDashboard() {
 
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     let displayedOrders = state.orders;
-    if (filterVal && filterVal !== 'الجميع') {
-        displayedOrders = state.orders.filter(o => (o.status || 'جديد') === filterVal);
-    }
+    if (filterVal && filterVal !== 'الجميع') displayedOrders = state.orders.filter(o => (o.status || 'جديد') === filterVal);
 
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
         if (displayedOrders.length === 0) {
-            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات تطابق هذه التصفية</td></tr>';
+            ordersTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">لا توجد طلبيات</td></tr>';
         } else {
             ordersTbody.innerHTML = displayedOrders.map(o => {
                 const status = o.status || 'جديد';
@@ -494,11 +536,9 @@ export function renderAdminDashboard() {
                 if (status === 'قيد الشحن') statusBadgeClass = 'bg-purple-100 text-purple-800';
                 if (status === 'مكتملاً') statusBadgeClass = 'bg-green-100 text-green-800';
                 if (status === 'ملغى') statusBadgeClass = 'bg-red-100 text-red-800';
-
                 let cleanPhone = (o.phone || '').replace(/\s+/g, '');
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
-                const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${state.storeSettings.name} لتأكيد طلبكم الخاص بـ: ${o.product}. المبلغ الإجمالي: ${o.total} دج.`);
-
+                const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${state.storeSettings.name} لتأكيد طلبكم.`);
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-3">
@@ -533,24 +573,18 @@ export function renderAdminDashboard() {
         }
     }
     renderAdminProductsTable();
-    populateAdminDropdowns();
-    renderBannerTextsList();
-    renderAdminWilayasList();
 }
 
 export function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
     if (!tbody) return;
-
     if (!state.products || state.products.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">لا توجد منتجات مسجلة بعد</td></tr>';
         return;
     }
-
     tbody.innerHTML = state.products.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
         const isStock = p.inStock !== false;
-        
         return `
             <tr class="border-b hover:bg-gray-50 transition">
                 <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black" loading="lazy"></td>
@@ -559,289 +593,30 @@ export function renderAdminProductsTable() {
                 <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.brand || '-'}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
                 <td class="p-3 text-xs">
-                    <button type="button" onclick="toggleProductStock('${p.id}', ${isStock})" class="px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm transition-all duration-300 w-24 text-center cursor-pointer ${isStock ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200'}">
+                    <button type="button" onclick="toggleProductStock('${p.id}', ${isStock})" class="px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm transition-all duration-300 w-24 text-center cursor-pointer ${isStock ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'}">
                         ${isStock ? 'متوفر 🟢' : 'نفد 🔴'}
                     </button>
                 </td>
                 <td class="p-3 flex items-center gap-2">
-                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">تعديل</button>
-                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">حذف</button>
+                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
+                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
                 </td>
             </tr>
         `;
     }).join('');
 }
 
-export function toggleProductStock(id, currentStatus) {
-    const newStatus = !currentStatus;
-    window.db.collection("products").doc(id).update({ inStock: newStatus })
-        .then(() => console.log(`تم تغيير حالة المخزون للمنتج ${id} إلى ${newStatus}`))
-        .catch(err => showCustomAlert('خطأ', 'لم يتم تحديث المخزون: ' + err.message, false));
-}
-
-export function renderAdminAttributesTab() {
-    const skinList = document.getElementById('admin-skin-types-list');
-    const hairList = document.getElementById('admin-hair-types-list');
-    
-    if (skinList) {
-        skinList.innerHTML = state.availableSkinTypes.map((st, idx) => `
-            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border text-xs">
-                <span class="font-bold">${st}</span>
-                <button onclick="deleteSkinType(${idx})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-100 rounded-lg">حذف</button>
-            </div>
-        `).join('');
-    }
-    
-    if (hairList) {
-        hairList.innerHTML = state.availableHairTypes.map((ht, idx) => `
-            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl border text-xs">
-                <span class="font-bold">${ht}</span>
-                <button onclick="deleteHairType(${idx})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-100 rounded-lg">حذف</button>
-            </div>
-        `).join('');
-    }
-}
-
-// ⚡ التحديث الفوري (Optimistic Updates) لأنواع البشرة والشعر
-export function handleAddSkinType(e) {
-    e.preventDefault();
-    const input = document.getElementById('new-skin-type-input');
-    if (!input || !input.value.trim()) return;
-    const newVal = input.value.trim();
-    const newTypes = [...(state.availableSkinTypes || []), newVal];
-    
-    state.availableSkinTypes = newTypes; // تحديث فوري للشاشة
-    renderAdminAttributesTab();
-    
-    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true }).then(() => {
-        input.value = '';
-    });
-}
-
-export function deleteSkinType(idx) {
-    const newTypes = state.availableSkinTypes.filter((_, i) => i !== idx);
-    state.availableSkinTypes = newTypes; // تحديث فوري
-    renderAdminAttributesTab();
-    window.db.collection("settings").doc("main").set({ skinTypes: newTypes }, { merge: true });
-}
-
-export function handleAddHairType(e) {
-    e.preventDefault();
-    const input = document.getElementById('new-hair-type-input');
-    if (!input || !input.value.trim()) return;
-    const newVal = input.value.trim();
-    const newTypes = [...(state.availableHairTypes || []), newVal];
-    
-    state.availableHairTypes = newTypes; // تحديث فوري
-    renderAdminAttributesTab();
-
-    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true }).then(() => { 
-        input.value = ''; 
-    });
-}
-
-export function deleteHairType(idx) {
-    const newTypes = state.availableHairTypes.filter((_, i) => i !== idx);
-    state.availableHairTypes = newTypes; // تحديث فوري
-    renderAdminAttributesTab();
-    window.db.collection("settings").doc("main").set({ hairTypes: newTypes }, { merge: true });
-}
-
-export function handleSaveWilaya(e) {
-    if (e) e.preventDefault();
-    const code = document.getElementById('wilaya-code').value.trim();
-    const name = document.getElementById('wilaya-name').value.trim();
-    const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
-    const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
-
-    if (!code || !name) return;
-
-    window.db.collection("wilayas").doc(code).set({
-        code, name, officeCost, homeCost
-    }).then(() => {
-        resetWilayaForm();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ بيانات الولاية وتسعير المكتب والمنزل بنجاح!', true);
-    });
-}
-
-export function resetWilayaForm() {
-    document.getElementById('wilaya-edit-form').reset();
-    document.getElementById('editing-wilaya-id').value = '';
-    const homeCostInput = document.getElementById('wilaya-home-cost');
-    if (homeCostInput) homeCostInput.value = '';
-    document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
-}
-
-export function editWilaya(code) {
-    const w = state.WILAYAS.find(wil => wil.code === code);
-    if (!w) return;
-
-    document.getElementById('editing-wilaya-id').value = w.code;
-    document.getElementById('wilaya-code').value = w.code;
-    document.getElementById('wilaya-name').value = w.name;
-    document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
-    
-    const homeCostInput = document.getElementById('wilaya-home-cost');
-    if (homeCostInput) homeCostInput.value = w.homeCost || 0;
-
-    document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
-    window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
-}
-
-export function deleteWilaya(docIdOrCode) {
-    if (confirm('هل أنت تأكد من رغبتك في حذف هذه الولاية؟')) {
-        window.db.collection("wilayas").doc(docIdOrCode).delete().then(() => {
-            showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true);
-        });
-    }
-}
-
-export function renderAdminWilayasList() {
-    const container = document.getElementById('admin-wilayas-list');
-    if (!container) return;
-
-    if (!state.WILAYAS || state.WILAYAS.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 py-4 text-center">لا توجد ولايات مسجلة بعد.</p>';
-        return;
-    }
-
-    container.innerHTML = state.WILAYAS.map(w => {
-        const docKey = w.id || w.code;
-        return `
-            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-sm my-2">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <span class="bg-[#B8860B] text-white font-bold px-2.5 py-1 rounded-lg text-[10px]">${w.code}</span>
-                        <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
-                    </div>
-                    <div class="flex gap-4 mt-2 text-gray-700">
-                        <span>📦 توصيل المكتب: <strong class="text-[#B8860B]">${w.officeCost || 0} دج</strong></span>
-                        <span>🏡 توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost || 0} دج</strong></span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="editWilaya('${w.code}')" class="bg-blue-100 text-blue-700 font-bold px-3 py-1.5 rounded-xl cursor-pointer">تعديل</button>
-                    <button type="button" onclick="deleteWilaya('${docKey}')" class="bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-xl cursor-pointer">حذف</button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-export function saveShippingApiSettings() {
-    const key = document.getElementById('shipping-api-key').value.trim();
-    const token = document.getElementById('shipping-api-token').value.trim();
-    window.db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
-        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API لشركة التوصيل!', true);
-    });
-}
-
-// ⚡ التحديث الفوري (Optimistic Updates) للماركات
-export function handleSaveBrand(e) {
-    if (e) e.preventDefault();
-    const input = document.getElementById('brand-name-input');
-    if (!input) return;
-    const brandName = input.value.trim();
-    if (!brandName) return;
-
-    if (!state.brands.includes(brandName)) {
-        state.brands.push(brandName);
-        renderAdminBrandsList(); // تحديث فوري
-        populateAdminDropdowns(); // تحديث القائمة المنسدلة للمنتجات
-    }
-
-    window.db.collection("settings").doc("main").set({ brands: state.brands }, { merge: true }).then(() => {
-        input.value = '';
-    });
-}
-
-export function renderAdminBrandsList() {
-    const container = document.getElementById('admin-brands-list');
-    if (!container) return;
-    
-    if (!state.brands || state.brands.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد ماركات مضافة.</p>';
-        return;
-    }
-
-    container.innerHTML = state.brands.map((b, idx) => {
-        const brandName = typeof b === 'object' ? b.name : b;
-        return `
-        <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs">
-            <span class="font-bold">${brandName}</span>
-            <button onclick="deleteBrand(${idx})" class="text-red-600 bg-red-100 px-3 py-1 rounded-lg font-bold">حذف</button>
-        </div>
-    `}).join('');
-}
-
-export function deleteBrand(idx) {
-    if (confirm('هل أنت متأكد من حذف هذه الماركة؟')) {
-        const newBrands = state.brands.filter((_, i) => i !== idx);
-        state.brands = newBrands; // تحديث فوري
-        renderAdminBrandsList();
-        populateAdminDropdowns();
-        window.db.collection("settings").doc("main").update({ brands: newBrands });
-    }
-}
-
-// ⚡ التحديث الفوري (Optimistic Updates) للفئات
-export function handleSaveCategory(e) {
-    if (e) e.preventDefault();
-    const name = document.getElementById('cat-name-input').value.trim();
-    const image = document.getElementById('cat-img-input').value.trim();
-    if (!name || !image) return;
-
-    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then((docRef) => {
-        // تحديث فوري بدون انتظار تحميل الصفحة
-        state.categories.push({ id: docRef.id, name, image });
-        renderAdminCategoriesList();
-        populateAdminDropdowns();
-        document.getElementById('cat-name-input').value = '';
-        document.getElementById('cat-img-input').value = '';
-        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
-    });
-}
-
-export function renderAdminCategoriesList() {
-    const container = document.getElementById('admin-categories-list');
-    if (!container) return;
-    
-    if (!state.categories || state.categories.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد فئات مضافة.</p>';
-        return;
-    }
-
-    container.innerHTML = state.categories.map(c => `
-        <div class="bg-gray-50 p-4 rounded-xl border flex flex-col items-center gap-2 text-xs text-center shadow-sm">
-            <img src="${c.image}" class="w-12 h-12 rounded-full object-cover border border-[#D4AF37]">
-            <span class="font-bold text-gray-900">${c.name}</span>
-            <button onclick="deleteCategory('${c.id}')" class="text-red-600 bg-red-100 px-4 py-1.5 rounded-lg w-full font-bold mt-2">حذف الفئة</button>
-        </div>
-    `).join('');
-}
-
-export function deleteCategory(id) {
-    if (confirm('هل أنت متأكد من حذف هذه الفئة نهائياً؟')) {
-        window.db.collection("categories").doc(id).delete().then(() => {
-            state.categories = state.categories.filter(c => c.id !== id); // تحديث فوري
-            renderAdminCategoriesList();
-            populateAdminDropdowns();
-        });
-    }
-}
-
-// === البانر العلوي ===
 export function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
     if (!state.bannerMessages || state.bannerMessages.length === 0) {
-        container.innerHTML = '<p class="text-xs text-gray-400 py-2">لا توجد جمل مضافة للبانر حالياً.</p>';
+        container.innerHTML = '<p class="text-xs text-gray-400 py-2">لا توجد جمل مضافة.</p>';
         return;
     }
     container.innerHTML = state.bannerMessages.map((msg, idx) => `
-        <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border border-gray-200 text-xs my-1.5">
+        <div class="flex items-center justify-between bg-gray-100 p-3 rounded-xl border text-xs my-1.5">
             <span class="font-bold text-gray-800">${msg}</span>
-            <button type="button" onclick="removeBannerText(${idx})" class="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded-lg border border-red-200 transition">حذف</button>
+            <button type="button" onclick="removeBannerText(${idx})" class="text-red-500 font-bold px-3 py-1 bg-red-50 rounded-lg border">حذف</button>
         </div>
     `).join('');
 }
@@ -849,54 +624,40 @@ export function renderBannerTextsList() {
 export function addBannerText() {
     const input = document.getElementById('new-banner-text');
     if (!input || !input.value.trim()) return;
-    window.db.collection("settings").doc("main").update({
-        bannerMessages: window.firebase.firestore.FieldValue.arrayUnion(input.value.trim())
-    }).then(() => {
-        input.value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة الجملة للبانر العلوي ومزامنتها!', true);
+    window.db.collection("settings").doc("main").update({ bannerMessages: window.firebase.firestore.FieldValue.arrayUnion(input.value.trim()) }).then(() => {
+        input.value = ''; showCustomAlert('تم', 'تمت الإضافة بنجاح!', true);
     });
 }
 
 export function removeBannerText(index) {
     const targetText = state.bannerMessages[index];
     if (!targetText) return;
-    window.db.collection("settings").doc("main").update({
-        bannerMessages: window.firebase.firestore.FieldValue.arrayRemove(targetText)
-    }).then(() => {
-        showCustomAlert('تم الحذف', 'تم حذف الجملة ومزامنتها فوراً.', true);
+    window.db.collection("settings").doc("main").update({ bannerMessages: window.firebase.firestore.FieldValue.arrayRemove(targetText) }).then(() => {
+        showCustomAlert('تم', 'تم الحذف بنجاح.', true);
     });
 }
 
 export function promptDeleteOrder(id) {
     pendingDeleteOrderId = id;
     const modal = document.getElementById('custom-confirm-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
+    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
 }
 
 export function closeCustomConfirm() {
     const modal = document.getElementById('custom-confirm-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
     pendingDeleteOrderId = null;
 }
 
 export function confirmDeleteOrder() {
     if (pendingDeleteOrderId) {
         window.db.collection("orders").doc(pendingDeleteOrderId).delete().then(() => {
-            closeCustomConfirm();
-            showCustomAlert('تم الحذف', 'تم حذف الطلبية بنجاح.', true);
+            closeCustomConfirm(); showCustomAlert('تم', 'تم حذف الطلبية بنجاح.', true);
         });
     }
 }
 
-export function updateOrderStatus(id, newStatus) {
-    window.db.collection("orders").doc(id).update({ status: newStatus });
-}
+export function updateOrderStatus(id, newStatus) { window.db.collection("orders").doc(id).update({ status: newStatus }); }
 
 export function handleSaveSettings(e) {
     if (e) e.preventDefault();
@@ -907,9 +668,7 @@ export function handleSaveSettings(e) {
         msgSuccess: document.getElementById('set-msg-success').value,
         msgWarning: document.getElementById('set-msg-warning').value
     };
-    window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => {
-        showCustomAlert('تم الحفظ', 'تم تحديث كافة الإعدادات والرسائل بنجاح!', true);
-    });
+    window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { showCustomAlert('تم', 'تم حفظ الإعدادات!', true); });
 }
 
 export function handleSaveHeroSlide(e) {
@@ -918,87 +677,48 @@ export function handleSaveHeroSlide(e) {
     const desc = document.getElementById('hero-desc-input').value.trim();
     const image = document.getElementById('hero-img-input').value.trim();
     if (!title || !desc || !image) return;
-
     window.db.collection("heroSlides").add({ title, desc, image, createdAt: new Date() }).then(() => {
         document.getElementById('hero-title-input').value = '';
         document.getElementById('hero-desc-input').value = '';
         document.getElementById('hero-img-input').value = '';
-        showCustomAlert('تمت الإضافة', 'تمت إضافة البانر الإعلاني بنجاح!', true);
+        showCustomAlert('تم', 'تمت إضافة البانر!', true);
     });
 }
 
 export function exportOrdersToExcel() {
     const filterVal = document.getElementById('order-status-filter') ? document.getElementById('order-status-filter').value : 'الجميع';
     let targetOrders = state.orders;
-    
-    if (filterVal && filterVal !== 'الجميع') {
-        targetOrders = state.orders.filter(o => (o.status || 'جديد') === filterVal);
-    }
+    if (filterVal && filterVal !== 'الجميع') targetOrders = state.orders.filter(o => (o.status || 'جديد') === filterVal);
+    if (!targetOrders || targetOrders.length === 0) { showCustomAlert('تنبيه', 'لا توجد طلبيات مطابقة!', false); return; }
 
-    if (!targetOrders || targetOrders.length === 0) {
-        showCustomAlert('تنبيه', 'لا توجد طلبيات مطابقة لتصديرها حالياً!', false);
-        return;
-    }
-
-    let csvContent = "\uFEFFsep=;\r\n";
-    csvContent += "اسم الزبون;رقم الهاتف;الولاية;البلدية;المبلغ الإجمالي (دج);حالة الطلب;المنتج\r\n";
-
+    let csvContent = "\uFEFFsep=;\r\nاسم الزبون;رقم الهاتف;الولاية;البلدية;المبلغ الإجمالي (دج);حالة الطلب;المنتج\r\n";
     targetOrders.forEach(o => {
-        const customer = `"${(o.customer || '').replace(/"/g, '""')}"`;
-        const phone = `"=\"${(o.phone || '').replace(/"/g, '""')}\""`;
-        const wilaya = `"${(o.wilaya || '').replace(/"/g, '""')}"`;
-        const commune = `"${(o.commune || '').replace(/"/g, '""')}"`;
-        const total = o.total || 0;
-        const status = `"${(o.status || 'جديد').replace(/"/g, '""')}"`;
-        const product = `"${(o.product || '').replace(/"/g, '""')}"`;
-
-        csvContent += `${customer};${phone};${wilaya};${commune};${total};${status};${product}\r\n`;
+        csvContent += `"${(o.customer || '')}";"=""${(o.phone || '')}""";"${(o.wilaya || '')}";"${(o.commune || '')}";${o.total || 0};"${(o.status || 'جديد')}";"${(o.product || '')}"\r\n`;
     });
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `orders_export_${filterVal}_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
+    a.href = URL.createObjectURL(blob);
+    a.download = `orders_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-    document.body.removeChild(a);
-
-    showCustomAlert('تم التصدير بنجاح 📊', 'تم تحميل ملف الطلبيات بصيغة Excel احترافية.', true);
 }
 
 export function updateAdminPasswordSecure() {
     const passwordInput = document.getElementById('new-admin-password');
     if (!passwordInput) return;
-
     const newPassword = passwordInput.value.trim();
-
-    if (!newPassword || newPassword.length < 6) {
-        showCustomAlert('تنبيه أمني', 'يرجى إدخال كلمة مرور جديدة تتكون من 6 أحرف أو أرقام على الأقل.', false);
-        return;
-    }
-
+    if (!newPassword || newPassword.length < 6) return showCustomAlert('تنبيه', 'كلمة المرور قصيرة جداً.', false);
     const user = window.firebase.auth().currentUser;
-
-    if (!user) {
-        showCustomAlert('غير مسجل', 'يجب تسجيل الدخول كمسؤول أولاً لتغيير كلمة المرور.', false);
-        return;
-    }
-
+    if (!user) return showCustomAlert('غير مسجل', 'يجب تسجيل الدخول كمسؤول.', false);
     user.updatePassword(newPassword).then(() => {
-        passwordInput.value = '';
-        showCustomAlert('تم التحديث بنجاح 🎉', 'تم تغيير كلمة مرور الإدارة وتشفيرها في نظام المصادقة الآمن.', true);
-    }).catch((error) => {
-        if (error.code === 'auth/requires-recent-login') {
-            showCustomAlert('إعادة تسجيل الدخول مطلوبة', 'لأسباب أمنية، يرجى تسجيل الخروج ثم إعادة تسجيل الدخول لتغيير كلمة المرور.', false);
-        } else {
-            showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false);
-        }
-    });
+        passwordInput.value = ''; showCustomAlert('تم التحديث', 'تم تغيير كلمة المرور بأمان.', true);
+    }).catch((error) => showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false));
 }
 
-// === ربط جميع الدوال بالواجهة لتستجيب لضغطات الأزرار (Window Bindings) ===
-window.handleImageUpload = handleImageUpload;
+// =====================================
+// التصدير للـ Window
+// =====================================
+window.handleImageUpload = handleImageUploadWrapper;
 window.checkAdminPassword = checkAdminPassword;
 window.adminSignOut = adminSignOut;
 window.switchAdminTab = switchAdminTab;
@@ -1010,11 +730,6 @@ window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
 window.renderAdminDashboard = renderAdminDashboard;
 window.renderAdminProductsTable = renderAdminProductsTable;
-window.renderAdminAttributesTab = renderAdminAttributesTab;
-window.handleAddSkinType = handleAddSkinType;
-window.deleteSkinType = deleteSkinType;
-window.handleAddHairType = handleAddHairType;
-window.deleteHairType = deleteHairType;
 window.handleSaveWilaya = handleSaveWilaya;
 window.resetWilayaForm = resetWilayaForm;
 window.editWilaya = editWilaya;
@@ -1039,3 +754,10 @@ window.handleSaveHeroSlide = handleSaveHeroSlide;
 window.exportOrdersToExcel = exportOrdersToExcel;
 window.updateAdminPasswordSecure = updateAdminPasswordSecure;
 window.toggleProductStock = toggleProductStock;
+
+// الدوال الجديدة الخاصة بصانع الفلاتر الشامل
+window.selectCategoryForFilter = selectCategoryForFilter;
+window.populateFilterCategories = populateFilterCategories;
+window.handleSaveDynamicAttribute = handleSaveDynamicAttribute;
+window.renderDynamicAttributesList = renderDynamicAttributesList;
+window.deleteDynamicAttribute = deleteDynamicAttribute;
