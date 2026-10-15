@@ -523,14 +523,20 @@ export function renderAdminProductsTable() {
 
     tbody.innerHTML = state.products.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
+        const isStock = p.inStock !== false; // التحقق من حالة المخزون
+        
         return `
-            <tr class="border-b hover:bg-gray-50">
+            <tr class="border-b hover:bg-gray-50 transition">
                 <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black" loading="lazy"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
-                <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.category || ''}</td>
+                <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.brand || '-'}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
-                <td class="p-3 text-xs"><span class="${p.inStock !== false ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}">${p.inStock !== false ? 'متوفر 🟢' : 'غير متوفر 🔴'}</span></td>
+                <td class="p-3 text-xs">
+                    <button type="button" onclick="toggleProductStock('${p.id}', ${isStock})" class="px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm transition-all duration-300 w-24 text-center cursor-pointer ${isStock ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200' : 'bg-red-100 text-red-700 border border-red-300 hover:bg-red-200'}">
+                        ${isStock ? 'متوفر 🟢' : 'نفد 🔴'}
+                    </button>
+                </td>
                 <td class="p-3 flex items-center gap-2">
                     <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">تعديل</button>
                     <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">حذف</button>
@@ -538,6 +544,17 @@ export function renderAdminProductsTable() {
             </tr>
         `;
     }).join('');
+}
+export function toggleProductStock(id, currentStatus) {
+    const newStatus = !currentStatus; // عكس الحالة الحالية
+    window.db.collection("products").doc(id).update({ inStock: newStatus })
+        .then(() => {
+            // يتم التحديث في الخلفية بصمت لعدم إزعاجك، والجدول سيتحدث تلقائياً بفضل Firebase!
+            console.log(`تم تغيير حالة المخزون للمنتج ${id} إلى ${newStatus}`);
+        })
+        .catch(err => {
+            showCustomAlert('خطأ', 'لم يتم تحديث المخزون: ' + err.message, false);
+        });
 }
 
 export function renderAdminAttributesTab() {
@@ -972,3 +989,4 @@ window.handleSaveSettings = handleSaveSettings;
 window.handleSaveHeroSlide = handleSaveHeroSlide;
 window.exportOrdersToExcel = exportOrdersToExcel;
 window.updateAdminPasswordSecure = updateAdminPasswordSecure;
+window.toggleProductStock = toggleProductStock;
