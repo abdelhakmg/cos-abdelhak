@@ -1,6 +1,5 @@
 // --- ملف js/store/state.js ---
 
-// هذا الكائن سيحتوي على جميع بيانات الموقع لتكون مركزية ويسهل التحكم بها
 export const state = {
     products: [],
     categories: [],
@@ -9,8 +8,8 @@ export const state = {
     orders: [],
     brands: [],
     WILAYAS: [],
-    availableSkinTypes: ["الدهنية", "الجافة", "الحساسة", "المختلطة", "العادية"],
-    availableHairTypes: ["الشعر الدهني", "الشعر الجاف", "الشعر العادي", "الشعر المصبوغ", "الشعر المتضرر", "علاج القشرة", "بروتين / كيراتين"],
+    // 🌟 المحرك الجديد: تخزين الفلاتر الديناميكية هنا
+    categoryFilters: {}, 
     favorites: JSON.parse(localStorage.getItem('lb_favs_v7')) || [],
     cart: JSON.parse(localStorage.getItem('lb_cart_v7')) || [],
     storeSettings: {
@@ -22,7 +21,6 @@ export const state = {
     }
 };
 
-// قائمة الولايات الأساسية الـ 58 للحقن التلقائي في قاعدة البيانات إذا كانت فارغة
 export const INITIAL_WILAYAS_58 = [
     { code: "01", name: "أدرار", officeCost: 900, homeCost: 1200 },
     { code: "02", name: "الشلف", officeCost: 500, homeCost: 700 },
@@ -84,14 +82,6 @@ export const INITIAL_WILAYAS_58 = [
     { code: "58", name: "المنيعة", officeCost: 750, homeCost: 950 }
 ];
 
-// دوال مساعدة لحفظ السلة والمفضلة في ذاكرة المتصفح
-export function saveCartToLocal() {
-    localStorage.setItem('lb_cart_v7', JSON.stringify(state.cart));
-}
-
-export function saveFavsToLocal() {
-    localStorage.setItem('lb_favs_v7', JSON.stringify(state.favorites));
-}
-
-// ربط الحالة بالنافذة لتجنب أخطاء التوافق مع الكود القديم مؤقتاً
+export function saveCartToLocal() { localStorage.setItem('lb_cart_v7', JSON.stringify(state.cart)); }
+export function saveFavsToLocal() { localStorage.setItem('lb_favs_v7', JSON.stringify(state.favorites)); }
 window.appState = state;
