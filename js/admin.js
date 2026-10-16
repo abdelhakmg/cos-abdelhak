@@ -620,15 +620,17 @@ export function toggleAllOrders(source) {
 
 export function checkBulkDeleteStatus() {
     const checkedBoxes = document.querySelectorAll('.order-cb:checked');
-    const bulkBtn = document.getElementById('bulk-delete-btn');
+    const bulkContainer = document.getElementById('bulk-actions-container');
     const bulkCount = document.getElementById('bulk-delete-count');
     
-    if (bulkBtn && bulkCount) {
+    if (bulkContainer && bulkCount) {
         if (checkedBoxes.length > 0) {
-            bulkBtn.classList.remove('hidden');
+            bulkContainer.classList.remove('hidden');
+            bulkContainer.classList.add('flex'); // إظهار الحاوية
             bulkCount.innerText = checkedBoxes.length;
         } else {
-            bulkBtn.classList.add('hidden');
+            bulkContainer.classList.add('hidden');
+            bulkContainer.classList.remove('flex'); // إخفاء الحاوية
         }
     }
 }
@@ -871,6 +873,121 @@ export function printOrder(id) {
     `);
     printWindow.document.close();
 }
+
+export function printSelectedOrders() {
+    const checkedBoxes = document.querySelectorAll('.order-cb:checked');
+    if (checkedBoxes.length === 0) return;
+
+    // استخراج الطلبات المحددة من قاعدة البيانات المحلية
+    const selectedOrders = Array.from(checkedBoxes).map(cb => state.orders.find(o => o.id === cb.value)).filter(Boolean);
+
+    const storeName = state.storeSettings.name || 'كوسمتيك عبد الحق';
+    const storeLogo = state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}" style="max-height: 45px; margin-bottom: 5px;">` : `<div style="font-size:20px; margin-bottom:5px;">👑</div>`;
+
+    // تقسيم الطلبات إلى مجموعات (كل 4 طلبات في صفحة)
+    let pagesHtml = '';
+    for (let i = 0; i < selectedOrders.length; i += 4) {
+        const chunk = selectedOrders.slice(i, i + 4);
+        pagesHtml += `<div class="page">`;
+        
+        chunk.forEach(order => {
+            const shortId = order.id.substring(0, 6).toUpperCase();
+            let dateStr = 'غير معروف';
+            if (order.createdAt) {
+                const d = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+                dateStr = d.toLocaleDateString('ar-DZ') + ' ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+            }
+            pagesHtml += `
+                <div class="receipt-box">
+                    <div class="header">
+                        ${storeLogo}
+                        <h2>${storeName}</h2>
+                        <p style="margin:2px 0 0; font-size:12px; font-weight:bold;">وصل إرسال - Bon de Livraison</p>
+                    </div>
+                    <div class="info-group"><strong>رقم الطلب:</strong> #${shortId}</div>
+                    <div class="info-group"><strong>التاريخ:</strong> ${dateStr}</div>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin: 8px 0;">
+                    
+                    <div class="info-group"><strong>المرسل إليه:</strong> ${order.customer}</div>
+                    <div class="info-group"><strong>الهاتف:</strong> <span dir="ltr" style="font-weight:bold; font-size:15px;">${order.phone}</span></div>
+                    <div class="info-group"><strong>الولاية:</strong> ${order.wilaya || 'غير محدد'}</div>
+                    <div class="info-group"><strong>البلدية:</strong> ${order.commune || 'غير محدد'}</div>
+                    
+                    <hr style="border:0; border-top:1px dashed #ccc; margin: 8px 0;">
+                    <div class="info-group" style="font-size:12px; max-height: 45px; overflow: hidden;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
+                    
+                    <div class="total">المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
+                    <div class="footer">شكراً لتسوقكم معنا!</div>
+                </div>
+            `;
+        });
+        pagesHtml += `</div>`;
+    }
+
+    // فتح نافذة الطباعة
+    const printWindow = window.open('', '_blank', 'width=800,height=800');
+    printWindow.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+            <title>طباعة وصولات جماعية</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+            <style>
+                body {
+                    font-family: 'Cairo', sans-serif;
+                    margin: 0; padding: 0;
+                    background: #525659; /* لون خلفية عارض الطباعة */
+                    display: flex; flex-direction: column; align-items: center;
+                }
+                /* إعدادات ورقة A4 */
+                .page {
+                    width: 210mm; height: 297mm;
+                    background: #fff;
+                    display: grid;
+                    grid-template-columns: 105mm 105mm; /* قسمين عرض */
+                    grid-template-rows: 148.5mm 148.5mm; /* قسمين طول */
+                    page-break-after: always;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                    margin: 20px auto;
+                    box-sizing: border-box;
+                }
+                /* إعدادات وصل الإرسال الفردي (A6) */
+                .receipt-box {
+                    width: 105mm; height: 148.5mm;
+                    padding: 15px; box-sizing: border-box;
+                    border: 1px dashed #aaa;
+                    position: relative; overflow: hidden;
+                }
+                .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
+                .header h2 { margin: 0; font-size: 18px; font-weight: 900; }
+                .info-group { margin-bottom: 5px; font-size: 13px; line-height: 1.4; }
+                .info-group strong { display: inline-block; width: 75px; color: #333; }
+                .total { font-size: 17px; font-weight: 900; text-align: center; border-top: 2px solid #000; padding-top: 8px; margin-top: 10px; }
+                .footer { text-align: center; font-size: 11px; color: #555; position: absolute; bottom: 15px; width: calc(100% - 30px); left: 15px; border-top: 1px dashed #ccc; padding-top: 5px; }
+
+                /* إعدادات الطابعة الفعلية */
+                @media print {
+                    @page { size: A4; margin: 0; }
+                    body { margin: 0; background: #fff; box-shadow: none; display: block; }
+                    .page { margin: 0; box-shadow: none; border: none; }
+                    .receipt-box { border: 1px solid #ccc; /* خط خفيف لتسهيل القص بالمقص */ }
+                }
+            </style>
+        </head>
+        <body>
+            ${pagesHtml}
+            <script>
+                window.onload = function() {
+                    setTimeout(() => {
+                        window.print();
+                        window.close();
+                    }, 500);
+                }
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
 // =====================================
 // التصدير للـ Window
 // =====================================
@@ -920,3 +1037,4 @@ window.handleSaveDynamicAttribute = handleSaveDynamicAttribute;
 window.renderDynamicAttributesList = renderDynamicAttributesList;
 window.deleteDynamicAttribute = deleteDynamicAttribute;
 window.printOrder = printOrder;
+window.printSelectedOrders = printSelectedOrders;
