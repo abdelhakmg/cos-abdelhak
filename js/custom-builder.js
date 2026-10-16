@@ -393,7 +393,6 @@ window.handleCustomImageUpload = function(event) {
 window.setCustomShipping = function(type) {
     customOrderData.shippingType = type;
     
-    // تحديث ألوان الأزرار فقط بدون إعادة رسم كل الواجهة
     const btnOffice = document.getElementById('btn-ship-office');
     const btnHome = document.getElementById('btn-ship-home');
     
@@ -403,9 +402,7 @@ window.setCustomShipping = function(type) {
     if (btnOffice) btnOffice.className = type === 'office' ? activeClass : inactiveClass;
     if (btnHome) btnHome.className = type === 'home' ? activeClass : inactiveClass;
     
-    // تحديث السعر النهائي مباشرة
     updateLivePriceDisplay(); 
-}
 }
 
 export function nextCustomStep() {
