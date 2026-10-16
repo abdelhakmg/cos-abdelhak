@@ -23,6 +23,16 @@ let giftData = {
 };
 
 export function openGiftBuilder() {
+    // 🔴 1. التحقق من حالة زر الطوارئ (Master Switch) من الإعدادات
+    const storeSettings = state.storeSettings || {};
+    const giftConfig = storeSettings.gift || {};
+    
+    // إذا كان المدير قد أوقف صانع الهدايا، نمنع الدخول ونظهر رسالة أنيقة
+    if (giftConfig.isActive === false) {
+        showCustomAlert("نعتذر منك 💔", "صانع الهدايا يمر بفترة ضغط ويأخذ استراحة قصيرة حالياً لتجهيز الطلبيات بدقة. يرجى العودة لاحقاً!", false);
+        return; // توقيف الدالة هنا يمنع فتح النافذة
+    }
+
     currentGiftStep = 1;
     activeProductCategory = 'الكل';
     giftData = { 
@@ -53,6 +63,9 @@ export function renderGiftStep() {
     const nextBtn = document.getElementById('gift-next-btn');
     if (!container) return;
 
+    // جلب إعدادات الهدايا من قاعدة البيانات 
+    const giftConfig = (state.storeSettings && state.storeSettings.gift) ? state.storeSettings.gift : {};
+
     indicator.innerText = `الخطوة ${currentGiftStep} من ${TOTAL_STEPS}`;
     prevBtn.classList.toggle('hidden', currentGiftStep === 1);
 
@@ -66,11 +79,17 @@ export function renderGiftStep() {
 
     let html = '';
     const currentTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0) + (giftData.selectedBox ? giftData.selectedBox.price || 0 : 0) + (giftData.selectedWrapping ? giftData.selectedWrapping.price || 0 : 0);
-    const storeSlogan = state.storeSettings.slogan || "يبدو أن أحدهم سيغدو سعيداً اليوم";
+    
+    // 🔴 2. جلب المقولة الترحيبية الديناميكية
+    const storeSlogan = giftConfig.slogan || state.storeSettings.slogan || "يبدو أن أحدهم سيغدو سعيداً اليوم";
 
     switch (currentGiftStep) {
         case 1:
-            const recipients = ["زوجتي", "زوجي", "الأم", "الأب", "أختي", "أخي", "صديقتي", "صديقي", "شخص عزيز", "نفسي"];
+            // 🔴 3. جلب قائمة المستلمين الديناميكية
+            let recipients = giftConfig.recipients && giftConfig.recipients.length > 0 
+                ? giftConfig.recipients 
+                : ["زوجتي", "زوجي", "الأم", "الأب", "أختي", "أخي", "صديقتي", "صديقي", "شخص عزيز", "نفسي"];
+            
             html = `
                 <div class="space-y-6 animate-fade-in flex flex-col items-center justify-center text-center py-4">
                     <div class="w-24 h-24 rounded-full bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/30 mb-2 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
@@ -131,7 +150,6 @@ export function renderGiftStep() {
             break;
 
         case 3:
-            // استبعاد العلب والتغليف وأي قسم يحتوي على كلمة "هدية" أو "هدايا"
             let availableProducts = state.products.filter(p => {
                 const cat = (p.category || '').toLowerCase().trim();
                 return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف' && cat !== 'هدايا' && !cat.includes('هدية');
@@ -196,10 +214,13 @@ export function renderGiftStep() {
             break;
 
         case 4:
-            const wrappings = (state.storeSettings && state.storeSettings.wrappings) ? state.storeSettings.wrappings : [
-                { id: 'w1', name: 'تغليف أسود ملكي', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=200&auto=format&fit=crop', price: 200 },
-                { id: 'w2', name: 'تغليف أحمر فاخر', image: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=200&auto=format&fit=crop', price: 300 }
-            ];
+            // 🔴 4. جلب أشكال التغليف الديناميكية
+            const wrappings = (giftConfig.wrappings && giftConfig.wrappings.length > 0) 
+                ? giftConfig.wrappings 
+                : [
+                    { id: 'w1', name: 'تغليف أسود ملكي', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=200&auto=format&fit=crop', price: 200 },
+                    { id: 'w2', name: 'تغليف أحمر فاخر', image: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=200&auto=format&fit=crop', price: 300 }
+                ];
 
             html = `
                 <div class="space-y-6 animate-fade-in max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -232,7 +253,6 @@ export function renderGiftStep() {
             break;
 
         case 5:
-            // قمنا بفصل تحديث الأزرار عن إعادة بناء الواجهة بالكامل لحل مشكلة اختفاء الكتابة
             html = `
                 <div class="space-y-6 animate-fade-in overflow-y-auto max-h-[65vh] pr-2 custom-scrollbar">
                     <div class="text-center mb-4">
@@ -280,7 +300,9 @@ export function renderGiftStep() {
             const shipCost = giftData.wilaya ? calculateShippingCost(giftData.wilaya, state.WILAYAS, giftData.shippingType) : 0;
             const grandTotal = currentTotal + shipCost;
 
-            html = `
+            // 🔴 5. التحقق من الحد الأدنى للطلب المسموح به
+            const minOrderAmount = giftConfig.minOrder || 0;
+            let reviewHtml = `
                 <div class="space-y-5 animate-fade-in pb-2">
                     <div class="text-center mb-4">
                         <i class="fa-solid fa-receipt text-4xl text-[#D4AF37] mb-2"></i>
@@ -314,16 +336,31 @@ export function renderGiftStep() {
                             <span class="text-lg font-black text-white">المبلغ النهائي للطلبية:</span>
                             <span class="text-2xl font-black text-[#D4AF37]">${grandTotal.toLocaleString()} دج</span>
                         </div>
-                    </div>
-                </div>
             `;
+            
+            // تحذير الحد الأدنى
+            if (minOrderAmount > 0 && grandTotal < minOrderAmount) {
+                reviewHtml += `
+                    <div class="mt-4 p-3 rounded-xl bg-red-900/40 border border-red-500/50 text-center">
+                        <p class="text-red-400 text-xs font-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> عذراً، لم تصل للحد الأدنى المسموح به!</p>
+                        <p class="text-gray-300 text-[10px]">الحد الأدنى لطلبات الهدايا هو ${minOrderAmount.toLocaleString()} دج. أضف منتجات أخرى للاستمرار.</p>
+                    </div>
+                `;
+                // إخفاء زر التأكيد مؤقتاً
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+
+            reviewHtml += `</div></div>`;
+            html = reviewHtml;
             break;
     }
 
     container.innerHTML = html;
 }
 
-// ======================= نافذة معاينة المنتج (الميزة الجديدة) =======================
+// ======================= نافذة معاينة المنتج =======================
 export function previewGiftProduct(productId) {
     const prod = state.products.find(p => p.id === productId);
     if (!prod) return;
@@ -373,7 +410,6 @@ export function setGiftRecipient(r) { giftData.recipient = r; nextGiftStep(); }
 export function selectGiftBox(boxId) { giftData.selectedBox = state.products.find(p => p.id === boxId); nextGiftStep(); }
 export function selectWrapping(id, name, price, image) { giftData.selectedWrapping = { id, name, price, image }; renderGiftStep(); }
 
-// دالة منفصلة لتحديث أزرار التوصيل بدون عمل Re-render لتفادي ضياع الكتابة
 export function setGiftShippingType(type) {
     giftData.shippingType = type;
     const activeClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]";
@@ -397,13 +433,11 @@ export function updateGiftProductQty(prodId, delta) {
 }
 
 export function nextGiftStep() {
-    // استخدمنا alert العادي لضمان ظهوره فوق كل النوافذ (بسبب طبقة z-index العالية للمودال)
     if (currentGiftStep === 1 && !giftData.recipient) { alert('يرجى تحديد لمن هذه الهدية.'); return; }
     if (currentGiftStep === 2 && !giftData.selectedBox) { alert('يرجى اختيار صندوق الهدية.'); return; }
     if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { alert('العلبة فارغة! يرجى إضافة منتج واحد على الأقل.'); return; }
     if (currentGiftStep === 4 && !giftData.selectedWrapping) { alert('يرجى اختيار شكل التغليف الخارجي للهدية.'); return; }
     
-    // التحقق من صحة معلومات الشحن في الخطوة 5 (قراءة مباشرة من الخانات لتفادي مشاكل الملء التلقائي)
     if (currentGiftStep === 5) {
         giftData.senderName = document.getElementById('g-sender-name')?.value.trim() || giftData.senderName;
         giftData.senderPhone = document.getElementById('g-sender-phone')?.value.trim() || giftData.senderPhone;
