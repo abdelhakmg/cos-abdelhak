@@ -29,3 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+setTimeout(() => {
+    if (typeof window.updateStoreFooterLinks === 'function') {
+        window.updateStoreFooterLinks();
+    }
+}, 1500);
