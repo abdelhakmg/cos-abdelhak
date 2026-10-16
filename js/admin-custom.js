@@ -3,146 +3,227 @@
 import { state } from './store/state.js';
 import { showCustomAlert } from './utils/helpers.js';
 
-// الهيكل الافتراضي لأسعار الورشة (سيتم حفظه وتحديثه من Firebase)
-let customServicesConfig = {
+let workshopConfig = {
     isActive: true,
-    laser: { face1Price: 1000, face2Price: 500 },
-    print: { magicMug: 1500, whiteMug: 1000, tshirtOneSide: 1800, tshirtTwoSides: 2200 },
-    frames: { sizeA5: 800, sizeA4: 1200, sizeA3: 2000, foilAddon: 500 },
-    cameo: { basePrice: 500, wordPrice: 100 }
+    products: [] // هنا سيتم تخزين كل منتجاتك الديناميكية
 };
 
-// 1. تحميل الإعدادات من قاعدة البيانات عند فتح الإدارة
+// 1. تحميل بيانات الإدارة
 export async function loadCustomAdminData() {
     if (typeof window.db !== 'undefined') {
         try {
             const doc = await window.db.collection('settings').doc('custom_workshop').get();
             if (doc.exists) {
-                customServicesConfig = { ...customServicesConfig, ...doc.data() };
+                const data = doc.data();
+                workshopConfig.isActive = data.isActive !== false;
+                workshopConfig.products = data.products || [];
                 
-                // حفظ نسخة محلية لتستخدمها واجهة الزبون لاحقاً
+                // تحديث المتجر المحلي
                 if(!state.storeSettings) state.storeSettings = {};
-                state.storeSettings.custom_workshop = customServicesConfig;
+                state.storeSettings.custom_workshop = workshopConfig;
             }
         } catch (error) {
             console.error("خطأ في جلب بيانات الورشة:", error);
         }
     }
     
-    // تحديث زر التشغيل الرئيسي (Master Switch)
     const masterSwitch = document.getElementById('custom-master-switch');
     if (masterSwitch) {
-        masterSwitch.checked = customServicesConfig.isActive !== false;
-        toggleCustomSystem(masterSwitch.checked);
+        masterSwitch.checked = workshopConfig.isActive;
+        toggleCustomSystem(masterSwitch.checked, false);
     }
 
     renderCustomAdminSettings();
 }
 
-// 2. تحديث حالة الزر (مفتوحة / مغلقة)
-export function toggleCustomSystem(isActive) {
-    customServicesConfig.isActive = isActive;
+// 2. تحديث حالة الورشة ككل
+export function toggleCustomSystem(isActive, saveToDb = true) {
+    workshopConfig.isActive = isActive;
     const statusText = document.getElementById('custom-status-text');
     if (statusText) {
         statusText.innerText = isActive ? "مفتوحة للطلبات 🟢" : "مغلقة مؤقتاً 🔴";
         statusText.className = isActive ? "mr-3 text-xs font-bold text-green-600" : "mr-3 text-xs font-bold text-gray-500";
     }
+    if(saveToDb) saveWorkshopConfig();
 }
 
-// 3. رسم واجهة الإعدادات الديناميكية للمدير
+// 3. رسم قائمة المنتجات في الإدارة
 export function renderCustomAdminSettings() {
     const container = document.getElementById('admin-custom-settings-container');
     if (!container) return;
 
-    container.innerHTML = `
-        <!-- إعدادات الليزر -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-fire text-red-500 ml-1"></i> حفر الليزر (دج)</h4>
-            <div class="grid grid-cols-2 gap-3">
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">الوجه الأساسي (1)</label>
-                <input type="number" id="laser-face1" value="${customServicesConfig.laser.face1Price}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">إضافة وجه آخر (+)</label>
-                <input type="number" id="laser-face2" value="${customServicesConfig.laser.face2Price}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-            </div>
+    let html = `
+        <div class="col-span-1 md:col-span-2 flex justify-between items-center mb-2">
+            <h4 class="font-black text-lg text-gray-800">المنتجات والخدمات المعروضة (${workshopConfig.products.length})</h4>
+            <button onclick="openAdminCustomProdModal()" class="bg-[#D4AF37] text-black font-black px-4 py-2.5 rounded-xl shadow-md hover:scale-105 transition flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-plus"></i> إضافة منتج جديد
+            </button>
         </div>
-
-        <!-- إعدادات الطباعة الحرارية -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-shirt text-purple-500 ml-1"></i> الطباعة الحرارية (أكواب / تيشيرت)</h4>
-            <div class="grid grid-cols-2 gap-3">
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">كأس أبيض عادي</label>
-                <input type="number" id="print-mug-white" value="${customServicesConfig.print.whiteMug}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">كأس سحري</label>
-                <input type="number" id="print-mug-magic" value="${customServicesConfig.print.magicMug}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">تيشيرت (وجه واحد)</label>
-                <input type="number" id="print-ts-1" value="${customServicesConfig.print.tshirtOneSide}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">تيشيرت (وجهين)</label>
-                <input type="number" id="print-ts-2" value="${customServicesConfig.print.tshirtTwoSides}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-            </div>
-        </div>
-
-        <!-- إعدادات الكادرات والفؤيل -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-image text-blue-500 ml-1"></i> الكادرات والفؤيل الذهبي</h4>
-            <div class="grid grid-cols-2 gap-3">
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">كادر A5</label>
-                <input type="number" id="frame-a5" value="${customServicesConfig.frames.sizeA5}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">كادر A4</label>
-                <input type="number" id="frame-a4" value="${customServicesConfig.frames.sizeA4}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">كادر A3</label>
-                <input type="number" id="frame-a3" value="${customServicesConfig.frames.sizeA3}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">إضافة فويل ذهبي (+)</label>
-                <input type="number" id="frame-foil" value="${customServicesConfig.frames.foilAddon}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-            </div>
-        </div>
-
-        <!-- إعدادات الكاميو -->
-        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-scissors text-green-500 ml-1"></i> قص الكاميو 5</h4>
-            <div class="grid grid-cols-2 gap-3">
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">السعر الأساسي</label>
-                <input type="number" id="cameo-base" value="${customServicesConfig.cameo.basePrice}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-                <div><label class="block text-[10px] font-bold text-gray-600 mb-1">سعر الكلمة الإضافية</label>
-                <input type="number" id="cameo-word" value="${customServicesConfig.cameo.wordPrice}" class="w-full border p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50"></div>
-            </div>
-        </div>
+        <div class="col-span-1 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
     `;
+
+    if (workshopConfig.products.length === 0) {
+        html += `<div class="col-span-3 text-center p-10 bg-gray-50 border border-dashed border-gray-300 rounded-2xl text-gray-500 font-bold">لا يوجد منتجات في الورشة حتى الآن. اضغط على إضافة منتج جديد!</div>`;
+    } else {
+        workshopConfig.products.forEach((p, index) => {
+            const categoryIcon = p.category === 'laser' ? '<i class="fa-solid fa-fire text-red-500"></i>' : 
+                                 p.category === 'print' ? '<i class="fa-solid fa-shirt text-purple-500"></i>' : 
+                                 p.category === 'frame' ? '<i class="fa-solid fa-image text-blue-500"></i>' : 
+                                 '<i class="fa-solid fa-scissors text-green-500"></i>';
+            
+            html += `
+                <div class="bg-white p-4 rounded-2xl border ${p.inStock ? 'border-gray-200' : 'border-red-200 bg-red-50'} shadow-sm relative group">
+                    <div class="absolute top-2 right-2 flex gap-1">
+                        <button onclick="openAdminCustomProdModal('${p.id}')" class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 flex items-center justify-center transition"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCustomProduct('${p.id}')" class="w-8 h-8 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 flex items-center justify-center transition"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    
+                    <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-20 h-20 object-cover rounded-xl border border-gray-100 mb-3 bg-gray-50">
+                    
+                    <h5 class="font-black text-gray-800 text-sm line-clamp-1 mb-1">${categoryIcon} ${p.name}</h5>
+                    <p class="text-[#B8860B] font-black text-sm mb-2">${(p.basePrice || 0).toLocaleString()} دج</p>
+                    
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-500">${p.colors ? 'متوفر ألوان' : 'بدون خيارات ألوان'}</span>
+                        <button onclick="toggleCustomProdStock('${p.id}')" class="text-[10px] font-bold px-2 py-1 rounded border transition ${p.inStock ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}">
+                            ${p.inStock ? 'متوفر ✅' : 'نفذ الكمية ❌'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
 }
 
-// 4. حفظ الإعدادات في قاعدة البيانات
-export async function saveCustomServicesSettings() {
-    try {
-        // تحديث الكائن من الحقول التي أدخلها المدير
-        customServicesConfig.laser.face1Price = parseFloat(document.getElementById('laser-face1').value) || 0;
-        customServicesConfig.laser.face2Price = parseFloat(document.getElementById('laser-face2').value) || 0;
-
-        customServicesConfig.print.whiteMug = parseFloat(document.getElementById('print-mug-white').value) || 0;
-        customServicesConfig.print.magicMug = parseFloat(document.getElementById('print-mug-magic').value) || 0;
-        customServicesConfig.print.tshirtOneSide = parseFloat(document.getElementById('print-ts-1').value) || 0;
-        customServicesConfig.print.tshirtTwoSides = parseFloat(document.getElementById('print-ts-2').value) || 0;
-
-        customServicesConfig.frames.sizeA5 = parseFloat(document.getElementById('frame-a5').value) || 0;
-        customServicesConfig.frames.sizeA4 = parseFloat(document.getElementById('frame-a4').value) || 0;
-        customServicesConfig.frames.sizeA3 = parseFloat(document.getElementById('frame-a3').value) || 0;
-        customServicesConfig.frames.foilAddon = parseFloat(document.getElementById('frame-foil').value) || 0;
-
-        customServicesConfig.cameo.basePrice = parseFloat(document.getElementById('cameo-base').value) || 0;
-        customServicesConfig.cameo.wordPrice = parseFloat(document.getElementById('cameo-word').value) || 0;
-
-        if (typeof window.db !== 'undefined') {
-            await window.db.collection("settings").doc("custom_workshop").set(customServicesConfig, { merge: true });
-            showCustomAlert("تم الحفظ 🎉", "تم تحديث أسعار الورشة بنجاح!", true);
+// 4. فتح نافذة الإضافة/التعديل
+window.openAdminCustomProdModal = function(productId = null) {
+    const form = document.getElementById('custom-prod-form');
+    if(form) form.reset();
+    
+    document.getElementById('cp-image-preview').classList.add('hidden');
+    document.getElementById('cp-image-base64').value = '';
+    
+    if (productId) {
+        // حالة التعديل
+        const prod = workshopConfig.products.find(p => p.id === productId);
+        if (prod) {
+            document.getElementById('cp-id').value = prod.id;
+            document.getElementById('cp-category').value = prod.category;
+            document.getElementById('cp-name').value = prod.name;
+            document.getElementById('cp-base-price').value = prod.basePrice;
+            document.getElementById('cp-colors').value = prod.colors || '';
+            document.getElementById('cp-face2-price').value = prod.face2Price || '';
+            document.getElementById('cp-label-1').value = prod.label1 || '';
+            document.getElementById('cp-label-2').value = prod.label2 || '';
+            document.getElementById('cp-label-notes').value = prod.labelNotes || '';
+            document.getElementById('cp-in-stock').checked = prod.inStock !== false;
             
-            // تحديث محلي لكي تعمل واجهة الزبون بالأسعار الجديدة فوراً
-            if(!state.storeSettings) state.storeSettings = {};
-            state.storeSettings.custom_workshop = customServicesConfig;
+            if (prod.image) {
+                document.getElementById('cp-image-base64').value = prod.image;
+                document.getElementById('cp-img-tag').src = prod.image;
+                document.getElementById('cp-image-preview').classList.remove('hidden');
+            }
         }
-    } catch (error) {
-        showCustomAlert("خطأ", "حدث خطأ أثناء الحفظ: " + error.message, false);
+    } else {
+        // حالة إضافة جديد
+        document.getElementById('cp-id').value = '';
+        document.getElementById('cp-in-stock').checked = true;
+    }
+
+    const modal = document.getElementById('admin-custom-prod-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// 5. تحويل الصورة إلى Base64
+window.handleAdminCustomImage = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Str = e.target.result;
+        document.getElementById('cp-image-base64').value = base64Str;
+        document.getElementById('cp-img-tag').src = base64Str;
+        document.getElementById('cp-image-preview').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
+// 6. حفظ المنتج
+window.saveCustomProduct = function(event) {
+    event.preventDefault();
+    
+    const idField = document.getElementById('cp-id').value;
+    const newProduct = {
+        id: idField || 'cp_' + Date.now(), // توليد ID فريد
+        category: document.getElementById('cp-category').value,
+        name: document.getElementById('cp-name').value.trim(),
+        image: document.getElementById('cp-image-base64').value,
+        basePrice: parseFloat(document.getElementById('cp-base-price').value) || 0,
+        colors: document.getElementById('cp-colors').value.trim(),
+        face2Price: parseFloat(document.getElementById('cp-face2-price').value) || 0,
+        label1: document.getElementById('cp-label-1').value.trim(),
+        label2: document.getElementById('cp-label-2').value.trim(),
+        labelNotes: document.getElementById('cp-label-notes').value.trim(),
+        inStock: document.getElementById('cp-in-stock').checked
+    };
+
+    if (!newProduct.image) {
+        showCustomAlert("خطأ", "يجب إرفاق صورة للمنتج!", false);
+        return;
+    }
+
+    if (idField) {
+        // تحديث
+        const index = workshopConfig.products.findIndex(p => p.id === idField);
+        if (index !== -1) workshopConfig.products[index] = newProduct;
+    } else {
+        // إضافة جديد
+        workshopConfig.products.unshift(newProduct); // يضاف في بداية القائمة
+    }
+
+    document.getElementById('admin-custom-prod-modal').classList.add('hidden');
+    document.getElementById('admin-custom-prod-modal').classList.remove('flex');
+    
+    saveWorkshopConfig();
+}
+
+// 7. تغيير حالة المخزون بضغطة زر
+window.toggleCustomProdStock = function(id) {
+    const prod = workshopConfig.products.find(p => p.id === id);
+    if (prod) {
+        prod.inStock = !prod.inStock;
+        saveWorkshopConfig();
     }
 }
 
-// تصدير الدوال للاستخدام المباشر في HTML
+// 8. حذف منتج
+window.deleteCustomProduct = function(id) {
+    if(confirm('هل أنت متأكد من حذف هذا المنتج نهائياً؟')) {
+        workshopConfig.products = workshopConfig.products.filter(p => p.id !== id);
+        saveWorkshopConfig();
+    }
+}
+
+// 9. الحفظ النهائي في فايربيس
+async function saveWorkshopConfig() {
+    if (typeof window.db !== 'undefined') {
+        try {
+            await window.db.collection("settings").doc("custom_workshop").set(workshopConfig);
+            if(!state.storeSettings) state.storeSettings = {};
+            state.storeSettings.custom_workshop = workshopConfig; // تحديث محلي
+            
+            renderCustomAdminSettings();
+            showCustomAlert("نجاح", "تم حفظ وتحديث الورشة بنجاح!", true);
+        } catch (error) {
+            showCustomAlert("خطأ", "فشل الحفظ: " + error.message, false);
+        }
+    }
+}
+
+// Window Bindings
 window.toggleCustomSystem = toggleCustomSystem;
-window.saveCustomServicesSettings = saveCustomServicesSettings;
 window.loadCustomAdminData = loadCustomAdminData;
