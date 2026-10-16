@@ -4,14 +4,14 @@ import { state } from './store/state.js';
 import { showCustomAlert, calculateShippingCost, safeCall } from './utils/helpers.js';
 
 let currentGiftStep = 1;
-const TOTAL_STEPS = 6; // أضفنا خطوة لتفصل بين المعلومات والفاتورة النهائية
-let activeProductCategory = 'الكل'; // لحفظ القسم النشط حالياً في نافذة المنتجات
+const TOTAL_STEPS = 6;
+let activeProductCategory = 'الكل';
 
 let giftData = {
     recipient: '',
     selectedBox: null,
     selectedProducts: [],
-    selectedWrapping: null, // سيحفظ كائن التغليف (صورة + اسم + سعر)
+    selectedWrapping: null,
     giftMessage: '',
     senderName: '',
     senderPhone: '',
@@ -19,7 +19,7 @@ let giftData = {
     receiverPhone: '',
     wilaya: '',
     commune: '',
-    shippingType: 'desk' // افتراضياً للمكتب
+    shippingType: 'desk'
 };
 
 export function openGiftBuilder() {
@@ -69,7 +69,7 @@ export function renderGiftStep() {
     const storeSlogan = state.storeSettings.slogan || "يبدو أن أحدهم سيغدو سعيداً اليوم";
 
     switch (currentGiftStep) {
-        case 1: // شاشة الترحيب والمستلم
+        case 1:
             const recipients = ["زوجتي", "زوجي", "الأم", "الأب", "أختي", "أخي", "صديقتي", "صديقي", "شخص عزيز", "نفسي"];
             html = `
                 <div class="space-y-6 animate-fade-in flex flex-col items-center justify-center text-center py-4">
@@ -94,47 +94,50 @@ export function renderGiftStep() {
             `;
             break;
 
-        case 2: // اختيار العلبة (صارم جداً: علب فقط)
-            // الفلترة الذكية: يجب أن يكون القسم "علب" أو "علبة" فقط لكي لا تظهر الهدايا الجاهزة
+        case 2:
             const boxProducts = state.products.filter(p => {
                 const cat = (p.category || '').toLowerCase().trim();
                 return cat === 'علب' || cat === 'علبة' || cat === 'صناديق';
             });
             html = `
-                <div class="space-y-5 animate-fade-in">
+                <div class="space-y-5 animate-fade-in relative">
                     <div class="text-center space-y-2 mb-4">
                         <h4 class="font-black text-lg text-white">1. اختر صندوق الهدية 📦</h4>
-                        <p class="text-xs text-gray-400">الانطباع الأول يبدأ من العلبة!</p>
+                        <p class="text-xs text-gray-400">اضغط على <i class="fa-solid fa-eye text-[#D4AF37]"></i> لرؤية الأبعاد والتفاصيل</p>
                     </div>
                     <div class="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                         ${boxProducts.length > 0 ? boxProducts.map(b => {
                             const isSelected = giftData.selectedBox && giftData.selectedBox.id === b.id;
                             return `
-                                <div onclick="selectGiftBox('${b.id}')" class="bg-gray-900 p-4 rounded-2xl border cursor-pointer transition text-center space-y-3 relative ${isSelected ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)] bg-gradient-to-b from-gray-900 to-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
+                                <div class="bg-gray-900 p-4 rounded-2xl border transition text-center space-y-3 relative ${isSelected ? 'border-[#D4AF37] shadow-[0_0_20px_rgba(212,175,55,0.3)] bg-gradient-to-b from-gray-900 to-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
+                                    
+                                    <!-- أزرار الاختيار والمعاينة -->
+                                    <button onclick="previewGiftProduct('${b.id}')" class="absolute top-2 left-2 w-8 h-8 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10"><i class="fa-solid fa-eye"></i></button>
                                     ${isSelected ? '<div class="absolute top-2 right-2 bg-[#D4AF37] text-black w-6 h-6 rounded-full flex items-center justify-center text-xs"><i class="fa-solid fa-check"></i></div>' : ''}
-                                    <img src="${(b.images && b.images[0]) || b.image || ''}" class="w-24 h-24 object-contain mx-auto rounded-xl bg-white p-1">
-                                    <div class="space-y-1">
-                                        <p class="font-bold text-sm text-white line-clamp-1">${b.name}</p>
-                                        <p class="text-[#D4AF37] font-black text-sm">${(b.price || 0).toLocaleString()} دج</p>
+                                    
+                                    <div onclick="selectGiftBox('${b.id}')" class="cursor-pointer pt-2">
+                                        <img src="${(b.images && b.images[0]) || b.image || ''}" class="w-24 h-24 object-contain mx-auto rounded-xl bg-white p-1">
+                                        <div class="space-y-1 mt-3">
+                                            <p class="font-bold text-sm text-white line-clamp-1">${b.name}</p>
+                                            <p class="text-[#D4AF37] font-black text-sm">${(b.price || 0).toLocaleString()} دج</p>
+                                        </div>
                                     </div>
                                 </div>
                             `;
-                        }).join('') : '<div class="col-span-2 text-center text-gray-500 py-10 bg-black/40 rounded-xl border border-gray-800">لا توجد علب فارغة مسجلة في المتجر حالياً. يرجى إضافة منتجات في قسم "علب".</div>'}
+                        }).join('') : '<div class="col-span-2 text-center text-gray-500 py-10 bg-black/40 rounded-xl border border-gray-800">لا توجد علب مسجلة حالياً.</div>'}
                     </div>
                 </div>
             `;
             break;
 
-        case 3: // المنتجات مع التبويبات (Categories Tabs)
-            // استخراج الأقسام المتاحة من المنتجات (باستثناء العلب والتغليف)
+        case 3:
+            // استبعاد العلب والتغليف وأي قسم يحتوي على كلمة "هدية" أو "هدايا"
             let availableProducts = state.products.filter(p => {
                 const cat = (p.category || '').toLowerCase().trim();
-                return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف';
+                return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف' && cat !== 'هدايا' && !cat.includes('هدية');
             });
             
             const uniqueCategories = ['الكل', ...new Set(availableProducts.map(p => p.category || 'أخرى'))];
-            
-            // فلترة المنتجات حسب التبويب النشط
             if (activeProductCategory !== 'الكل') {
                 availableProducts = availableProducts.filter(p => (p.category || 'أخرى') === activeProductCategory);
             }
@@ -145,7 +148,6 @@ export function renderGiftStep() {
                         <h4 class="font-black text-lg text-white">2. املأ العلبة بالمنتجات 🎁</h4>
                     </div>
                     
-                    <!-- الإجمالي اللحظي -->
                     <div class="bg-gray-900 p-3 rounded-xl border border-[#D4AF37]/30 flex justify-between items-center shadow-md">
                         <div class="text-right">
                             <p class="font-black text-lg text-[#D4AF37]">${currentTotal.toLocaleString()} دج</p>
@@ -155,7 +157,6 @@ export function renderGiftStep() {
                         </span>
                     </div>
 
-                    <!-- 🌟 تبويبات الأقسام (تصميم أفقي قابل للتمرير) -->
                     <div class="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
                         ${uniqueCategories.map(cat => `
                             <button onclick="setActiveGiftCategory('${cat}')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition border ${activeProductCategory === cat ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-black text-gray-400 border-gray-800 hover:border-gray-600'}">
@@ -164,7 +165,6 @@ export function renderGiftStep() {
                         `).join('')}
                     </div>
 
-                    <!-- قائمة المنتجات المفلترة -->
                     <div class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                         ${availableProducts.map(p => {
                             const existing = giftData.selectedProducts.find(item => item.id === p.id);
@@ -172,8 +172,9 @@ export function renderGiftStep() {
                             const isAdded = qty > 0;
                             return `
                                 <div class="flex items-center justify-between bg-black/60 p-3 rounded-2xl border transition ${isAdded ? 'border-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.2)]' : 'border-gray-800'}">
-                                    <div class="flex items-center gap-3 flex-1">
-                                        <div class="w-12 h-12 bg-white rounded-xl flex-shrink-0 p-1">
+                                    <div class="flex items-center gap-3 flex-1 relative">
+                                        <button onclick="previewGiftProduct('${p.id}')" class="absolute -top-2 -right-1 w-6 h-6 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-sm"><i class="fa-solid fa-eye text-[10px]"></i></button>
+                                        <div class="w-12 h-12 bg-white rounded-xl flex-shrink-0 p-1 cursor-pointer" onclick="previewGiftProduct('${p.id}')">
                                             <img src="${(p.images && p.images[0]) || p.image || ''}" class="w-full h-full object-contain rounded-lg">
                                         </div>
                                         <div>
@@ -194,11 +195,10 @@ export function renderGiftStep() {
             `;
             break;
 
-        case 4: // التغليف والرسالة (بالصور)
-            // سنسحب أشكال التغليف من الإعدادات (أو نضع بيانات تجريبية مؤقتة حتى نبرمج لوحة التحكم)
+        case 4:
             const wrappings = (state.storeSettings && state.storeSettings.wrappings) ? state.storeSettings.wrappings : [
-                { id: 'w1', name: 'تغليف كلاسيكي أسود', image: 'https://via.placeholder.com/150/000000/FFFFFF?text=Black', price: 0 },
-                { id: 'w2', name: 'تغليف ذهبي فاخر', image: 'https://via.placeholder.com/150/D4AF37/000000?text=Gold', price: 200 }
+                { id: 'w1', name: 'تغليف أسود ملكي', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=200&auto=format&fit=crop', price: 200 },
+                { id: 'w2', name: 'تغليف أحمر فاخر', image: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=200&auto=format&fit=crop', price: 300 }
             ];
 
             html = `
@@ -214,7 +214,7 @@ export function renderGiftStep() {
                                 const isSelected = giftData.selectedWrapping && giftData.selectedWrapping.id === w.id;
                                 return `
                                 <div onclick="selectWrapping('${w.id}', '${w.name}', ${w.price}, '${w.image}')" class="bg-black/50 p-2 rounded-2xl border cursor-pointer transition text-center relative ${isSelected ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)] bg-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
-                                    <img src="${w.image}" class="w-full h-24 object-cover rounded-xl mb-2">
+                                    <img src="${w.image}" class="w-full h-24 object-cover rounded-xl mb-2 border border-gray-800">
                                     <p class="font-bold text-xs text-white">${w.name}</p>
                                     <p class="text-[#D4AF37] text-[10px] font-bold">${w.price > 0 ? '+'+w.price+' دج' : 'مجاني'}</p>
                                 </div>
@@ -225,34 +225,33 @@ export function renderGiftStep() {
 
                     <div class="space-y-2 pt-4 border-t border-gray-800">
                         <label class="block text-sm font-bold text-[#D4AF37]">رسالة بطاقة الإهداء (تُطبع داخل الهدية):</label>
-                        <textarea oninput="giftData.giftMessage=this.value" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition"></textarea>
+                        <textarea oninput="giftData.giftMessage=this.value" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
                     </div>
                 </div>
             `;
             break;
 
-        case 5: // معلومات التوصيل (قبل الفاتورة)
+        case 5:
+            // قمنا بفصل تحديث الأزرار عن إعادة بناء الواجهة بالكامل لحل مشكلة اختفاء الكتابة
             html = `
                 <div class="space-y-6 animate-fade-in overflow-y-auto max-h-[65vh] pr-2 custom-scrollbar">
                     <div class="text-center mb-4">
                         <h4 class="font-black text-lg text-white">4. أين نرسل الهدية؟ 🚚</h4>
-                        <p class="text-xs text-gray-400">سنحسب تكلفة التوصيل بناءً على العنوان</p>
+                        <p class="text-xs text-gray-400">سنحسب تكلفة التوصيل في الخطوة القادمة</p>
                     </div>
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 space-y-4">
-                        <!-- المُرسل -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-800">
                             <div><label class="text-[10px] text-gray-500 font-bold block mb-1">اسم المُرسل (أنت)</label><input type="text" id="g-sender-name" value="${giftData.senderName}" oninput="giftData.senderName=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
                             <div><label class="text-[10px] text-gray-500 font-bold block mb-1">رقمك للتأكيد</label><input type="tel" id="g-sender-phone" value="${giftData.senderPhone}" oninput="giftData.senderPhone=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
                         </div>
 
-                        <!-- المُستلم -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">اسم المُستلم للهدية</label><input type="text" id="g-receiver-name" value="${giftData.receiverName}" oninput="giftData.receiverName=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
                             <div><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">رقم المستلم</label><input type="tel" id="g-receiver-phone" value="${giftData.receiverPhone}" oninput="giftData.receiverPhone=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
                             
                             <div class="md:col-span-2"><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">ولاية المستلم *</label>
-                                <select id="g-wilaya" onchange="giftData.wilaya=this.value; renderGiftStep()" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                                <select id="g-wilaya" onchange="giftData.wilaya=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37] cursor-pointer">
                                     <option value="">اختر الولاية لحساب التوصيل...</option>
                                     ${state.WILAYAS.map(w => `<option value="${w.code}" ${giftData.wilaya === w.code ? 'selected' : ''}>${w.code} -${w.name}</option>`).join('')}
                                 </select>
@@ -261,14 +260,12 @@ export function renderGiftStep() {
                             <div class="md:col-span-2">
                                 <label class="text-[10px] text-[#D4AF37] font-bold block mb-2">طريقة التوصيل للهدية *</label>
                                 <div class="flex gap-3">
-                                    <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${giftData.shippingType === 'desk' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
-                                        <input type="radio" name="g_ship_type" value="desk" ${giftData.shippingType === 'desk' ? 'checked' : ''} onchange="giftData.shippingType=this.value; renderGiftStep()" class="hidden">
-                                        <i class="fa-solid fa-store"></i> استلام من مكتب ياليدين
-                                    </label>
-                                    <label class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${giftData.shippingType === 'home' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
-                                        <input type="radio" name="g_ship_type" value="home" ${giftData.shippingType === 'home' ? 'checked' : ''} onchange="giftData.shippingType=this.value; renderGiftStep()" class="hidden">
-                                        <i class="fa-solid fa-house"></i> توصيل لباب المنزل
-                                    </label>
+                                    <div id="btn-ship-desk" onclick="setGiftShippingType('desk')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${giftData.shippingType === 'desk' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
+                                        <i class="fa-solid fa-store"></i> للمكتب
+                                    </div>
+                                    <div id="btn-ship-home" onclick="setGiftShippingType('home')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${giftData.shippingType === 'home' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
+                                        <i class="fa-solid fa-house"></i> لباب المنزل
+                                    </div>
                                 </div>
                             </div>
                             
@@ -279,7 +276,7 @@ export function renderGiftStep() {
             `;
             break;
 
-        case 6: // الفاتورة النهائية (بعد حساب كل شيء)
+        case 6:
             const shipCost = giftData.wilaya ? calculateShippingCost(giftData.wilaya, state.WILAYAS, giftData.shippingType) : 0;
             const grandTotal = currentTotal + shipCost;
 
@@ -287,12 +284,12 @@ export function renderGiftStep() {
                 <div class="space-y-5 animate-fade-in pb-2">
                     <div class="text-center mb-4">
                         <i class="fa-solid fa-receipt text-4xl text-[#D4AF37] mb-2"></i>
-                        <h4 class="font-black text-lg text-white">5. المراجعة النهائية والتأكيد</h4>
+                        <h4 class="font-black text-lg text-white">5. المراجعة النهائية</h4>
                     </div>
 
-                    <div class="bg-black p-5 rounded-2xl border border-[#D4AF37]/50 shadow-[0_0_30px_rgba(212,175,55,0.15)] space-y-4">
+                    <div class="bg-black p-5 rounded-2xl border border-[#D4AF37]/50 shadow-[0_0_30px_rgba(212,175,55,0.15)] space-y-4 relative overflow-hidden">
                         
-                        <div class="space-y-2 text-sm text-gray-300 border-b border-gray-800 pb-4">
+                        <div class="space-y-2 text-sm text-gray-300 border-b border-gray-800 pb-4 relative z-10">
                             <div class="flex justify-between items-center">
                                 <span>العلبة (${giftData.selectedBox ? giftData.selectedBox.name : 'بدون'}):</span>
                                 <span class="font-bold text-white">${giftData.selectedBox ? (giftData.selectedBox.price || 0).toLocaleString() : 0} دج</span>
@@ -307,13 +304,13 @@ export function renderGiftStep() {
                                 <span>التغليف (${giftData.selectedWrapping ? giftData.selectedWrapping.name : 'بدون'}):</span>
                                 <span class="font-bold text-white">${giftData.selectedWrapping ? giftData.selectedWrapping.price : 0} دج</span>
                             </div>
-                            <div class="flex justify-between items-center text-[#D4AF37]">
-                                <span>تكلفة التوصيل (${giftData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'}):</span>
+                            <div class="flex justify-between items-center text-[#D4AF37] bg-[#D4AF37]/10 p-2 rounded-lg mt-2">
+                                <span>التوصيل (${giftData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'} إلى ${giftData.wilaya}):</span>
                                 <span class="font-bold">${shipCost.toLocaleString()} دج</span>
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center pt-2">
+                        <div class="flex justify-between items-center pt-2 relative z-10">
                             <span class="text-lg font-black text-white">المبلغ النهائي للطلبية:</span>
                             <span class="text-2xl font-black text-[#D4AF37]">${grandTotal.toLocaleString()} دج</span>
                         </div>
@@ -326,11 +323,64 @@ export function renderGiftStep() {
     container.innerHTML = html;
 }
 
+// ======================= نافذة معاينة المنتج (الميزة الجديدة) =======================
+export function previewGiftProduct(productId) {
+    const prod = state.products.find(p => p.id === productId);
+    if (!prod) return;
+
+    const images = (prod.images && prod.images.length > 0) ? prod.images : (prod.image ? [prod.image] : []);
+    const imagesHtml = images.map(img => `<img src="${img}" class="min-w-full h-48 object-contain bg-white rounded-xl snap-center p-1">`).join('');
+    
+    const isBox = (prod.category || '').toLowerCase().trim() === 'علب' || (prod.category || '').toLowerCase().trim() === 'علبة';
+    
+    const modalHtml = `
+        <div id="gift-preview-modal" class="absolute inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col p-5 animate-fade-in rounded-3xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-[#D4AF37] font-black text-lg line-clamp-1">${prod.name}</h3>
+                <button onclick="document.getElementById('gift-preview-modal').remove()" class="w-8 h-8 bg-gray-800 text-white rounded-full hover:bg-red-600 transition flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pb-4">
+                <div class="flex gap-2 overflow-x-auto snap-x custom-scrollbar pb-2">
+                    ${imagesHtml}
+                </div>
+                
+                <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                    <p class="text-[#D4AF37] font-black text-2xl">${(prod.price || 0).toLocaleString()} دج</p>
+                    <span class="bg-gray-800 text-gray-300 text-xs px-3 py-1 rounded-full font-bold">${prod.category || 'عام'}</span>
+                </div>
+                
+                <div class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                    ${prod.desc || 'لا توجد تفاصيل إضافية لهذا المنتج.'}
+                </div>
+            </div>
+            
+            <div class="pt-3 border-t border-gray-800">
+                ${isBox ? 
+                    `<button onclick="selectGiftBox('${prod.id}'); document.getElementById('gift-preview-modal').remove()" class="w-full gold-gradient text-black font-black py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(212,175,55,0.4)]">اختيار هذه العلبة <i class="fa-solid fa-box-open ml-1"></i></button>` 
+                    : 
+                    `<button onclick="updateGiftProductQty('${prod.id}', 1); document.getElementById('gift-preview-modal').remove()" class="w-full gold-gradient text-black font-black py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(212,175,55,0.4)]">إضافة للهدية <i class="fa-solid fa-cart-plus ml-1"></i></button>`
+                }
+            </div>
+        </div>
+    `;
+    document.getElementById('gift-wizard-content').insertAdjacentHTML('beforeend', modalHtml);
+}
+
 // ======================= دوال التفاعل =======================
 export function setActiveGiftCategory(cat) { activeProductCategory = cat; renderGiftStep(); }
 export function setGiftRecipient(r) { giftData.recipient = r; nextGiftStep(); }
 export function selectGiftBox(boxId) { giftData.selectedBox = state.products.find(p => p.id === boxId); nextGiftStep(); }
 export function selectWrapping(id, name, price, image) { giftData.selectedWrapping = { id, name, price, image }; renderGiftStep(); }
+
+// دالة منفصلة لتحديث أزرار التوصيل بدون عمل Re-render لتفادي ضياع الكتابة
+export function setGiftShippingType(type) {
+    giftData.shippingType = type;
+    const activeClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]";
+    const inactiveClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-gray-700 bg-black text-gray-400";
+    document.getElementById('btn-ship-desk').className = type === 'desk' ? activeClass : inactiveClass;
+    document.getElementById('btn-ship-home').className = type === 'home' ? activeClass : inactiveClass;
+}
 
 export function updateGiftProductQty(prodId, delta) {
     const prod = state.products.find(p => p.id === prodId);
@@ -351,6 +401,8 @@ export function nextGiftStep() {
     if (currentGiftStep === 2 && !giftData.selectedBox) { showCustomAlert('تنبيه', 'يرجى اختيار صندوق الهدية.', false); return; }
     if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { showCustomAlert('تنبيه', 'العلبة فارغة! يرجى إضافة منتج واحد على الأقل.', false); return; }
     if (currentGiftStep === 4 && !giftData.selectedWrapping) { showCustomAlert('تنبيه', 'يرجى اختيار شكل التغليف الخارجي للهدية.', false); return; }
+    
+    // التحقق من صحة معلومات الشحن في الخطوة 5
     if (currentGiftStep === 5) {
         if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.wilaya || !giftData.commune) {
             showCustomAlert('تنبيه', 'يرجى إكمال جميع معلومات الإرسال والولاية لحساب الشحن!', false); return;
@@ -412,5 +464,7 @@ window.selectGiftBox = selectGiftBox;
 window.updateGiftProductQty = updateGiftProductQty;
 window.setActiveGiftCategory = setActiveGiftCategory;
 window.selectWrapping = selectWrapping;
+window.setGiftShippingType = setGiftShippingType;
+window.previewGiftProduct = previewGiftProduct;
 window.nextGiftStep = nextGiftStep;
 window.prevGiftStep = prevGiftStep;
