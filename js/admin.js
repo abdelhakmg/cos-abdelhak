@@ -988,6 +988,179 @@ export function printSelectedOrders() {
     `);
     printWindow.document.close();
 }
+// ==========================================
+// 🎁 أكواد إدارة قسم صانع الهدايا (VIP Gift)
+// ==========================================
+
+let adminGiftSettings = {
+    slogan: "يبدو أن أحدهم سيغدو سعيداً اليوم",
+    minOrder: 2000,
+    isActive: true,
+    recipients: ["زوجتي", "زوجي", "الأم", "الأب", "صديقتي", "شخص عزيز", "نفسي"],
+    wrappings: []
+};
+
+// 1. تحميل الإعدادات عند فتح القسم
+export function loadGiftAdminData() {
+    if (state.storeSettings && state.storeSettings.gift) {
+        adminGiftSettings = state.storeSettings.gift;
+    }
+    
+    document.getElementById('gift-slogan-input').value = adminGiftSettings.slogan || "";
+    document.getElementById('gift-min-order-input').value = adminGiftSettings.minOrder || 0;
+    
+    const masterSwitch = document.getElementById('gift-master-switch');
+    masterSwitch.checked = adminGiftSettings.isActive !== false;
+    toggleGiftSystem(masterSwitch.checked);
+
+    renderGiftRecipients();
+    renderAdminWrappings();
+}
+
+// 2. تشغيل / إيقاف النظام
+window.toggleGiftSystem = function(isActive) {
+    adminGiftSettings.isActive = isActive;
+    const statusText = document.getElementById('gift-status-text');
+    if(isActive) {
+        statusText.innerText = "شغال";
+        statusText.classList.replace('text-gray-500', 'text-green-600');
+    } else {
+        statusText.innerText = "متوقف";
+        statusText.classList.replace('text-green-600', 'text-gray-500');
+    }
+}
+
+// 3. إدارة المستلمين (إضافة وحذف)
+window.addGiftRecipient = function() {
+    const input = document.getElementById('new-recipient-input');
+    const val = input.value.trim();
+    if(val) {
+        if(!adminGiftSettings.recipients) adminGiftSettings.recipients = [];
+        adminGiftSettings.recipients.push(val);
+        input.value = "";
+        renderGiftRecipients();
+    }
+}
+
+window.removeGiftRecipient = function(index) {
+    adminGiftSettings.recipients.splice(index, 1);
+    renderGiftRecipients();
+}
+
+function renderGiftRecipients() {
+    const container = document.getElementById('admin-recipients-list');
+    if(!adminGiftSettings.recipients) adminGiftSettings.recipients = [];
+    container.innerHTML = adminGiftSettings.recipients.map((r, i) => `
+        <span class="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2 border border-gray-200 shadow-sm">
+            ${r}
+            <button onclick="removeGiftRecipient(${i})" class="text-red-500 hover:text-red-700 transition"><i class="fa-solid fa-xmark"></i></button>
+        </span>
+    `).join('');
+}
+
+// 4. رفع صورة التغليف من الهاتف وحفظها
+window.saveNewWrapping = function() {
+    const fileInput = document.getElementById('wrap-image-file');
+    const nameInput = document.getElementById('wrap-name');
+    const priceInput = document.getElementById('wrap-price');
+    const btn = document.getElementById('btn-save-wrap');
+    
+    if(!fileInput.files[0] || !nameInput.value.trim()) {
+        alert("يرجى التقاط/اختيار صورة وكتابة اسم التغليف!");
+        return;
+    }
+
+    // تغيير شكل الزر ليدل على التحميل
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الرفع...';
+    btn.disabled = true;
+
+    const file = fileInput.files[0];
+    const reader = new FileReader(); // هذه التقنية السحرية تقرأ الصورة من الهاتف مباشرة
+    
+    reader.onload = function(e) {
+        const base64Image = e.target.result;
+        const newWrap = {
+            id: 'wrap_' + Date.now(),
+            name: nameInput.value.trim(),
+            price: parseFloat(priceInput.value) || 0,
+            image: base64Image // حفظ الصورة ككود
+        };
+        
+        if(!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
+        adminGiftSettings.wrappings.push(newWrap);
+        renderAdminWrappings();
+        
+        // إغلاق النافذة وتنظيف الحقول
+        document.getElementById('add-wrapping-modal').classList.add('hidden');
+        document.getElementById('add-wrapping-modal').classList.remove('flex');
+        fileInput.value = "";
+        nameInput.value = "";
+        priceInput.value = "";
+        
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة';
+        btn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+}
+
+// 5. حذف التغليف
+window.deleteWrapping = function(id) {
+    if(confirm('هل أنت متأكد من حذف هذا التغليف؟ لن يظهر للزبائن بعد الآن.')) {
+        adminGiftSettings.wrappings = adminGiftSettings.wrappings.filter(w => w.id !== id);
+        renderAdminWrappings();
+    }
+}
+
+// 6. عرض أشكال التغليف في الجدول
+function renderAdminWrappings() {
+    const tbody = document.getElementById('admin-wrappings-list');
+    if(!adminGiftSettings.wrappings || adminGiftSettings.wrappings.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-gray-500 text-xs font-bold bg-gray-50">لا توجد أشكال تغليف حالياً. اضغط على الزر الذهبي لإضافة واحد!</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = adminGiftSettings.wrappings.map(w => `
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+            <td class="p-2"><img src="${w.image}" class="w-14 h-14 object-cover rounded-xl border border-gray-200 shadow-sm"></td>
+            <td class="p-2 font-bold text-gray-800 text-xs">${w.name}</td>
+            <td class="p-2 text-[#D4AF37] font-black text-xs">${w.price > 0 ? w.price + ' دج' : 'مجاني'}</td>
+            <td class="p-2 text-center">
+                <button onclick="deleteWrapping('${w.id}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 p-2.5 rounded-xl transition shadow-sm"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// 7. حفظ كل الإعدادات في قاعدة البيانات
+window.saveGiftSettings = function() {
+    adminGiftSettings.slogan = document.getElementById('gift-slogan-input').value.trim();
+    adminGiftSettings.minOrder = parseFloat(document.getElementById('gift-min-order-input').value) || 0;
+    
+    // إظهار رسالة تحميل
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+    
+    // حفظ في Firestore
+    if(typeof db !== 'undefined') {
+        db.collection('settings').doc('store').set({ gift: adminGiftSettings }, { merge: true })
+        .then(() => {
+            alert("تم حفظ إعدادات الهدايا بنجاح! 🎉\nالآن الزبائن سيرون هذه التحديثات فوراً.");
+            state.storeSettings.gift = adminGiftSettings; // تحديث المتغير المحلي
+            btn.innerHTML = originalText;
+        })
+        .catch(err => {
+            alert("خطأ في الحفظ: " + err.message);
+            btn.innerHTML = originalText;
+        });
+    }
+}
+
+// لتشغيل الدالة عند فتح لوحة الإدارة
+document.addEventListener('DOMContentLoaded', () => {
+    // ننتظر ثانية واحدة لضمان تحميل الإعدادات من الداتا بيز
+    setTimeout(loadGiftAdminData, 1000); 
+});
 // =====================================
 // التصدير للـ Window
 // =====================================
