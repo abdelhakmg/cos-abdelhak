@@ -76,6 +76,7 @@ export function initFirebaseSync() {
         safeCall('renderAdminBrandsList'); 
         safeCall('renderBannerTextsList'); 
         safeCall('startBannerTicker'); 
+        safeCall('updateStoreFooterLinks');
     }, (error) => console.error("Error fetching settings:", error));
 
     // 5. مزامنة الطلبيات (للإدارة)
