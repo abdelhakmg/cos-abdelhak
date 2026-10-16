@@ -235,10 +235,19 @@ export function renderGiftStep() {
                             ${wrappings.map(w => {
                                 const isSelected = giftData.selectedWrapping && giftData.selectedWrapping.id === w.id;
                                 return `
-                                <div onclick="selectWrapping('${w.id}', '${w.name}', ${w.price}, '${w.image}')" class="bg-black/50 p-2 rounded-2xl border cursor-pointer transition text-center relative ${isSelected ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)] bg-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
-                                    <img src="${w.image}" class="w-full h-24 object-cover rounded-xl mb-2 border border-gray-800">
-                                    <p class="font-bold text-xs text-white">${w.name}</p>
-                                    <p class="text-[#D4AF37] text-[10px] font-bold">${w.price > 0 ? '+'+w.price+' دج' : 'مجاني'}</p>
+                                <div class="bg-black/50 p-2 rounded-2xl border transition text-center relative ${isSelected ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)] bg-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
+                                    
+                                    <!-- 👁️ زر المعاينة الجديد -->
+                                    <button onclick="previewWrapping('${w.image}', '${w.name}',${w.price})" class="absolute top-3 left-3 w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-md border border-gray-700">
+                                        <i class="fa-solid fa-expand text-[10px]"></i>
+                                    </button>
+
+                                    <!-- منطقة الاختيار -->
+                                    <div onclick="selectWrapping('${w.id}', '${w.name}', ${w.price}, '${w.image}')" class="cursor-pointer">
+                                        <img src="${w.image}" class="w-full h-24 object-cover rounded-xl mb-2 border border-gray-800">
+                                        <p class="font-bold text-xs text-white">${w.name}</p>
+                                        <p class="text-[#D4AF37] text-[10px] font-bold">${w.price > 0 ? '+'+w.price+' دج' : 'مجاني'}</p>
+                                    </div>
                                 </div>
                                 `;
                             }).join('')}
@@ -404,7 +413,22 @@ export function previewGiftProduct(productId) {
     `;
     document.getElementById('gift-wizard-content').insertAdjacentHTML('beforeend', modalHtml);
 }
-
+// ======================= نافذة معاينة التغليف =======================
+export function previewWrapping(imgUrl, name, price) {
+    const modalHtml = `
+        <div id="wrap-preview-modal" class="absolute inset-0 z-[60] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-5 animate-fade-in rounded-3xl" onclick="this.remove()">
+            <div class="relative w-full max-w-xs bg-gray-900 border border-[#D4AF37]/30 rounded-3xl p-4 text-center shadow-2xl" onclick="event.stopPropagation()">
+                <button onclick="document.getElementById('wrap-preview-modal').remove()" class="absolute -top-3 -right-3 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition flex items-center justify-center shadow-lg border-2 border-gray-900"><i class="fa-solid fa-xmark"></i></button>
+                
+                <img src="${imgUrl}" class="w-full h-64 object-cover rounded-xl mb-4 border border-gray-800">
+                
+                <h3 class="text-[#D4AF37] font-black text-lg mb-1">${name}</h3>
+                <p class="text-white font-bold text-sm bg-black/50 inline-block px-4 py-1 rounded-lg">${price > 0 ? price + ' دج' : 'مجاني'}</p>
+            </div>
+        </div>
+    `;
+    document.getElementById('gift-wizard-content').insertAdjacentHTML('beforeend', modalHtml);
+}
 // ======================= دوال التفاعل =======================
 export function setActiveGiftCategory(cat) { activeProductCategory = cat; renderGiftStep(); }
 export function setGiftRecipient(r) { giftData.recipient = r; nextGiftStep(); }
@@ -512,3 +536,4 @@ window.setGiftShippingType = setGiftShippingType;
 window.previewGiftProduct = previewGiftProduct;
 window.nextGiftStep = nextGiftStep;
 window.prevGiftStep = prevGiftStep;
+window.previewWrapping = previewWrapping;
