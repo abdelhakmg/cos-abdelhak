@@ -1000,33 +1000,62 @@ let adminGiftSettings = {
     wrappings: []
 };
 
-// 1. تحميل الإعدادات عند فتح القسم
-export function loadGiftAdminData() {
-    if (state.storeSettings && state.storeSettings.gift) {
+// 1. تحميل الإعدادات الحية عند فتح القسم
+export async function loadGiftAdminData() {
+    // 🔴 التصحيح هنا: البحث في مسار (main) بدلاً من (store)
+    if (typeof window.db !== 'undefined') {
+        try {
+            const doc = await window.db.collection('settings').doc('main').get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.gift) {
+                    adminGiftSettings = data.gift;
+                    // تحديث المتغير المحلي
+                    if (typeof state !== 'undefined') {
+                        if (!state.storeSettings) state.storeSettings = {};
+                        state.storeSettings.gift = adminGiftSettings;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("خطأ في جلب بيانات الهدايا من السيرفر:", error);
+            if (state.storeSettings && state.storeSettings.gift) {
+                adminGiftSettings = state.storeSettings.gift;
+            }
+        }
+    } else if (state.storeSettings && state.storeSettings.gift) {
         adminGiftSettings = state.storeSettings.gift;
     }
+
+    // تعبئة الحقول بالبيانات الحقيقية
+    const sloganInput = document.getElementById('gift-slogan-input');
+    const minOrderInput = document.getElementById('gift-min-order-input');
     
-    document.getElementById('gift-slogan-input').value = adminGiftSettings.slogan || "";
-    document.getElementById('gift-min-order-input').value = adminGiftSettings.minOrder || 0;
+    if (sloganInput) sloganInput.value = adminGiftSettings.slogan || "";
+    if (minOrderInput) minOrderInput.value = adminGiftSettings.minOrder || 0;
     
     const masterSwitch = document.getElementById('gift-master-switch');
-    masterSwitch.checked = adminGiftSettings.isActive !== false;
-    toggleGiftSystem(masterSwitch.checked);
+    if (masterSwitch) {
+        masterSwitch.checked = adminGiftSettings.isActive !== false;
+        toggleGiftSystem(masterSwitch.checked); // تحديث الشكل واللون
+    }
 
     renderGiftRecipients();
     renderAdminWrappings();
 }
 
-// 2. تشغيل / إيقاف النظام
+// 2. تشغيل / إيقاف النظام (تحديث الشكل محلياً)
 window.toggleGiftSystem = function(isActive) {
     adminGiftSettings.isActive = isActive;
     const statusText = document.getElementById('gift-status-text');
-    if(isActive) {
-        statusText.innerText = "شغال";
-        statusText.classList.replace('text-gray-500', 'text-green-600');
-    } else {
-        statusText.innerText = "متوقف";
-        statusText.classList.replace('text-green-600', 'text-gray-500');
+    if (statusText) {
+        if (isActive) {
+            statusText.innerText = "شغال";
+            statusText.classList.replace('text-gray-500', 'text-green-600');
+        } else {
+            statusText.innerText = "متوقف";
+            statusText.classList.replace('text-green-600', 'text-gray-500');
+        }
     }
 }
 
@@ -1131,7 +1160,6 @@ function renderAdminWrappings() {
     `).join('');
 }
 
-// 7. حفظ كل الإعدادات في قاعدة البيانات
 // 7. حفظ كل الإعدادات في قاعدة البيانات (النسخة المتوافقة والمحمية)
 window.saveGiftSettings = async function() {
     try {
@@ -1179,6 +1207,7 @@ window.saveGiftSettings = async function() {
         if (btn) btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات';
     }
 };
+
 // لتشغيل الدالة عند فتح لوحة الإدارة
 document.addEventListener('DOMContentLoaded', () => {
     // ننتظر ثانية واحدة لضمان تحميل الإعدادات من الداتا بيز
