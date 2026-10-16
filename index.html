@@ -883,34 +883,41 @@
     <script type="module" src="js/main.js?v=5"></script>
     
     <!-- 🎁 نافذة تصنيع الهدية المخصصة (Gift Builder Wizard Modal) -->
-<div id="gift-builder-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-2xl w-full text-right space-y-6 shadow-2xl relative my-8">
-        <!-- زر الإغلاق -->
-        <button onclick="closeGiftBuilder()" class="absolute top-5 left-5 text-gray-400 hover:text-white bg-black/50 p-2 rounded-full border border-gray-800">
-            <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
+<!-- 🎁 نافذة صانع الهدايا الفاخر (VIP Gift Builder) -->
+    <div id="gift-builder-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-md items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-3xl rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden max-h-[95vh]">
+            
+            <!-- الهيدر -->
+            <div class="flex justify-between items-center p-5 border-b border-[#D4AF37]/20 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-6xl text-[#D4AF37] opacity-10"><i class="fa-solid fa-gift"></i></div>
+                <div>
+                    <h3 class="text-xl font-black text-[#D4AF37] flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> صانع الهدايا المخصص
+                    </h3>
+                    <p id="gift-step-indicator" class="text-xs text-gray-400 font-bold mt-1">الخطوة 1 من 5</p>
+                </div>
+                <button onclick="closeGiftBuilder()" class="w-10 h-10 bg-gray-800/50 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm relative z-10">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
 
-        <!-- العنوان ومؤشر الخطوات -->
-        <div class="text-center space-y-2 border-b border-gray-800 pb-4">
-            <div class="w-12 h-12 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-xl shadow-lg">🎁</div>
-            <h3 class="text-xl font-black text-white gold-text">صمم هديتك الفاخرة بنفسك</h3>
-            <div id="gift-step-indicator" class="text-xs text-[#D4AF37] font-bold">الخطوة 1 من 6: اختيار المستلم</div>
-        </div>
+            <!-- محتوى الخطوات (هنا يضخ الجافاسكريبت السحر) -->
+            <div id="gift-wizard-content" class="p-6 overflow-y-auto custom-scrollbar flex-1 relative">
+                <!-- سيتم حقن الخطوات هنا ديناميكياً -->
+            </div>
 
-        <!-- محتوى خطوات الـ Wizard -->
-        <div id="gift-wizard-content" class="space-y-4 min-h-[300px]"></div>
-
-        <!-- أزرار التنقل (السابق / التالي) -->
-        <div class="flex justify-between items-center pt-4 border-t border-gray-800">
-            <button id="gift-prev-btn" onclick="prevGiftStep()" class="px-5 py-2.5 bg-gray-800 text-gray-300 font-bold rounded-xl text-xs hover:bg-gray-700 transition hidden">
-                <i class="fa-solid fa-arrow-right ml-1"></i> السابق
-            </button>
-            <div class="mr-auto"></div>
-            <button id="gift-next-btn" onclick="nextGiftStep()" class="px-6 py-2.5 gold-gradient text-black font-extrabold rounded-xl text-xs shadow-md hover:opacity-90 transition">
-                التالي <i class="fa-solid fa-arrow-left mr-1"></i>
-            </button>
+            <!-- الفوتر وأزرار التنقل -->
+            <div class="p-5 border-t border-gray-800 flex justify-between items-center bg-black/50">
+                <button id="gift-prev-btn" onclick="prevGiftStep()" class="hidden bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold px-6 py-3 rounded-xl transition shadow-sm border border-gray-700">
+                    <i class="fa-solid fa-arrow-right ml-1"></i> رجوع
+                </button>
+                <div class="flex-1"></div> <!-- مساحة فارغة لدفع زر التالي لليسار -->
+                <button id="gift-next-btn" onclick="nextGiftStep()" class="gold-gradient text-black text-sm font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                    التالي <i class="fa-solid fa-arrow-left mr-1"></i>
+                </button>
+            </div>
+            
         </div>
     </div>
-</div>
 </body>
 </html>
