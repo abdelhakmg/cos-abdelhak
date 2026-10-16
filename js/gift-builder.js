@@ -397,15 +397,24 @@ export function updateGiftProductQty(prodId, delta) {
 }
 
 export function nextGiftStep() {
-    if (currentGiftStep === 1 && !giftData.recipient) { showCustomAlert('تنبيه', 'يرجى تحديد لمن هذه الهدية.', false); return; }
-    if (currentGiftStep === 2 && !giftData.selectedBox) { showCustomAlert('تنبيه', 'يرجى اختيار صندوق الهدية.', false); return; }
-    if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { showCustomAlert('تنبيه', 'العلبة فارغة! يرجى إضافة منتج واحد على الأقل.', false); return; }
-    if (currentGiftStep === 4 && !giftData.selectedWrapping) { showCustomAlert('تنبيه', 'يرجى اختيار شكل التغليف الخارجي للهدية.', false); return; }
+    // استخدمنا alert العادي لضمان ظهوره فوق كل النوافذ (بسبب طبقة z-index العالية للمودال)
+    if (currentGiftStep === 1 && !giftData.recipient) { alert('يرجى تحديد لمن هذه الهدية.'); return; }
+    if (currentGiftStep === 2 && !giftData.selectedBox) { alert('يرجى اختيار صندوق الهدية.'); return; }
+    if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { alert('العلبة فارغة! يرجى إضافة منتج واحد على الأقل.'); return; }
+    if (currentGiftStep === 4 && !giftData.selectedWrapping) { alert('يرجى اختيار شكل التغليف الخارجي للهدية.'); return; }
     
-    // التحقق من صحة معلومات الشحن في الخطوة 5
+    // التحقق من صحة معلومات الشحن في الخطوة 5 (قراءة مباشرة من الخانات لتفادي مشاكل الملء التلقائي)
     if (currentGiftStep === 5) {
-        if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.wilaya || !giftData.commune) {
-            showCustomAlert('تنبيه', 'يرجى إكمال جميع معلومات الإرسال والولاية لحساب الشحن!', false); return;
+        giftData.senderName = document.getElementById('g-sender-name')?.value.trim() || giftData.senderName;
+        giftData.senderPhone = document.getElementById('g-sender-phone')?.value.trim() || giftData.senderPhone;
+        giftData.receiverName = document.getElementById('g-receiver-name')?.value.trim() || giftData.receiverName;
+        giftData.receiverPhone = document.getElementById('g-receiver-phone')?.value.trim() || giftData.receiverPhone;
+        giftData.wilaya = document.getElementById('g-wilaya')?.value || giftData.wilaya;
+        giftData.commune = document.getElementById('g-commune')?.value.trim() || giftData.commune;
+
+        if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.receiverPhone || !giftData.wilaya || !giftData.commune) {
+            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والولاية لحساب الشحن بنجاح!'); 
+            return;
         }
     }
     
