@@ -71,6 +71,10 @@
                  <button onclick="openGiftBuilder()" class="hidden md:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> أطلب هديتك
                 </button>
+                <!-- زر قسم التخصيص والورشة -->
+<button onclick="openCustomBuilder()" class="hidden md:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+    <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
+</button>
                 <button onclick="showPage('tracking')" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative" title="تتبع طلبي">
                     <i class="fa-solid fa-truck-fast text-lg"></i>
                 </button>
@@ -417,6 +421,9 @@
                     <button onclick="switchAdminTab('gift')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-gift">
     <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-1"></i> صانع الهدايا
 </button>
+           <button onclick="switchAdminTab('custom_services')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-custom_services">
+    <i class="fa-solid fa-pen-ruler text-[#D4AF37] ml-1"></i> الورشة والتخصيص
+</button>         
                 </div>
 
                 <!-- التبويب 1: المبيعات والطلبات -->
@@ -706,6 +713,32 @@
             </div>
         </div>
     </div>
+       <!-- التبويب 7: إدارة ورشة التخصيص (الليزر، الكاميو، الطباعة) -->
+<div id="admin-tab-custom_services" class="tab-content hidden space-y-6 text-gray-900">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
+        <div>
+            <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-pen-ruler text-[#D4AF37] mr-2"></i> إدارة الورشة وخدمات التخصيص</h3>
+            <p class="text-xs text-gray-500 mt-1">تحكم في أسعار حفر الليزر، طباعة الكؤوس، الكادرات، وخدمات الكاميو.</p>
+        </div>
+        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+            <span class="font-bold text-sm text-gray-700">حالة الورشة:</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="custom-master-switch" class="sr-only peer" onchange="toggleCustomSystem(this.checked)">
+                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                <span id="custom-status-text" class="mr-3 text-xs font-bold text-gray-500">مغلقة</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- شبكة الإعدادات ستُحقن هنا بواسطة الجافاسكريبت -->
+    <div id="admin-custom-settings-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+    <div class="flex justify-end pt-2">
+        <button onclick="saveCustomServicesSettings()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات الورشة
+        </button>
+    </div>
+</div>     
                 <!-- التبويب 3: الأقسام والخصائص المجمعة -->
                 <div id="admin-tab-categories_attributes" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -902,6 +935,10 @@
             <i class="fa-solid fa-border-all text-lg"></i>
             <span>المنتجات</span>
         </button>
+        <button onclick="openCustomBuilder()" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
+    <i class="fa-solid fa-pen-ruler text-lg"></i>
+    <span>صمم منتجك</span>
+</button>
         <button onclick="openGiftBuilder()" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce">
     <div class="w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center text-sm shadow-lg">🎁</div>
            <span>هديتك</span>
