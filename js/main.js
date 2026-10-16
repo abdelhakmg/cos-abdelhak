@@ -10,6 +10,7 @@ import './landing.js';
 import './gift-builder.js';
 import './admin.js';
 import './admin-custom.js';
+import './custom-builder.js';
 
 // تشغيل الوظائف الأساسية فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
