@@ -411,7 +411,15 @@ export function nextCustomStep() {
             alert('يرجى تحديد المنتج أولاً.'); return;
         }
     }
+    
     if (currentCustomStep === 3) {
+        // سحب البيانات بالقوة من الحقول لحظة الضغط على زر التالي لضمان عدم ضياعها
+        customOrderData.customerName = document.getElementById('c-name')?.value.trim() || customOrderData.customerName;
+        customOrderData.customerPhone = document.getElementById('c-phone')?.value.trim() || customOrderData.customerPhone;
+        customOrderData.wilaya = document.getElementById('c-wilaya')?.value || customOrderData.wilaya;
+        customOrderData.commune = document.getElementById('c-commune')?.value.trim() || customOrderData.commune;
+
+        // التحقق بعد سحب البيانات
         if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.commune) {
             alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والولاية لحساب التوصيل بنجاح!'); return;
         }
