@@ -157,13 +157,14 @@ export function renderCustomStep() {
                             <div class="md:col-span-2">
                                 <label class="text-xs text-[#D4AF37] font-bold block mb-2">طريقة التوصيل *</label>
                                 <div class="flex gap-3">
-                                    <div onclick="setCustomShipping('office')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'office' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
+                                    <div id="btn-ship-office" onclick="setCustomShipping('office')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'office' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
                                         <i class="fa-solid fa-store"></i> استلام من المكتب
                                     </div>
-                                    <div onclick="setCustomShipping('home')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'home' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
+                                    <div id="btn-ship-home" onclick="setCustomShipping('home')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'home' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
                                         <i class="fa-solid fa-house"></i> توصيل للمنزل
                                     </div>
                                 </div>
+                            </div>
                             </div>
                             
                             <div class="md:col-span-2"><label class="text-xs text-[#D4AF37] font-bold block mb-1">البلدية والعنوان التفصيلي *</label><input type="text" id="c-commune" value="${customOrderData.commune}" oninput="customOrderData.commune=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
@@ -388,10 +389,23 @@ window.handleCustomImageUpload = function(event) {
     reader.readAsDataURL(file);
 }
 
+// دالة تغيير التوصيل المحسنة (لا تمسح الشاشة)
 window.setCustomShipping = function(type) {
     customOrderData.shippingType = type;
-    updateLivePriceDisplay(); // تحديث السعر المباشر عند تغيير التوصيل
-    renderCustomStep(); 
+    
+    // تحديث ألوان الأزرار فقط بدون إعادة رسم كل الواجهة
+    const btnOffice = document.getElementById('btn-ship-office');
+    const btnHome = document.getElementById('btn-ship-home');
+    
+    const activeClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]";
+    const inactiveClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-gray-700 bg-black text-gray-400";
+    
+    if (btnOffice) btnOffice.className = type === 'office' ? activeClass : inactiveClass;
+    if (btnHome) btnHome.className = type === 'home' ? activeClass : inactiveClass;
+    
+    // تحديث السعر النهائي مباشرة
+    updateLivePriceDisplay(); 
+}
 }
 
 export function nextCustomStep() {
