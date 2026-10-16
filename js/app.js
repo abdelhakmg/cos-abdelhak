@@ -278,7 +278,6 @@ export function updateStoreFooterLinks() {
     // 1. تحديث رقم الهاتف
     const phoneEl = document.getElementById('footer-phone');
     if (phoneEl && s.phone) {
-        // نحدث النص داخل الـ span أو الـ p مع الحفاظ على الأيقونة
         const span = phoneEl.querySelector('span');
         if (span) span.innerText = s.phone;
     }
@@ -313,8 +312,8 @@ export function updateStoreFooterLinks() {
             waEl.style.display = 'none';
         }
     }
-}
-// 4. تحديث رابط تليغرام (كان مفقوداً)
+
+    // 4. تحديث رابط تليغرام (أصبح الآن داخل الدالة)
     const tgEl = document.getElementById('link-telegram');
     if (tgEl) {
         if (s.telegram) { 
@@ -324,8 +323,9 @@ export function updateStoreFooterLinks() {
             tgEl.style.display = 'none'; 
         }
     }
-// تصدير الدالة للنافذة العامة
+}
+
+// تصدير الدوال للنافذة العامة
 window.updateStoreFooterLinks = updateStoreFooterLinks;
 window.searchOrderTracking = searchOrderTracking;
 window.initRealOrdersTicker = initRealOrdersTicker;
-
