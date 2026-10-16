@@ -742,13 +742,29 @@ export function updateOrderStatus(id, newStatus) { window.db.collection("orders"
 export function handleSaveSettings(e) {
     if (e) e.preventDefault();
     const settings = {
-        name: document.getElementById('set-store-name').value,
-        slogan: document.getElementById('set-store-slogan').value,
-        logoUrl: document.getElementById('set-logo-url').value,
-        msgSuccess: document.getElementById('set-msg-success').value,
-        msgWarning: document.getElementById('set-msg-warning').value
+        name: document.getElementById('set-store-name')?.value || '',
+        slogan: document.getElementById('set-store-slogan')?.value || '',
+        logoUrl: document.getElementById('set-logo-url')?.value || '',
+        msgSuccess: document.getElementById('set-msg-success')?.value || '',
+        msgWarning: document.getElementById('set-msg-warning')?.value || '',
+        // 🚀 الحقول الجديدة للتواصل الاجتماعي 
+        phone: document.getElementById('set-phone')?.value || '',
+        email: document.getElementById('set-email')?.value || '',
+        facebook: document.getElementById('set-facebook')?.value || '',
+        instagram: document.getElementById('set-instagram')?.value || '',
+        whatsappNum: document.getElementById('set-whatsapp-num')?.value || '',
+        telegram: document.getElementById('set-telegram')?.value || ''
     };
-    window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { showCustomAlert('تم', 'تم حفظ الإعدادات!', true); });
+    
+    window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
+        // تحديث المتغير المحلي لتظهر التغييرات فوراً
+        if (typeof state !== 'undefined') {
+            state.storeSettings = { ...state.storeSettings, ...settings };
+        }
+        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر وروابط التواصل!', true); 
+    }).catch(err => {
+        showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
+    });
 }
 
 export function handleSaveHeroSlide(e) {
