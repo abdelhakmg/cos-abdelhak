@@ -314,6 +314,16 @@ export function updateStoreFooterLinks() {
         }
     }
 }
+// 4. تحديث رابط تليغرام (كان مفقوداً)
+    const tgEl = document.getElementById('link-telegram');
+    if (tgEl) {
+        if (s.telegram) { 
+            tgEl.href = s.telegram; 
+            tgEl.style.display = 'flex'; 
+        } else { 
+            tgEl.style.display = 'none'; 
+        }
+    }
 // تشغيل الدالة تلقائياً عند اكتمال تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
