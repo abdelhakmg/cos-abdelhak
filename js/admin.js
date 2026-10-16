@@ -79,6 +79,15 @@ export function switchAdminTab(tabName) {
     if (tabName === 'marketing_ui') {
         if (typeof renderBannerTextsList === 'function') renderBannerTextsList();
         if (typeof renderAdminHeroSlidesList === 'function') renderAdminHeroSlidesList();
+        // 🚀 تعبئة خانات التواصل الاجتماعي بالبيانات المحفوظة
+        if (state.storeSettings) {
+            if (document.getElementById('set-phone')) document.getElementById('set-phone').value = state.storeSettings.phone || '';
+            if (document.getElementById('set-email')) document.getElementById('set-email').value = state.storeSettings.email || '';
+            if (document.getElementById('set-facebook')) document.getElementById('set-facebook').value = state.storeSettings.facebook || '';
+            if (document.getElementById('set-instagram')) document.getElementById('set-instagram').value = state.storeSettings.instagram || '';
+            if (document.getElementById('set-whatsapp-num')) document.getElementById('set-whatsapp-num').value = state.storeSettings.whatsappNum || '';
+            if (document.getElementById('set-telegram')) document.getElementById('set-telegram').value = state.storeSettings.telegram || '';
+        }
     }
 }
 
