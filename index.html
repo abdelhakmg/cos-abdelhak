@@ -411,6 +411,9 @@
                     <button onclick="switchAdminTab('categories_attributes')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-categories_attributes">⚙️ الأقسام والخصائص</button>
                     <button onclick="switchAdminTab('marketing_ui')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-marketing_ui">🎨 الواجهة والتسويق</button>
                     <button onclick="switchAdminTab('shipping_settings')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-shipping_settings">🚚 التوصيل والإعدادات</button>
+                    <button onclick="switchAdminTab('admin-gift-settings')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-gift">
+    <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-1"></i> صانع الهدايا
+</button>
                 </div>
 
                 <!-- التبويب 1: المبيعات والطلبات -->
@@ -593,7 +596,113 @@
                         </div>
                     </div>
                 </div>
+<!-- 🎁 قسم إدارة صانع الهدايا -->
+        <div id="admin-gift-settings" class="admin-tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
+                <div>
+                    <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-gift text-[#D4AF37] mr-2"></i> إدارة صانع الهدايا</h3>
+                    <p class="text-xs text-gray-500 mt-1">تحكم في الهدايا، الأسعار، والمناسبات. وارفع صور التغليف من هاتفك.</p>
+                </div>
+                
+                <!-- زر تشغيل/إيقاف صانع الهدايا (Master Switch) -->
+                <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                    <span class="font-bold text-sm text-gray-700">حالة النظام:</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="gift-master-switch" class="sr-only peer" onchange="toggleGiftSystem(this.checked)">
+                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                        <span id="gift-status-text" class="mr-3 text-xs font-bold text-gray-500">متوقف</span>
+                    </label>
+                </div>
+            </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- إعدادات عامة -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                    <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-sliders text-[#D4AF37] ml-1"></i> إعدادات عامة</h4>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">المقولة الترحيبية</label>
+                        <input type="text" id="gift-slogan-input" placeholder="مثال: يبدو أن أحدهم سيغدو سعيداً اليوم" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">الحد الأدنى للطلب (دج)</label>
+                        <input type="number" id="gift-min-order-input" placeholder="مثال: 2000" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                    </div>
+                </div>
+
+                <!-- قائمة المستلمين -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                    <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-users text-[#D4AF37] ml-1"></i> المستلمين والمناسبات</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-recipient-input" placeholder="أضف مستلم (مثال: عيد الأم)" class="flex-1 border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                        <button onclick="addGiftRecipient()" class="bg-gray-900 text-white px-4 rounded-xl text-sm font-bold hover:bg-black transition"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="admin-recipients-list" class="flex flex-wrap gap-2 mt-2">
+                        <!-- سيتم حقنها من الجافاسكريبت -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- إدارة التغليف (Wrappings) -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h4 class="font-bold text-gray-800"><i class="fa-solid fa-ribbon text-[#D4AF37] ml-1"></i> أشكال التغليف</h4>
+                    <button onclick="document.getElementById('add-wrapping-modal').classList.remove('hidden');document.getElementById('add-wrapping-modal').classList.add('flex')" class="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 transition flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> إضافة صورة تغليف
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="w-full text-right text-sm">
+                        <thead class="bg-gray-50 border-b text-gray-700">
+                            <tr>
+                                <th class="p-3 font-bold w-20">الصورة</th>
+                                <th class="p-3 font-bold">اسم التغليف</th>
+                                <th class="p-3 font-bold">السعر (دج)</th>
+                                <th class="p-3 font-bold text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-wrappings-list" class="divide-y divide-gray-100">
+                            <!-- سيتم الحقن من الجافاسكريبت -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="flex justify-end pt-2">
+                <button onclick="saveGiftSettings()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات
+                </button>
+            </div>
+        </div>
+
+    <!-- 🎀 نافذة إضافة تغليف جديد (مع رفع الصورة من الهاتف) -->
+    <div id="add-wrapping-modal" class="hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 overflow-hidden relative">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-ribbon text-[#D4AF37] mr-2"></i> رفع تغليف جديد</h3>
+                <button onclick="this.closest('#add-wrapping-modal').classList.add('hidden');this.closest('#add-wrapping-modal').classList.remove('flex')" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">صورة التغليف (مباشرة من الهاتف/الكاميرا)</label>
+                    <!-- accept="image/*" سيفتح كاميرا الهاتف أو المعرض مباشرة -->
+                    <input type="file" id="wrap-image-file" accept="image/*" class="w-full border border-gray-300 p-2 rounded-xl text-sm bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37]/20 file:text-[#b08b2c] hover:file:bg-[#D4AF37]/30 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">اسم/لون التغليف</label>
+                    <input type="text" id="wrap-name" placeholder="مثال: تغليف ورق كرافت أسود" class="w-full border border-gray-300 p-3 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">تكلفة التغليف (ضع 0 إذا كان مجانياً)</label>
+                    <input type="number" id="wrap-price" placeholder="مثال: 300" class="w-full border border-gray-300 p-3 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <button id="btn-save-wrap" onclick="saveNewWrapping()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition mt-4 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة
+                </button>
+            </div>
+        </div>
+    </div>
                 <!-- التبويب 3: الأقسام والخصائص المجمعة -->
                 <div id="admin-tab-categories_attributes" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
