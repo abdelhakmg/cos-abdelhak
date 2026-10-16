@@ -1132,38 +1132,53 @@ function renderAdminWrappings() {
 }
 
 // 7. حفظ كل الإعدادات في قاعدة البيانات
-window.saveGiftSettings = function() {
-    // جمع البيانات من الحقول
-    adminGiftSettings.slogan = document.getElementById('gift-slogan-input').value.trim();
-    adminGiftSettings.minOrder = parseFloat(document.getElementById('gift-min-order-input').value) || 0;
-    
-    // البحث عن الزر بأمان لتغيير شكله
-    const btn = document.querySelector('button[onclick="saveGiftSettings()"]');
-    const originalText = btn ? btn.innerHTML : 'حفظ الإعدادات';
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
-    
-    // التأكد من جلب قاعدة البيانات (سواء كانت window.db أو db)
-    const database = typeof window.db !== 'undefined' ? window.db : (typeof db !== 'undefined' ? db : null);
-    
-    if (database) {
-        database.collection('settings').doc('store').set({ gift: adminGiftSettings }, { merge: true })
-        .then(() => {
-            alert("تم حفظ إعدادات الهدايا بنجاح! 🎉\nالآن الزبائن سيرون هذه التحديثات فوراً.");
-            // تحديث المتغير المحلي للمتجر حتى لا نحتاج لعمل ريفريش
-            if (typeof state !== 'undefined' && state.storeSettings) {
-                state.storeSettings.gift = adminGiftSettings; 
-            }
+// 7. حفظ كل الإعدادات في قاعدة البيانات (النسخة المتوافقة والمحمية)
+window.saveGiftSettings = async function() {
+    try {
+        const sloganInput = document.getElementById('gift-slogan-input');
+        const minOrderInput = document.getElementById('gift-min-order-input');
+        const btn = document.querySelector('button[onclick="saveGiftSettings()"]');
+        
+        // 1. التأكد من وجود الحقول
+        if (!sloganInput || !minOrderInput) {
+            showCustomAlert("خطأ", "لم يتم العثور على الحقول، يرجى التحقق من HTML.", false);
+            return;
+        }
+
+        // 2. تحديث الإعدادات
+        adminGiftSettings.slogan = sloganInput.value.trim();
+        adminGiftSettings.minOrder = parseFloat(minOrderInput.value) || 0;
+
+        // 3. تأثير التحميل للزر
+        const originalText = btn ? btn.innerHTML : 'حفظ الإعدادات';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+
+        // 4. التحقق من اتصال قاعدة البيانات
+        if (typeof window.db === 'undefined') {
+            showCustomAlert("خطأ الاتصال", "تعذر الاتصال بقاعدة البيانات Firebase.", false);
             if (btn) btn.innerHTML = originalText;
-        })
-        .catch(err => {
-            alert("حدث خطأ في الحفظ: " + err.message);
-            if (btn) btn.innerHTML = originalText;
-        });
-    } else {
-        alert("تنبيه: تعذر الاتصال بقاعدة البيانات. تأكد من تحميل الفايربيز (Firebase) بشكل صحيح.");
+            return;
+        }
+
+        // 5. الحفظ الفعلي في مسار "main" (مسار متجرك الصحيح)
+        await window.db.collection("settings").doc("main").set({ gift: adminGiftSettings }, { merge: true });
+
+        // 6. تحديث المتغير المحلي فوراً
+        if (typeof state !== 'undefined') {
+            if (!state.storeSettings) state.storeSettings = {};
+            state.storeSettings.gift = adminGiftSettings;
+        }
+
+        showCustomAlert("تم الحفظ 🎉", "تم حفظ إعدادات صانع الهدايا بنجاح!", true);
         if (btn) btn.innerHTML = originalText;
+
+    } catch (error) {
+        console.error("Error saving gift settings:", error);
+        showCustomAlert("خطأ", "حدث خطأ أثناء الحفظ: " + error.message, false);
+        const btn = document.querySelector('button[onclick="saveGiftSettings()"]');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات';
     }
-}
+};
 // لتشغيل الدالة عند فتح لوحة الإدارة
 document.addEventListener('DOMContentLoaded', () => {
     // ننتظر ثانية واحدة لضمان تحميل الإعدادات من الداتا بيز
