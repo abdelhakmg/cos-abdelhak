@@ -269,7 +269,48 @@ export function initRealOrdersTicker() {
         currentOrderTickerIndex++;
     }, 12000);
 }
+// ==========================================
+// 🔗 دالة تحديث أرقام وروابط التواصل في الفوتر والواجهة للزبائن
+// ==========================================
+export function updateStoreFooterLinks() {
+    if (!state.storeSettings) return;
+    const s = state.storeSettings;
 
+    // 1. تحديث رقم الهاتف في الفوتر
+    const phoneEls = document.querySelectorAll('.store-phone-display, [id*="footer-phone"]');
+    phoneEls.forEach(el => { if (s.phone) el.innerText = s.phone; });
+
+    // 2. تحديث البريد الإلكتروني في الفوتر
+    const emailEls = document.querySelectorAll('.store-email-display, [id*="footer-email"]');
+    emailEls.forEach(el => { 
+        if (s.email) {
+            el.innerText = s.email;
+            el.href = 'mailto:' + s.email;
+        }
+    });
+
+    // 3. تحديث روابط السوشيال ميديا (فيسبوك، إنستغرام، تليغرام، واتساب)
+    const fbEl = document.getElementById('footer-fb-link') || document.querySelector('a[href*="facebook"]');
+    if (fbEl && s.facebook) fbEl.href = s.facebook;
+
+    const igEl = document.getElementById('footer-ig-link') || document.querySelector('a[href*="instagram"]');
+    if (igEl && s.instagram) igEl.href = s.instagram;
+
+    const tgEl = document.getElementById('footer-tg-link') || document.querySelector('a[href*="t.me"]');
+    if (tgEl && s.telegram) tgEl.href = s.telegram;
+
+    // 4. تحديث رقم وزر الواتساب العائم
+    const waElements = document.querySelectorAll('a[href*="wa.me"]');
+    waElements.forEach(el => {
+        if (s.whatsappNum) {
+            let cleanWa = s.whatsappNum.replace(/\s+/g, '');
+            el.href = `https://wa.me/${cleanWa}`;
+        }
+    });
+}
+
+// تصدير الدالة للنافذة العامة
+window.updateStoreFooterLinks = updateStoreFooterLinks;
 window.searchOrderTracking = searchOrderTracking;
 window.initRealOrdersTicker = initRealOrdersTicker;
 
