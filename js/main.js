@@ -9,12 +9,16 @@ import './ui.js';
 import './landing.js';
 import './gift-builder.js';
 import './admin.js';
+import './admin-custom.js';
 
 // تشغيل الوظائف الأساسية فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
     // 1. بدء الاتصال بقاعدة البيانات
     if (typeof window.initFirebaseSync === 'function') {
         window.initFirebaseSync();
+    }
+    if (typeof window.loadCustomAdminData === 'function') {
+        window.loadCustomAdminData();
     }
     
     // 2. تشغيل شاشة الافتتاح الفاخرة
