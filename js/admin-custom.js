@@ -227,3 +227,4 @@ async function saveWorkshopConfig() {
 // Window Bindings
 window.toggleCustomSystem = toggleCustomSystem;
 window.loadCustomAdminData = loadCustomAdminData;
+window.saveCustomServicesSettings = saveWorkshopConfig;
