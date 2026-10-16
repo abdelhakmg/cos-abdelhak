@@ -807,7 +807,19 @@
                         </div>
                     </div>
                 </div>
-
+<!-- إعدادات أرقام وروابط التواصل -->
+<div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 mt-6">
+    <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-hashtag text-[#B8860B]"></i> أرقام وروابط التواصل</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label class="block text-xs font-bold mb-1 text-gray-600">رقم الهاتف (للزبائن)</label><input type="text" id="set-phone" placeholder="مثال: 0555000000" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
+        <div><label class="block text-xs font-bold mb-1 text-gray-600">البريد الإلكتروني</label><input type="email" id="set-email" placeholder="contact@example.com" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
+        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط فيسبوك</label><input type="text" id="set-facebook" placeholder="https://facebook.com/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
+        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط إنستغرام</label><input type="text" id="set-instagram" placeholder="https://instagram.com/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
+        <div><label class="block text-xs font-bold mb-1 text-gray-600">رقم واتساب (يبدأ بـ 213)</label><input type="text" id="set-whatsapp-num" placeholder="مثال: 213555000000" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
+        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط تليغرام</label><input type="text" id="set-telegram" placeholder="https://t.me/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
+    </div>
+    <button type="button" onclick="handleSaveSettings(event)" class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-md hover:opacity-90 transition mt-4">حفظ أرقام وروابط التواصل</button>
+</div>
                 <!-- التبويب 5: التوصيل والإعدادات -->
                 <div id="admin-tab-shipping_settings" class="tab-content space-y-6 text-gray-900">
                     
