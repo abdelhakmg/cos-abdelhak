@@ -593,7 +593,10 @@ export function renderAdminDashboard() {
                                 <option value="ملغى" ${status === 'ملغى' ? 'selected' : ''}>🔴 ملغى</option>
                             </select>
                         </td>
-                        <td class="p-4 flex items-center justify-center gap-2">
+                       <td class="p-4 flex items-center justify-center gap-2">
+                            <!-- زر الطباعة الجديد -->
+                            <button onclick="printOrder('${o.id}')" title="طباعة وصل التوصيل" class="bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold p-2.5 rounded-xl hover:bg-gray-200 hover:scale-105 transition"><i class="fa-solid fa-print"></i></button>
+                            
                             <a href="tel:${o.phone}" title="اتصال هاتفي" class="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold p-2.5 rounded-xl hover:bg-blue-100 hover:scale-105 transition"><i class="fa-solid fa-phone"></i></a>
                             <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" title="مراسلة واتساب" class="bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold p-2.5 rounded-xl hover:bg-emerald-100 hover:scale-105 transition"><i class="fa-brands fa-whatsapp text-sm"></i></a>
                             <button onclick="promptDeleteOrder('${o.id}')" title="حذف الطلب" class="bg-red-50 text-red-500 border border-red-200 text-xs font-bold p-2.5 rounded-xl hover:bg-red-100 hover:scale-105 transition"><i class="fa-solid fa-trash-can"></i></button>
@@ -789,7 +792,85 @@ export function updateAdminPasswordSecure() {
         passwordInput.value = ''; showCustomAlert('تم التحديث', 'تم تغيير كلمة المرور بأمان.', true);
     }).catch((error) => showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false));
 }
+// ==========================================
+// 🖨️ نظام طباعة وصولات الإرسال (Bon de Livraison)
+// ==========================================
+export function printOrder(id) {
+    const order = state.orders.find(o => o.id === id);
+    if (!order) return;
 
+    // استخراج رقم قصير للطلب وتاريخه
+    const shortId = order.id.substring(0, 6).toUpperCase();
+    let dateStr = 'غير معروف';
+    if (order.createdAt) {
+        const d = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+        dateStr = d.toLocaleDateString('ar-DZ') + ' ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    const storeName = state.storeSettings.name || 'كوسمتيك عبد الحق';
+    const storeLogo = state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}" style="max-height: 60px; margin-bottom: 10px;">` : `<div style="font-size:30px; margin-bottom:5px;">👑</div>`;
+
+    // إنشاء نافذة طباعة وهمية
+    const printWindow = window.open('', '_blank', 'width=800,height=800');
+    
+    // تصميم الوصل (A6 أو ملصق طابعة حرارية)
+    printWindow.document.write(`
+        <html dir="rtl" lang="ar">
+        <head>
+            <title>وصل إرسال - #${shortId}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: 'Cairo', sans-serif; padding: 20px; color: #000; background: #fff; display: flex; justify-content: center; }
+                .receipt-box { border: 2px dashed #000; padding: 25px; width: 100%; max-width: 400px; border-radius: 15px; position: relative; }
+                .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+                .header h2 { margin: 0; font-size: 24px; font-weight: 900; }
+                .info-group { margin-bottom: 12px; font-size: 16px; line-height: 1.5; }
+                .info-group strong { display: inline-block; width: 90px; color: #333; }
+                .total { font-size: 22px; font-weight: 900; text-align: center; border-top: 2px solid #000; padding-top: 15px; margin-top: 20px; }
+                .footer { text-align: center; font-size: 13px; margin-top: 20px; color: #555; }
+                @media print {
+                    body { -webkit-print-color-adjust: exact; margin: 0; padding: 10px; }
+                    .receipt-box { border: 1px solid #000; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-box">
+                <div class="header">
+                    ${storeLogo}
+                    <h2>${storeName}</h2>
+                    <p style="margin:5px 0 0; font-size:15px; font-weight:bold;">وصل إرسال - Bon de Livraison</p>
+                </div>
+                <div class="info-group"><strong>رقم الطلب:</strong> #${shortId}</div>
+                <div class="info-group"><strong>التاريخ:</strong> ${dateStr}</div>
+                <hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
+                
+                <div class="info-group"><strong>المرسل إليه:</strong> ${order.customer}</div>
+                <div class="info-group"><strong>الهاتف:</strong> <span dir="ltr" style="font-weight:bold; font-size:18px;">${order.phone}</span></div>
+                <div class="info-group"><strong>الولاية:</strong> ${order.wilaya || 'غير محدد'}</div>
+                <div class="info-group"><strong>البلدية:</strong> ${order.commune || 'غير محدد'}</div>
+                
+                <hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
+                <div class="info-group" style="font-size:14px;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
+                
+                <div class="total">المبلغ المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
+                <div class="footer">شكراً لتسوقكم معنا! - Merci pour votre confiance</div>
+            </div>
+            
+            <script>
+                // تشغيل الطباعة تلقائياً بمجرد تحميل الخطوط
+                window.onload = function() { 
+                    setTimeout(() => {
+                        window.print(); 
+                        window.close();
+                    }, 500); 
+                }
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
 // =====================================
 // التصدير للـ Window
 // =====================================
@@ -838,3 +919,4 @@ window.populateFilterCategories = populateFilterCategories;
 window.handleSaveDynamicAttribute = handleSaveDynamicAttribute;
 window.renderDynamicAttributesList = renderDynamicAttributesList;
 window.deleteDynamicAttribute = deleteDynamicAttribute;
+window.printOrder = printOrder;
