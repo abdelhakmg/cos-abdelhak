@@ -1157,5 +1157,88 @@
         
     </div>
 </div>
+    <!-- 🛠️ نافذة الإدارة: إضافة/تعديل منتج في ورشة التخصيص -->
+<div id="admin-custom-prod-modal" class="hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 overflow-hidden relative max-h-[95vh] overflow-y-auto custom-scrollbar">
+        <div class="flex justify-between items-center mb-6 border-b pb-3">
+            <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-box-open text-[#D4AF37] mr-2"></i> بيانات منتج الورشة المخصص</h3>
+            <button onclick="document.getElementById('admin-custom-prod-modal').classList.add('hidden');document.getElementById('admin-custom-prod-modal').classList.remove('flex')" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        
+        <form id="custom-prod-form" onsubmit="saveCustomProduct(event)" class="space-y-4 text-right">
+            <input type="hidden" id="cp-id">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">القسم / نوع الخدمة *</label>
+                    <select id="cp-category" required class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                        <option value="laser">حفر بالليزر 🪵</option>
+                        <option value="print">طباعة حرارية 👕</option>
+                        <option value="frame">كادرات وصور 🖼️</option>
+                        <option value="cameo">قص كاميو ✂️</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">اسم المنتج *</label>
+                    <input type="text" id="cp-name" required placeholder="مثال: محفظة جلدية فاخرة" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">صورة المنتج (من الهاتف/الكمبيوتر) *</label>
+                <!-- accept="image/*" يفتح كاميرا الهاتف أو المعرض مباشرة -->
+                <input type="file" id="cp-image-file" accept="image/*" onchange="handleAdminCustomImage(event)" class="w-full border border-gray-300 p-2 rounded-xl text-sm bg-gray-50 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37]/20 file:text-[#b08b2c] hover:file:bg-[#D4AF37]/30">
+                <input type="hidden" id="cp-image-base64">
+                <div id="cp-image-preview" class="mt-2 hidden">
+                    <img id="cp-img-tag" src="" class="w-24 h-24 object-cover rounded-xl border border-gray-300 shadow-sm">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">السعر الأساسي / سعر الوجه 1 (دج) *</label>
+                    <input type="number" id="cp-base-price" required placeholder="مثال: 1000" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">الألوان المتوفرة (افصل بفاصلة ،)</label>
+                    <input type="text" id="cp-colors" placeholder="مثال: أسود, بني داكن (اتركه فارغاً إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
+                <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-sliders text-[#D4AF37]"></i> إعدادات الأوجه والنصوص للزبون</h4>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">سعر الوجه الثاني (دج) - إن وجد</label>
+                    <input type="number" id="cp-face2-price" placeholder="مثال: 500 (اتركه فارغاً إذا كان المنتج بوجه واحد فقط)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">عنوان المربع النصي 1</label>
+                        <input type="text" id="cp-label-1" placeholder="مثال: ماذا نكتب على الوجه الخارجي؟" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">عنوان المربع النصي 2</label>
+                        <input type="text" id="cp-label-2" placeholder="مثال: ماذا نكتب في الداخل؟" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">عنوان حقل الملاحظات</label>
+                    <input type="text" id="cp-label-notes" placeholder="مثال: ملاحظات إضافية (مثال: الخط عربي، حجم الكاميو)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                <input type="checkbox" id="cp-in-stock" checked class="w-4 h-4 accent-green-600">
+                <label class="text-sm font-bold text-emerald-800">المنتج متوفر حالياً (يظهر للزبون)</label>
+            </div>
+
+            <button type="submit" class="w-full bg-black text-white font-black py-4 rounded-xl hover:bg-[#D4AF37] hover:text-black transition mt-4 flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-cloud-arrow-up"></i> حفظ ونشر المنتج
+            </button>
+        </form>
+    </div>
+</div>
 </body>
 </html>
