@@ -270,45 +270,52 @@ export function initRealOrdersTicker() {
     }, 12000);
 }
 // ==========================================
-// 🔗 دالة تحديث أرقام وروابط التواصل في الفوتر والواجهة للزبائن
+// 🔗 الدالة النهائية المتوافقة مع الفوتر لديك
 // ==========================================
 export function updateStoreFooterLinks() {
-    if (!state.storeSettings) return;
-    const s = state.storeSettings;
+    const s = state.storeSettings || {};
 
-    // 1. تحديث رقم الهاتف في الفوتر
-    const phoneEls = document.querySelectorAll('.store-phone-display, [id*="footer-phone"]');
-    phoneEls.forEach(el => { if (s.phone) el.innerText = s.phone; });
+    // 1. تحديث رقم الهاتف
+    const phoneEl = document.getElementById('footer-phone');
+    if (phoneEl && s.phone) {
+        // نحدث النص داخل الـ span أو الـ p مع الحفاظ على الأيقونة
+        const span = phoneEl.querySelector('span');
+        if (span) span.innerText = s.phone;
+    }
 
-    // 2. تحديث البريد الإلكتروني في الفوتر
-    const emailEls = document.querySelectorAll('.store-email-display, [id*="footer-email"]');
-    emailEls.forEach(el => { 
-        if (s.email) {
-            el.innerText = s.email;
-            el.href = 'mailto:' + s.email;
-        }
-    });
+    // 2. تحديث البريد الإلكتروني
+    const emailEl = document.getElementById('footer-email');
+    if (emailEl && s.email) {
+        const span = emailEl.querySelector('span');
+        if (span) span.innerText = s.email;
+    }
 
-    // 3. تحديث روابط السوشيال ميديا (فيسبوك، إنستغرام، تليغرام، واتساب)
-    const fbEl = document.getElementById('footer-fb-link') || document.querySelector('a[href*="facebook"]');
-    if (fbEl && s.facebook) fbEl.href = s.facebook;
+    // 3. تحديث روابط السوشيال ميديا (فيسبوك، إنستغرام، واتساب)
+    const fbEl = document.getElementById('link-facebook');
+    if (fbEl) {
+        if (s.facebook) { fbEl.href = s.facebook; fbEl.style.display = 'flex'; }
+        else { fbEl.style.display = 'none'; }
+    }
 
-    const igEl = document.getElementById('footer-ig-link') || document.querySelector('a[href*="instagram"]');
-    if (igEl && s.instagram) igEl.href = s.instagram;
+    const igEl = document.getElementById('link-instagram');
+    if (igEl) {
+        if (s.instagram) { igEl.href = s.instagram; igEl.style.display = 'flex'; }
+        else { igEl.style.display = 'none'; }
+    }
 
-    const tgEl = document.getElementById('footer-tg-link') || document.querySelector('a[href*="t.me"]');
-    if (tgEl && s.telegram) tgEl.href = s.telegram;
-
-    // 4. تحديث رقم وزر الواتساب العائم
-    const waElements = document.querySelectorAll('a[href*="wa.me"]');
-    waElements.forEach(el => {
+    const waEl = document.getElementById('link-whatsapp');
+    if (waEl) {
         if (s.whatsappNum) {
             let cleanWa = s.whatsappNum.replace(/\s+/g, '');
-            el.href = `https://wa.me/${cleanWa}`;
+            waEl.href = `https://wa.me/${cleanWa}`;
+            waEl.style.display = 'flex';
+        } else {
+            waEl.style.display = 'none';
         }
-    });
+    }
 }
 
+window.updateStoreFooterLinks = updateStoreFooterLinks;
 // تصدير الدالة للنافذة العامة
 window.updateStoreFooterLinks = updateStoreFooterLinks;
 window.searchOrderTracking = searchOrderTracking;
