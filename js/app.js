@@ -314,7 +314,21 @@ export function updateStoreFooterLinks() {
         }
     }
 }
+// تشغيل الدالة تلقائياً عند اكتمال تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (typeof window.updateStoreFooterLinks === 'function') {
+            window.updateStoreFooterLinks();
+        }
+    }, 1000);
+});
 
+// إعادة محاولة التحديث بعد جلب بيانات فايربيس للتأكد 100%
+setTimeout(() => {
+    if (typeof window.updateStoreFooterLinks === 'function') {
+        window.updateStoreFooterLinks();
+    }
+}, 2500);
 window.updateStoreFooterLinks = updateStoreFooterLinks;
 // تصدير الدالة للنافذة العامة
 window.updateStoreFooterLinks = updateStoreFooterLinks;
