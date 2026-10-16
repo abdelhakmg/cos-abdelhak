@@ -1133,29 +1133,37 @@ function renderAdminWrappings() {
 
 // 7. حفظ كل الإعدادات في قاعدة البيانات
 window.saveGiftSettings = function() {
+    // جمع البيانات من الحقول
     adminGiftSettings.slogan = document.getElementById('gift-slogan-input').value.trim();
     adminGiftSettings.minOrder = parseFloat(document.getElementById('gift-min-order-input').value) || 0;
     
-    // إظهار رسالة تحميل
-    const btn = event.currentTarget;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+    // البحث عن الزر بأمان لتغيير شكله
+    const btn = document.querySelector('button[onclick="saveGiftSettings()"]');
+    const originalText = btn ? btn.innerHTML : 'حفظ الإعدادات';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
     
-    // حفظ في Firestore
-    if(typeof db !== 'undefined') {
-        db.collection('settings').doc('store').set({ gift: adminGiftSettings }, { merge: true })
+    // التأكد من جلب قاعدة البيانات (سواء كانت window.db أو db)
+    const database = typeof window.db !== 'undefined' ? window.db : (typeof db !== 'undefined' ? db : null);
+    
+    if (database) {
+        database.collection('settings').doc('store').set({ gift: adminGiftSettings }, { merge: true })
         .then(() => {
             alert("تم حفظ إعدادات الهدايا بنجاح! 🎉\nالآن الزبائن سيرون هذه التحديثات فوراً.");
-            state.storeSettings.gift = adminGiftSettings; // تحديث المتغير المحلي
-            btn.innerHTML = originalText;
+            // تحديث المتغير المحلي للمتجر حتى لا نحتاج لعمل ريفريش
+            if (typeof state !== 'undefined' && state.storeSettings) {
+                state.storeSettings.gift = adminGiftSettings; 
+            }
+            if (btn) btn.innerHTML = originalText;
         })
         .catch(err => {
-            alert("خطأ في الحفظ: " + err.message);
-            btn.innerHTML = originalText;
+            alert("حدث خطأ في الحفظ: " + err.message);
+            if (btn) btn.innerHTML = originalText;
         });
+    } else {
+        alert("تنبيه: تعذر الاتصال بقاعدة البيانات. تأكد من تحميل الفايربيز (Firebase) بشكل صحيح.");
+        if (btn) btn.innerHTML = originalText;
     }
 }
-
 // لتشغيل الدالة عند فتح لوحة الإدارة
 document.addEventListener('DOMContentLoaded', () => {
     // ننتظر ثانية واحدة لضمان تحميل الإعدادات من الداتا بيز
