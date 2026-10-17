@@ -115,6 +115,14 @@ window.openAdminCustomProdModal = function(productId = null) {
             document.getElementById('cp-name').value = prod.name;
             document.getElementById('cp-base-price').value = prod.basePrice;
             document.getElementById('cp-colors').value = prod.colors || '';
+            
+            // 🌟 الحقول الجديدة
+            document.getElementById('cp-sizes').value = prod.sizes || '';
+            document.getElementById('cp-fonts').value = prod.fonts || '';
+            document.getElementById('cp-positions').value = prod.positions || '';
+            document.getElementById('cp-max-chars').value = prod.maxChars || '';
+            document.getElementById('cp-img-req').value = prod.imgReq || 'optional';
+
             document.getElementById('cp-face2-price').value = prod.face2Price || '';
             document.getElementById('cp-label-1').value = prod.label1 || '';
             document.getElementById('cp-label-2').value = prod.label2 || '';
@@ -130,6 +138,7 @@ window.openAdminCustomProdModal = function(productId = null) {
     } else {
         // حالة إضافة جديد
         document.getElementById('cp-id').value = '';
+        document.getElementById('cp-img-req').value = 'optional'; // القيمة الافتراضية
         document.getElementById('cp-in-stock').checked = true;
     }
 
@@ -137,7 +146,6 @@ window.openAdminCustomProdModal = function(productId = null) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
-
 // دالة ضغط الصور للإدارة (لتقليل الحجم قبل الإرسال لفايربيس)
 function compressAdminImage(file, callback) {
     const reader = new FileReader();
