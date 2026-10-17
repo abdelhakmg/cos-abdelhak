@@ -12,14 +12,17 @@ let customOrderData = {
     selectedProductId: '',
     selectedProduct: '', 
     productImage: '', 
-    color: '',        
+    color: '',
+    size: '',      // 🌟 جديد
+    font: '',      // 🌟 جديد
+    position: '',  // 🌟 جديد
     basePrice: 0,
     addonsPrice: 0,
     text1: '', 
     text2: '',
-    uploadedImage1: '', // الصورة 1
-    uploadedImage2: '', // الصورة 2
-    uploadedImage3: '', // الصورة 3
+    uploadedImage1: '', 
+    uploadedImage2: '', 
+    uploadedImage3: '', 
     notes: '',
     customerName: '',
     customerPhone: '',
@@ -39,8 +42,10 @@ export function openCustomBuilder() {
     // تصفير البيانات عند فتح نافذة جديدة
     currentCustomStep = 1;
    customOrderData = {
-        serviceType: '', serviceName: '', selectedProductId: '', selectedProduct: '', productImage: '', color: '',
-        basePrice: 0, addonsPrice: 0, text1: '', text2: '', uploadedImage1: '', uploadedImage2: '', uploadedImage3: '', notes: '',
+        serviceType: '', serviceName: '', selectedProductId: '', selectedProduct: '', productImage: '', 
+        color: '', size: '', font: '', position: '', // 🌟 تمت الإضافة هنا
+        basePrice: 0, addonsPrice: 0, text1: '', text2: '', 
+        uploadedImage1: '', uploadedImage2: '', uploadedImage3: '', notes: '',
         customerName: '', customerPhone: '', wilaya: '', commune: '', shippingType: 'home'
     };
 
@@ -224,6 +229,7 @@ export function renderCustomStep() {
 }
 
 // 4. بناء الخيارات الديناميكية (الذكاء الاصطناعي الخاص بالورشة)
+// 4. بناء الخيارات الديناميكية (الذكاء الاصطناعي الخاص بالورشة)
 function buildDynamicServiceOptions(config) {
     // تصفية المنتجات حسب القسم وحسب التوفر (inStock = true)
     const categoryProducts = (config.products || []).filter(p => p.category === customOrderData.serviceType && p.inStock);
@@ -259,11 +265,35 @@ function buildDynamicServiceOptions(config) {
     // الحاوية المخفية لباقي المدخلات (تظهر عند اختيار المنتج)
     html += `<div id="dynamic-fields-container" class="hidden space-y-4 mt-4">`;
 
-    // الألوان
+    // 🌟 1. الألوان 
     html += `
         <div id="dynamic-color-container" class="hidden">
             <label class="block text-xs font-bold text-gray-400 mb-1">اللون المطلوب:</label>
             <select id="dynamic-color" onchange="customOrderData.color=this.value" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></select>
+        </div>
+    `;
+
+    // 🌟 2. المقاسات
+    html += `
+        <div id="dynamic-size-container" class="hidden">
+            <label class="block text-xs font-bold text-gray-400 mb-1">المقاس:</label>
+            <select id="dynamic-size" onchange="customOrderData.size=this.value" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></select>
+        </div>
+    `;
+
+    // 🌟 3. أماكن الطباعة/التصميم
+    html += `
+        <div id="dynamic-position-container" class="hidden">
+            <label class="block text-xs font-bold text-gray-400 mb-1">مكان التصميم:</label>
+            <select id="dynamic-position" onchange="customOrderData.position=this.value" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></select>
+        </div>
+    `;
+
+    // 🌟 4. أنواع الخطوط
+    html += `
+        <div id="dynamic-font-container" class="hidden">
+            <label class="block text-xs font-bold text-gray-400 mb-1">نوع الخط:</label>
+            <select id="dynamic-font" onchange="customOrderData.font=this.value" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></select>
         </div>
     `;
 
@@ -278,48 +308,42 @@ function buildDynamicServiceOptions(config) {
         </div>
     `;
 
-    // رفع صورة (للطباعة والكادرات)
-    // رفع صور (للطباعة والكادرات) - اختياري حتى 3 صور
-    if (customOrderData.serviceType === 'print' || customOrderData.serviceType === 'frame') {
-        html += `
-            <div class="space-y-3">
-                <label class="block text-xs font-bold text-[#D4AF37] mb-2">أرفق صور للتصميم 📸 (اختياري - حتى 3 صور):</label>
-                
-                <!-- الصورة 1 -->
-                <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
-                    <label class="block text-[10px] text-gray-500 mb-1">الصورة الأولى</label>
-                    <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 1)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37] file:text-black cursor-pointer hover:file:bg-[#D4AF37]/90">
-                    ${customOrderData.uploadedImage1 ? `
-                    <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
-                        <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 1</p>
-                        <button onclick="removeCustomUploadedImage(1)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
-                    </div>` : ''}
-                </div>
-
-                <!-- الصورة 2 -->
-                <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
-                    <label class="block text-[10px] text-gray-500 mb-1">الصورة الثانية (إضافية)</label>
-                    <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 2)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white cursor-pointer hover:file:bg-gray-600">
-                    ${customOrderData.uploadedImage2 ? `
-                    <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
-                        <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 2</p>
-                        <button onclick="removeCustomUploadedImage(2)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
-                    </div>` : ''}
-                </div>
-
-                <!-- الصورة 3 -->
-                <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
-                    <label class="block text-[10px] text-gray-500 mb-1">الصورة الثالثة (إضافية)</label>
-                    <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 3)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white cursor-pointer hover:file:bg-gray-600">
-                    ${customOrderData.uploadedImage3 ? `
-                    <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
-                        <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 3</p>
-                        <button onclick="removeCustomUploadedImage(3)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
-                    </div>` : ''}
-                </div>
+    // 🌟 5. رفع صور (يظهر بناءً على إلزامية الصورة من الإدارة)
+    html += `
+        <div id="dynamic-images-container" class="hidden space-y-3">
+            <label class="block text-xs font-bold text-[#D4AF37] mb-2">أرفق صور للتصميم 📸 <span id="img-req-label"></span>:</label>
+            
+            <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
+                <label class="block text-[10px] text-gray-500 mb-1">الصورة الأولى</label>
+                <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 1)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37] file:text-black cursor-pointer hover:file:bg-[#D4AF37]/90">
+                ${customOrderData.uploadedImage1 ? `
+                <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                    <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 1</p>
+                    <button onclick="removeCustomUploadedImage(1)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                </div>` : ''}
             </div>
-        `;
-    }
+
+            <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
+                <label class="block text-[10px] text-gray-500 mb-1">الصورة الثانية (إضافية)</label>
+                <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 2)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white cursor-pointer hover:file:bg-gray-600">
+                ${customOrderData.uploadedImage2 ? `
+                <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                    <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 2</p>
+                    <button onclick="removeCustomUploadedImage(2)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                </div>` : ''}
+            </div>
+
+            <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
+                <label class="block text-[10px] text-gray-500 mb-1">الصورة الثالثة (إضافية)</label>
+                <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 3)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white cursor-pointer hover:file:bg-gray-600">
+                ${customOrderData.uploadedImage3 ? `
+                <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                    <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 3</p>
+                    <button onclick="removeCustomUploadedImage(3)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                </div>` : ''}
+            </div>
+        </div>
+    `;
 
     // الحقول النصية (العناوين تأتي من الإدارة)
     html += `
@@ -351,98 +375,6 @@ function buildDynamicServiceOptions(config) {
 
     return html;
 }
-
-// 5. هندسة تفاعل الواجهة الديناميكية
-window.selectCustomService = function(type, name) {
-    customOrderData.serviceType = type;
-    customOrderData.serviceName = name;
-    nextCustomStep();
-}
-
-window.handleProductSelection = function(productId, isRestore = false) {
-    const container = document.getElementById('dynamic-fields-container');
-    
-    if (!productId) {
-        container.classList.add('hidden');
-        customOrderData.selectedProduct = '';
-        customOrderData.selectedProductId = '';
-        customOrderData.basePrice = 0;
-        customOrderData.addonsPrice = 0;
-        updateLivePriceDisplay();
-        return;
-    }
-
-    const prod = window.currentCategoryProducts.find(p => p.id === productId);
-    if (!prod) return;
-
-    container.classList.remove('hidden');
-    customOrderData.selectedProductId = prod.id;
-    customOrderData.selectedProduct = prod.name;
-    customOrderData.basePrice = prod.basePrice || 0;
-    
-    if(!isRestore) {
-        customOrderData.addonsPrice = 0;
-        customOrderData.color = '';
-        customOrderData.text1 = '';
-        customOrderData.text2 = '';
-    }
-
-    // الصورة
-    const previewDiv = document.getElementById('dynamic-image-preview');
-    const imgEl = document.getElementById('dynamic-img');
-    if (prod.image) {
-        imgEl.src = prod.image;
-        previewDiv.classList.remove('hidden');
-    } else {
-        previewDiv.classList.add('hidden');
-    }
-
-    // الألوان
-    const colorDiv = document.getElementById('dynamic-color-container');
-    const colorSelect = document.getElementById('dynamic-color');
-    if (prod.colors && prod.colors.trim() !== '') {
-        const colorsArray = prod.colors.split(',').map(c => c.trim()).filter(c => c);
-        colorSelect.innerHTML = `<option value="">-- اختر اللون --</option>` + colorsArray.map(c => `<option value="${c}" ${customOrderData.color === c ? 'selected' : ''}>${c}</option>`).join('');
-        colorDiv.classList.remove('hidden');
-    } else {
-        colorDiv.classList.add('hidden');
-    }
-
-    // الأوجه الإضافية (السعر)
-    const facesDiv = document.getElementById('dynamic-faces-container');
-    const face2Option = document.getElementById('face2-option');
-    if (prod.face2Price > 0) {
-        face2Option.innerText = `إضافة وجه ثاني (+${prod.face2Price} دج)`;
-        facesDiv.classList.remove('hidden');
-        window.currentFace2Price = prod.face2Price;
-    } else {
-        facesDiv.classList.add('hidden');
-        window.currentFace2Price = 0;
-    }
-
-    // العناوين (Labels) المُخصصة
-    const text1Div = document.getElementById('dynamic-text-1-container');
-    const text2Div = document.getElementById('dynamic-text-2-container');
-    
-    document.getElementById('dynamic-label-1').innerText = prod.label1 || 'النص المطلوب:';
-    document.getElementById('dynamic-label-2').innerText = prod.label2 || 'النص الإضافي:';
-    document.getElementById('dynamic-label-notes').innerText = prod.labelNotes || 'ملاحظات إضافية:';
-
-    text1Div.classList.remove('hidden');
-    
-    const facesSelect = document.getElementById('dynamic-faces');
-    if (facesSelect && facesSelect.value === "2") {
-        text2Div.classList.remove('hidden');
-    } else if (customOrderData.serviceType === 'cameo' || customOrderData.serviceType === 'frame') {
-         if (prod.label2) text2Div.classList.remove('hidden');
-         else text2Div.classList.add('hidden');
-    } else {
-        text2Div.classList.add('hidden');
-    }
-
-    updateLivePriceDisplay();
-}
-
 window.handleFacesChange = function(faces) {
     const text2Div = document.getElementById('dynamic-text-2-container');
     if (faces === "2") {
