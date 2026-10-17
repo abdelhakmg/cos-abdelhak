@@ -121,7 +121,7 @@ export function renderCustomStep() {
                         </button>
                         
                         <button onclick="selectCustomService('frame', 'كادرات وصور 📸🔲')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
-                            <div class="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-person-shelter"></i></div>
+                            <div class="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-id-badge"></i></div>
                             <h3 class="text-white font-bold text-lg">تصميم كادرات</h3>
                             <p class="text-xs text-gray-500">صور ذكريات، كادر ذهبي فاخر , كادر جميع مناسبات , والمزيد</p>
                         </button>
