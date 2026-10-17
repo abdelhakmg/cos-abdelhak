@@ -30,7 +30,7 @@ let customOrderData = {
     commune: '',
     shippingType: 'home'
 };
-
+window.customOrderData = customOrderData;
 export function openCustomBuilder() {
     const config = (state.storeSettings && state.storeSettings.custom_workshop) || {};
     
@@ -48,7 +48,7 @@ export function openCustomBuilder() {
         uploadedImage1: '', uploadedImage2: '', uploadedImage3: '', notes: '',
         customerName: '', customerPhone: '', wilaya: '', commune: '', shippingType: 'home'
     };
-
+window.customOrderData = customOrderData;
     renderCustomStep();
     const modal = document.getElementById('custom-builder-modal');
     if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
@@ -595,10 +595,31 @@ export function nextCustomStep() {
         if (!customOrderData.selectedProductId) {
             alert('يرجى تحديد المنتج أو الخدمة المطلوبة أولاً للتقدم ⚠️'); return;
         }
-        // منع المرور إذا كانت الصورة إجبارية ولم يرفع أي صورة!
         if (window.currentImgReq === 'required' && !customOrderData.uploadedImage1 && !customOrderData.uploadedImage2 && !customOrderData.uploadedImage3) {
             alert('عذراً، هذا المنتج يتطلب إرفاق صورة واحدة على الأقل للتصميم! 📸⚠️'); return;
         }
+
+        // 🌟 السحب الإجباري للبيانات من الواجهة لضمان عدم ضياع أي حرف!
+        const colorEl = document.getElementById('dynamic-color');
+        if (colorEl && !document.getElementById('dynamic-color-container').classList.contains('hidden')) customOrderData.color = colorEl.value;
+
+        const sizeEl = document.getElementById('dynamic-size');
+        if (sizeEl && !document.getElementById('dynamic-size-container').classList.contains('hidden')) customOrderData.size = sizeEl.value;
+
+        const positionEl = document.getElementById('dynamic-position');
+        if (positionEl && !document.getElementById('dynamic-position-container').classList.contains('hidden')) customOrderData.position = positionEl.value;
+
+        const fontEl = document.getElementById('dynamic-font');
+        if (fontEl && !document.getElementById('dynamic-font-container').classList.contains('hidden')) customOrderData.font = fontEl.value;
+
+        const text1El = document.querySelector('#dynamic-text-1-container textarea');
+        if (text1El && !document.getElementById('dynamic-text-1-container').classList.contains('hidden')) customOrderData.text1 = text1El.value.trim();
+
+        const text2El = document.querySelector('#dynamic-text-2-container textarea');
+        if (text2El && !document.getElementById('dynamic-text-2-container').classList.contains('hidden')) customOrderData.text2 = text2El.value.trim();
+
+        const notesEl = document.querySelector('input[placeholder*="ملاحظات"]');
+        if (notesEl) customOrderData.notes = notesEl.value.trim();
     }
     
     if (currentCustomStep === 3) {
@@ -616,7 +637,6 @@ export function nextCustomStep() {
     currentCustomStep++;
     renderCustomStep();
 }
-
 export function prevCustomStep() {
     if (currentCustomStep > 1) { currentCustomStep--; renderCustomStep(); }
 }
