@@ -138,18 +138,50 @@ window.openAdminCustomProdModal = function(productId = null) {
     modal.classList.add('flex');
 }
 
-// 5. تحويل الصورة إلى Base64
+// دالة ضغط الصور للإدارة (لتقليل الحجم قبل الإرسال لفايربيس)
+function compressAdminImage(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800; // أقصى عرض للصورة
+            const MAX_HEIGHT = 800; // أقصى طول للصورة
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            } else if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // ضغط الصورة بصيغة JPEG بجودة 70%
+            callback(canvas.toDataURL('image/jpeg', 0.7));
+        }
+    };
+}
+
+// 5. تحويل الصورة إلى Base64 (بعد الضغط)
 window.handleAdminCustomImage = function(event) {
     const file = event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Str = e.target.result;
-        document.getElementById('cp-image-base64').value = base64Str;
-        document.getElementById('cp-img-tag').src = base64Str;
+    
+    // استدعاء دالة الضغط
+    compressAdminImage(file, function(compressedBase64) {
+        document.getElementById('cp-image-base64').value = compressedBase64;
+        document.getElementById('cp-img-tag').src = compressedBase64;
         document.getElementById('cp-image-preview').classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
+    });
 }
 
 // 6. حفظ المنتج
