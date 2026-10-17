@@ -566,13 +566,19 @@ export function submitCustomOrder() {
     const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
     const grandTotal = customOrderData.basePrice + customOrderData.addonsPrice + shipCost;
 
+    // حساب كم صورة أرفق الزبون ليظهر في الوصف
+    let uploadedCount = 0;
+    if (customOrderData.uploadedImage1) uploadedCount++;
+    if (customOrderData.uploadedImage2) uploadedCount++;
+    if (customOrderData.uploadedImage3) uploadedCount++;
+
     const fullDescription = `[طلب مخصص 🎨]
 - القسم: ${customOrderData.serviceName}
 - المنتج: ${customOrderData.selectedProduct} ${customOrderData.color ? '(اللون: '+customOrderData.color+')' : ''}
 - النص الأول: ${customOrderData.text1 || 'لا يوجد'}
 - النص الثاني: ${customOrderData.text2 || 'لا يوجد'}
 - ملاحظات: ${customOrderData.notes || 'لا توجد'}
-${customOrderData.uploadedImageBase64 ? '- 📸 الزبون أرفق صورة شخصية للتصميم.' : ''}`;
+${uploadedCount > 0 ? `- 📸 الزبون أرفق ${uploadedCount} صور(ة) للتصميم.` : ''}`;
 
     const newOrder = {
         customer: customOrderData.customerName,
@@ -584,9 +590,11 @@ ${customOrderData.uploadedImageBase64 ? '- 📸 الزبون أرفق صورة �
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date(),
-        attachedImage: customOrderData.uploadedImageBase64 || null 
+        // حفظ الصور الثلاثة في الداتا بيز (null إذا لم تكن موجودة)
+        attachedImage1: customOrderData.uploadedImage1 || null,
+        attachedImage2: customOrderData.uploadedImage2 || null,
+        attachedImage3: customOrderData.uploadedImage3 || null
     };
-
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
             // إعادة الزر لحالته الطبيعية
