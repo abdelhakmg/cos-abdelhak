@@ -360,7 +360,7 @@ function buildDynamicServiceOptions(config) {
 
         <div>
             <label id="dynamic-label-notes" class="block text-xs font-bold text-gray-400 mb-1">ملاحظات إضافية:</label>
-            <input type="text" oninput="customOrderData.notes=this.value" value="${customOrderData.notes}" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]" placeholder="مثال: الخط عربي ديواني...">
+            <input type="text" oninput="customOrderData.notes=this.value" value="${customOrderData.notes}" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]" placeholder="أضف أي ملاحظة...">
         </div>
     `;
 
@@ -618,7 +618,7 @@ export function nextCustomStep() {
         const text2El = document.querySelector('#dynamic-text-2-container textarea');
         if (text2El && !document.getElementById('dynamic-text-2-container').classList.contains('hidden')) customOrderData.text2 = text2El.value.trim();
 
-        const notesEl = document.querySelector('input[placeholder*="ملاحظات"]');
+       const notesEl = document.querySelector('input[placeholder*="أضف أي ملاحظة"]') || document.querySelector('input[placeholder*="ملاحظات"]');
         if (notesEl) customOrderData.notes = notesEl.value.trim();
     }
     
