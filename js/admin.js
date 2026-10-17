@@ -1151,7 +1151,7 @@ function renderGiftRecipients() {
     `).join('');
 }
 
-// 4. رفع صورة التغليف من الهاتف وحفظها
+// 4. رفع صورة التغليف من الهاتف وحفظها (مع الضغط)
 window.saveNewWrapping = function() {
     const fileInput = document.getElementById('wrap-image-file');
     const nameInput = document.getElementById('wrap-name');
@@ -1163,35 +1163,55 @@ window.saveNewWrapping = function() {
         return;
     }
 
-    // تغيير شكل الزر ليدل على التحميل
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الرفع...';
     btn.disabled = true;
 
     const file = fileInput.files[0];
-    const reader = new FileReader(); // هذه التقنية السحرية تقرأ الصورة من الهاتف مباشرة
+    const reader = new FileReader();
     
     reader.onload = function(e) {
-        const base64Image = e.target.result;
-        const newWrap = {
-            id: 'wrap_' + Date.now(),
-            name: nameInput.value.trim(),
-            price: parseFloat(priceInput.value) || 0,
-            image: base64Image // حفظ الصورة ككود
-        };
-        
-        if(!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
-        adminGiftSettings.wrappings.push(newWrap);
-        renderAdminWrappings();
-        
-        // إغلاق النافذة وتنظيف الحقول
-        document.getElementById('add-wrapping-modal').classList.add('hidden');
-        document.getElementById('add-wrapping-modal').classList.remove('flex');
-        fileInput.value = "";
-        nameInput.value = "";
-        priceInput.value = "";
-        
-        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة';
-        btn.disabled = false;
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 600; // حجم أصغر يناسب التغليف
+            const MAX_HEIGHT = 600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            } else if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+            const newWrap = {
+                id: 'wrap_' + Date.now(),
+                name: nameInput.value.trim(),
+                price: parseFloat(priceInput.value) || 0,
+                image: compressedBase64
+            };
+            
+            if(!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
+            adminGiftSettings.wrappings.push(newWrap);
+            renderAdminWrappings();
+            
+            document.getElementById('add-wrapping-modal').classList.add('hidden');
+            document.getElementById('add-wrapping-modal').classList.remove('flex');
+            fileInput.value = ""; nameInput.value = ""; priceInput.value = "";
+            
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة';
+            btn.disabled = false;
+        }
     };
     reader.readAsDataURL(file);
 }
