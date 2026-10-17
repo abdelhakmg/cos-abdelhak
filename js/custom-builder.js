@@ -105,7 +105,7 @@ export function renderCustomStep() {
             html = `
                 <div class="space-y-6 animate-fade-in text-center">
                     <h2 class="text-2xl font-black text-white mb-2">ماذا تريد أن نصمم لك اليوم؟ 🎨</h2>
-                    <p class="text-gray-400 text-sm mb-6">اختر نوع الخدمة أو الآلة التي تريد استخدامها</p>
+                    <p class="text-gray-400 text-sm mb-6">اختر نوع الخدمة التي تريدها </p>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button onclick="selectCustomService('laser', 'حفر بالليزر 🪵')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
