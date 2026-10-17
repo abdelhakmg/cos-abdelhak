@@ -111,7 +111,7 @@ export function renderCustomStep() {
                         <button onclick="selectCustomService('laser', 'حفر بالليزر 🪵')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
                             <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-fire"></i></div>
                             <h3 class="text-white font-bold text-lg">حفر بالليزر</h3>
-                            <p class="text-xs text-gray-500">محافظ، أمشاط، ميداليات خشبية وجلدية</p>
+                            <p class="text-xs text-gray-500">بورت موني,مشطة,سلاك,فرشاة,والمزيد,,,</p>
                         </button>
                         
                         <button onclick="selectCustomService('print', 'طباعة حرارية 👕')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
