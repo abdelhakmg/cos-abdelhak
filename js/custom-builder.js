@@ -115,7 +115,7 @@ export function renderCustomStep() {
                         </button>
                         
                         <button onclick="selectCustomService('print', 'طباعة حرارية 👕☕🎨')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
-                            <div class="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-shirt"></i></div>
+                            <div class="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-mug-hot"></i></div>
                             <h3 class="text-white font-bold text-lg">طباعة حرارية</h3>
                             <p class="text-xs text-gray-500">شوب سحري عادي , تيشرت,بورتكلي,والمزيد</p>
                         </button>
