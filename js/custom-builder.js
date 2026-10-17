@@ -282,7 +282,12 @@ function buildDynamicServiceOptions(config) {
             <div>
                 <label class="block text-xs font-bold text-[#D4AF37] mb-2">أرفق الصورة للتصميم 📸:</label>
                 <input type="file" accept="image/*" onchange="handleCustomImageUpload(event)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37] file:text-black cursor-pointer hover:file:bg-[#D4AF37]/90">
-                ${customOrderData.uploadedImageBase64 ? `<p class="text-green-500 text-xs mt-2 font-bold"><i class="fa-solid fa-check"></i> تم إرفاق الصورة بنجاح</p>` : ''}
+                ${customOrderData.uploadedImageBase64 ? `
+                <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                    <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة</p>
+                    <button onclick="removeCustomUploadedImage()" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف الصورة</button>
+                </div>
+                ` : ''}
             </div>
         `;
     }
@@ -463,6 +468,12 @@ window.handleCustomImageUpload = function(event) {
         customOrderData.uploadedImageBase64 = compressedBase64;
         renderCustomStep(); // تحديث الواجهة لإظهار علامة الصح الأخضر
     });
+}
+
+// دالة حذف الصورة المرفقة للزبون
+window.removeCustomUploadedImage = function() {
+    customOrderData.uploadedImageBase64 = ''; // تفريغ الصورة من الذاكرة
+    renderCustomStep(); // إعادة رسم الواجهة لتختفي الصورة
 }
 
 window.setCustomShipping = function(type) {
