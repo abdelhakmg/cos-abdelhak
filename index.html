@@ -1201,7 +1201,31 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">الألوان المتوفرة (افصل بفاصلة ،)</label>
-                    <input type="text" id="cp-colors" placeholder="مثال: أسود, بني داكن (اتركه فارغاً إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                    <input type="text" id="cp-colors" placeholder="مثال: أسود, بني داكن (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">المقاسات (مثال: S,M,L أو A4,A5)</label>
+                    <input type="text" id="cp-sizes" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">أنواع الخطوط (مثال: ديواني,رقعة)</label>
+                    <input type="text" id="cp-fonts" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">أماكن الطباعة (مثال: الأمام,الخلف)</label>
+                    <input type="text" id="cp-positions" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">الحد الأقصى لعدد الحروف</label>
+                    <input type="number" id="cp-max-chars" placeholder="مثال: 15 (فارغ للعدد اللامحدود)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-600 mb-1">إلزامية الصورة من الزبون 📸</label>
+                    <select id="cp-img-req" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                        <option value="optional">صورة اختيارية (يمكنه الطلب بـ 0 إلى 3 صور)</option>
+                        <option value="required">صورة إجبارية (يجب رفع صورة واحدة على الأقل)</option>
+                        <option value="none">لا يتطلب صور (إخفاء حقل رفع الصور نهائياً)</option>
+                    </select>
                 </div>
             </div>
 
