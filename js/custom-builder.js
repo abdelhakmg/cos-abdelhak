@@ -514,6 +514,14 @@ export function prevCustomStep() {
 }
 
 export function submitCustomOrder() {
+    // 1. حماية الزر: تعطيل الضغط وإظهار علامة التحميل
+    const nextBtn = document.getElementById('custom-next-btn');
+    if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> جاري إرسال الطلب...';
+        nextBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    }
+
     const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
     const grandTotal = customOrderData.basePrice + customOrderData.addonsPrice + shipCost;
 
@@ -540,12 +548,24 @@ ${customOrderData.uploadedImageBase64 ? '- 📸 الزبون أرفق صورة �
 
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
+            // إعادة الزر لحالته الطبيعية
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
             closeCustomBuilder();
             showCustomAlert('تم استلام طلبك المخصص! 🎉', 'سنقوم بمراجعة التفاصيل والصور ونتصل بك قريباً.', true);
-        }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
+        }).catch(err => {
+            // في حالة فشل الإرسال (مثلا انقطاع الانترنت)، نرجع الزر ليحاول مجدداً
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.innerHTML = '<i class="fa-solid fa-check-double mr-2"></i> تأكيد الطلب المخصص';
+                nextBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
+        });
     }
 }
-
 // Window Bindings
 window.openCustomBuilder = openCustomBuilder;
 window.closeCustomBuilder = closeCustomBuilder;
