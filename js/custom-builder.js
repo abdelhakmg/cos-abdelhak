@@ -9,7 +9,7 @@ const TOTAL_CUSTOM_STEPS = 4;
 let customOrderData = {
     serviceType: '', 
     serviceName: '',
-    selectedProductId: '', // تم إضافة الـ ID للربط الذكي
+    selectedProductId: '',
     selectedProduct: '', 
     productImage: '', 
     color: '',        
@@ -17,7 +17,9 @@ let customOrderData = {
     addonsPrice: 0,
     text1: '', 
     text2: '',
-    uploadedImageBase64: '',
+    uploadedImage1: '', // الصورة 1
+    uploadedImage2: '', // الصورة 2
+    uploadedImage3: '', // الصورة 3
     notes: '',
     customerName: '',
     customerPhone: '',
@@ -36,9 +38,9 @@ export function openCustomBuilder() {
 
     // تصفير البيانات عند فتح نافذة جديدة
     currentCustomStep = 1;
-    customOrderData = {
+   customOrderData = {
         serviceType: '', serviceName: '', selectedProductId: '', selectedProduct: '', productImage: '', color: '',
-        basePrice: 0, addonsPrice: 0, text1: '', text2: '', uploadedImageBase64: '', notes: '',
+        basePrice: 0, addonsPrice: 0, text1: '', text2: '', uploadedImage1: '', uploadedImage2: '', uploadedImage3: '', notes: '',
         customerName: '', customerPhone: '', wilaya: '', commune: '', shippingType: 'home'
     };
 
@@ -277,17 +279,44 @@ function buildDynamicServiceOptions(config) {
     `;
 
     // رفع صورة (للطباعة والكادرات)
+    // رفع صور (للطباعة والكادرات) - اختياري حتى 3 صور
     if (customOrderData.serviceType === 'print' || customOrderData.serviceType === 'frame') {
         html += `
-            <div>
-                <label class="block text-xs font-bold text-[#D4AF37] mb-2">أرفق الصورة للتصميم 📸:</label>
-                <input type="file" accept="image/*" onchange="handleCustomImageUpload(event)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37] file:text-black cursor-pointer hover:file:bg-[#D4AF37]/90">
-                ${customOrderData.uploadedImageBase64 ? `
-                <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
-                    <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة</p>
-                    <button onclick="removeCustomUploadedImage()" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف الصورة</button>
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-[#D4AF37] mb-2">أرفق صور للتصميم 📸 (اختياري - حتى 3 صور):</label>
+                
+                <!-- الصورة 1 -->
+                <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
+                    <label class="block text-[10px] text-gray-500 mb-1">الصورة الأولى</label>
+                    <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 1)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37] file:text-black cursor-pointer hover:file:bg-[#D4AF37]/90">
+                    ${customOrderData.uploadedImage1 ? `
+                    <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                        <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 1</p>
+                        <button onclick="removeCustomUploadedImage(1)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                    </div>` : ''}
                 </div>
-                ` : ''}
+
+                <!-- الصورة 2 -->
+                <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
+                    <label class="block text-[10px] text-gray-500 mb-1">الصورة الثانية (إضافية)</label>
+                    <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 2)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white cursor-pointer hover:file:bg-gray-600">
+                    ${customOrderData.uploadedImage2 ? `
+                    <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                        <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 2</p>
+                        <button onclick="removeCustomUploadedImage(2)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                    </div>` : ''}
+                </div>
+
+                <!-- الصورة 3 -->
+                <div class="bg-black/30 p-3 rounded-xl border border-gray-800">
+                    <label class="block text-[10px] text-gray-500 mb-1">الصورة الثالثة (إضافية)</label>
+                    <input type="file" accept="image/*" onchange="handleCustomImageUpload(event, 3)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-gray-900 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white cursor-pointer hover:file:bg-gray-600">
+                    ${customOrderData.uploadedImage3 ? `
+                    <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
+                        <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 3</p>
+                        <button onclick="removeCustomUploadedImage(3)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                    </div>` : ''}
+                </div>
             </div>
         `;
     }
@@ -459,15 +488,27 @@ function compressCustomerImage(file, callback) {
     };
 }
 
-window.handleCustomImageUpload = function(event) {
+window.handleCustomImageUpload = function(event, imageIndex = 1) {
     const file = event.target.files[0];
     if (!file) return;
     
-    // استدعاء دالة الضغط
+    // استدعاء دالة الضغط (التي أضفناها مسبقاً)
     compressCustomerImage(file, function(compressedBase64) {
-        customOrderData.uploadedImageBase64 = compressedBase64;
-        renderCustomStep(); // تحديث الواجهة لإظهار علامة الصح الأخضر
+        if (imageIndex === 1) customOrderData.uploadedImage1 = compressedBase64;
+        else if (imageIndex === 2) customOrderData.uploadedImage2 = compressedBase64;
+        else if (imageIndex === 3) customOrderData.uploadedImage3 = compressedBase64;
+        
+        renderCustomStep(); // تحديث الواجهة لإظهار علامة الصح الأخضر أمام الصورة المناسبة
     });
+}
+
+// دالة حذف الصورة المرفقة للزبون
+window.removeCustomUploadedImage = function(imageIndex) {
+    if (imageIndex === 1) customOrderData.uploadedImage1 = '';
+    else if (imageIndex === 2) customOrderData.uploadedImage2 = '';
+    else if (imageIndex === 3) customOrderData.uploadedImage3 = '';
+    
+    renderCustomStep(); // إعادة رسم الواجهة لتختفي الصورة
 }
 
 // دالة حذف الصورة المرفقة للزبون
