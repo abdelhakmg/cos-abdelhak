@@ -640,7 +640,7 @@ export function submitCustomOrder() {
     const fullDescription = `[طلب مخصص 🎨]
 - القسم: ${customOrderData.serviceName}
 - المنتج: ${customOrderData.selectedProduct}
-${customOrderData.color ? '🎨 اللون: ' + customOrderData.color + '\n' : ''}${customOrderData.size ? '📏 المقاس: ' + customOrderData.size + '\n' : ''}${customOrderData.font ? '✒️ الخط: ' + customOrderData.font + '\n' : ''}${customOrderData.position ? '📍 المكان: ' + customOrderData.position + '\n' : ''}- النص الأول: ${customOrderData.text1 || 'لا يوجد'}
+${customOrderData.color ? '- اللون: ' + customOrderData.color + '\n' : ''}${customOrderData.size ? '- المقاس: ' + customOrderData.size + '\n' : ''}${customOrderData.font ? '- الخط: ' + customOrderData.font + '\n' : ''}${customOrderData.position ? '- المكان: ' + customOrderData.position + '\n' : ''}- النص الأول: ${customOrderData.text1 || 'لا يوجد'}
 - النص الثاني: ${customOrderData.text2 || 'لا يوجد'}
 - ملاحظات: ${customOrderData.notes || 'لا توجد'}
 ${uploadedCount > 0 ? `- 📸 الزبون أرفق ${uploadedCount} صور(ة) للتصميم.` : ''}`;
