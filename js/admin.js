@@ -440,8 +440,47 @@ export function deleteBrand(idx) {
 // =====================================
 // دوال متفرقة (التوصيل، الصور، الطلبيات)
 // =====================================
-export function handleImageUploadWrapper(event, target) { handleImageUpload(event, target); }
+export function handleImageUploadWrapper(event, targetId) {
+    const file = event.target.files[0];
+    if (!file) return;
 
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800; // أقصى عرض
+            const MAX_HEIGHT = 800; // أقصى طول
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height && width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            } else if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // تحويل وضغط الصورة
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            
+            const targetInput = document.getElementById(targetId);
+            if (targetInput) {
+                targetInput.value = compressedBase64;
+                // تغيير لون الحقل للأخضر ليعرف المدير أنه تم الرفع والضغط بنجاح
+                targetInput.classList.add('border-green-500', 'bg-green-50');
+            }
+        }
+    };
+}
 export function handleSaveWilaya(e) {
     if (e) e.preventDefault();
     const code = document.getElementById('wilaya-code').value.trim();
