@@ -629,22 +629,20 @@ export function renderAdminDashboard() {
                             <div class="text-[11px] text-gray-500 mt-1">${o.commune || ''}</div>
                         </td>
                         <td class="p-4">
-                            <td class="p-4">
-                            <!-- عرض التفاصيل مع احترام الأسطر الجديدة (whitespace-pre-wrap) -->
-                            <div class="font-bold text-[11px] text-gray-800 leading-relaxed max-w-[250px] bg-gray-100 p-3 rounded-xl border border-gray-200 whitespace-pre-wrap">${o.product || 'لا توجد تفاصيل'}</div>
+                            <!-- عرض التفاصيل مع احترام الأسطر الجديدة (whitespace-pre-line) -->
+                            <div class="font-bold text-[11px] text-gray-800 leading-relaxed max-w-[250px] bg-gray-50 p-3 rounded-xl border border-gray-200 whitespace-pre-line text-right" style="direction: rtl;">${o.product || 'لا توجد تفاصيل'}</div>
                             
                             <!-- عرض الصور إن وجدت (سواء الصورة القديمة أو الصور الـ 3 الجديدة) -->
                             ${(o.attachedImage1 || o.attachedImage2 || o.attachedImage3 || o.attachedImage) ? `
-                            <div class="flex flex-wrap gap-2 mt-2 p-2 bg-yellow-50/50 rounded-xl border border-yellow-200/50">
-                                ${o.attachedImage ? `<img src="${o.attachedImage}" onclick="window.open(this.src, '_blank')" class="w-12 h-12 object-cover rounded-lg border border-gray-300 cursor-pointer hover:scale-110 transition shadow-sm" title="عرض الصورة">` : ''}
-                                ${o.attachedImage1 ? `<img src="${o.attachedImage1}" onclick="window.open(this.src, '_blank')" class="w-12 h-12 object-cover rounded-lg border border-gray-300 cursor-pointer hover:scale-110 transition shadow-sm" title="الصورة 1">` : ''}
-                                ${o.attachedImage2 ? `<img src="${o.attachedImage2}" onclick="window.open(this.src, '_blank')" class="w-12 h-12 object-cover rounded-lg border border-gray-300 cursor-pointer hover:scale-110 transition shadow-sm" title="الصورة 2">` : ''}
-                                ${o.attachedImage3 ? `<img src="${o.attachedImage3}" onclick="window.open(this.src, '_blank')" class="w-12 h-12 object-cover rounded-lg border border-gray-300 cursor-pointer hover:scale-110 transition shadow-sm" title="الصورة 3">` : ''}
+                            <div class="flex flex-wrap gap-2 mt-2 p-2 bg-yellow-50/50 rounded-xl border border-yellow-200/50 justify-start">
+                                ${o.attachedImage ? `<img src="${o.attachedImage}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
+                                ${o.attachedImage1 ? `<img src="${o.attachedImage1}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
+                                ${o.attachedImage2 ? `<img src="${o.attachedImage2}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
+                                ${o.attachedImage3 ? `<img src="${o.attachedImage3}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
                             </div>
                             ` : ''}
                             
-                            <div class="font-black text-sm text-[#B8860B] mt-2 bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-lg border border-[#D4AF37]/30">${o.total ? o.total.toLocaleString() : 0} دج</div>
-                        </td>
+                            <div class="font-black text-sm text-[#B8860B] mt-2 inline-block px-3 py-1 rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10">${o.total ? o.total.toLocaleString() : 0} دج</div>
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold p-2 rounded-lg border outline-none cursor-pointer ${statusBadgeClass} shadow-sm w-28 text-center appearance-none">
@@ -671,6 +669,32 @@ export function renderAdminDashboard() {
     if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
 }
 
+// أضف هذه الدالة في نهاية ملف admin.js
+window.openImageModal = function(imageSrc) {
+    let modal = document.getElementById('admin-image-modal');
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'admin-image-modal';
+        modal.className = 'fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 cursor-zoom-out hidden';
+        modal.onclick = function() {
+            this.classList.add('hidden');
+        };
+        
+        const img = document.createElement('img');
+        img.id = 'admin-modal-img';
+        img.className = 'max-h-[90vh] max-w-[90vw] object-contain rounded-xl border border-gray-700 shadow-2xl';
+        
+        modal.appendChild(img);
+        document.body.appendChild(modal);
+    }
+    
+    const modalImg = document.getElementById('admin-modal-img');
+    if (modalImg) {
+        modalImg.src = imageSrc;
+        modal.classList.remove('hidden');
+    }
+};
 // ==========================================
 // دوال الحذف الجماعي الجديدة (ضعها هنا)
 // ==========================================
