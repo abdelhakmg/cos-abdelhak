@@ -198,12 +198,20 @@ window.saveCustomProduct = function(event) {
     
     const idField = document.getElementById('cp-id').value;
     const newProduct = {
-        id: idField || 'cp_' + Date.now(), // توليد ID فريد
+        id: idField || 'cp_' + Date.now(),
         category: document.getElementById('cp-category').value,
         name: document.getElementById('cp-name').value.trim(),
         image: document.getElementById('cp-image-base64').value,
         basePrice: parseFloat(document.getElementById('cp-base-price').value) || 0,
         colors: document.getElementById('cp-colors').value.trim(),
+        
+        // 🌟 حفظ الحقول الجديدة
+        sizes: document.getElementById('cp-sizes').value.trim(),
+        fonts: document.getElementById('cp-fonts').value.trim(),
+        positions: document.getElementById('cp-positions').value.trim(),
+        maxChars: document.getElementById('cp-max-chars').value ? parseInt(document.getElementById('cp-max-chars').value) : null,
+        imgReq: document.getElementById('cp-img-req').value,
+
         face2Price: parseFloat(document.getElementById('cp-face2-price').value) || 0,
         label1: document.getElementById('cp-label-1').value.trim(),
         label2: document.getElementById('cp-label-2').value.trim(),
@@ -217,12 +225,10 @@ window.saveCustomProduct = function(event) {
     }
 
     if (idField) {
-        // تحديث
         const index = workshopConfig.products.findIndex(p => p.id === idField);
         if (index !== -1) workshopConfig.products[index] = newProduct;
     } else {
-        // إضافة جديد
-        workshopConfig.products.unshift(newProduct); // يضاف في بداية القائمة
+        workshopConfig.products.unshift(newProduct);
     }
 
     document.getElementById('admin-custom-prod-modal').classList.add('hidden');
