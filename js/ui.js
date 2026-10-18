@@ -12,6 +12,7 @@ window.currentHeroIdx = 0;
 export function renderSingleProductCard(p) {
     let displayImg = (p.images && p.images[0]) || p.image || 'https://via.placeholder.com/300';
     const isFav = state.favorites.includes(p.id);
+    const inStock = p.inStock !== false; // التحقق من توفر الكمية
 
     return `
         <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
@@ -19,13 +20,14 @@ export function renderSingleProductCard(p) {
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
             </button>
 
-            <div class="cursor-pointer" onclick="safeCall('openLandingPage', '${p.id}')">
-                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden">
-                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-105 transition duration-500">
+            <div class="cursor-pointer" onclick="${inStock ? `safeCall('openLandingPage', '${p.id}')` : ''}">
+                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden relative">
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-105 transition duration-500 ${!inStock ? 'opacity-50 grayscale' : ''}">
+                    ${!inStock ? '<div class="absolute inset-0 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1.5 rounded-lg text-xs transform -rotate-12">نفدت الكمية</span></div>' : ''}
                 </div>
                 <div class="flex items-center gap-1.5 mb-1.5">
-                    <span class="w-2 h-2 rounded-full ${p.inStock !== false ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
-                    <span class="text-[10px] font-bold ${p.inStock !== false ? 'text-green-600' : 'text-red-500'}">${p.inStock !== false ? 'متوفر' : 'غير متوفر'}</span>
+                    <span class="w-2 h-2 rounded-full ${inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
+                    <span class="text-[10px] font-bold ${inStock ? 'text-green-600' : 'text-red-500'}">${inStock ? 'متوفر' : 'غير متوفر'}</span>
                 </div>
                 <h3 class="font-bold text-sm text-gray-900 truncate my-1 group-hover:text-[#B8860B] transition">${p.name || 'منتج'}</h3>
                 <div class="flex items-center gap-2 mb-1">
@@ -34,18 +36,23 @@ export function renderSingleProductCard(p) {
                 </div>
             </div>
 
-            <div class="space-y-2 pt-2">
-                <button onclick="event.stopPropagation(); safeCall('addToCart', '${p.id}');" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
-                </button>
-                <button onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition cursor-pointer">
-                    اطلب الآن 🔥
-                </button>
+            <div class="space-y-2 pt-2 mt-auto">
+                ${inStock ? `
+                    <button onclick="event.stopPropagation(); safeCall('addToCart', '${p.id}');" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
+                    </button>
+                    <button onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition cursor-pointer">
+                        اطلب الآن 🔥
+                    </button>
+                ` : `
+                    <div class="w-full py-3 bg-gray-100 text-gray-500 font-bold text-xs rounded-xl border border-gray-200 flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-ban"></i> نفدت الكمية مؤقتاً
+                    </div>
+                `}
             </div>
         </div>
     `;
 }
-
 export function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
