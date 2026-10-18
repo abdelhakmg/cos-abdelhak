@@ -15,38 +15,38 @@ export function renderSingleProductCard(p) {
     const inStock = p.inStock !== false; // التحقق من توفر الكمية
 
     return `
-        <div class="bg-white text-gray-900 rounded-2xl border p-4 text-right flex flex-col justify-between shadow-lg hover:shadow-2xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-2 group relative">
-            <button onclick="event.stopPropagation(); safeCall('toggleFavorite', '${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm cursor-pointer">
-                <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
+        <div class="bg-white text-gray-900 rounded-xl sm:rounded-2xl border p-2 sm:p-4 text-right flex flex-col justify-between shadow-md hover:shadow-xl hover:shadow-[#D4AF37]/20 transition-all duration-300 transform hover:-translate-y-1 group relative">
+            <button onclick="event.stopPropagation(); safeCall('toggleFavorite', '${p.id}');" class="absolute top-2 left-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm cursor-pointer">
+                <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'} text-[10px] sm:text-base"></i>
             </button>
 
             <div class="cursor-pointer" onclick="${inStock ? `safeCall('openLandingPage', '${p.id}')` : ''}">
-                <div class="h-48 bg-gray-50 rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden relative">
+                <div class="h-32 sm:h-48 bg-gray-50 rounded-lg sm:rounded-xl p-1 sm:p-2 mb-2 flex items-center justify-center overflow-hidden relative">
                     <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-105 transition duration-500 ${!inStock ? 'opacity-50 grayscale' : ''}">
-                    ${!inStock ? '<div class="absolute inset-0 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-4 py-1.5 rounded-lg text-xs transform -rotate-12">نفدت الكمية</span></div>' : ''}
+                    ${!inStock ? '<div class="absolute inset-0 flex items-center justify-center"><span class="bg-red-600 text-white font-black px-2 py-1 rounded-md text-[8px] sm:text-xs transform -rotate-12">نفدت الكمية</span></div>' : ''}
                 </div>
-                <div class="flex items-center gap-1.5 mb-1.5">
-                    <span class="w-2 h-2 rounded-full ${inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
-                    <span class="text-[10px] font-bold ${inStock ? 'text-green-600' : 'text-red-500'}">${inStock ? 'متوفر' : 'غير متوفر'}</span>
+                <div class="flex items-center gap-1 mb-1">
+                    <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${inStock ? 'bg-green-500 animate-ping' : 'bg-red-500'}"></span>
+                    <span class="text-[8px] sm:text-[10px] font-bold ${inStock ? 'text-green-600' : 'text-red-500'}">${inStock ? 'متوفر' : 'غير متوفر'}</span>
                 </div>
-                <h3 class="font-bold text-sm text-gray-900 truncate my-1 group-hover:text-[#B8860B] transition">${p.name || 'منتج'}</h3>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="font-black text-base text-[#B8860B]">${formatPrice(p.price)}</span>
-                    ${p.oldPrice ? `<span class="text-xs text-gray-400 line-through">${formatPrice(p.oldPrice)}</span>` : ''}
+                <h3 class="font-bold text-[11px] sm:text-sm text-gray-900 line-clamp-2 my-1 group-hover:text-[#B8860B] transition leading-tight h-8 sm:h-auto">${p.name || 'منتج'}</h3>
+                <div class="flex items-center gap-1 sm:gap-2 mb-1">
+                    <span class="font-black text-xs sm:text-base text-[#B8860B]">${formatPrice(p.price)}</span>
+                    ${p.oldPrice ? `<span class="text-[9px] sm:text-xs text-gray-400 line-through">${formatPrice(p.oldPrice)}</span>` : ''}
                 </div>
             </div>
 
-            <div class="space-y-2 pt-2 mt-auto">
+            <div class="space-y-1.5 sm:space-y-2 pt-1 sm:pt-2 mt-auto">
                 ${inStock ? `
-                    <button onclick="event.stopPropagation(); safeCall('addToCart', '${p.id}');" class="w-full py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-bag-shopping text-xs"></i> أضف إلى السلة
+                    <button onclick="event.stopPropagation(); safeCall('addToCart', '${p.id}');" class="w-full py-1.5 sm:py-2.5 bg-black text-white hover:bg-gray-800 font-bold text-[10px] sm:text-xs rounded-lg sm:rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-bag-shopping text-[10px] sm:text-xs"></i> <span class="hidden sm:inline">أضف إلى السلة</span><span class="sm:hidden">للسلة</span>
                     </button>
-                    <button onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="w-full py-2.5 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-md hover:opacity-90 transition cursor-pointer">
+                    <button onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="w-full py-1.5 sm:py-2.5 gold-gradient text-black font-extrabold text-[10px] sm:text-xs rounded-lg sm:rounded-xl shadow-md hover:opacity-90 transition cursor-pointer">
                         اطلب الآن 🔥
                     </button>
                 ` : `
-                    <div class="w-full py-3 bg-gray-100 text-gray-500 font-bold text-xs rounded-xl border border-gray-200 flex items-center justify-center gap-2 cursor-not-allowed">
-                        <i class="fa-solid fa-ban"></i> نفدت الكمية مؤقتاً
+                    <div class="w-full py-2 sm:py-3 bg-gray-100 text-gray-500 font-bold text-[10px] sm:text-xs rounded-lg sm:rounded-xl border border-gray-200 flex items-center justify-center gap-1 sm:gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-ban text-[10px] sm:text-xs"></i> <span class="hidden sm:inline">نفدت الكمية مؤقتاً</span><span class="sm:hidden">نفدت</span>
                     </div>
                 `}
             </div>
