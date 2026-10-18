@@ -70,12 +70,17 @@ export function renderGiftStep() {
     indicator.innerText = `الخطوة ${currentGiftStep} من ${TOTAL_STEPS}`;
     prevBtn.classList.toggle('hidden', currentGiftStep === 1);
 
+    // 🎨 تنسيق سلس للأزرار على الموبايل
+    prevBtn.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-1.5';
+    prevBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> <span>رجوع</span>';
+
+    nextBtn.className = 'gold-gradient text-black text-xs font-black px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg flex items-center justify-center gap-1.5';
+    nextBtn.innerHTML = '<span>التالي</span> <i class="fa-solid fa-arrow-left"></i>';
+
     if (currentGiftStep === TOTAL_STEPS) {
-        nextBtn.innerHTML = '<i class="fa-solid fa-check-double mr-2"></i> تأكيد الطلب النهائي';
-        nextBtn.className = 'bg-green-600 hover:bg-green-700 text-white text-sm font-black px-8 py-3 rounded-xl transition shadow-lg w-full md:w-auto';
+        nextBtn.classList.add('hidden'); // نخفيه لنضع الزرين (اطلب وأضف للسلة) في المحتوى
     } else {
-        nextBtn.innerHTML = 'التالي <i class="fa-solid fa-arrow-left mr-1"></i>';
-        nextBtn.className = 'gold-gradient text-black text-sm font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg w-full md:w-auto';
+        nextBtn.classList.remove('hidden');
     }
 
     let html = '';
@@ -286,7 +291,14 @@ export function renderGiftStep() {
                                     ${state.WILAYAS.map(w => `<option value="${w.code}" ${giftData.wilaya === w.code ? 'selected' : ''}>${w.code} -${w.name}</option>`).join('')}
                                 </select>
                             </div>
-                            
+                            <div class="md:col-span-2">
+                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">بلدية المستلم *</label>
+                                <input type="text" id="g-baladiya" value="${giftData.baladiya || ''}" oninput="giftData.baladiya=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">العنوان الدقيق للهدية</label>
+                                <input type="text" id="g-commune" value="${giftData.commune}" oninput="giftData.commune=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>
                             <div class="md:col-span-2">
                                 <label class="text-[10px] text-[#D4AF37] font-bold block mb-2">طريقة التوصيل للهدية *</label>
                                 <div class="flex gap-3">
@@ -306,12 +318,13 @@ export function renderGiftStep() {
             `;
             break;
 
-        case 6:
+       case 6:
             const shipCost = giftData.wilaya ? calculateShippingCost(giftData.wilaya, state.WILAYAS, giftData.shippingType) : 0;
             const grandTotal = currentTotal + shipCost;
 
-            // 🔴 5. التحقق من الحد الأدنى للطلب المسموح به
+            // التحقق من الحد الأدنى
             const minOrderAmount = giftConfig.minOrder || 0;
+            
             let reviewHtml = `
                 <div class="space-y-5 animate-fade-in pb-2">
                     <div class="text-center mb-4">
@@ -348,7 +361,7 @@ export function renderGiftStep() {
                         </div>
             `;
             
-            // تحذير الحد الأدنى
+            // تحذير الحد الأدنى أو عرض الأزرار الجديدة
             if (minOrderAmount > 0 && grandTotal < minOrderAmount) {
                 reviewHtml += `
                     <div class="mt-4 p-3 rounded-xl bg-red-900/40 border border-red-500/50 text-center">
@@ -356,12 +369,19 @@ export function renderGiftStep() {
                         <p class="text-gray-300 text-[10px]">الحد الأدنى لطلبات الهدايا هو ${minOrderAmount.toLocaleString()} دج. أضف منتجات أخرى للاستمرار.</p>
                     </div>
                 `;
-                // إخفاء زر التأكيد مؤقتاً
-                nextBtn.classList.add('hidden');
             } else {
-                nextBtn.classList.remove('hidden');
+                // الأزرار الجديدة (طلب مباشر + أضف للسلة)
+                reviewHtml += `
+                    <div class="flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-gray-800 relative z-10">
+                        <button onclick="submitGiftOrder()" class="flex-1 py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-gift"></i> أرسل الهدية الآن
+                        </button>
+                        <button onclick="addGiftToCart()" class="flex-1 py-3.5 bg-black text-[#D4AF37] border border-[#D4AF37]/50 font-black rounded-xl shadow-lg hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i> أضف للسلة
+                        </button>
+                    </div>
+                `;
             }
-
             reviewHtml += `</div></div>`;
             html = reviewHtml;
             break;
@@ -469,21 +489,34 @@ export function nextGiftStep() {
         giftData.receiverName = document.getElementById('g-receiver-name')?.value.trim() || giftData.receiverName;
         giftData.receiverPhone = document.getElementById('g-receiver-phone')?.value.trim() || giftData.receiverPhone;
         giftData.wilaya = document.getElementById('g-wilaya')?.value || giftData.wilaya;
+        giftData.baladiya = document.getElementById('g-baladiya')?.value.trim() || giftData.baladiya;
         giftData.commune = document.getElementById('g-commune')?.value.trim() || giftData.commune;
 
-        if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.receiverPhone || !giftData.wilaya || !giftData.commune) {
-            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والولاية لحساب الشحن بنجاح!'); 
+        if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.receiverPhone || !giftData.wilaya || !giftData.baladiya || !giftData.commune) {
+            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والبلدية لحساب الشحن بنجاح!'); 
             return;
         }
     }
     
-    if (currentGiftStep === TOTAL_STEPS) { submitGiftOrder(); return; }
+    if (currentGiftStep === TOTAL_STEPS) return;
     currentGiftStep++;
     renderGiftStep();
 }
 
 export function prevGiftStep() {
     if (currentGiftStep > 1) { currentGiftStep--; renderGiftStep(); }
+}
+
+// دالة مساعدة لتجميع تفاصيل الهدية بشكل مرتب
+export function getGiftOrderFullDesc() {
+    const itemsSummary = giftData.selectedProducts.map(i => `${i.name} (x${i.qty})`).join(' + ');
+    return `🎁 طلب هدية VIP:
+- المستلم: ${giftData.recipient}
+- العلبة: ${giftData.selectedBox ? giftData.selectedBox.name : 'بدون'}
+- المنتجات: ${itemsSummary}
+- التغليف: ${giftData.selectedWrapping ? giftData.selectedWrapping.name : 'بدون'}
+- الرسالة: "${giftData.giftMessage || 'بدون رسالة'}"
+- المُرسل: ${giftData.senderName} (${giftData.senderPhone})`;
 }
 
 export function submitGiftOrder() {
@@ -494,22 +527,12 @@ export function submitGiftOrder() {
     const wrapPrice = giftData.selectedWrapping ? (giftData.selectedWrapping.price || 0) : 0;
     const grandTotal = prodTotal + boxPrice + wrapPrice + shipCost;
     
-    const itemsSummary = giftData.selectedProducts.map(i => `${i.name} (x${i.qty})`).join(' + ');
-    const fullProductDescription = `🎁 طلب هدية VIP:
-- المستلم: ${giftData.recipient}
-- العلبة: ${giftData.selectedBox ? giftData.selectedBox.name : 'بدون'}
-- المنتجات: ${itemsSummary}
-- التغليف: ${giftData.selectedWrapping ? giftData.selectedWrapping.name : 'بدون'}
-- الرسالة: "${giftData.giftMessage || 'بدون رسالة'}"
-- المُرسل: ${giftData.senderName} (${giftData.senderPhone})
-- نوع التوصيل: ${giftData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'}`;
-
     const newOrder = {
         customer: giftData.receiverName,
         phone: giftData.receiverPhone || giftData.senderPhone,
         wilaya: wilayaObj ? wilayaObj.name : giftData.wilaya,
-        commune: giftData.commune,
-        product: fullProductDescription,
+        commune: `البلدية: ${giftData.baladiya} | العنوان: ${giftData.commune} (${giftData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'})`,
+        product: getGiftOrderFullDesc(),
         total: grandTotal,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
@@ -524,6 +547,28 @@ export function submitGiftOrder() {
     }
 }
 
+export function addGiftToCart() {
+    const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const boxPrice = giftData.selectedBox ? (giftData.selectedBox.price || 0) : 0;
+    const wrapPrice = giftData.selectedWrapping ? (giftData.selectedWrapping.price || 0) : 0;
+    
+    const cartItem = {
+        id: 'gift_' + Date.now(),
+        name: `[هدية VIP] للمستلم: ${giftData.receiverName || giftData.recipient}`,
+        price: prodTotal + boxPrice + wrapPrice, // السعر بدون توصيل لأن السلة ستحسبه
+        image: giftData.selectedBox?.image || giftData.selectedWrapping?.image || 'https://via.placeholder.com/100',
+        customDetails: getGiftOrderFullDesc()
+    };
+    
+    state.cart.push(cartItem);
+    
+    if (typeof saveCartToLocal === 'function') saveCartToLocal();
+    if (typeof updateBadges === 'function') updateBadges();
+    
+    closeGiftBuilder();
+    showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة الهدية للسلة بنجاح!', true);
+    if (typeof showPage === 'function') showPage('cart');
+}
 // Window Bindings للعمل مع HTML
 window.openGiftBuilder = openGiftBuilder;
 window.closeGiftBuilder = closeGiftBuilder;
@@ -537,3 +582,4 @@ window.previewGiftProduct = previewGiftProduct;
 window.nextGiftStep = nextGiftStep;
 window.prevGiftStep = prevGiftStep;
 window.previewWrapping = previewWrapping;
+window.addGiftToCart = addGiftToCart;
