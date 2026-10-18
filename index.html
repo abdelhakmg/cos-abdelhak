@@ -844,6 +844,25 @@
 
                 <!-- التبويب 4: الواجهة والتسويق -->
                 <div id="admin-tab-marketing_ui" class="tab-content space-y-6 text-gray-900">
+                    <!-- التحكم في شاشة البداية (Splash Screen) -->
+                    <div class="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-gray-900 font-bold text-lg mb-4 border-b border-gray-200 pb-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-2"></i> التحكم في شاشة الافتتاح (Splash Screen)
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-600 text-xs font-bold mb-2">اسم المتجر (العنوان الرئيسي)</label>
+                                <input type="text" id="admin-splash-title" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="مثال: كوسمتيك عبد الحق">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-xs font-bold mb-2">الجملة الترحيبية الفاخرة</label>
+                                <input type="text" id="admin-splash-subtitle" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="أدخل عبارتك هنا...">
+                            </div>
+                            <button onclick="safeCall('saveSplashSettings')" class="w-full py-3 bg-[#D4AF37] text-black font-extrabold rounded-xl hover:opacity-90 transition shadow-md cursor-pointer">
+                                حفظ نصوص شاشة البداية 👑
+                            </button>
+                        </div>
+                    </div>
                     <!-- البانر الإعلاني الرئيسي -->
                     <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                         <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-regular fa-images text-[#B8860B]"></i> صور المنزلقة الإعلانية (الصفحة الرئيسية)</h3>
