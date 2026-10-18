@@ -296,11 +296,11 @@ export function renderGiftStep() {
                                 <input type="text" id="g-baladiya" value="${giftData.baladiya || ''}" oninput="giftData.baladiya=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                             <div class="md:col-span-2">
-                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">العنوان الدقيق للهدية</label>
+                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">العنوان </label>
                                 <input type="text" id="g-commune" value="${giftData.commune}" oninput="giftData.commune=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                             <div class="md:col-span-2">
-                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-2">طريقة التوصيل للهدية *</label>
+                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-2">طريقة التوصيل  *</label>
                                 <div class="flex gap-3">
                                     <div id="btn-ship-desk" onclick="setGiftShippingType('desk')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${giftData.shippingType === 'desk' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
                                         <i class="fa-solid fa-store"></i> للمكتب
@@ -311,8 +311,6 @@ export function renderGiftStep() {
                                 </div>
                             </div>
                             
-                            <div class="md:col-span-2"><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">البلدية أو العنوان الدقيق</label><input type="text" id="g-commune" value="${giftData.commune}" oninput="giftData.commune=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
-                        </div>
                     </div>
                 </div>
             `;
@@ -478,10 +476,10 @@ export function updateGiftProductQty(prodId, delta) {
 }
 
 export function nextGiftStep() {
-    if (currentGiftStep === 1 && !giftData.recipient) { alert('يرجى تحديد لمن هذه الهدية.'); return; }
-    if (currentGiftStep === 2 && !giftData.selectedBox) { alert('يرجى اختيار صندوق الهدية.'); return; }
-    if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { alert('العلبة فارغة! يرجى إضافة منتج واحد على الأقل.'); return; }
-    if (currentGiftStep === 4 && !giftData.selectedWrapping) { alert('يرجى اختيار شكل التغليف الخارجي للهدية.'); return; }
+    if (currentGiftStep === 1 && !giftData.recipient) { showCustomAlert('تنبيه ⚠️', 'يرجى تحديد لمن هذه الهدية.', false); return; }
+    if (currentGiftStep === 2 && !giftData.selectedBox) { showCustomAlert('تنبيه ⚠️', 'يرجى اختيار صندوق الهدية.', false); return; }
+    if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { showCustomAlert('علبة فارغة ⚠️', 'العلبة فارغة! يرجى إضافة منتج واحد على الأقل.', false); return; }
+    if (currentGiftStep === 4 && !giftData.selectedWrapping) { showCustomAlert('تنبيه ⚠️', 'يرجى اختيار شكل التغليف الخارجي للهدية.', false); return; }
     
     if (currentGiftStep === 5) {
         giftData.senderName = document.getElementById('g-sender-name')?.value.trim() || giftData.senderName;
@@ -493,7 +491,7 @@ export function nextGiftStep() {
         giftData.commune = document.getElementById('g-commune')?.value.trim() || giftData.commune;
 
         if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.receiverPhone || !giftData.wilaya || !giftData.baladiya || !giftData.commune) {
-            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والبلدية لحساب الشحن بنجاح!'); 
+            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال جميع معلومات الإرسال والبلدية لحساب الشحن بنجاح!', false); 
             return;
         }
     }
