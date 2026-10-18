@@ -80,8 +80,28 @@ export function renderProducts() {
 export function updateAppHeaderInfo() {
     const navEl = document.getElementById('header-nav');
     if (navEl) {
-        navEl.innerHTML = `<button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">جميع المنتجات</button>` + 
-            state.categories.map(c => `<button onclick="safeCall('filterCategory', '${c.name}')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">${c.name}</button>`).join('');
+        // تحويل الروابط المزدحمة إلى قائمة منسدلة (Dropdown) احترافية
+        navEl.innerHTML = `
+            <button onclick="safeCall('showPage', 'home')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>
+            
+            <div class="relative group py-2">
+                <button class="flex items-center gap-1.5 text-gray-300 group-hover:text-[#D4AF37] transition font-bold cursor-pointer">
+                    <i class="fa-solid fa-list-ul"></i> تصفح الأقسام <i class="fa-solid fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
+                </button>
+                
+                <!-- القائمة المنسدلة -->
+                <div class="absolute top-full right-0 w-52 bg-[#0a0a0a] border border-[#D4AF37]/30 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-3 group-hover:translate-y-0 z-50 flex flex-col py-2">
+                    <button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="text-right px-4 py-2.5 text-white hover:bg-[#1e1e1e] hover:text-[#D4AF37] transition font-bold text-xs border-b border-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-border-all text-[#D4AF37]"></i> جميع المنتجات
+                    </button>
+                    ${state.categories.map(c => `
+                        <button onclick="safeCall('filterCategory', '${c.name}')" class="text-right px-4 py-2.5 text-gray-300 hover:bg-[#1e1e1e] hover:text-[#D4AF37] transition font-bold text-xs flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-600"></span> ${c.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
     }
 
     const mobileListEl = document.getElementById('mobile-drawer-categories');
