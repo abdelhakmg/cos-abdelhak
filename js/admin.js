@@ -70,7 +70,22 @@ export function switchAdminTab(tabName) {
         btn.classList.add('bg-black', 'text-white', 'border-[#D4AF37]/30');
     }
 
-    if (tabName === 'shipping_settings') if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
+    if (tabName === 'shipping_settings') {
+        if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
+        
+        // تعبئة إعدادات الحد الأدنى للطلب
+        const localWilayaSelect = document.getElementById('set-local-wilaya');
+        if (localWilayaSelect && state.WILAYAS) {
+            localWilayaSelect.innerHTML = '<option value="">-- اختر ولايتك المحلية --</option>' + 
+                state.WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
+                
+            if (state.storeSettings) {
+                localWilayaSelect.value = state.storeSettings.localWilaya || '';
+                if (document.getElementById('set-min-order-local')) document.getElementById('set-min-order-local').value = state.storeSettings.minOrderLocal || '';
+                if (document.getElementById('set-min-order-national')) document.getElementById('set-min-order-national').value = state.storeSettings.minOrderNational || '';
+            }
+        }
+    }
     if (tabName === 'categories_attributes') {
         if (typeof renderAdminBrandsList === 'function') renderAdminBrandsList();
         if (typeof renderAdminCategoriesList === 'function') renderAdminCategoriesList();
@@ -1335,6 +1350,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // ننتظر ثانية واحدة لضمان تحميل الإعدادات من الداتا بيز
     setTimeout(loadGiftAdminData, 1000); 
 });
+
+// =====================================
+// إعدادات الحد الأدنى للطلب الذكي
+// =====================================
+export function handleSaveMinOrderSettings() {
+    const localWilaya = document.getElementById('set-local-wilaya')?.value || '';
+    const minOrderLocal = parseFloat(document.getElementById('set-min-order-local')?.value) || 0;
+    const minOrderNational = parseFloat(document.getElementById('set-min-order-national')?.value) || 0;
+
+    window.db.collection("settings").doc("main").set({
+        localWilaya, 
+        minOrderLocal, 
+        minOrderNational
+    }, { merge: true }).then(() => {
+        if (typeof state !== 'undefined') {
+            if (!state.storeSettings) state.storeSettings = {};
+            state.storeSettings.localWilaya = localWilaya;
+            state.storeSettings.minOrderLocal = minOrderLocal;
+            state.storeSettings.minOrderNational = minOrderNational;
+        }
+        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات الحد الأدنى للطلب بنجاح!', true);
+    }).catch(err => {
+        showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
+    });
+}
 // =====================================
 // التصدير للـ Window
 // =====================================
@@ -1385,3 +1425,4 @@ window.renderDynamicAttributesList = renderDynamicAttributesList;
 window.deleteDynamicAttribute = deleteDynamicAttribute;
 window.printOrder = printOrder;
 window.printSelectedOrders = printSelectedOrders;
+window.handleSaveMinOrderSettings = handleSaveMinOrderSettings;
