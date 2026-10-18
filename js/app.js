@@ -55,7 +55,7 @@ export function handleLogoClick(event) {
 }
 
 // التنقل بين الصفحات
-export function showPage(pageId) {
+export function showPage(pageId, addToHistory = true) {
     document.querySelectorAll('.page-sec').forEach(el => el.classList.remove('active'));
     const targetPage = document.getElementById('page-' + pageId);
     if (targetPage) targetPage.classList.add('active');
@@ -67,9 +67,59 @@ export function showPage(pageId) {
         populateCartWilayas();
     }
     if (pageId === 'wishlist') renderWishlistPage();
+
+    // 🌟 إضافة مسار الصفحة لسجل المتصفح ليعمل زر الرجوع
+    if (addToHistory) {
+        window.history.pushState({ page: pageId }, '', '#' + pageId);
+    }
 }
 
-// 🛒 دوال السلة (Cart) المحسنة
+// 🌟 مراقب ذكي لزر "الرجوع" في الهاتف والمتصفح
+window.addEventListener('popstate', (event) => {
+    let overlayClosed = false;
+
+    // 1. إغلاق القائمة الجانبية للهاتف إن كانت مفتوحة
+    const drawer = document.getElementById('mobile-drawer');
+    if (drawer && !drawer.classList.contains('hidden')) {
+        drawer.classList.add('hidden');
+        overlayClosed = true;
+    }
+
+    // 2. إغلاق أي نافذة منبثقة مفتوحة (مثل صانع الهدايا، مكبر الصور، الخ)
+    const modals = ['gift-builder-modal', 'custom-builder-modal', 'image-lightbox-modal', 'admin-auth-modal', 'admin-custom-prod-modal', 'add-wrapping-modal'];
+    modals.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            overlayClosed = true;
+        }
+    });
+
+    // إذا تم إغلاق نافذة للتو، نمنع تغيير الصفحة ونبقى في مكاننا
+    if (overlayClosed) {
+        const currentPage = document.querySelector('.page-sec.active')?.id.replace('page-', '') || 'home';
+        window.history.pushState({ page: currentPage }, '', '#' + currentPage);
+        return;
+    }
+
+    // 3. التنقل الفعلي بين الصفحات (الرجوع للصفحة السابقة)
+    if (event.state && event.state.page) {
+        showPage(event.state.page, false); // false تمنع التكرار في السجل
+    } else {
+        const hash = window.location.hash.replace('#', '');
+        showPage(hash || 'home', false);
+    }
+});
+
+// تسجيل الصفحة الرئيسية كأول محطة عند فتح الموقع
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.history.state) {
+        window.history.replaceState({ page: 'home' }, '', '#home');
+    }
+});
+
+// 🛒 دوال السلة (Cart) المحسنة (تبقى كما هي تماماً لا تمسحها)
 export function addToCart(id) {
     const prod = state.products.find(p => p.id === id);
     if (prod) {
