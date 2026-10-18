@@ -404,8 +404,47 @@ export function startBannerTicker() {
         }, 300);
     }, 3000);
 }
-// أضف هذا السطر في نهاية الملف مع باقي الروابط:
-window.startBannerTicker = startBannerTicker;
+// ==========================================
+// 7. التحكم الديناميكي بشاشة الافتتاح (Admin)
+// ==========================================
+export function saveSplashSettings() {
+    const title = document.getElementById('admin-splash-title').value.trim();
+    const subtitle = document.getElementById('admin-splash-subtitle').value.trim();
+    
+    if (typeof window.db !== 'undefined') {
+        // الحفظ في Firebase
+        window.db.collection('settings').doc('main').set({
+            splashTitle: title,
+            splashSubtitle: subtitle
+        }, { merge: true }).then(() => {
+            if (typeof showCustomAlert === 'function') {
+                showCustomAlert('تم الحفظ بنجاح 👑', 'تم تغيير نصوص شاشة البداية بنجاح وسيراها جميع الزوار فوراً.', true);
+            } else {
+                alert('تم الحفظ بنجاح!');
+            }
+        }).catch(err => console.error("Error saving splash settings:", err));
+    }
+}
+
+export function updateSplashScreenText() {
+    if (!state.storeSettings) return;
+    
+    // 1. تحديث النصوص في شاشة الزائر الخارجية
+    const titleEl = document.getElementById('splash-title-display');
+    const subEl = document.getElementById('splash-subtitle-display');
+    if (titleEl && state.storeSettings.splashTitle) titleEl.innerText = state.storeSettings.splashTitle;
+    if (subEl && state.storeSettings.splashSubtitle) subEl.innerText = state.storeSettings.splashSubtitle;
+
+    // 2. تحديث الحقول في لوحة تحكم الإدارة (لكي لا تكون فارغة عند دخولك)
+    const adminTitleInput = document.getElementById('admin-splash-title');
+    const adminSubInput = document.getElementById('admin-splash-subtitle');
+    if (adminTitleInput && state.storeSettings.splashTitle) adminTitleInput.value = state.storeSettings.splashTitle;
+    if (adminSubInput && state.storeSettings.splashSubtitle) adminSubInput.value = state.storeSettings.splashSubtitle;
+}
+
+// ربط الدوال بالواجهة
+window.saveSplashSettings = saveSplashSettings;
+window.updateSplashScreenText = updateSplashScreenText;window.startBannerTicker = startBannerTicker;
 // ==========================================
 // 6. ربط كافة الدوال بالواجهة (Window Bindings) 
 // ==========================================
