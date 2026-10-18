@@ -286,8 +286,13 @@
                             <select id="cust-wilaya" onchange="handleWilayaChange()" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37]"></select>
                         </div>
                         <div>
+                            <label class="block text-xs font-bold mb-2 text-gray-300">البلدية *</label>
+                            <!-- سنجعله قائمة منسدلة تُملأ برمجياً عند اختيار الولاية، أو حقل نصي حسب رغبتك. حالياً كحقل نصي متوافق مع Firebase -->
+                            <input type="text" id="cust-baladiya" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
+                        </div>
+                        <div class="md:col-span-2">
                             <label class="block text-xs font-bold mb-2 text-gray-300">العنوان التفصيلي / الحي / الشارع *</label>
-                            <input type="text" id="cust-commune" placeholder="أدخل العنوان ورقم المنزل أو الحي" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
+                            <input type="text" id="cust-address" placeholder="أدخل العنوان ورقم المنزل أو الحي" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                     </div>
                     <div>
@@ -348,8 +353,12 @@
                                 <select id="cart-cust-wilaya" onchange="handleCartWilayaChange()" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]"></select>
                             </div>
                             <div>
+                                <label class="block text-xs font-bold mb-1 text-gray-300">البلدية *</label>
+                                <input type="text" id="cart-cust-baladiya" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div class="md:col-span-2">
                                 <label class="block text-xs font-bold mb-1 text-gray-300">العنوان التفصيلي / الحي / الشارع *</label>
-                                <input type="text" id="cart-cust-commune" placeholder="أدخل العنوان التفصيلي..." class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
+                                <input type="text" id="cart-cust-address" placeholder="أدخل العنوان التفصيلي..." class="w-full bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white outline-none focus:border-[#D4AF37]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold mb-1 text-gray-300">مكان التسليم *</label>
@@ -879,7 +888,28 @@
                             </form>
                             <div id="admin-wilayas-list" class="space-y-2 pt-4 border-t border-gray-100 max-h-96 overflow-y-auto custom-scrollbar pr-2"></div>
                         </div>
-
+<!-- إعدادات الحد الأدنى للطلب الذكي -->
+                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-coins text-[#B8860B]"></i> إعدادات الحد الأدنى للطلب</h3>
+                            <form class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1 text-gray-600">الولاية المحلية (ولايتك)</label>
+                                    <select id="set-local-wilaya" class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]"></select>
+                                    <p class="text-[10px] text-gray-400 mt-1">سيتم تطبيق الحد الأدنى المحلي على هذه الولاية.</p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1 text-gray-600">الحد الأدنى المحلي (دج)</label>
+                                        <input type="number" id="set-min-order-local" placeholder="مثال: 1500" class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold mb-1 text-gray-600">الحد الأدنى الوطني لباقي الولايات (دج)</label>
+                                        <input type="number" id="set-min-order-national" placeholder="مثال: 3000" class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+                                    </div>
+                                </div>
+                                <button type="button" onclick="handleSaveMinOrderSettings()" class="w-full bg-black text-white font-bold py-3.5 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">حفظ إعدادات الحد الأدنى</button>
+                            </form>
+                        </div>
                         <!-- إعدادات الرسائل -->
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
                             <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-envelope-open-text text-[#B8860B]"></i> رسائل النظام والتنبيهات</h3>
