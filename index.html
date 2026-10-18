@@ -867,11 +867,26 @@
                     <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                         <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-regular fa-images text-[#B8860B]"></i> صور المنزلقة الإعلانية (الصفحة الرئيسية)</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير *" required class="border p-3 rounded-xl text-sm bg-gray-50">
-                            <input type="text" id="hero-desc-input" placeholder="وصف قصير *" required class="border p-3 rounded-xl text-sm bg-gray-50">
-                            <div class="md:col-span-2 flex flex-col sm:flex-row gap-3">
-                                <input type="url" id="hero-img-input" placeholder="رابط صورة الإعلان (URL) *" required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50">
-                                <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition whitespace-nowrap">إضافة الإعلان</button>
+                            <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير *" required class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+                            <input type="text" id="hero-desc-input" placeholder="وصف قصير *" required class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+                            
+                            <div class="md:col-span-2 flex flex-col space-y-2">
+                                <label class="block text-xs font-bold text-gray-600">صورة الإعلان (اختر من الهاتف/الحاسوب أو ضع رابط) *</label>
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <!-- زر رفع الصورة المخفي -->
+                                    <input type="file" id="hero-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'hero-img-input')">
+                                    
+                                    <!-- زر الرفع الأنيق -->
+                                    <button type="button" onclick="document.getElementById('hero-file-input').click()" class="bg-gray-800 text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition flex items-center justify-center gap-2 whitespace-nowrap shadow-sm">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة
+                                    </button>
+                                    
+                                    <!-- حقل الرابط (سيمتلئ تلقائياً عند الرفع) -->
+                                    <input type="url" id="hero-img-input" placeholder="أو ضع رابط الصورة هنا (URL)..." required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50 outline-none focus:border-[#D4AF37]">
+                                    
+                                    <!-- زر الإضافة -->
+                                    <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md whitespace-nowrap">إضافة الإعلان</button>
+                                </div>
                             </div>
                         </form>
                         <div id="admin-hero-slides-list" class="space-y-3 pt-4 border-t border-gray-100"></div>
