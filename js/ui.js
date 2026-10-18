@@ -93,14 +93,34 @@ export function updateAppHeaderInfo() {
 
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
+        // 🚀 التعديل 1: إضافة كلاس 'swiper-slide' للبطاقة
         homeCatGrid.innerHTML = state.categories.map(c => `
-            <div onclick="safeCall('filterCategory', '${c.name}')" class="bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
+            <div onclick="safeCall('filterCategory', '${c.name}')" class="swiper-slide bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
                 <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
                     <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black" loading="lazy">
                 </div>
                 <h3 class="text-white font-bold text-sm tracking-wide group-hover:text-[#D4AF37]">${c.name}</h3>
             </div>
         `).join('');
+
+        // 🚀 التعديل 2: تفعيل شريط التمرير Swiper وتجاوبه مع الشاشات
+        setTimeout(() => {
+            if (typeof Swiper !== 'undefined') {
+                new Swiper('.categories-swiper', {
+                    slidesPerView: 2.5, // عرض بطاقتين ونصف في الهاتف ليعرف المستخدم أنه قابل للسحب
+                    spaceBetween: 10,
+                    navigation: {
+                        nextEl: '.swiper-btn-next',
+                        prevEl: '.swiper-btn-prev',
+                    },
+                    breakpoints: {
+                        640: { slidesPerView: 4, spaceBetween: 15 },
+                        1024: { slidesPerView: 6, spaceBetween: 15 },
+                        1280: { slidesPerView: 8, spaceBetween: 15 },
+                    }
+                });
+            }
+        }, 100);
     }
 }
 
