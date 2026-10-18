@@ -90,18 +90,20 @@ export function renderCustomStep() {
     indicator.innerText = `الخطوة ${currentCustomStep} من ${TOTAL_CUSTOM_STEPS}`;
     prevBtn.classList.toggle('hidden', currentCustomStep === 1);
     
+    // 🎨 تنسيق أزرار التنقل لتكون متناسقة على الهواتف ولا تتداخل مع السعر
+    prevBtn.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-1.5';
+    prevBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> <span>رجوع</span>';
+
+    nextBtn.className = 'gold-gradient text-black text-xs font-black px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg flex items-center justify-center gap-1.5';
+    nextBtn.innerHTML = '<span>التالي</span> <i class="fa-solid fa-arrow-left"></i>';
+
     if (currentCustomStep === 1) {
+        nextBtn.classList.add('hidden');
+    } else if (currentCustomStep === TOTAL_CUSTOM_STEPS) {
+        // إخفاء زر التالي في الخطوة الأخيرة لأننا سنضع زرين (طلب وسلة) في المحتوى
         nextBtn.classList.add('hidden');
     } else {
         nextBtn.classList.remove('hidden');
-    }
-
-    if (currentCustomStep === TOTAL_CUSTOM_STEPS) {
-        nextBtn.innerHTML = '<i class="fa-solid fa-check-double mr-2"></i> تأكيد الطلب المخصص';
-        nextBtn.className = 'bg-green-600 hover:bg-green-700 text-white text-sm font-black px-8 py-3 rounded-xl transition shadow-lg w-full md:w-auto';
-    } else if (currentCustomStep > 1) {
-        nextBtn.innerHTML = 'التالي <i class="fa-solid fa-arrow-left mr-1"></i>';
-        nextBtn.className = 'gold-gradient text-black text-sm font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-lg w-full md:w-auto';
     }
 
     const config = (state.storeSettings && state.storeSettings.custom_workshop) || { products: [] };
@@ -173,8 +175,14 @@ export function renderCustomStep() {
                                 </div>
                             </div>
                             
-                            <div class="md:col-span-2"><label class="text-xs text-[#D4AF37] font-bold block mb-1">البلدية والعنوان التفصيلي *</label><input type="text" id="c-commune" value="${customOrderData.commune}" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
-                        </div>
+<div class="md:col-span-2">
+                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">البلدية *</label>
+                                <input type="text" id="c-baladiya" value="${customOrderData.baladiya || ''}" oninput="customOrderData.baladiya=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي *</label>
+                                <input type="text" id="c-commune" value="${customOrderData.commune}" oninput="customOrderData.commune=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>                        </div>
                     </div>
                 </div>
             `;
@@ -222,6 +230,16 @@ export function renderCustomStep() {
                         <div class="flex justify-between items-center pt-2">
                             <span class="text-lg font-black text-white">الإجمالي النهائي:</span>
                             <span class="text-2xl font-black text-[#D4AF37]">${finalTotal.toLocaleString()} دج</span>
+                        </div>
+                    </div>
+                </div>
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-gray-800 relative z-10">
+                            <button onclick="submitCustomOrder()" class="flex-1 py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bolt"></i> اطلب الآن (مباشرة)
+                            </button>
+                            <button onclick="addCustomToCart()" class="flex-1 py-3.5 bg-black text-[#D4AF37] border border-[#D4AF37]/50 font-black rounded-xl shadow-lg hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cart-plus"></i> أضف للسلة
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -626,10 +644,11 @@ export function nextCustomStep() {
         customOrderData.customerName = document.getElementById('c-name')?.value.trim() || customOrderData.customerName;
         customOrderData.customerPhone = document.getElementById('c-phone')?.value.trim() || customOrderData.customerPhone;
         customOrderData.wilaya = document.getElementById('c-wilaya')?.value || customOrderData.wilaya;
+        customOrderData.baladiya = document.getElementById('c-baladiya')?.value.trim() || customOrderData.baladiya;
         customOrderData.commune = document.getElementById('c-commune')?.value.trim() || customOrderData.commune;
 
-        if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.commune) {
-            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والولاية لحساب التوصيل بنجاح!'); return;
+        if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.baladiya || !customOrderData.commune) {
+            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والبلدية لحساب التوصيل بنجاح!'); return;
         }
     }
     
@@ -641,36 +660,31 @@ export function prevCustomStep() {
     if (currentCustomStep > 1) { currentCustomStep--; renderCustomStep(); }
 }
 
-export function submitCustomOrder() {
-    const nextBtn = document.getElementById('custom-next-btn');
-    if (nextBtn) {
-        nextBtn.disabled = true;
-        nextBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> جاري إرسال الطلب...';
-        nextBtn.classList.add('opacity-75', 'cursor-not-allowed');
-    }
-
-    const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
-    const grandTotal = customOrderData.basePrice + customOrderData.addonsPrice + shipCost;
-
+export function getCustomOrderFullDesc() {
     let uploadedCount = 0;
     if (customOrderData.uploadedImage1) uploadedCount++;
     if (customOrderData.uploadedImage2) uploadedCount++;
     if (customOrderData.uploadedImage3) uploadedCount++;
 
-    const fullDescription = `[طلب مخصص 🎨]
+    return `[طلب مخصص 🎨]
 - القسم: ${customOrderData.serviceName}
 - المنتج: ${customOrderData.selectedProduct}
 ${customOrderData.color ? '- اللون: ' + customOrderData.color + '\n' : ''}${customOrderData.size ? '- المقاس: ' + customOrderData.size + '\n' : ''}${customOrderData.font ? '- الخط: ' + customOrderData.font + '\n' : ''}${customOrderData.position ? '- المكان: ' + customOrderData.position + '\n' : ''}- النص الأول: ${customOrderData.text1 || 'لا يوجد'}
 - النص الثاني: ${customOrderData.text2 || 'لا يوجد'}
 - ملاحظات: ${customOrderData.notes || 'لا توجد'}
 ${uploadedCount > 0 ? `- 📸 الزبون أرفق ${uploadedCount} صور(ة) للتصميم.` : ''}`;
+}
 
+export function submitCustomOrder() {
+    const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
+    const grandTotal = customOrderData.basePrice + customOrderData.addonsPrice + shipCost;
+    
     const newOrder = {
         customer: customOrderData.customerName,
         phone: customOrderData.customerPhone,
         wilaya: state.WILAYAS.find(w => w.code === customOrderData.wilaya)?.name || customOrderData.wilaya,
-        commune: `${customOrderData.commune} (${customOrderData.shippingType === 'home' ? 'توصيل للمنزل' : 'استلام من المكتب'})`,
-        product: fullDescription,
+        commune: `البلدية: ${customOrderData.baladiya} | العنوان: ${customOrderData.commune} (${customOrderData.shippingType === 'home' ? 'توصيل للمنزل' : 'استلام من المكتب'})`,
+        product: getCustomOrderFullDesc(),
         total: grandTotal,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
@@ -682,21 +696,30 @@ ${uploadedCount > 0 ? `- 📸 الزبون أرفق ${uploadedCount} صور(ة) 
     
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
-            if (nextBtn) {
-                nextBtn.disabled = false;
-                nextBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
             closeCustomBuilder();
             showCustomAlert('تم استلام طلبك المخصص! 🎉', 'سنقوم بمراجعة التفاصيل والصور ونتصل بك قريباً.', true);
-        }).catch(err => {
-            if (nextBtn) {
-                nextBtn.disabled = false;
-                nextBtn.innerHTML = '<i class="fa-solid fa-check-double mr-2"></i> تأكيد الطلب المخصص';
-                nextBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
-            showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
-        });
+        }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
     }
+}
+
+export function addCustomToCart() {
+    // بناء كائن منتج يتوافق مع سلة المتجر
+    const cartItem = {
+        id: 'custom_' + Date.now(),
+        name: `[مخصص] ${customOrderData.selectedProduct}`,
+        price: customOrderData.basePrice + customOrderData.addonsPrice, // السعر بدون توصيل (سيُحسب في السلة)
+        image: document.getElementById('dynamic-img')?.src || 'https://via.placeholder.com/100',
+        customDetails: getCustomOrderFullDesc() // تفاصيل التصميم
+    };
+    
+    state.cart.push(cartItem);
+    
+    if (typeof saveCartToLocal === 'function') saveCartToLocal();
+    if (typeof updateBadges === 'function') updateBadges();
+    
+    closeCustomBuilder();
+    showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة تصميمك المخصص للسلة، يمكنك متابعة التسوق.', true);
+    if (typeof showPage === 'function') showPage('cart');
 }
 
 // Window Bindings
@@ -704,3 +727,4 @@ window.openCustomBuilder = openCustomBuilder;
 window.closeCustomBuilder = closeCustomBuilder;
 window.nextCustomStep = nextCustomStep;
 window.prevCustomStep = prevCustomStep;
+window.addCustomToCart = addCustomToCart;
