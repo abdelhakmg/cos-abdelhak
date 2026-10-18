@@ -151,10 +151,13 @@ export function submitCartCheckout() {
     const name = document.getElementById('cart-cust-name')?.value.trim();
     const phone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
-    const commune = document.getElementById('cart-cust-commune')?.value.trim();
+    
+    // 1. جلب البلدية والعنوان (التعديل الجديد)
+    const baladiya = document.getElementById('cart-cust-baladiya')?.value.trim() || '';
+    const address = document.getElementById('cart-cust-address')?.value.trim() || document.getElementById('cart-cust-commune')?.value.trim() || '';
 
-    if (!name || !wilayaCode || !commune) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning, false);
+    if (!name || !wilayaCode || !baladiya || !address) {
+        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء كافة المعلومات الأساسية (البلدية والعنوان)!', false);
         return;
     }
 
@@ -163,11 +166,32 @@ export function submitCartCheckout() {
         return;
     }
 
+    // 2. التحقق من "الحد الأدنى للطلب الذكي" (التعديل الجديد)
+    const localWilaya = state.storeSettings?.localWilaya;
+    const minLocal = state.storeSettings?.minOrderLocal || 0;
+    const minNational = state.storeSettings?.minOrderNational || 0;
+    
+    // حساب المجموع الحالي للسلة (بدون توصيل)
+    const subtotal = state.cart.reduce((sum, item) => sum + (item.price || 0), 0);
+    
+    // تحديد الحد الأدنى المطلوب حسب الولاية
+    const requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
+
+    // إذا كان المجموع أقل من الحد الأدنى، نمنع الطلب ونظهر تنبيهاً
+    if (subtotal < requiredMin) {
+        showCustomAlert(
+            'لم تصل للحد الأدنى ⚠️', 
+            `الحد الأدنى للطلب لولايتك هو ${formatPrice(requiredMin)}. مجموع سلتك الحالي هو ${formatPrice(subtotal)}. يرجى إضافة المزيد من المنتجات!`, 
+            false
+        );
+        return;
+    }
+
+    // 3. استكمال إجراءات الطلب الطبيعية
     const wilaya = state.WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
-    const subtotal = state.cart.reduce((sum, item) => sum + (item.price || 0), 0);
     const itemsNames = state.cart.map(item => item.name).join(' + ');
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
@@ -175,7 +199,8 @@ export function submitCartCheckout() {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: `${commune} (${shippingTypeText})`,
+        // دمج البلدية والعنوان بشكل مرتب لمدير المتجر
+        commune: `البلدية: ${baladiya} | العنوان: ${address} (${shippingTypeText})`,
         product: `طلبية سلة: (${itemsNames})`,
         total: subtotal + shipCost,
         status: 'جديد',
@@ -190,12 +215,11 @@ export function submitCartCheckout() {
             saveCartToLocal();
             updateBadges();
             renderCart();
-            showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess, true);
+            showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح', true);
             showPage('home');
         }).catch(err => showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false));
     }
 }
-
 // الشارات (Badges) للمفضلة والسلة
 export function updateBadges() {
     const cartBadge = document.getElementById('cart-badge');
