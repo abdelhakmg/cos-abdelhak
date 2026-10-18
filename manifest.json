@@ -1,0 +1,23 @@
+{
+  "name": "كوسمتيك عبد الحق",
+  "short_name": "Cosmetic",
+  "description": "يبدو أن أحدهم سينام سعيداً اليوم",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#D4AF37",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/000000/D4AF37?text=Logo",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/000000/D4AF37?text=Logo",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
