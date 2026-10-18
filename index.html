@@ -31,15 +31,10 @@
 
     <!-- 🌟 شاشة الافتتاح الفاخرة (Luxury Splash Screen) 🌟 -->
     <div id="luxury-splash-screen" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center text-center p-6 transition-opacity duration-700 ease-in-out">
-        <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
-    <div class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-        <img src="logo.png" class="w-full h-full object-cover" alt="شعار المتجر" loading="lazy">
-    </div>
-    <div class="overflow-visible whitespace-nowrap hidden sm:block">
-        <span class="text-sm sm:text-base md:text-lg font-black text-[#D4AF37] block leading-tight tracking-wider">COSMÉTIQUE</span>
-        <span class="text-xs sm:text-sm text-white block font-bold mt-0.5 tracking-[0.2em]">ABDELHAK</span>
-    </div>
-</div>
+       <div class="relative mb-6 animate-pulse">
+            <div class="absolute inset-0 bg-[#D4AF37]/30 blur-3xl rounded-full"></div>
+            <img src="logo.png" class="w-32 md:w-48 relative z-10 drop-shadow-[0_0_25px_rgba(212,175,55,0.8)]" alt="Logo" loading="lazy">
+        </div>
         <h1 class="text-3xl md:text-5xl font-black text-white tracking-widest mb-3 drop-shadow-md">
             كوسمتيك عبد الحق
         </h1>
