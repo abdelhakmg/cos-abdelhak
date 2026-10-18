@@ -94,10 +94,19 @@ export function checkSmartOrderButton() {
     
     if (!orderBtn) return;
     
-    // إذا لم يحدد الولاية بعد، نتركه للوضع الطبيعي
+    // 1. التحقق من توفر الكمية أولاً
+    if (currentLandingProduct.inStock === false) {
+        orderBtn.innerHTML = `<i class="fa-solid fa-ban"></i> نفدت الكمية مؤقتاً`;
+        orderBtn.removeAttribute('onclick'); // تعطيل النقر تماماً
+        orderBtn.className = 'w-full py-4 bg-gray-800 text-gray-400 border border-gray-700 font-extrabold text-lg rounded-2xl cursor-not-allowed flex items-center justify-center gap-2';
+        return; // نتوقف هنا ولا نكمل حساب الحد الأدنى
+    }
+
+    // 2. إذا لم يحدد الولاية بعد، نتركه للوضع الطبيعي
     if (!wilayaCode) {
         orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
         orderBtn.setAttribute('onclick', 'submitLandingOrder()');
+        orderBtn.className = 'w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition';
         return;
     }
 
@@ -113,14 +122,12 @@ export function checkSmartOrderButton() {
         // إذا كان السعر أقل من الحد الأدنى
         orderBtn.innerHTML = `أضف إلى السلة لتصل للحد الأدنى (${formatPrice(requiredMin)}) 🛒`;
         orderBtn.setAttribute('onclick', 'addToCartFromLanding()');
-        orderBtn.classList.remove('gold-gradient', 'text-black');
-        orderBtn.classList.add('bg-[#121212]', 'text-[#D4AF37]', 'border', 'border-[#D4AF37]/50');
+        orderBtn.className = 'w-full py-4 bg-[#121212] text-[#D4AF37] border border-[#D4AF37]/50 font-extrabold text-lg rounded-2xl transition hover:bg-[#1a1a1a]';
     } else {
         // إذا كان السعر يسمح بالطلب السريع
         orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
         orderBtn.setAttribute('onclick', 'submitLandingOrder()');
-        orderBtn.classList.add('gold-gradient', 'text-black');
-        orderBtn.classList.remove('bg-[#121212]', 'text-[#D4AF37]', 'border', 'border-[#D4AF37]/50');
+        orderBtn.className = 'w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition';
     }
 }
 
