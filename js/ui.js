@@ -111,7 +111,10 @@ export function handleLiveSearch(query) {
         return;
     }
 
+    // 🚀 التعديل هنا: إضافة شرط (p.inStock !== false) لتجاهل المنتجات غير المتوفرة
     const matches = state.products.filter(p => {
+        if (p.inStock === false) return false; // تجاهل المنتج إذا كان غير متوفر
+        
         const skinsStr = Array.isArray(p.skinTypes) ? p.skinTypes.join(' ') : (p.skinType || '');
         const hairsStr = Array.isArray(p.hairTypes) ? p.hairTypes.join(' ') : (p.hairType || '');
         return (p.name && p.name.toLowerCase().includes(q)) || 
@@ -135,7 +138,6 @@ export function handleLiveSearch(query) {
     if (dropdown) { dropdown.innerHTML = htmlContent; dropdown.classList.remove('hidden'); }
     if (mobileDropdown) { mobileDropdown.innerHTML = htmlContent; mobileDropdown.classList.remove('hidden'); }
 }
-
 export function hideAllDropdowns() {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
