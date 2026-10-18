@@ -611,13 +611,15 @@ window.setCustomShipping = function(type) {
 export function nextCustomStep() {
     if (currentCustomStep === 2) {
         if (!customOrderData.selectedProductId) {
-            alert('يرجى تحديد المنتج أو الخدمة المطلوبة أولاً للتقدم ⚠️'); return;
+            showCustomAlert('تنبيه ⚠️', 'يرجى تحديد المنتج أو الخدمة المطلوبة أولاً للتقدم.', false); 
+            return;
         }
         if (window.currentImgReq === 'required' && !customOrderData.uploadedImage1 && !customOrderData.uploadedImage2 && !customOrderData.uploadedImage3) {
-            alert('عذراً، هذا المنتج يتطلب إرفاق صورة واحدة على الأقل للتصميم! 📸⚠️'); return;
+            showCustomAlert('صورة مطلوبة 📸', 'عذراً، هذا المنتج يتطلب إرفاق صورة واحدة على الأقل للتصميم!', false); 
+            return;
         }
 
-        // 🌟 السحب الإجباري للبيانات من الواجهة لضمان عدم ضياع أي حرف!
+        // السحب الإجباري للبيانات...
         const colorEl = document.getElementById('dynamic-color');
         if (colorEl && !document.getElementById('dynamic-color-container').classList.contains('hidden')) customOrderData.color = colorEl.value;
 
@@ -648,7 +650,9 @@ export function nextCustomStep() {
         customOrderData.commune = document.getElementById('c-commune')?.value.trim() || customOrderData.commune;
 
         if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.baladiya || !customOrderData.commune) {
-            alert('تنبيه ⚠️\nيرجى إكمال جميع معلومات الإرسال والبلدية لحساب التوصيل بنجاح!'); return;
+            // هنا التعديل للنافذة الفاخرة!
+            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال جميع معلومات الإرسال والبلدية لحساب التوصيل بنجاح!', false); 
+            return;
         }
     }
     
