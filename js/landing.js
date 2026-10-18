@@ -84,6 +84,60 @@ export function handleWilayaChange() {
         if (homePriceEl) homePriceEl.innerText = 'حدد الولاية';
     }
     calculateLandingTotal();
+    checkSmartOrderButton(); // 🚀 تفعيل الزر الذكي عند تغيير الولاية
+}
+
+export function checkSmartOrderButton() {
+    if (!currentLandingProduct) return;
+    const wilayaCode = document.getElementById('cust-wilaya')?.value;
+    const orderBtn = document.querySelector('#order-form-section button:last-of-type');
+    
+    if (!orderBtn) return;
+    
+    // إذا لم يحدد الولاية بعد، نتركه للوضع الطبيعي
+    if (!wilayaCode) {
+        orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
+        orderBtn.setAttribute('onclick', 'submitLandingOrder()');
+        return;
+    }
+
+    const localWilaya = state.storeSettings?.localWilaya;
+    const minLocal = state.storeSettings?.minOrderLocal || 0;
+    const minNational = state.storeSettings?.minOrderNational || 0;
+
+    // تحديد الحد الأدنى المطلوب بناءً على الولاية المختارة
+    let requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
+    let currentPrice = currentLandingProduct.price || 0;
+
+    if (currentPrice < requiredMin) {
+        // إذا كان السعر أقل من الحد الأدنى
+        orderBtn.innerHTML = `أضف إلى السلة لتصل للحد الأدنى (${formatPrice(requiredMin)}) 🛒`;
+        orderBtn.setAttribute('onclick', 'addToCartFromLanding()');
+        orderBtn.classList.remove('gold-gradient', 'text-black');
+        orderBtn.classList.add('bg-[#121212]', 'text-[#D4AF37]', 'border', 'border-[#D4AF37]/50');
+    } else {
+        // إذا كان السعر يسمح بالطلب السريع
+        orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
+        orderBtn.setAttribute('onclick', 'submitLandingOrder()');
+        orderBtn.classList.add('gold-gradient', 'text-black');
+        orderBtn.classList.remove('bg-[#121212]', 'text-[#D4AF37]', 'border', 'border-[#D4AF37]/50');
+    }
+}
+
+export function addToCartFromLanding() {
+    if (!currentLandingProduct) return;
+    
+    const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
+    const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
+    
+    // افتراض وجود دالة الإضافة للسلة في state أو main
+    if (typeof window.addToCart === 'function') {
+        window.addToCart(currentLandingProduct.id, selectedColor, selectedNum);
+        showCustomAlert('تمت الإضافة للسلة 🛒', 'سعر هذا المنتج أقل من الحد الأدنى لولايتك. يرجى إضافة المزيد من المنتجات لتتمكن من إتمام الطلب.', true);
+        safeCall('showPage', 'cart');
+    } else {
+        showCustomAlert('تنبيه', 'يجب أن يصل مجموع طلبك إلى الحد الأدنى لتأكيد التوصيل.', false);
+    }
 }
 
 export function calculateLandingTotal() {
@@ -108,10 +162,11 @@ export function submitLandingOrder() {
     const name = document.getElementById('cust-name').value.trim();
     const phone = document.getElementById('cust-phone').value.trim();
     const wilayaCode = document.getElementById('cust-wilaya').value;
-    const commune = document.getElementById('cust-commune').value.trim();
+    const baladiya = document.getElementById('cust-baladiya')?.value.trim() || '';
+    const address = document.getElementById('cust-address')?.value.trim() || '';
 
-    if (!name || !wilayaCode || !commune) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning, false);
+    if (!name || !wilayaCode || !baladiya || !address) {
+        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء كافة المعلومات الأساسية!', false);
         return;
     }
 
@@ -137,7 +192,7 @@ export function submitLandingOrder() {
         customer: name,
         phone: phone,
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: `${commune} (${shippingTypeText})`,
+        commune: `البلدية: ${baladiya} | العنوان: ${address} (${shippingTypeText})`,
         product: productDetails,
         total: (currentLandingProduct.price || 0) + shipCost,
         status: 'جديد',
@@ -217,3 +272,5 @@ window.calculateLandingTotal = calculateLandingTotal;
 window.submitLandingOrder = submitLandingOrder;
 window.openLightbox = openLightbox;
 window.closeLightbox = closeLightbox;
+window.checkSmartOrderButton = checkSmartOrderButton;
+window.addToCartFromLanding = addToCartFromLanding;
