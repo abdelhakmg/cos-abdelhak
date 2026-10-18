@@ -70,6 +70,7 @@ export function initFirebaseSync() {
         
         // تحديث الواجهات فوراً بعد جلب الإعدادات والفلاتر
         safeCall('updateAppHeaderInfo');
+        safeCall('updateSplashScreenText');
         safeCall('renderDynamicSidebarFilters'); // تحديث فلاتر الزبون
         safeCall('populateAdminDropdowns'); // تحديث فلاتر الإدارة
         safeCall('renderAdminAttributesTab'); 
