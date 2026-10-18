@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+    <!-- Swiper CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 <head>
     <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
@@ -154,12 +157,31 @@
                 </div>
             </section>
 
-            <section class="bg-black py-8 border-b border-[#D4AF37]/20">
-                <div class="max-w-7xl mx-auto px-4">
-                    <h2 class="text-white text-center text-xl font-black mb-6 gold-text">أقسام المتجر</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4" id="home-category-cards"></div>
-                </div>
-            </section>
+            <section class="bg-[#0f0f0f] py-8 border-b border-[#D4AF37]/20 relative">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-white text-xl font-black gold-text flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-[#D4AF37]"></i> أقسام المتجر
+            </h2>
+            <!-- أزرار التنقل (تظهر في الشاشات الكبيرة فقط) -->
+            <div class="hidden md:flex gap-2" dir="ltr">
+                <button class="swiper-btn-prev w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/50 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all shadow-md cursor-pointer z-10">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="swiper-btn-next w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/50 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all shadow-md cursor-pointer z-10">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- حاوية Swiper -->
+        <div class="swiper categories-swiper !overflow-visible md:!overflow-hidden">
+            <div class="swiper-wrapper" id="home-category-cards">
+                <!-- سيتم إضافة البطاقات هنا عبر الجافاسكريبت -->
+            </div>
+        </div>
+    </div>
+</section>
 
             <section class="py-10 max-w-7xl mx-auto px-4">
                 <div class="text-center mb-8">
