@@ -192,7 +192,9 @@ export function submitCartCheckout() {
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
-    const itemsNames = state.cart.map(item => item.name).join(' + ');
+    const itemsNames = state.cart.map(item => {
+        return item.customDetails ? `\n${item.name}\n${item.customDetails}\n` : item.name;
+    }).join(' + ');
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
     const newOrder = {
