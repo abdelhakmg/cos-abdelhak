@@ -1,6 +1,5 @@
 // --- ملف js/utils/helpers.js ---
 
-// 1. دالة عرض التنبيهات الموحدة
 export function showCustomAlert(title, message, isSuccess = true) {
     const modal = document.getElementById('custom-alert-modal');
     const iconBox = document.getElementById('alert-icon-box');
@@ -25,7 +24,6 @@ export function showCustomAlert(title, message, isSuccess = true) {
     modal.classList.add('flex');
 }
 
-// 2. إغلاق التنبيه
 export function closeCustomAlert() {
     const modal = document.getElementById('custom-alert-modal');
     if (modal) {
@@ -34,33 +32,36 @@ export function closeCustomAlert() {
     }
 }
 
-// 3. التحقق من صحة رقم الهاتف الجزائري
+// 🌟 تصحيح: تنظيف رقم الهاتف لدعم المسافات ورمز الدولة +213
 export function isValidDzPhone(phone) {
-    const cleanPhone = phone.trim();
+    if (!phone) return false;
+    let cleanPhone = phone.trim().replace(/\s+/g, '');
+    if (cleanPhone.startsWith('+213')) {
+        cleanPhone = '0' + cleanPhone.substring(4);
+    } else if (cleanPhone.startsWith('00213')) {
+        cleanPhone = '0' + cleanPhone.substring(5);
+    }
     const dzPhoneRegex = /^(05|06|07)[0-9]{8}$/;
     return dzPhoneRegex.test(cleanPhone);
 }
 
-// 4. دالة موحدة لحساب تكلفة التوصيل (تغنينا عن تكرار الكود 3 مرات)
+// 🌟 تصحيح: استخدام ?? لدعم التوصيل المجاني (0 دج) وتفادي مشكلة Falsy للرقم 0
 export function calculateShippingCost(wilayaCode, wilayasArray, shipType) {
     if (!wilayaCode || !wilayasArray) return 0;
     const wilaya = wilayasArray.find(w => w.code === wilayaCode);
     if (!wilaya) return 0;
     
     if (shipType === 'office') {
-        return wilaya.officeCost || 0;
+        return wilaya.officeCost ?? 0;
     } else {
-        // إذا كان للمنزل، أو إذا لم يُحدد سعر المنزل نأخذ سعر المكتب
-        return wilaya.homeCost || wilaya.officeCost || 0;
+        return wilaya.homeCost ?? wilaya.officeCost ?? 0;
     }
 }
 
-// 5. تنسيق السعر بالدينار الجزائري
 export function formatPrice(price) {
     return (price || 0).toLocaleString() + ' دج';
 }
 
-// 6. التنفيذ الآمن للدوال
 export function safeCall(fnName, ...args) {
     if (typeof window[fnName] === 'function') {
         try {
@@ -71,9 +72,9 @@ export function safeCall(fnName, ...args) {
     }
 }
 
-// --- ربط الدوال بالواجهة (Window Binding) لتظل أزرار HTML تعمل ---
 window.showCustomAlert = showCustomAlert;
 window.closeCustomAlert = closeCustomAlert;
 window.isValidDzPhone = isValidDzPhone;
+window.calculateShippingCost = calculateShippingCost; // تمت إضافتها للتصدير
 window.safeCall = safeCall;
 window.formatPrice = formatPrice;
