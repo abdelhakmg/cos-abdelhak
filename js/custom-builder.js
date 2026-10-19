@@ -1,7 +1,7 @@
 // --- ملف js/custom-builder.js ---
 
-import { state } from './store/state.js';
-import { showCustomAlert, calculateShippingCost } from './utils/helpers.js';
+import { state, saveCartToLocal } from './store/state.js';
+import { showCustomAlert, calculateShippingCost, isValidDzPhone, safeCall } from './utils/helpers.js';
 
 let currentCustomStep = 1;
 const TOTAL_CUSTOM_STEPS = 4;
@@ -13,9 +13,10 @@ let customOrderData = {
     selectedProduct: '', 
     productImage: '', 
     color: '',
-    size: '',      // 🌟 جديد
-    font: '',      // 🌟 جديد
-    position: '',  // 🌟 جديد
+    size: '',
+    font: '',
+    position: '',
+    facesCount: '1',
     basePrice: 0,
     addonsPrice: 0,
     text1: '', 
@@ -27,10 +28,12 @@ let customOrderData = {
     customerName: '',
     customerPhone: '',
     wilaya: '',
+    baladiya: '',
     commune: '',
     shippingType: 'home'
 };
 window.customOrderData = customOrderData;
+
 export function openCustomBuilder() {
     const config = (state.storeSettings && state.storeSettings.custom_workshop) || {};
     
@@ -43,28 +46,35 @@ export function openCustomBuilder() {
     currentCustomStep = 1;
     customOrderData = {
         serviceType: '', serviceName: '', selectedProductId: '', selectedProduct: '', productImage: '', 
-        color: '', size: '', font: '', position: '',
+        color: '', size: '', font: '', position: '', facesCount: '1',
         basePrice: 0, addonsPrice: 0, text1: '', text2: '', 
         uploadedImage1: '', uploadedImage2: '', uploadedImage3: '', notes: '',
-        customerName: '', customerPhone: '', wilaya: '', commune: '', shippingType: 'home'
+        customerName: '', customerPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'home'
     };
-window.customOrderData = customOrderData;
+    window.customOrderData = customOrderData;
+
     renderCustomStep();
     const modal = document.getElementById('custom-builder-modal');
-    if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+    if (modal) { 
+        modal.classList.remove('hidden'); 
+        modal.classList.add('flex'); 
+    }
 }
 
 export function closeCustomBuilder() {
     const modal = document.getElementById('custom-builder-modal');
-    if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    if (modal) { 
+        modal.classList.add('hidden'); 
+        modal.classList.remove('flex'); 
+    }
 }
 
-// 2. تحديث السعر الحي
-window.updateLivePriceDisplay = function() {
+// تحديث السعر الحي في الشريط السفلي للنافذة
+export function updateLivePriceDisplay() {
     const priceBadge = document.getElementById('custom-live-price');
     if (!priceBadge) return;
 
-    let total = customOrderData.basePrice + customOrderData.addonsPrice;
+    let total = (Number(customOrderData.basePrice) || 0) + (Number(customOrderData.addonsPrice) || 0);
 
     if (currentCustomStep === 3 && customOrderData.wilaya) {
         const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
@@ -87,23 +97,23 @@ export function renderCustomStep() {
     
     if (!container) return;
 
-    indicator.innerText = `الخطوة ${currentCustomStep} من ${TOTAL_CUSTOM_STEPS}`;
-    prevBtn.classList.toggle('hidden', currentCustomStep === 1);
+    if (indicator) indicator.innerText = `الخطوة ${currentCustomStep} من ${TOTAL_CUSTOM_STEPS}`;
     
-    // 🎨 تنسيق أزرار التنقل لتكون متناسقة على الهواتف ولا تتداخل مع السعر
-    prevBtn.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-1.5';
-    prevBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> <span>رجوع</span>';
+    if (prevBtn) {
+        prevBtn.className = 'bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-1.5';
+        prevBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i> <span>رجوع</span>';
+        prevBtn.classList.toggle('hidden', currentCustomStep === 1);
+    }
 
-    nextBtn.className = 'gold-gradient text-black text-xs font-black px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg flex items-center justify-center gap-1.5';
-    nextBtn.innerHTML = '<span>التالي</span> <i class="fa-solid fa-arrow-left"></i>';
+    if (nextBtn) {
+        nextBtn.className = 'gold-gradient text-black text-xs font-black px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-lg flex items-center justify-center gap-1.5';
+        nextBtn.innerHTML = '<span>التالي</span> <i class="fa-solid fa-arrow-left"></i>';
 
-    if (currentCustomStep === 1) {
-        nextBtn.classList.add('hidden');
-    } else if (currentCustomStep === TOTAL_CUSTOM_STEPS) {
-        // إخفاء زر التالي في الخطوة الأخيرة لأننا سنضع زرين (طلب وسلة) في المحتوى
-        nextBtn.classList.add('hidden');
-    } else {
-        nextBtn.classList.remove('hidden');
+        if (currentCustomStep === 1 || currentCustomStep === TOTAL_CUSTOM_STEPS) {
+            nextBtn.classList.add('hidden');
+        } else {
+            nextBtn.classList.remove('hidden');
+        }
     }
 
     const config = (state.storeSettings && state.storeSettings.custom_workshop) || { products: [] };
@@ -114,49 +124,58 @@ export function renderCustomStep() {
             html = `
                 <div class="space-y-6 animate-fade-in text-center">
                     <h2 class="text-2xl font-black text-white mb-2">ماذا تريد أن نصمم لك اليوم؟ 🎨</h2>
-                    <p class="text-gray-400 text-sm mb-6">اختر نوع الخدمة التي تريدها </p>
+                    <p class="text-gray-400 text-sm mb-6">اختر نوع الخدمة التي تريدها</p>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onclick="selectCustomService('laser', 'حفر بالليزر 🪵')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
+                        <button type="button" onclick="selectCustomService('laser', 'حفر بالليزر 🪵')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3 cursor-pointer">
                             <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-fire"></i></div>
                             <h3 class="text-white font-bold text-lg">حفر بالليزر</h3>
-                            <p class="text-xs text-gray-500">بورت موني,مشطة,سلاك,فرشاة,والمزيد,,,</p>
+                            <p class="text-xs text-gray-500">بورت موني، مشطة، سلاك، فرشاة، والمزيد...</p>
                         </button>
                         
-                        <button onclick="selectCustomService('print', 'طباعة حرارية 👕☕🎨')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
+                        <button type="button" onclick="selectCustomService('print', 'طباعة حرارية 👕☕🎨')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3 cursor-pointer">
                             <div class="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-mug-hot"></i></div>
                             <h3 class="text-white font-bold text-lg">طباعة حرارية</h3>
-                            <p class="text-xs text-gray-500">شوب سحري عادي , تيشرت,بورتكلي,والمزيد</p>
+                            <p class="text-xs text-gray-500">شوب سحري وعادي، تيشرت، بورتكلي، والمزيد...</p>
                         </button>
                         
-                        <button onclick="selectCustomService('frame', 'كادرات وصور 📸🔲')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
+                        <button type="button" onclick="selectCustomService('frame', 'كادرات وصور 📸🔲')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3 cursor-pointer">
                             <div class="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-id-badge"></i></div>
                             <h3 class="text-white font-bold text-lg">تصميم كادرات</h3>
-                            <p class="text-xs text-gray-500">صور ذكريات، كادر ذهبي فاخر , كادر جميع مناسبات , والمزيد</p>
+                            <p class="text-xs text-gray-500">صور ذكريات، كادر ذهبي فاخر، كادر جميع المناسبات...</p>
                         </button>
                         
-                        <button onclick="selectCustomService('cameo', 'قص كاميو 5 ✒️✂️')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3">
+                        <button type="button" onclick="selectCustomService('cameo', 'قص كاميو 5 ✒️✂️')" class="group bg-gray-900 border border-gray-700 hover:border-[#D4AF37] p-5 rounded-2xl transition flex flex-col items-center gap-3 cursor-pointer">
                             <div class="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-3xl group-hover:scale-110 transition"><i class="fa-solid fa-scissors"></i></div>
                             <h3 class="text-white font-bold text-lg">قص وتفريغ (كاميو)</h3>
-                            <p class="text-xs text-gray-500">كلمات وأسماء ذهبية بارزة لمناسباتكم  </p>
+                            <p class="text-xs text-gray-500">كلمات وأسماء ذهبية بارزة لمناسباتكم</p>
                         </button>
                     </div>
                 </div>
             `;
             break;
+
         case 2:
             html = buildDynamicServiceOptions(config);
             break;
+
         case 3:
             html = `
                 <div class="space-y-6 animate-fade-in max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar text-right">
                     <h4 class="font-black text-lg text-white text-center mb-4">أين نرسل لك هذا الإبداع؟ 🚚</h4>
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="text-xs text-gray-400 font-bold block mb-1">الاسم واللقب *</label><input type="text" id="c-name" value="${customOrderData.customerName}" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
-                            <div><label class="text-xs text-gray-400 font-bold block mb-1">رقم الهاتف *</label><input type="tel" id="c-phone" value="${customOrderData.customerPhone}" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
+                            <div>
+                                <label class="text-xs text-gray-400 font-bold block mb-1">الاسم واللقب *</label>
+                                <input type="text" id="c-name" value="${customOrderData.customerName}" oninput="customOrderData.customerName=this.value" placeholder="أدخل اسمك الكامل" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 font-bold block mb-1">رقم الهاتف (10 أرقام) *</label>
+                                <input type="tel" id="c-phone" maxlength="10" value="${customOrderData.customerPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,''); customOrderData.customerPhone=this.value" placeholder="05 / 06 / 07..." class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>
                             
-                            <div class="md:col-span-2"><label class="text-xs text-[#D4AF37] font-bold block mb-1">الولاية *</label>
+                            <div class="md:col-span-2">
+                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">الولاية *</label>
                                 <select id="c-wilaya" onchange="customOrderData.wilaya=this.value; updateLivePriceDisplay();" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37] cursor-pointer">
                                     <option value="">اختر ولايتك لحساب التوصيل...</option>
                                     ${state.WILAYAS.map(w => `<option value="${w.code}" ${customOrderData.wilaya === w.code ? 'selected' : ''}>${w.code} -${w.name}</option>`).join('')}
@@ -175,21 +194,24 @@ export function renderCustomStep() {
                                 </div>
                             </div>
                             
-<div class="md:col-span-2">
+                            <div class="md:col-span-2">
                                 <label class="text-xs text-[#D4AF37] font-bold block mb-1">البلدية *</label>
-                                <input type="text" id="c-baladiya" value="${customOrderData.baladiya || ''}" oninput="customOrderData.baladiya=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                                <input type="text" id="c-baladiya" value="${customOrderData.baladiya || ''}" oninput="customOrderData.baladiya=this.value" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                             <div class="md:col-span-2">
                                 <label class="text-xs text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي *</label>
-                                <input type="text" id="c-commune" value="${customOrderData.commune}" oninput="customOrderData.commune=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
-                            </div>                        </div>
+                                <input type="text" id="c-commune" value="${customOrderData.commune || ''}" oninput="customOrderData.commune=this.value" placeholder="الحي، الشارع، أو نقطة استدلال..." class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
             break;
+
         case 4:
             const shipCost = customOrderData.wilaya ? calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType) : 0;
-            const finalTotal = customOrderData.basePrice + customOrderData.addonsPrice + shipCost;
+            const designPrice = (Number(customOrderData.basePrice) || 0) + (Number(customOrderData.addonsPrice) || 0);
+            const finalTotal = designPrice + shipCost;
 
             html = `
                 <div class="space-y-5 animate-fade-in text-right">
@@ -219,7 +241,7 @@ export function renderCustomStep() {
                             
                             <div class="flex justify-between items-center mt-3">
                                 <span>سعر التصميم والمنتج:</span>
-                                <span class="font-bold text-white">${(customOrderData.basePrice + customOrderData.addonsPrice).toLocaleString()} دج</span>
+                                <span class="font-bold text-white">${designPrice.toLocaleString()} دج</span>
                             </div>
                             <div class="flex justify-between items-center text-[#D4AF37] bg-[#D4AF37]/10 p-2 rounded-lg mt-2">
                                 <span>التوصيل (${customOrderData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'}):</span>
@@ -232,15 +254,14 @@ export function renderCustomStep() {
                             <span class="text-2xl font-black text-[#D4AF37]">${finalTotal.toLocaleString()} دج</span>
                         </div>
                     </div>
-                </div>
-            <div class="flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-gray-800 relative z-10">
-                            <button onclick="submitCustomOrder()" class="flex-1 py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-bolt"></i> اطلب الآن (مباشرة)
-                            </button>
-                            <button onclick="addCustomToCart()" class="flex-1 py-3.5 bg-black text-[#D4AF37] border border-[#D4AF37]/50 font-black rounded-xl shadow-lg hover:bg-gray-900 transition flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-cart-plus"></i> أضف للسلة
-                            </button>
-                        </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-gray-800 relative z-10">
+                        <button type="button" onclick="submitCustomOrder()" class="flex-1 py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-bolt"></i> اطلب الآن (مباشرة)
+                        </button>
+                        <button type="button" onclick="addCustomToCart()" class="flex-1 py-3.5 bg-black text-[#D4AF37] border border-[#D4AF37]/50 font-black rounded-xl shadow-lg hover:bg-gray-900 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-cart-plus"></i> أضف للسلة
+                        </button>
                     </div>
                 </div>
             `;
@@ -251,9 +272,9 @@ export function renderCustomStep() {
     updateLivePriceDisplay();
 }
 
-// 4. بناء الخيارات الديناميكية
+// بناء الخيارات الديناميكية في الخطوة 2
 function buildDynamicServiceOptions(config) {
-    const categoryProducts = (config.products || []).filter(p => p.category === customOrderData.serviceType && p.inStock);
+    const categoryProducts = (config.products || []).filter(p => p.category === customOrderData.serviceType && p.inStock !== false);
     window.currentCategoryProducts = categoryProducts;
 
     if (categoryProducts.length === 0) {
@@ -321,8 +342,8 @@ function buildDynamicServiceOptions(config) {
         <div id="dynamic-faces-container" class="hidden">
             <label class="block text-xs font-bold text-[#D4AF37] mb-1">كم وجه تريد؟</label>
             <select id="dynamic-faces" onchange="handleFacesChange(this.value)" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
-                <option value="1">وجه واحد أساسي (السعر المذكور أعلاه)</option>
-                <option id="face2-option" value="2">إضافة وجه ثاني</option>
+                <option value="1" ${customOrderData.facesCount === '1' ? 'selected' : ''}>وجه واحد أساسي (السعر المذكور أعلاه)</option>
+                <option id="face2-option" value="2" ${customOrderData.facesCount === '2' ? 'selected' : ''}>إضافة وجه ثاني</option>
             </select>
         </div>
     `;
@@ -338,7 +359,7 @@ function buildDynamicServiceOptions(config) {
                 ${customOrderData.uploadedImage1 ? `
                 <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
                     <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 1</p>
-                    <button onclick="removeCustomUploadedImage(1)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                    <button type="button" onclick="removeCustomUploadedImage(1)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
                 </div>` : ''}
             </div>
 
@@ -348,7 +369,7 @@ function buildDynamicServiceOptions(config) {
                 ${customOrderData.uploadedImage2 ? `
                 <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
                     <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 2</p>
-                    <button onclick="removeCustomUploadedImage(2)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                    <button type="button" onclick="removeCustomUploadedImage(2)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
                 </div>` : ''}
             </div>
 
@@ -358,7 +379,7 @@ function buildDynamicServiceOptions(config) {
                 ${customOrderData.uploadedImage3 ? `
                 <div class="flex items-center justify-between bg-green-900/20 border border-green-800 p-2 rounded-xl mt-2 transition animate-fade-in">
                     <p class="text-green-500 text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> تم إرفاق الصورة 3</p>
-                    <button onclick="removeCustomUploadedImage(3)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
+                    <button type="button" onclick="removeCustomUploadedImage(3)" class="text-red-400 hover:text-red-200 text-xs font-bold bg-red-900/30 px-3 py-1.5 rounded-lg transition border border-red-900/50"><i class="fa-solid fa-trash"></i> حذف</button>
                 </div>` : ''}
             </div>
         </div>
@@ -378,14 +399,14 @@ function buildDynamicServiceOptions(config) {
 
         <div>
             <label id="dynamic-label-notes" class="block text-xs font-bold text-gray-400 mb-1">ملاحظات إضافية:</label>
-            <input type="text" oninput="customOrderData.notes=this.value" value="${customOrderData.notes}" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]" placeholder="أضف أي ملاحظة...">
+            <input type="text" id="dynamic-notes-input" oninput="customOrderData.notes=this.value" value="${customOrderData.notes}" class="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]" placeholder="أضف أي ملاحظة...">
         </div>
     `;
 
     html += `</div></div>`;
 
     setTimeout(() => {
-        if(customOrderData.selectedProductId && document.getElementById('dynamic-product')) {
+        if (customOrderData.selectedProductId && document.getElementById('dynamic-product')) {
             document.getElementById('dynamic-product').value = customOrderData.selectedProductId;
             handleProductSelection(customOrderData.selectedProductId, true);
         }
@@ -394,36 +415,40 @@ function buildDynamicServiceOptions(config) {
     return html;
 }
 
-// 5. هندسة تفاعل الواجهة الديناميكية
-window.selectCustomService = function(type, name) {
+// تفاعل الواجهة الديناميكية
+export function selectCustomService(type, name) {
     customOrderData.serviceType = type;
     customOrderData.serviceName = name;
     nextCustomStep();
 }
 
-window.handleProductSelection = function(productId, isRestore = false) {
+export function handleProductSelection(productId, isRestore = false) {
     const container = document.getElementById('dynamic-fields-container');
+    if (!container) return;
     
     if (!productId) {
         container.classList.add('hidden');
         customOrderData.selectedProduct = '';
         customOrderData.selectedProductId = '';
+        customOrderData.productImage = '';
         customOrderData.basePrice = 0;
         customOrderData.addonsPrice = 0;
         updateLivePriceDisplay();
         return;
     }
 
-    const prod = window.currentCategoryProducts.find(p => p.id === productId);
+    const prod = (window.currentCategoryProducts || []).find(p => p.id === productId);
     if (!prod) return;
 
     container.classList.remove('hidden');
     customOrderData.selectedProductId = prod.id;
     customOrderData.selectedProduct = prod.name;
-    customOrderData.basePrice = prod.basePrice || 0;
+    customOrderData.productImage = prod.image || ''; // 🌟 حفظ صورة المنتج لاستخدامها في السلة لاحقاً
+    customOrderData.basePrice = Number(prod.basePrice) || 0;
     
-    if(!isRestore) {
+    if (!isRestore) {
         customOrderData.addonsPrice = 0;
+        customOrderData.facesCount = '1';
         customOrderData.color = '';
         customOrderData.size = '';
         customOrderData.font = '';
@@ -432,22 +457,23 @@ window.handleProductSelection = function(productId, isRestore = false) {
         customOrderData.text2 = '';
     }
 
-    // الصورة
+    // عرض الصورة
     const previewDiv = document.getElementById('dynamic-image-preview');
     const imgEl = document.getElementById('dynamic-img');
-    if (prod.image) {
+    if (prod.image && imgEl && previewDiv) {
         imgEl.src = prod.image;
         previewDiv.classList.remove('hidden');
-    } else {
+    } else if (previewDiv) {
         previewDiv.classList.add('hidden');
     }
 
-    // 🌟 دالة مساعدة لملء القوائم المنسدلة بذكاء
+    // دالة مساعدة لملء القوائم المنسدلة (تدعم الفاصلة العربية والإنجليزية)
     function setupDropdown(prodProp, containerId, selectId, defaultText, dataProp) {
         const div = document.getElementById(containerId);
         const select = document.getElementById(selectId);
+        if (!div || !select) return;
         if (prod[prodProp] && prod[prodProp].trim() !== '') {
-            const arr = prod[prodProp].split(',').map(i => i.trim()).filter(Boolean);
+            const arr = prod[prodProp].split(/[,،]/).map(i => i.trim()).filter(Boolean);
             select.innerHTML = `<option value="">-- ${defaultText} --</option>` + arr.map(i => `<option value="${i}" ${customOrderData[dataProp] === i ? 'selected' : ''}>${i}</option>`).join('');
             div.classList.remove('hidden');
         } else {
@@ -460,17 +486,17 @@ window.handleProductSelection = function(productId, isRestore = false) {
     setupDropdown('fonts', 'dynamic-font-container', 'dynamic-font', 'اختر الخط', 'font');
     setupDropdown('positions', 'dynamic-position-container', 'dynamic-position', 'اختر المكان', 'position');
 
-    // 🌟 التحكم في إلزامية الصور
+    // التحكم في إلزامية الصور
     const imgContainer = document.getElementById('dynamic-images-container');
     const imgLabel = document.getElementById('img-req-label');
     window.currentImgReq = prod.imgReq || 'optional';
     
     if (window.currentImgReq === 'none') {
-        if(imgContainer) imgContainer.classList.add('hidden');
-    } else {
-        if(imgContainer) {
-            imgContainer.classList.remove('hidden');
-            if(window.currentImgReq === 'required') {
+        if (imgContainer) imgContainer.classList.add('hidden');
+    } else if (imgContainer) {
+        imgContainer.classList.remove('hidden');
+        if (imgLabel) {
+            if (window.currentImgReq === 'required') {
                 imgLabel.innerText = '(إجبارية - صورة واحدة على الأقل)';
                 imgLabel.className = 'text-red-400 font-black text-[10px] ml-1';
             } else {
@@ -483,66 +509,72 @@ window.handleProductSelection = function(productId, isRestore = false) {
     // الأوجه الإضافية
     const facesDiv = document.getElementById('dynamic-faces-container');
     const face2Option = document.getElementById('face2-option');
-    if (prod.face2Price > 0) {
+    if (prod.face2Price > 0 && facesDiv && face2Option) {
         face2Option.innerText = `إضافة وجه ثاني (+${prod.face2Price} دج)`;
         facesDiv.classList.remove('hidden');
-        window.currentFace2Price = prod.face2Price;
-    } else {
+        window.currentFace2Price = Number(prod.face2Price) || 0;
+    } else if (facesDiv) {
         facesDiv.classList.add('hidden');
         window.currentFace2Price = 0;
     }
 
-    // العناوين (Labels) المُخصصة والحد الأقصى للحروف
+    // العناوين والحد الأقصى للحروف
     const text1Div = document.getElementById('dynamic-text-1-container');
     const text2Div = document.getElementById('dynamic-text-2-container');
     const txt1 = document.querySelector('#dynamic-text-1-container textarea');
     const txt2 = document.querySelector('#dynamic-text-2-container textarea');
     
-    // 🌟 تطبيق الحد الأقصى للحروف
     const maxChars = prod.maxChars ? parseInt(prod.maxChars) : null;
     let maxCharText = maxChars ? ` (أقصى حد ${maxChars} حرف)` : '';
     
-    document.getElementById('dynamic-label-1').innerText = (prod.label1 || 'النص المطلوب:') + maxCharText;
-    document.getElementById('dynamic-label-2').innerText = (prod.label2 || 'النص الإضافي:') + maxCharText;
-    document.getElementById('dynamic-label-notes').innerText = prod.labelNotes || 'ملاحظات إضافية:';
+    const lbl1 = document.getElementById('dynamic-label-1');
+    const lbl2 = document.getElementById('dynamic-label-2');
+    const lblNotes = document.getElementById('dynamic-label-notes');
+    if (lbl1) lbl1.innerText = (prod.label1 || 'النص المطلوب:') + maxCharText;
+    if (lbl2) lbl2.innerText = (prod.label2 || 'النص الإضافي:') + maxCharText;
+    if (lblNotes) lblNotes.innerText = prod.labelNotes || 'ملاحظات إضافية:';
 
     if (maxChars && maxChars > 0) {
-        if(txt1) txt1.setAttribute('maxlength', maxChars);
-        if(txt2) txt2.setAttribute('maxlength', maxChars);
+        if (txt1) txt1.setAttribute('maxlength', maxChars);
+        if (txt2) txt2.setAttribute('maxlength', maxChars);
     } else {
-        if(txt1) txt1.removeAttribute('maxlength');
-        if(txt2) txt2.removeAttribute('maxlength');
+        if (txt1) txt1.removeAttribute('maxlength');
+        if (txt2) txt2.removeAttribute('maxlength');
     }
 
-    text1Div.classList.remove('hidden');
+    if (text1Div) text1Div.classList.remove('hidden');
     
     const facesSelect = document.getElementById('dynamic-faces');
-    if (facesSelect && facesSelect.value === "2") {
-        text2Div.classList.remove('hidden');
-    } else if (customOrderData.serviceType === 'cameo' || customOrderData.serviceType === 'frame') {
-         if (prod.label2) text2Div.classList.remove('hidden');
-         else text2Div.classList.add('hidden');
-    } else {
-        text2Div.classList.add('hidden');
+    if (text2Div) {
+        if (facesSelect && facesSelect.value === "2") {
+            text2Div.classList.remove('hidden');
+            customOrderData.addonsPrice = window.currentFace2Price || 0;
+        } else if (customOrderData.serviceType === 'cameo' || customOrderData.serviceType === 'frame') {
+            if (prod.label2) text2Div.classList.remove('hidden');
+            else text2Div.classList.add('hidden');
+        } else {
+            text2Div.classList.add('hidden');
+        }
     }
 
     updateLivePriceDisplay();
 }
 
-window.handleFacesChange = function(faces) {
+export function handleFacesChange(faces) {
+    customOrderData.facesCount = faces;
     const text2Div = document.getElementById('dynamic-text-2-container');
     if (faces === "2") {
-        text2Div.classList.remove('hidden');
+        if (text2Div) text2Div.classList.remove('hidden');
         customOrderData.addonsPrice = window.currentFace2Price || 0;
     } else {
-        text2Div.classList.add('hidden');
+        if (text2Div) text2Div.classList.add('hidden');
         customOrderData.addonsPrice = 0;
         customOrderData.text2 = '';
     }
     updateLivePriceDisplay();
 }
 
-// دالة ضغط صور الزبون
+// ضغط صور الزبون المرفقة
 function compressCustomerImage(file, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -551,8 +583,8 @@ function compressCustomerImage(file, callback) {
         img.src = e.target.result;
         img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800; 
-            const MAX_HEIGHT = 800; 
+            const MAX_WIDTH = 650; 
+            const MAX_HEIGHT = 650; 
             let width = img.width;
             let height = img.height;
 
@@ -564,17 +596,21 @@ function compressCustomerImage(file, callback) {
                 height = MAX_HEIGHT;
             }
 
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = Math.round(width);
+            canvas.height = Math.round(height);
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            callback(canvas.toDataURL('image/jpeg', 0.7));
-        }
+            let compressed = canvas.toDataURL('image/webp', 0.65);
+            if (!compressed.startsWith('data:image/webp')) {
+                compressed = canvas.toDataURL('image/jpeg', 0.65);
+            }
+            callback(compressed);
+        };
     };
 }
 
-window.handleCustomImageUpload = function(event, imageIndex = 1) {
+export function handleCustomImageUpload(event, imageIndex = 1) {
     const file = event.target.files[0];
     if (!file) return;
     
@@ -587,8 +623,7 @@ window.handleCustomImageUpload = function(event, imageIndex = 1) {
     });
 }
 
-// دالة حذف الصورة المرفقة
-window.removeCustomUploadedImage = function(imageIndex) {
+export function removeCustomUploadedImage(imageIndex) {
     if (imageIndex === 1) customOrderData.uploadedImage1 = '';
     else if (imageIndex === 2) customOrderData.uploadedImage2 = '';
     else if (imageIndex === 3) customOrderData.uploadedImage3 = '';
@@ -596,7 +631,7 @@ window.removeCustomUploadedImage = function(imageIndex) {
     renderCustomStep(); 
 }
 
-window.setCustomShipping = function(type) {
+export function setCustomShipping(type) {
     customOrderData.shippingType = type;
     const btnOffice = document.getElementById('btn-ship-office');
     const btnHome = document.getElementById('btn-ship-home');
@@ -607,7 +642,7 @@ window.setCustomShipping = function(type) {
     updateLivePriceDisplay(); 
 }
 
-// 6. التنقل وإرسال الطلب
+// التنقل بين الخطوات والتحقق من المدخلات
 export function nextCustomStep() {
     if (currentCustomStep === 2) {
         if (!customOrderData.selectedProductId) {
@@ -619,26 +654,25 @@ export function nextCustomStep() {
             return;
         }
 
-        // السحب الإجباري للبيانات...
         const colorEl = document.getElementById('dynamic-color');
-        if (colorEl && !document.getElementById('dynamic-color-container').classList.contains('hidden')) customOrderData.color = colorEl.value;
+        if (colorEl && !document.getElementById('dynamic-color-container')?.classList.contains('hidden')) customOrderData.color = colorEl.value;
 
         const sizeEl = document.getElementById('dynamic-size');
-        if (sizeEl && !document.getElementById('dynamic-size-container').classList.contains('hidden')) customOrderData.size = sizeEl.value;
+        if (sizeEl && !document.getElementById('dynamic-size-container')?.classList.contains('hidden')) customOrderData.size = sizeEl.value;
 
         const positionEl = document.getElementById('dynamic-position');
-        if (positionEl && !document.getElementById('dynamic-position-container').classList.contains('hidden')) customOrderData.position = positionEl.value;
+        if (positionEl && !document.getElementById('dynamic-position-container')?.classList.contains('hidden')) customOrderData.position = positionEl.value;
 
         const fontEl = document.getElementById('dynamic-font');
-        if (fontEl && !document.getElementById('dynamic-font-container').classList.contains('hidden')) customOrderData.font = fontEl.value;
+        if (fontEl && !document.getElementById('dynamic-font-container')?.classList.contains('hidden')) customOrderData.font = fontEl.value;
 
         const text1El = document.querySelector('#dynamic-text-1-container textarea');
-        if (text1El && !document.getElementById('dynamic-text-1-container').classList.contains('hidden')) customOrderData.text1 = text1El.value.trim();
+        if (text1El && !document.getElementById('dynamic-text-1-container')?.classList.contains('hidden')) customOrderData.text1 = text1El.value.trim();
 
         const text2El = document.querySelector('#dynamic-text-2-container textarea');
-        if (text2El && !document.getElementById('dynamic-text-2-container').classList.contains('hidden')) customOrderData.text2 = text2El.value.trim();
+        if (text2El && !document.getElementById('dynamic-text-2-container')?.classList.contains('hidden')) customOrderData.text2 = text2El.value.trim();
 
-       const notesEl = document.querySelector('input[placeholder*="أضف أي ملاحظة"]') || document.querySelector('input[placeholder*="ملاحظات"]');
+        const notesEl = document.getElementById('dynamic-notes-input');
         if (notesEl) customOrderData.notes = notesEl.value.trim();
     }
     
@@ -650,18 +684,29 @@ export function nextCustomStep() {
         customOrderData.commune = document.getElementById('c-commune')?.value.trim() || customOrderData.commune;
 
         if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.baladiya || !customOrderData.commune) {
-            // هنا التعديل للنافذة الفاخرة!
-            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال جميع معلومات الإرسال والبلدية لحساب التوصيل بنجاح!', false); 
+            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال جميع معلومات الإرسال والبلدية والعنوان لحساب التوصيل بنجاح!', false); 
+            return;
+        }
+
+        if (!isValidDzPhone(customOrderData.customerPhone)) {
+            showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام (يبدأ بـ 05 أو 06 أو 07).', false);
             return;
         }
     }
     
-    if (currentCustomStep === TOTAL_CUSTOM_STEPS) { submitCustomOrder(); return; }
+    if (currentCustomStep === TOTAL_CUSTOM_STEPS) { 
+        submitCustomOrder(); 
+        return; 
+    }
     currentCustomStep++;
     renderCustomStep();
 }
+
 export function prevCustomStep() {
-    if (currentCustomStep > 1) { currentCustomStep--; renderCustomStep(); }
+    if (currentCustomStep > 1) { 
+        currentCustomStep--; 
+        renderCustomStep(); 
+    }
 }
 
 export function getCustomOrderFullDesc() {
@@ -681,11 +726,11 @@ ${uploadedCount > 0 ? `- 📸 الزبون أرفق ${uploadedCount} صور(ة) 
 
 export function submitCustomOrder() {
     const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
-    const grandTotal = customOrderData.basePrice + customOrderData.addonsPrice + shipCost;
+    const grandTotal = (Number(customOrderData.basePrice) || 0) + (Number(customOrderData.addonsPrice) || 0) + shipCost;
     
     const newOrder = {
         customer: customOrderData.customerName,
-        phone: customOrderData.customerPhone,
+        phone: customOrderData.customerPhone.replace(/\s+/g, ''),
         wilaya: state.WILAYAS.find(w => w.code === customOrderData.wilaya)?.name || customOrderData.wilaya,
         commune: `البلدية: ${customOrderData.baladiya} | العنوان: ${customOrderData.commune} (${customOrderData.shippingType === 'home' ? 'توصيل للمنزل' : 'استلام من المكتب'})`,
         product: getCustomOrderFullDesc(),
@@ -706,29 +751,65 @@ export function submitCustomOrder() {
     }
 }
 
+// 🌟 تصحيح حرج: حفظ الصور المرفقة وصورة المنتج وتعبئة بيانات السلة تلقائياً
 export function addCustomToCart() {
-    // بناء كائن منتج يتوافق مع سلة المتجر
     const cartItem = {
         id: 'custom_' + Date.now(),
         name: `[مخصص] ${customOrderData.selectedProduct}`,
-        price: customOrderData.basePrice + customOrderData.addonsPrice, // السعر بدون توصيل (سيُحسب في السلة)
-        image: document.getElementById('dynamic-img')?.src || 'https://via.placeholder.com/100',
-        customDetails: getCustomOrderFullDesc() // تفاصيل التصميم
+        price: (Number(customOrderData.basePrice) || 0) + (Number(customOrderData.addonsPrice) || 0),
+        image: customOrderData.productImage || 'https://via.placeholder.com/100',
+        customDetails: getCustomOrderFullDesc(),
+        attachedImage1: customOrderData.uploadedImage1 || null,
+        attachedImage2: customOrderData.uploadedImage2 || null,
+        attachedImage3: customOrderData.uploadedImage3 || null
     };
     
     state.cart.push(cartItem);
-    
-    if (typeof saveCartToLocal === 'function') saveCartToLocal();
-    if (typeof updateBadges === 'function') updateBadges();
+    saveCartToLocal();
+    safeCall('updateBadges');
     
     closeCustomBuilder();
-    showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة تصميمك المخصص للسلة، يمكنك متابعة التسوق.', true);
-    if (typeof showPage === 'function') showPage('cart');
+    safeCall('showPage', 'cart');
+
+    // تعبئة بيانات الزبون التي أدخلها في الخطوة 3 داخل حقول السلة حتى لا يعيد كتابتها
+    setTimeout(() => {
+        if (customOrderData.customerName && document.getElementById('cart-cust-name')) {
+            document.getElementById('cart-cust-name').value = customOrderData.customerName;
+        }
+        if (customOrderData.customerPhone && document.getElementById('cart-cust-phone')) {
+            document.getElementById('cart-cust-phone').value = customOrderData.customerPhone;
+        }
+        if (customOrderData.wilaya && document.getElementById('cart-cust-wilaya')) {
+            document.getElementById('cart-cust-wilaya').value = customOrderData.wilaya;
+        }
+        if (customOrderData.baladiya && document.getElementById('cart-cust-baladiya')) {
+            document.getElementById('cart-cust-baladiya').value = customOrderData.baladiya;
+        }
+        if (customOrderData.commune && document.getElementById('cart-cust-address')) {
+            document.getElementById('cart-cust-address').value = customOrderData.commune;
+        }
+        const shipRadio = document.querySelector(`input[name="cart_shipping_type"][value="${customOrderData.shippingType}"]`);
+        if (shipRadio) shipRadio.checked = true;
+        safeCall('updateCartCalculations');
+    }, 100);
+
+    showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة تصميمك المخصص مع مرفقاته للسلة بنجاح!', true);
 }
 
-// Window Bindings
+// ==========================================
+// Window Bindings (ربط شامل مع الواجهة)
+// ==========================================
 window.openCustomBuilder = openCustomBuilder;
 window.closeCustomBuilder = closeCustomBuilder;
+window.updateLivePriceDisplay = updateLivePriceDisplay;
+window.renderCustomStep = renderCustomStep;
+window.selectCustomService = selectCustomService;
+window.handleProductSelection = handleProductSelection;
+window.handleFacesChange = handleFacesChange;
+window.handleCustomImageUpload = handleCustomImageUpload;
+window.removeCustomUploadedImage = removeCustomUploadedImage;
+window.setCustomShipping = setCustomShipping;
 window.nextCustomStep = nextCustomStep;
 window.prevCustomStep = prevCustomStep;
+window.submitCustomOrder = submitCustomOrder; // 🌟 كانت منسية وتمت إضافتها
 window.addCustomToCart = addCustomToCart;
