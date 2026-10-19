@@ -6,7 +6,7 @@ import { showCustomAlert, safeCall } from './utils/helpers.js';
 let pendingDeleteOrderId = null;
 
 // =====================================
-// دوال النظام والمصادقة
+// 1. دوال النظام والمصادقة
 // =====================================
 export function checkAdminPassword() {
     const emailInput = document.getElementById('admin-email-input');
@@ -36,11 +36,15 @@ export function checkAdminPassword() {
                     authModal.classList.add('hidden');
                 }
                 localStorage.setItem('cosAdminLoggedIn', 'true');
-                emailInput.value = ''; passInput.value = '';
+                emailInput.value = ''; 
+                passInput.value = '';
+                
+                // 🌟 تشغيل مزامنة الطلبيات فور تسجيل دخول المدير
+                safeCall('initAdminOrdersSync');
                 safeCall('showPage', 'admin');
                 showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
             })
-            .catch(() => showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة البيانات.', false));
+            .catch(() => showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة البريد الإلكتروني وكلمة المرور.', false));
     }
 }
 
@@ -55,14 +59,21 @@ export function adminSignOut() {
 }
 
 export function switchAdminTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    // 🌟 تصحيح: إزالة active وإضافة hidden لإخفاء التبويبات غير النشطة، وعكس ذلك للتبويب النشط
+    document.querySelectorAll('.tab-content').forEach(t => {
+        t.classList.remove('active');
+        t.classList.add('hidden');
+    });
     document.querySelectorAll('.admin-tab-btn').forEach(b => {
         b.classList.remove('bg-black', 'text-white', 'border-[#D4AF37]/30');
         b.classList.add('bg-gray-800', 'text-gray-300');
     });
 
     const activeTab = document.getElementById('admin-tab-' + tabName);
-    if (activeTab) activeTab.classList.add('active');
+    if (activeTab) {
+        activeTab.classList.remove('hidden');
+        activeTab.classList.add('active');
+    }
 
     const btn = document.getElementById('tab-btn-' + tabName);
     if (btn) {
@@ -70,54 +81,74 @@ export function switchAdminTab(tabName) {
         btn.classList.add('bg-black', 'text-white', 'border-[#D4AF37]/30');
     }
 
+    const s = state.storeSettings || {};
+
     if (tabName === 'shipping_settings') {
-        if (typeof renderAdminWilayasList === 'function') renderAdminWilayasList();
+        renderAdminWilayasList();
         
-        // تعبئة إعدادات الحد الأدنى للطلب
+        // تعبئة إعدادات الحد الأدنى للطلب والرسائل و API التوصيل
         const localWilayaSelect = document.getElementById('set-local-wilaya');
         if (localWilayaSelect && state.WILAYAS) {
             localWilayaSelect.innerHTML = '<option value="">-- اختر ولايتك المحلية --</option>' + 
                 state.WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
-                
-            if (state.storeSettings) {
-                localWilayaSelect.value = state.storeSettings.localWilaya || '';
-                if (document.getElementById('set-min-order-local')) document.getElementById('set-min-order-local').value = state.storeSettings.minOrderLocal || '';
-                if (document.getElementById('set-min-order-national')) document.getElementById('set-min-order-national').value = state.storeSettings.minOrderNational || '';
-            }
+            localWilayaSelect.value = s.localWilaya || '';
         }
+        if (document.getElementById('set-min-order-local')) document.getElementById('set-min-order-local').value = s.minOrderLocal ?? '';
+        if (document.getElementById('set-min-order-national')) document.getElementById('set-min-order-national').value = s.minOrderNational ?? '';
+        if (document.getElementById('set-msg-success')) document.getElementById('set-msg-success').value = s.msgSuccess || '';
+        if (document.getElementById('set-msg-warning')) document.getElementById('set-msg-warning').value = s.msgWarning || '';
+        if (document.getElementById('shipping-api-key')) document.getElementById('shipping-api-key').value = s.shippingApiKey || '';
+        if (document.getElementById('shipping-api-token')) document.getElementById('shipping-api-token').value = s.shippingApiToken || '';
     }
+
     if (tabName === 'categories_attributes') {
-        if (typeof renderAdminBrandsList === 'function') renderAdminBrandsList();
-        if (typeof renderAdminCategoriesList === 'function') renderAdminCategoriesList();
-        populateFilterCategories(); // تحديث صانع الفلاتر
+        renderAdminBrandsList();
+        renderAdminCategoriesList();
+        populateFilterCategories();
+        renderDynamicAttributesList();
     }
+
     if (tabName === 'marketing_ui') {
-        if (typeof renderBannerTextsList === 'function') renderBannerTextsList();
-        if (typeof renderAdminHeroSlidesList === 'function') renderAdminHeroSlidesList();
-        // 🚀 تعبئة خانات التواصل الاجتماعي بالبيانات المحفوظة
-        if (state.storeSettings) {
-            if (document.getElementById('set-phone')) document.getElementById('set-phone').value = state.storeSettings.phone || '';
-            if (document.getElementById('set-email')) document.getElementById('set-email').value = state.storeSettings.email || '';
-            if (document.getElementById('set-facebook')) document.getElementById('set-facebook').value = state.storeSettings.facebook || '';
-            if (document.getElementById('set-instagram')) document.getElementById('set-instagram').value = state.storeSettings.instagram || '';
-            if (document.getElementById('set-whatsapp-num')) document.getElementById('set-whatsapp-num').value = state.storeSettings.whatsappNum || '';
-            if (document.getElementById('set-telegram')) document.getElementById('set-telegram').value = state.storeSettings.telegram || '';
-        }
+        renderBannerTextsList();
+        renderAdminHeroSlidesList();
+        
+        // 🌟 تعبئة كافة خانات الهوية البصرية والتواصل الاجتماعي بالبيانات المحفوظة
+        if (document.getElementById('set-store-name')) document.getElementById('set-store-name').value = s.name || '';
+        if (document.getElementById('set-store-slogan')) document.getElementById('set-store-slogan').value = s.slogan || '';
+        if (document.getElementById('set-logo-url')) document.getElementById('set-logo-url').value = s.logoUrl || '';
+        if (document.getElementById('set-phone')) document.getElementById('set-phone').value = s.phone || '';
+        if (document.getElementById('set-email')) document.getElementById('set-email').value = s.email || '';
+        if (document.getElementById('set-facebook')) document.getElementById('set-facebook').value = s.facebook || '';
+        if (document.getElementById('set-instagram')) document.getElementById('set-instagram').value = s.instagram || '';
+        if (document.getElementById('set-whatsapp-num')) document.getElementById('set-whatsapp-num').value = s.whatsappNum || '';
+        if (document.getElementById('set-telegram')) document.getElementById('set-telegram').value = s.telegram || '';
+    }
+
+    if (tabName === 'gift') {
+        loadGiftAdminData();
+    }
+
+    if (tabName === 'custom_services') {
+        safeCall('loadCustomAdminData');
     }
 }
 
 export function populateAdminDropdowns() {
     const catSelect = document.getElementById('prod-category-select');
     if (catSelect) {
+        const currentCat = catSelect.value;
         catSelect.innerHTML = '<option value="">-- اختر الفئة / القسم * --</option>' + 
             state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        if (currentCat) catSelect.value = currentCat;
     }
 
     const brandSelect = document.getElementById('prod-brand-select');
     if (brandSelect) {
+        const currentBrand = brandSelect.value;
         const brandList = state.brands.length > 0 ? state.brands : ["عام"];
         brandSelect.innerHTML = '<option value="">-- اختر العلامة التجارية (الماركة) --</option>' + 
             brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
+        if (currentBrand) brandSelect.value = currentBrand;
     }
 
     populateFilterCategories();
@@ -125,16 +156,14 @@ export function populateAdminDropdowns() {
 }
 
 // =====================================
-// 🚀 المحرك الذكي: ربط الأقسام بصانع الفلاتر
+// 2. المحرك الذكي: ربط الأقسام بصانع الفلاتر
 // =====================================
-
-// 1. عند الضغط على بطاقة القسم، ينزل بك لصانع الفلاتر
 export function selectCategoryForFilter(catName) {
     const select = document.getElementById('new-attr-category');
     if (select) {
         select.value = catName;
-        renderDynamicAttributesList(); // جلب الفلاتر فوراً
-        select.scrollIntoView({ behavior: 'smooth', block: 'center' }); // نزول سلس للشاشة
+        renderDynamicAttributesList();
+        select.scrollIntoView({ behavior: 'smooth', block: 'center' });
         showCustomAlert('تم التحديد', `تم تحديد قسم (${catName}) بنجاح، يمكنك إضافة فلاتر له الآن أسفله.`, true);
     }
 }
@@ -145,32 +174,31 @@ export function populateFilterCategories() {
         const currentValue = select.value;
         select.innerHTML = '<option value="">-- اختر القسم المستهدف --</option>' + 
             state.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-        select.value = currentValue;
-        select.addEventListener('change', renderDynamicAttributesList);
+        if (currentValue) select.value = currentValue;
+        // 🌟 تصحيح: استخدام onchange بدلاً من addEventListener لمنع تراكم المستمعات
+        select.onchange = renderDynamicAttributesList;
     }
 }
 
 export function handleSaveDynamicAttribute(e) {
-    e.preventDefault();
-    const catName = document.getElementById('new-attr-category').value;
-    const attrName = document.getElementById('new-attr-name').value.trim();
-    const attrOptionsStr = document.getElementById('new-attr-options').value.trim();
+    if (e) e.preventDefault();
+    const catName = document.getElementById('new-attr-category')?.value;
+    const attrName = document.getElementById('new-attr-name')?.value.trim();
+    const attrOptionsStr = document.getElementById('new-attr-options')?.value.trim();
 
     if (!catName || !attrName || !attrOptionsStr) return;
 
-    const options = attrOptionsStr.split(',').map(o => o.trim()).filter(Boolean);
+    const options = attrOptionsStr.split(/[,،]/).map(o => o.trim()).filter(Boolean);
     
     if (!state.categoryFilters) state.categoryFilters = {};
     if (!state.categoryFilters[catName]) state.categoryFilters[catName] = [];
 
-    // إضافة الفلتر الجديد
     state.categoryFilters[catName].push({ name: attrName, options: options });
 
-    // حفظ في فايربيس
     window.db.collection("settings").doc("main").set({ categoryFilters: state.categoryFilters }, { merge: true }).then(() => {
         document.getElementById('new-attr-name').value = '';
         document.getElementById('new-attr-options').value = '';
-        renderDynamicAttributesList(); // تحديث القائمة فوراً
+        renderDynamicAttributesList();
         showCustomAlert('تم الحفظ 🛠️', `تمت إضافة فلتر (${attrName}) لقسم (${catName}) بنجاح!`, true);
     });
 }
@@ -181,15 +209,16 @@ export function renderDynamicAttributesList() {
     if (!listContainer) return;
 
     if (!catName || !state.categoryFilters || !state.categoryFilters[catName] || state.categoryFilters[catName].length === 0) {
-        listContainer.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد فلاتر مخصصة لهذا القسم بعد. صمم أول فلتر من الأعلى!</p>';
+        listContainer.innerHTML = '<p class="text-xs text-gray-400 col-span-full">لا توجد فلاتر مخصصة لهذا القسم بعد. اختر قسماً وصمم أول فلتر من الأعلى!</p>';
         return;
     }
 
+    const safeCat = catName.replace(/'/g, "\\'");
     listContainer.innerHTML = state.categoryFilters[catName].map((attr, idx) => `
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-xs space-y-3">
             <div class="flex justify-between items-center border-b pb-2">
                 <span class="font-black text-[#B8860B]"><i class="fa-solid fa-filter"></i> ${attr.name}</span>
-                <button type="button" onclick="deleteDynamicAttribute('${catName}', ${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg font-bold transition">حذف الفلتر</button>
+                <button type="button" onclick="deleteDynamicAttribute('${safeCat}', ${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg font-bold transition">حذف الفلتر</button>
             </div>
             <div class="flex flex-wrap gap-1.5">
                 ${attr.options.map(opt => `<span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg border border-gray-200 font-bold">${opt}</span>`).join('')}
@@ -208,7 +237,7 @@ export function deleteDynamicAttribute(catName, idx) {
 }
 
 // =====================================
-// 🎯 عرض الفلاتر الديناميكية عند "إضافة منتج"
+// 3. عرض الفلاتر الديناميكية وإدارة المنتجات
 // =====================================
 export function renderCategorySpecificAdminFields() {
     const catSelect = document.getElementById('prod-category-select');
@@ -218,13 +247,12 @@ export function renderCategorySpecificAdminFields() {
     const selectedCategory = (catSelect.value || '').trim();
     let html = '';
 
-    // قراءة الفلاتر المرتبطة بهذا القسم من قاعدة البيانات
     if (state.categoryFilters && state.categoryFilters[selectedCategory] && state.categoryFilters[selectedCategory].length > 0) {
         html += `<div class="bg-gray-50 p-5 rounded-2xl border border-[#D4AF37]/40 space-y-5 mb-4 shadow-sm">
             <h4 class="font-black text-sm text-[#B8860B]"><i class="fa-solid fa-layer-group"></i> فلاتر قسم (${selectedCategory}) المخصصة:</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">`;
         
-        state.categoryFilters[selectedCategory].forEach((attr, index) => {
+        state.categoryFilters[selectedCategory].forEach((attr) => {
             html += `
             <div>
                 <label class="block text-xs font-bold text-gray-800 mb-2">${attr.name}</label>
@@ -250,15 +278,11 @@ export function renderCategorySpecificAdminFields() {
     container.innerHTML = html;
 }
 
-// =====================================
-// إضافة وحفظ المنتجات باستخدام المحرك الجديد
-// =====================================
 export function handleSaveProduct(e) {
     if (e) e.preventDefault();
     try {
         const editId = document.getElementById('editing-product-id').value;
         
-        // 🚀 السحر هنا: تجميع الفلاتر الديناميكية المختارة بذكاء
         const dynamicCheckboxes = document.querySelectorAll('.dynamic-attr-cb:checked');
         const customAttributes = {};
         dynamicCheckboxes.forEach(cb => {
@@ -274,9 +298,7 @@ export function handleSaveProduct(e) {
             category: document.getElementById('prod-category-select').value,
             brand: document.getElementById('prod-brand-select').value,
             inStock: document.getElementById('prod-in-stock').value === 'true',
-            
-            attributes: customAttributes, // هنا تُحفظ كل الفلاتر مهما كان القسم!
-            
+            attributes: customAttributes,
             colors: document.getElementById('prod-colors')?.value.trim() || '',
             numbers: document.getElementById('prod-numbers')?.value.trim() || '',
             desc: document.getElementById('prod-desc')?.value.trim() || '',
@@ -316,10 +338,12 @@ export function editProduct(id) {
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
 
-    // 1. نرسم الفلاتر المخصصة لهذا القسم أولاً
+    // 🌟 تصحيح: تعبئة حقول الألوان والأرقام عند التعديل
+    if (document.getElementById('prod-colors')) document.getElementById('prod-colors').value = p.colors || '';
+    if (document.getElementById('prod-numbers')) document.getElementById('prod-numbers').value = p.numbers || '';
+
     renderCategorySpecificAdminFields();
 
-    // 2. نقوم بوضع علامة (صح) على الخصائص التي اختارها المدير مسبقاً
     if (p.attributes) {
         const dynamicCheckboxes = document.querySelectorAll('.dynamic-attr-cb');
         dynamicCheckboxes.forEach(cb => {
@@ -342,10 +366,15 @@ export function editProduct(id) {
 }
 
 export function resetProductForm() {
-    document.getElementById('product-edit-form').reset();
+    const form = document.getElementById('product-edit-form');
+    if (form) form.reset();
     document.getElementById('editing-product-id').value = '';
     document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
+    ['prod-img-main', 'prod-img-2', 'prod-img-3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('border-green-500', 'bg-green-50');
+    });
     renderCategorySpecificAdminFields();
 }
 
@@ -362,7 +391,7 @@ export function toggleProductStock(id, currentStatus) {
 }
 
 // =====================================
-// إدارة الأقسام والماركات (محدثة برمجياً)
+// 4. إدارة الأقسام والماركات
 // =====================================
 export function renderAdminCategoriesList() {
     const container = document.getElementById('admin-categories-list');
@@ -373,14 +402,16 @@ export function renderAdminCategoriesList() {
         return;
     }
 
-    // 🚀 السحر: عند الضغط على القسم، يتم استدعاء دالة selectCategoryForFilter
-    container.innerHTML = state.categories.map(c => `
-        <div onclick="selectCategoryForFilter('${c.name}')" class="bg-gray-50 p-4 rounded-xl border flex flex-col items-center gap-2 text-xs text-center shadow-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-lg transition transform hover:-translate-y-1">
-            <img src="${c.image}" class="w-12 h-12 rounded-full object-cover border border-[#D4AF37]">
+    container.innerHTML = state.categories.map(c => {
+        const safeName = (c.name || '').replace(/'/g, "\\'");
+        return `
+        <div onclick="selectCategoryForFilter('${safeName}')" class="bg-gray-50 p-4 rounded-xl border flex flex-col items-center gap-2 text-xs text-center shadow-sm cursor-pointer hover:border-[#D4AF37] hover:shadow-lg transition transform hover:-translate-y-1">
+            <img src="${c.image}" class="w-12 h-12 rounded-full object-cover border border-[#D4AF37]" loading="lazy">
             <span class="font-bold text-gray-900">${c.name}</span>
-            <button onclick="event.stopPropagation(); deleteCategory('${c.id}')" class="text-red-600 bg-red-100 px-4 py-1.5 rounded-lg w-full font-bold mt-2 hover:bg-red-200">حذف الفئة</button>
+            <button type="button" onclick="event.stopPropagation(); deleteCategory('${c.id}')" class="text-red-600 bg-red-100 px-4 py-1.5 rounded-lg w-full font-bold mt-2 hover:bg-red-200">حذف الفئة</button>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 export function handleSaveCategory(e) {
@@ -389,10 +420,7 @@ export function handleSaveCategory(e) {
     const image = document.getElementById('cat-img-input').value.trim();
     if (!name || !image) return;
 
-    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then((docRef) => {
-        state.categories.push({ id: docRef.id, name, image });
-        renderAdminCategoriesList();
-        populateAdminDropdowns();
+    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
         document.getElementById('cat-name-input').value = '';
         document.getElementById('cat-img-input').value = '';
         showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
@@ -401,11 +429,7 @@ export function handleSaveCategory(e) {
 
 export function deleteCategory(id) {
     if (confirm('هل أنت متأكد من حذف هذه الفئة نهائياً؟')) {
-        window.db.collection("categories").doc(id).delete().then(() => {
-            state.categories = state.categories.filter(c => c.id !== id);
-            renderAdminCategoriesList();
-            populateAdminDropdowns();
-        });
+        window.db.collection("categories").doc(id).delete();
     }
 }
 
@@ -437,7 +461,7 @@ export function renderAdminBrandsList() {
         return `
         <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center text-xs">
             <span class="font-bold">${brandName}</span>
-            <button onclick="deleteBrand(${idx})" class="text-red-600 bg-red-100 px-3 py-1 rounded-lg font-bold">حذف</button>
+            <button type="button" onclick="deleteBrand(${idx})" class="text-red-600 bg-red-100 px-3 py-1 rounded-lg font-bold">حذف</button>
         </div>
     `}).join('');
 }
@@ -453,7 +477,7 @@ export function deleteBrand(idx) {
 }
 
 // =====================================
-// دوال متفرقة (التوصيل، الصور، الطلبيات)
+// 5. التوصيل، الصور، والطلبيات
 // =====================================
 export function handleImageUploadWrapper(event, targetId) {
     const file = event.target.files[0];
@@ -466,8 +490,8 @@ export function handleImageUploadWrapper(event, targetId) {
         img.src = e.target.result;
         img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800; // أقصى عرض
-            const MAX_HEIGHT = 800; // أقصى طول
+            const MAX_WIDTH = 700;
+            const MAX_HEIGHT = 700;
             let width = img.width;
             let height = img.height;
 
@@ -479,23 +503,25 @@ export function handleImageUploadWrapper(event, targetId) {
                 height = MAX_HEIGHT;
             }
 
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = Math.round(width);
+            canvas.height = Math.round(height);
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            // تحويل وضغط الصورة
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            let compressedBase64 = canvas.toDataURL('image/webp', 0.7);
+            if (!compressedBase64.startsWith('data:image/webp')) {
+                compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            }
             
             const targetInput = document.getElementById(targetId);
             if (targetInput) {
                 targetInput.value = compressedBase64;
-                // تغيير لون الحقل للأخضر ليعرف المدير أنه تم الرفع والضغط بنجاح
                 targetInput.classList.add('border-green-500', 'bg-green-50');
             }
-        }
+        };
     };
 }
+
 export function handleSaveWilaya(e) {
     if (e) e.preventDefault();
     const code = document.getElementById('wilaya-code').value.trim();
@@ -510,7 +536,8 @@ export function handleSaveWilaya(e) {
 }
 
 export function resetWilayaForm() {
-    document.getElementById('wilaya-edit-form').reset();
+    const form = document.getElementById('wilaya-edit-form');
+    if (form) form.reset();
     document.getElementById('editing-wilaya-id').value = '';
     if (document.getElementById('wilaya-home-cost')) document.getElementById('wilaya-home-cost').value = '';
     document.getElementById('cancel-wilaya-edit-btn').classList.add('hidden');
@@ -522,14 +549,14 @@ export function editWilaya(code) {
     document.getElementById('editing-wilaya-id').value = w.code;
     document.getElementById('wilaya-code').value = w.code;
     document.getElementById('wilaya-name').value = w.name;
-    document.getElementById('wilaya-office-cost').value = w.officeCost || 0;
-    if (document.getElementById('wilaya-home-cost')) document.getElementById('wilaya-home-cost').value = w.homeCost || 0;
+    document.getElementById('wilaya-office-cost').value = w.officeCost ?? 0;
+    if (document.getElementById('wilaya-home-cost')) document.getElementById('wilaya-home-cost').value = w.homeCost ?? 0;
     document.getElementById('cancel-wilaya-edit-btn').classList.remove('hidden');
     window.scrollTo({ top: document.getElementById('wilaya-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
 
 export function deleteWilaya(docIdOrCode) {
-    if (confirm('هل أنت تأكد من الحذف؟')) {
+    if (confirm('هل أنت متأكد من الحذف؟')) {
         window.db.collection("wilayas").doc(docIdOrCode).delete().then(() => showCustomAlert('تم الحذف', 'تم حذف الولاية بنجاح.', true));
     }
 }
@@ -551,8 +578,8 @@ export function renderAdminWilayasList() {
                         <h4 class="font-bold text-sm text-gray-900">${w.name}</h4>
                     </div>
                     <div class="flex gap-4 mt-2 text-gray-700">
-                        <span>📦 توصيل المكتب: <strong class="text-[#B8860B]">${w.officeCost || 0} دج</strong></span>
-                        <span>🏡 توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost || 0} دج</strong></span>
+                        <span>📦 توصيل المكتب: <strong class="text-[#B8860B]">${w.officeCost ?? 0} دج</strong></span>
+                        <span>🏡 توصيل للمنزل: <strong class="text-emerald-600">${w.homeCost ?? 0} دج</strong></span>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -565,17 +592,16 @@ export function renderAdminWilayasList() {
 }
 
 export function saveShippingApiSettings() {
-    const key = document.getElementById('shipping-api-key').value.trim();
-    const token = document.getElementById('shipping-api-token').value.trim();
+    const key = document.getElementById('shipping-api-key')?.value.trim() || '';
+    const token = document.getElementById('shipping-api-token')?.value.trim() || '';
     window.db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
         showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API!', true);
     });
 }
 
-// استبدل الدالة القديمة بهذه
 export function renderAdminDashboard() {
     const confirmedOrders = state.orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
-    const totalSales = confirmedOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalSales = confirmedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     const completedCount = state.orders.filter(o => o.status === 'مكتملاً').length;
     const successRate = state.orders.length ? Math.round((completedCount / state.orders.length) * 100) : 0;
 
@@ -597,10 +623,9 @@ export function renderAdminDashboard() {
         );
     }
 
-    // إخفاء زر الحذف الجماعي وإزالة التحديد عند تحديث الجدول
     const selectAllCb = document.getElementById('select-all-orders');
-    if(selectAllCb) selectAllCb.checked = false;
-    if(typeof checkBulkDeleteStatus === 'function') checkBulkDeleteStatus();
+    if (selectAllCb) selectAllCb.checked = false;
+    checkBulkDeleteStatus();
 
     const ordersTbody = document.getElementById('admin-orders-log');
     if (ordersTbody) {
@@ -617,7 +642,7 @@ export function renderAdminDashboard() {
                 
                 let cleanPhone = (o.phone || '').replace(/\s+/g, '');
                 if (cleanPhone.startsWith('0')) cleanPhone = '213' + cleanPhone.substring(1);
-                const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${state.storeSettings.name} لتأكيد طلبكم.`);
+                const waMsg = encodeURIComponent(`مرحباً ${o.customer}، نتوجه إليك من متجر ${state.storeSettings.name || 'كوسمتيك عبد الحق'} لتأكيد طلبكم.`);
 
                 let dateStr = 'غير معروف';
                 if (o.createdAt) {
@@ -644,10 +669,8 @@ export function renderAdminDashboard() {
                             <div class="text-[11px] text-gray-500 mt-1">${o.commune || ''}</div>
                         </td>
                         <td class="p-4">
-                            <!-- عرض التفاصيل مع احترام الأسطر الجديدة (whitespace-pre-line) -->
                             <div class="font-bold text-[11px] text-gray-800 leading-relaxed max-w-[250px] bg-gray-50 p-3 rounded-xl border border-gray-200 whitespace-pre-line text-right" style="direction: rtl;">${o.product || 'لا توجد تفاصيل'}</div>
                             
-                            <!-- عرض الصور إن وجدت (سواء الصورة القديمة أو الصور الـ 3 الجديدة) -->
                             ${(o.attachedImage1 || o.attachedImage2 || o.attachedImage3 || o.attachedImage) ? `
                             <div class="flex flex-wrap gap-2 mt-2 p-2 bg-yellow-50/50 rounded-xl border border-yellow-200/50 justify-start">
                                 ${o.attachedImage ? `<img src="${o.attachedImage}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
@@ -668,24 +691,21 @@ export function renderAdminDashboard() {
                                 <option value="ملغى" ${status === 'ملغى' ? 'selected' : ''}>🔴 ملغى</option>
                             </select>
                         </td>
-                       <td class="p-4 flex items-center justify-center gap-2">
-                            <!-- زر الطباعة الجديد -->
-                            <button onclick="printOrder('${o.id}')" title="طباعة وصل التوصيل" class="bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold p-2.5 rounded-xl hover:bg-gray-200 hover:scale-105 transition"><i class="fa-solid fa-print"></i></button>
-                            
+                        <td class="p-4 flex items-center justify-center gap-2">
+                            <button type="button" onclick="printOrder('${o.id}')" title="طباعة وصل التوصيل" class="bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold p-2.5 rounded-xl hover:bg-gray-200 hover:scale-105 transition"><i class="fa-solid fa-print"></i></button>
                             <a href="tel:${o.phone}" title="اتصال هاتفي" class="bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold p-2.5 rounded-xl hover:bg-blue-100 hover:scale-105 transition"><i class="fa-solid fa-phone"></i></a>
                             <a href="https://wa.me/${cleanPhone}?text=${waMsg}" target="_blank" title="مراسلة واتساب" class="bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold p-2.5 rounded-xl hover:bg-emerald-100 hover:scale-105 transition"><i class="fa-brands fa-whatsapp text-sm"></i></a>
-                            <button onclick="promptDeleteOrder('${o.id}')" title="حذف الطلب" class="bg-red-50 text-red-500 border border-red-200 text-xs font-bold p-2.5 rounded-xl hover:bg-red-100 hover:scale-105 transition"><i class="fa-solid fa-trash-can"></i></button>
+                            <button type="button" onclick="promptDeleteOrder('${o.id}')" title="حذف الطلب" class="bg-red-50 text-red-500 border border-red-200 text-xs font-bold p-2.5 rounded-xl hover:bg-red-100 hover:scale-105 transition"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
     }
-    if (typeof renderAdminProductsTable === 'function') renderAdminProductsTable();
+    renderAdminProductsTable();
 }
 
-// أضف هذه الدالة في نهاية ملف admin.js
-window.openImageModal = function(imageSrc) {
+export function openImageModal(imageSrc) {
     let modal = document.getElementById('admin-image-modal');
     
     if (!modal) {
@@ -709,10 +729,8 @@ window.openImageModal = function(imageSrc) {
         modalImg.src = imageSrc;
         modal.classList.remove('hidden');
     }
-};
-// ==========================================
-// دوال الحذف الجماعي الجديدة (ضعها هنا)
-// ==========================================
+}
+
 export function toggleAllOrders(source) {
     const checkboxes = document.querySelectorAll('.order-cb');
     checkboxes.forEach(cb => cb.checked = source.checked);
@@ -727,11 +745,11 @@ export function checkBulkDeleteStatus() {
     if (bulkContainer && bulkCount) {
         if (checkedBoxes.length > 0) {
             bulkContainer.classList.remove('hidden');
-            bulkContainer.classList.add('flex'); // إظهار الحاوية
+            bulkContainer.classList.add('flex');
             bulkCount.innerText = checkedBoxes.length;
         } else {
             bulkContainer.classList.add('hidden');
-            bulkContainer.classList.remove('flex'); // إخفاء الحاوية
+            bulkContainer.classList.remove('flex');
         }
     }
 }
@@ -749,7 +767,7 @@ export function deleteSelectedOrders() {
         
         batch.commit().then(() => {
             showCustomAlert('تم الحذف', `تم حذف ${checkedBoxes.length} طلبية بنجاح.`, true);
-            checkBulkDeleteStatus(); // إخفاء الزر بعد الحذف
+            checkBulkDeleteStatus();
         }).catch(err => {
             showCustomAlert('خطأ', 'حدث خطأ أثناء الحذف الجماعي: ' + err.message, false);
         });
@@ -773,12 +791,12 @@ export function renderAdminProductsTable() {
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
                 <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.brand || '-'}</td>
                 <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
-                <td class="p-3 text-xs">
+                <td class="p-3 text-xs text-center">
                     <button type="button" onclick="toggleProductStock('${p.id}', ${isStock})" class="px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm transition-all duration-300 w-24 text-center cursor-pointer ${isStock ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'}">
                         ${isStock ? 'متوفر 🟢' : 'نفد 🔴'}
                     </button>
                 </td>
-                <td class="p-3 flex items-center gap-2">
+                <td class="p-3 flex items-center justify-center gap-2">
                     <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
                     <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
                 </td>
@@ -838,34 +856,74 @@ export function confirmDeleteOrder() {
     }
 }
 
-export function updateOrderStatus(id, newStatus) { window.db.collection("orders").doc(id).update({ status: newStatus }); }
+export function updateOrderStatus(id, newStatus) { 
+    window.db.collection("orders").doc(id).update({ status: newStatus }); 
+}
 
+// 🌟 تصحيح حرج: الحفاظ على الإعدادات المحفوظة مسبقاً وعدم مسحها إذا كانت الحقول غير معروضة أو فارغة
 export function handleSaveSettings(e) {
     if (e) e.preventDefault();
+    const s = state.storeSettings || {};
+
+    const getValOrKeep = (id, fallbackVal) => {
+        const el = document.getElementById(id);
+        if (!el) return fallbackVal || '';
+        const val = el.value.trim();
+        return val !== '' ? val : (fallbackVal || '');
+    };
+
     const settings = {
-        name: document.getElementById('set-store-name')?.value || '',
-        slogan: document.getElementById('set-store-slogan')?.value || '',
-        logoUrl: document.getElementById('set-logo-url')?.value || '',
-        msgSuccess: document.getElementById('set-msg-success')?.value || '',
-        msgWarning: document.getElementById('set-msg-warning')?.value || '',
-        // 🚀 الحقول الجديدة للتواصل الاجتماعي 
-        phone: document.getElementById('set-phone')?.value || '',
-        email: document.getElementById('set-email')?.value || '',
-        facebook: document.getElementById('set-facebook')?.value || '',
-        instagram: document.getElementById('set-instagram')?.value || '',
-        whatsappNum: document.getElementById('set-whatsapp-num')?.value || '',
-        telegram: document.getElementById('set-telegram')?.value || ''
+        name: getValOrKeep('set-store-name', s.name),
+        slogan: getValOrKeep('set-store-slogan', s.slogan),
+        logoUrl: getValOrKeep('set-logo-url', s.logoUrl),
+        msgSuccess: getValOrKeep('set-msg-success', s.msgSuccess),
+        msgWarning: getValOrKeep('set-msg-warning', s.msgWarning),
+        phone: getValOrKeep('set-phone', s.phone),
+        email: getValOrKeep('set-email', s.email),
+        facebook: getValOrKeep('set-facebook', s.facebook),
+        instagram: getValOrKeep('set-instagram', s.instagram),
+        whatsappNum: getValOrKeep('set-whatsapp-num', s.whatsappNum),
+        telegram: getValOrKeep('set-telegram', s.telegram)
     };
     
     window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
-        // تحديث المتغير المحلي لتظهر التغييرات فوراً
-        if (typeof state !== 'undefined') {
-            state.storeSettings = { ...state.storeSettings, ...settings };
-        }
-        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر وروابط التواصل!', true); 
+        state.storeSettings = { ...state.storeSettings, ...settings };
+        safeCall('updateStoreFooterLinks');
+        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر وروابط التواصل بأمان!', true); 
     }).catch(err => {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     });
+}
+
+// 🌟 إضافة الدوال التي كانت مفقودة لعرض وحذف شرائح البانر الإعلاني الرئيسي
+export function renderAdminHeroSlidesList() {
+    const container = document.getElementById('admin-hero-slides-list');
+    if (!container) return;
+    if (!state.heroSlides || state.heroSlides.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 py-2">لا توجد شرائح إعلانية مضافة حالياً.</p>';
+        return;
+    }
+    container.innerHTML = state.heroSlides.map(slide => `
+        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs">
+            <div class="flex items-center gap-3">
+                <img src="${slide.image}" class="w-16 h-10 object-cover rounded-lg border" loading="lazy">
+                <div>
+                    <h4 class="font-bold text-gray-900">${slide.title}</h4>
+                    <p class="text-[10px] text-gray-500">${slide.desc}</p>
+                </div>
+            </div>
+            <button type="button" onclick="deleteHeroSlide('${slide.id}')" class="text-red-600 bg-red-100 hover:bg-red-200 font-bold px-3 py-1.5 rounded-lg transition">حذف</button>
+        </div>
+    `).join('');
+}
+
+export function deleteHeroSlide(id) {
+    if (confirm('هل أنت متأكد من حذف هذا الإعلان؟')) {
+        window.db.collection("heroSlides").doc(id).delete().then(() => {
+            renderAdminHeroSlidesList();
+            showCustomAlert('تم الحذف', 'تم حذف شريحة الإعلان بنجاح.', true);
+        });
+    }
 }
 
 export function handleSaveHeroSlide(e) {
@@ -877,8 +935,11 @@ export function handleSaveHeroSlide(e) {
     window.db.collection("heroSlides").add({ title, desc, image, createdAt: new Date() }).then(() => {
         document.getElementById('hero-title-input').value = '';
         document.getElementById('hero-desc-input').value = '';
-        document.getElementById('hero-img-input').value = '';
-        showCustomAlert('تم', 'تمت إضافة البانر!', true);
+        const imgInput = document.getElementById('hero-img-input');
+        imgInput.value = '';
+        imgInput.classList.remove('border-green-500', 'bg-green-50');
+        setTimeout(renderAdminHeroSlidesList, 300);
+        showCustomAlert('تم', 'تمت إضافة البانر بنجاح!', true);
     });
 }
 
@@ -890,7 +951,8 @@ export function exportOrdersToExcel() {
 
     let csvContent = "\uFEFFsep=;\r\nاسم الزبون;رقم الهاتف;الولاية;البلدية;المبلغ الإجمالي (دج);حالة الطلب;المنتج\r\n";
     targetOrders.forEach(o => {
-        csvContent += `"${(o.customer || '')}";"=""${(o.phone || '')}""";"${(o.wilaya || '')}";"${(o.commune || '')}";${o.total || 0};"${(o.status || 'جديد')}";"${(o.product || '')}"\r\n`;
+        const cleanProd = (o.product || '').replace(/[\r\n]+/g, ' | ').replace(/"/g, '""');
+        csvContent += `"${(o.customer || '')}";"=""${(o.phone || '')}""";"${(o.wilaya || '')}";"${(o.commune || '')}";${o.total || 0};"${(o.status || 'جديد')}";"${cleanProd}"\r\n`;
     });
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -904,21 +966,21 @@ export function updateAdminPasswordSecure() {
     const passwordInput = document.getElementById('new-admin-password');
     if (!passwordInput) return;
     const newPassword = passwordInput.value.trim();
-    if (!newPassword || newPassword.length < 6) return showCustomAlert('تنبيه', 'كلمة المرور قصيرة جداً.', false);
+    if (!newPassword || newPassword.length < 6) return showCustomAlert('تنبيه', 'كلمة المرور قصيرة جداً (6 أحرف على الأقل).', false);
     const user = window.firebase.auth().currentUser;
     if (!user) return showCustomAlert('غير مسجل', 'يجب تسجيل الدخول كمسؤول.', false);
     user.updatePassword(newPassword).then(() => {
         passwordInput.value = ''; showCustomAlert('تم التحديث', 'تم تغيير كلمة المرور بأمان.', true);
     }).catch((error) => showCustomAlert('خطأ', 'فشل التحديث: ' + error.message, false));
 }
+
 // ==========================================
-// 🖨️ نظام طباعة وصولات الإرسال (Bon de Livraison)
+// 6. نظام طباعة وصولات الإرسال (Bon de Livraison)
 // ==========================================
 export function printOrder(id) {
     const order = state.orders.find(o => o.id === id);
     if (!order) return;
 
-    // استخراج رقم قصير للطلب وتاريخه
     const shortId = order.id.substring(0, 6).toUpperCase();
     let dateStr = 'غير معروف';
     if (order.createdAt) {
@@ -929,10 +991,7 @@ export function printOrder(id) {
     const storeName = state.storeSettings.name || 'كوسمتيك عبد الحق';
     const storeLogo = state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}" style="max-height: 60px; margin-bottom: 10px;">` : `<div style="font-size:30px; margin-bottom:5px;">👑</div>`;
 
-    // إنشاء نافذة طباعة وهمية
     const printWindow = window.open('', '_blank', 'width=800,height=800');
-    
-    // تصميم الوصل (A6 أو ملصق طابعة حرارية)
     printWindow.document.write(`
         <html dir="rtl" lang="ar">
         <head>
@@ -970,19 +1029,14 @@ export function printOrder(id) {
                 <div class="info-group"><strong>البلدية:</strong> ${order.commune || 'غير محدد'}</div>
                 
                 <hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
-                <div class="info-group" style="font-size:14px;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
+                <div class="info-group" style="font-size:14px; white-space: pre-line;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
                 
                 <div class="total">المبلغ المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
                 <div class="footer">شكراً لتسوقكم معنا! - Merci pour votre confiance</div>
             </div>
-            
             <script>
-                // تشغيل الطباعة تلقائياً بمجرد تحميل الخطوط
                 window.onload = function() { 
-                    setTimeout(() => {
-                        window.print(); 
-                        window.close();
-                    }, 500); 
+                    setTimeout(() => { window.print(); window.close(); }, 500); 
                 }
             </script>
         </body>
@@ -995,18 +1049,14 @@ export function printSelectedOrders() {
     const checkedBoxes = document.querySelectorAll('.order-cb:checked');
     if (checkedBoxes.length === 0) return;
 
-    // استخراج الطلبات المحددة من قاعدة البيانات المحلية
     const selectedOrders = Array.from(checkedBoxes).map(cb => state.orders.find(o => o.id === cb.value)).filter(Boolean);
-
     const storeName = state.storeSettings.name || 'كوسمتيك عبد الحق';
     const storeLogo = state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}" style="max-height: 45px; margin-bottom: 5px;">` : `<div style="font-size:20px; margin-bottom:5px;">👑</div>`;
 
-    // تقسيم الطلبات إلى مجموعات (كل 4 طلبات في صفحة)
     let pagesHtml = '';
     for (let i = 0; i < selectedOrders.length; i += 4) {
         const chunk = selectedOrders.slice(i, i + 4);
         pagesHtml += `<div class="page">`;
-        
         chunk.forEach(order => {
             const shortId = order.id.substring(0, 6).toUpperCase();
             let dateStr = 'غير معروف';
@@ -1024,15 +1074,12 @@ export function printSelectedOrders() {
                     <div class="info-group"><strong>رقم الطلب:</strong> #${shortId}</div>
                     <div class="info-group"><strong>التاريخ:</strong> ${dateStr}</div>
                     <hr style="border:0; border-top:1px dashed #ccc; margin: 8px 0;">
-                    
                     <div class="info-group"><strong>المرسل إليه:</strong> ${order.customer}</div>
                     <div class="info-group"><strong>الهاتف:</strong> <span dir="ltr" style="font-weight:bold; font-size:15px;">${order.phone}</span></div>
                     <div class="info-group"><strong>الولاية:</strong> ${order.wilaya || 'غير محدد'}</div>
                     <div class="info-group"><strong>البلدية:</strong> ${order.commune || 'غير محدد'}</div>
-                    
                     <hr style="border:0; border-top:1px dashed #ccc; margin: 8px 0;">
                     <div class="info-group" style="font-size:12px; max-height: 45px; overflow: hidden;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
-                    
                     <div class="total">المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
                     <div class="footer">شكراً لتسوقكم معنا!</div>
                 </div>
@@ -1041,7 +1088,6 @@ export function printSelectedOrders() {
         pagesHtml += `</div>`;
     }
 
-    // فتح نافذة الطباعة
     const printWindow = window.open('', '_blank', 'width=800,height=800');
     printWindow.document.write(`
         <html dir="rtl" lang="ar">
@@ -1049,44 +1095,20 @@ export function printSelectedOrders() {
             <title>طباعة وصولات جماعية</title>
             <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
             <style>
-                body {
-                    font-family: 'Cairo', sans-serif;
-                    margin: 0; padding: 0;
-                    background: #525659; /* لون خلفية عارض الطباعة */
-                    display: flex; flex-direction: column; align-items: center;
-                }
-                /* إعدادات ورقة A4 */
-                .page {
-                    width: 210mm; height: 297mm;
-                    background: #fff;
-                    display: grid;
-                    grid-template-columns: 105mm 105mm; /* قسمين عرض */
-                    grid-template-rows: 148.5mm 148.5mm; /* قسمين طول */
-                    page-break-after: always;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-                    margin: 20px auto;
-                    box-sizing: border-box;
-                }
-                /* إعدادات وصل الإرسال الفردي (A6) */
-                .receipt-box {
-                    width: 105mm; height: 148.5mm;
-                    padding: 15px; box-sizing: border-box;
-                    border: 1px dashed #aaa;
-                    position: relative; overflow: hidden;
-                }
+                body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #525659; display: flex; flex-direction: column; align-items: center; }
+                .page { width: 210mm; height: 297mm; background: #fff; display: grid; grid-template-columns: 105mm 105mm; grid-template-rows: 148.5mm 148.5mm; page-break-after: always; box-shadow: 0 0 10px rgba(0,0,0,0.5); margin: 20px auto; box-sizing: border-box; }
+                .receipt-box { width: 105mm; height: 148.5mm; padding: 15px; box-sizing: border-box; border: 1px dashed #aaa; position: relative; overflow: hidden; }
                 .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
                 .header h2 { margin: 0; font-size: 18px; font-weight: 900; }
                 .info-group { margin-bottom: 5px; font-size: 13px; line-height: 1.4; }
                 .info-group strong { display: inline-block; width: 75px; color: #333; }
                 .total { font-size: 17px; font-weight: 900; text-align: center; border-top: 2px solid #000; padding-top: 8px; margin-top: 10px; }
                 .footer { text-align: center; font-size: 11px; color: #555; position: absolute; bottom: 15px; width: calc(100% - 30px); left: 15px; border-top: 1px dashed #ccc; padding-top: 5px; }
-
-                /* إعدادات الطابعة الفعلية */
                 @media print {
                     @page { size: A4; margin: 0; }
                     body { margin: 0; background: #fff; box-shadow: none; display: block; }
                     .page { margin: 0; box-shadow: none; border: none; }
-                    .receipt-box { border: 1px solid #ccc; /* خط خفيف لتسهيل القص بالمقص */ }
+                    .receipt-box { border: 1px solid #ccc; }
                 }
             </style>
         </head>
@@ -1094,10 +1116,7 @@ export function printSelectedOrders() {
             ${pagesHtml}
             <script>
                 window.onload = function() {
-                    setTimeout(() => {
-                        window.print();
-                        window.close();
-                    }, 500);
+                    setTimeout(() => { window.print(); window.close(); }, 500);
                 }
             </script>
         </body>
@@ -1105,10 +1124,10 @@ export function printSelectedOrders() {
     `);
     printWindow.document.close();
 }
-// ==========================================
-// 🎁 أكواد إدارة قسم صانع الهدايا (VIP Gift)
-// ==========================================
 
+// ==========================================
+// 7. إدارة قسم صانع الهدايا (VIP Gift)
+// ==========================================
 let adminGiftSettings = {
     slogan: "يبدو أن أحدهم سيغدو سعيداً اليوم",
     minOrder: 2000,
@@ -1117,9 +1136,7 @@ let adminGiftSettings = {
     wrappings: []
 };
 
-// 1. تحميل الإعدادات الحية عند فتح القسم
 export async function loadGiftAdminData() {
-    // 🔴 التصحيح هنا: البحث في مسار (main) بدلاً من (store)
     if (typeof window.db !== 'undefined') {
         try {
             const doc = await window.db.collection('settings').doc('main').get();
@@ -1127,11 +1144,8 @@ export async function loadGiftAdminData() {
                 const data = doc.data();
                 if (data.gift) {
                     adminGiftSettings = data.gift;
-                    // تحديث المتغير المحلي
-                    if (typeof state !== 'undefined') {
-                        if (!state.storeSettings) state.storeSettings = {};
-                        state.storeSettings.gift = adminGiftSettings;
-                    }
+                    if (!state.storeSettings) state.storeSettings = {};
+                    state.storeSettings.gift = adminGiftSettings;
                 }
             }
         } catch (error) {
@@ -1144,7 +1158,6 @@ export async function loadGiftAdminData() {
         adminGiftSettings = state.storeSettings.gift;
     }
 
-    // تعبئة الحقول بالبيانات الحقيقية
     const sloganInput = document.getElementById('gift-slogan-input');
     const minOrderInput = document.getElementById('gift-min-order-input');
     
@@ -1154,15 +1167,14 @@ export async function loadGiftAdminData() {
     const masterSwitch = document.getElementById('gift-master-switch');
     if (masterSwitch) {
         masterSwitch.checked = adminGiftSettings.isActive !== false;
-        toggleGiftSystem(masterSwitch.checked); // تحديث الشكل واللون
+        toggleGiftSystem(masterSwitch.checked);
     }
 
     renderGiftRecipients();
     renderAdminWrappings();
 }
 
-// 2. تشغيل / إيقاف النظام (تحديث الشكل محلياً)
-window.toggleGiftSystem = function(isActive) {
+export function toggleGiftSystem(isActive) {
     adminGiftSettings.isActive = isActive;
     const statusText = document.getElementById('gift-status-text');
     if (statusText) {
@@ -1176,43 +1188,43 @@ window.toggleGiftSystem = function(isActive) {
     }
 }
 
-// 3. إدارة المستلمين (إضافة وحذف)
-window.addGiftRecipient = function() {
+export function addGiftRecipient() {
     const input = document.getElementById('new-recipient-input');
+    if (!input) return;
     const val = input.value.trim();
-    if(val) {
-        if(!adminGiftSettings.recipients) adminGiftSettings.recipients = [];
+    if (val) {
+        if (!adminGiftSettings.recipients) adminGiftSettings.recipients = [];
         adminGiftSettings.recipients.push(val);
         input.value = "";
         renderGiftRecipients();
     }
 }
 
-window.removeGiftRecipient = function(index) {
+export function removeGiftRecipient(index) {
     adminGiftSettings.recipients.splice(index, 1);
     renderGiftRecipients();
 }
 
 function renderGiftRecipients() {
     const container = document.getElementById('admin-recipients-list');
-    if(!adminGiftSettings.recipients) adminGiftSettings.recipients = [];
+    if (!container) return;
+    if (!adminGiftSettings.recipients) adminGiftSettings.recipients = [];
     container.innerHTML = adminGiftSettings.recipients.map((r, i) => `
         <span class="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-2 border border-gray-200 shadow-sm">
             ${r}
-            <button onclick="removeGiftRecipient(${i})" class="text-red-500 hover:text-red-700 transition"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" onclick="removeGiftRecipient(${i})" class="text-red-500 hover:text-red-700 transition"><i class="fa-solid fa-xmark"></i></button>
         </span>
     `).join('');
 }
 
-// 4. رفع صورة التغليف من الهاتف وحفظها (مع الضغط)
-window.saveNewWrapping = function() {
+export function saveNewWrapping() {
     const fileInput = document.getElementById('wrap-image-file');
     const nameInput = document.getElementById('wrap-name');
     const priceInput = document.getElementById('wrap-price');
     const btn = document.getElementById('btn-save-wrap');
     
-    if(!fileInput.files[0] || !nameInput.value.trim()) {
-        alert("يرجى التقاط/اختيار صورة وكتابة اسم التغليف!");
+    if (!fileInput.files[0] || !nameInput.value.trim()) {
+        showCustomAlert("تنبيه", "يرجى التقاط/اختيار صورة وكتابة اسم التغليف!", false);
         return;
     }
 
@@ -1227,8 +1239,8 @@ window.saveNewWrapping = function() {
         img.src = e.target.result;
         img.onload = function() {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 600; // حجم أصغر يناسب التغليف
-            const MAX_HEIGHT = 600;
+            const MAX_WIDTH = 450; // ضغط ذكي لتجنب تجاوز حد وثيقة Firestore
+            const MAX_HEIGHT = 450;
             let width = img.width;
             let height = img.height;
 
@@ -1240,12 +1252,15 @@ window.saveNewWrapping = function() {
                 height = MAX_HEIGHT;
             }
 
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = Math.round(width);
+            canvas.height = Math.round(height);
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            let compressedBase64 = canvas.toDataURL('image/webp', 0.65);
+            if (!compressedBase64.startsWith('data:image/webp')) {
+                compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
+            }
 
             const newWrap = {
                 id: 'wrap_' + Date.now(),
@@ -1254,7 +1269,7 @@ window.saveNewWrapping = function() {
                 image: compressedBase64
             };
             
-            if(!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
+            if (!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
             adminGiftSettings.wrappings.push(newWrap);
             renderAdminWrappings();
             
@@ -1264,75 +1279,65 @@ window.saveNewWrapping = function() {
             
             btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة';
             btn.disabled = false;
-        }
+        };
     };
     reader.readAsDataURL(file);
 }
 
-// 5. حذف التغليف
-window.deleteWrapping = function(id) {
-    if(confirm('هل أنت متأكد من حذف هذا التغليف؟ لن يظهر للزبائن بعد الآن.')) {
+export function deleteWrapping(id) {
+    if (confirm('هل أنت متأكد من حذف هذا التغليف؟ لن يظهر للزبائن بعد الآن.')) {
         adminGiftSettings.wrappings = adminGiftSettings.wrappings.filter(w => w.id !== id);
         renderAdminWrappings();
     }
 }
 
-// 6. عرض أشكال التغليف في الجدول
 function renderAdminWrappings() {
     const tbody = document.getElementById('admin-wrappings-list');
-    if(!adminGiftSettings.wrappings || adminGiftSettings.wrappings.length === 0) {
+    if (!tbody) return;
+    if (!adminGiftSettings.wrappings || adminGiftSettings.wrappings.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-gray-500 text-xs font-bold bg-gray-50">لا توجد أشكال تغليف حالياً. اضغط على الزر الذهبي لإضافة واحد!</td></tr>`;
         return;
     }
     
     tbody.innerHTML = adminGiftSettings.wrappings.map(w => `
         <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
-            <td class="p-2"><img src="${w.image}" class="w-14 h-14 object-cover rounded-xl border border-gray-200 shadow-sm"></td>
+            <td class="p-2"><img src="${w.image}" class="w-14 h-14 object-cover rounded-xl border border-gray-200 shadow-sm" loading="lazy"></td>
             <td class="p-2 font-bold text-gray-800 text-xs">${w.name}</td>
             <td class="p-2 text-[#D4AF37] font-black text-xs">${w.price > 0 ? w.price + ' دج' : 'مجاني'}</td>
             <td class="p-2 text-center">
-                <button onclick="deleteWrapping('${w.id}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 p-2.5 rounded-xl transition shadow-sm"><i class="fa-solid fa-trash-can"></i></button>
+                <button type="button" onclick="deleteWrapping('${w.id}')" class="text-red-500 hover:text-white bg-red-50 hover:bg-red-500 p-2.5 rounded-xl transition shadow-sm"><i class="fa-solid fa-trash-can"></i></button>
             </td>
         </tr>
     `).join('');
 }
 
-// 7. حفظ كل الإعدادات في قاعدة البيانات (النسخة المتوافقة والمحمية)
-window.saveGiftSettings = async function() {
+export async function saveGiftSettings() {
     try {
         const sloganInput = document.getElementById('gift-slogan-input');
         const minOrderInput = document.getElementById('gift-min-order-input');
         const btn = document.querySelector('button[onclick="saveGiftSettings()"]');
         
-        // 1. التأكد من وجود الحقول
         if (!sloganInput || !minOrderInput) {
-            showCustomAlert("خطأ", "لم يتم العثور على الحقول، يرجى التحقق من HTML.", false);
+            showCustomAlert("خطأ", "لم يتم العثور على الحقول، يرجى التحقق من الصفحة.", false);
             return;
         }
 
-        // 2. تحديث الإعدادات
         adminGiftSettings.slogan = sloganInput.value.trim();
         adminGiftSettings.minOrder = parseFloat(minOrderInput.value) || 0;
 
-        // 3. تأثير التحميل للزر
         const originalText = btn ? btn.innerHTML : 'حفظ الإعدادات';
         if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
 
-        // 4. التحقق من اتصال قاعدة البيانات
         if (typeof window.db === 'undefined') {
             showCustomAlert("خطأ الاتصال", "تعذر الاتصال بقاعدة البيانات Firebase.", false);
             if (btn) btn.innerHTML = originalText;
             return;
         }
 
-        // 5. الحفظ الفعلي في مسار "main" (مسار متجرك الصحيح)
         await window.db.collection("settings").doc("main").set({ gift: adminGiftSettings }, { merge: true });
 
-        // 6. تحديث المتغير المحلي فوراً
-        if (typeof state !== 'undefined') {
-            if (!state.storeSettings) state.storeSettings = {};
-            state.storeSettings.gift = adminGiftSettings;
-        }
+        if (!state.storeSettings) state.storeSettings = {};
+        state.storeSettings.gift = adminGiftSettings;
 
         showCustomAlert("تم الحفظ 🎉", "تم حفظ إعدادات صانع الهدايا بنجاح!", true);
         if (btn) btn.innerHTML = originalText;
@@ -1343,16 +1348,14 @@ window.saveGiftSettings = async function() {
         const btn = document.querySelector('button[onclick="saveGiftSettings()"]');
         if (btn) btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات';
     }
-};
+}
 
-// لتشغيل الدالة عند فتح لوحة الإدارة
 document.addEventListener('DOMContentLoaded', () => {
-    // ننتظر ثانية واحدة لضمان تحميل الإعدادات من الداتا بيز
     setTimeout(loadGiftAdminData, 1000); 
 });
 
 // =====================================
-// إعدادات الحد الأدنى للطلب الذكي
+// 8. إعدادات الحد الأدنى للطلب الذكي
 // =====================================
 export function handleSaveMinOrderSettings() {
     const localWilaya = document.getElementById('set-local-wilaya')?.value || '';
@@ -1364,19 +1367,18 @@ export function handleSaveMinOrderSettings() {
         minOrderLocal, 
         minOrderNational
     }, { merge: true }).then(() => {
-        if (typeof state !== 'undefined') {
-            if (!state.storeSettings) state.storeSettings = {};
-            state.storeSettings.localWilaya = localWilaya;
-            state.storeSettings.minOrderLocal = minOrderLocal;
-            state.storeSettings.minOrderNational = minOrderNational;
-        }
+        if (!state.storeSettings) state.storeSettings = {};
+        state.storeSettings.localWilaya = localWilaya;
+        state.storeSettings.minOrderLocal = minOrderLocal;
+        state.storeSettings.minOrderNational = minOrderNational;
         showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات الحد الأدنى للطلب بنجاح!', true);
     }).catch(err => {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     });
 }
+
 // =====================================
-// التصدير للـ Window
+// 9. التصدير للـ Window
 // =====================================
 window.handleImageUpload = handleImageUploadWrapper;
 window.checkAdminPassword = checkAdminPassword;
@@ -1410,6 +1412,8 @@ window.closeCustomConfirm = closeCustomConfirm;
 window.confirmDeleteOrder = confirmDeleteOrder;
 window.updateOrderStatus = updateOrderStatus;
 window.handleSaveSettings = handleSaveSettings;
+window.renderAdminHeroSlidesList = renderAdminHeroSlidesList;
+window.deleteHeroSlide = deleteHeroSlide;
 window.handleSaveHeroSlide = handleSaveHeroSlide;
 window.exportOrdersToExcel = exportOrdersToExcel;
 window.updateAdminPasswordSecure = updateAdminPasswordSecure;
@@ -1417,12 +1421,20 @@ window.toggleProductStock = toggleProductStock;
 window.toggleAllOrders = toggleAllOrders;
 window.checkBulkDeleteStatus = checkBulkDeleteStatus;
 window.deleteSelectedOrders = deleteSelectedOrders;
-// الدوال الجديدة الخاصة بصانع الفلاتر الشامل
 window.selectCategoryForFilter = selectCategoryForFilter;
 window.populateFilterCategories = populateFilterCategories;
 window.handleSaveDynamicAttribute = handleSaveDynamicAttribute;
 window.renderDynamicAttributesList = renderDynamicAttributesList;
+window.renderAdminAttributesTab = renderDynamicAttributesList; // للتوافق مع database.js
 window.deleteDynamicAttribute = deleteDynamicAttribute;
 window.printOrder = printOrder;
 window.printSelectedOrders = printSelectedOrders;
 window.handleSaveMinOrderSettings = handleSaveMinOrderSettings;
+window.openImageModal = openImageModal;
+window.loadGiftAdminData = loadGiftAdminData;
+window.toggleGiftSystem = toggleGiftSystem;
+window.addGiftRecipient = addGiftRecipient;
+window.removeGiftRecipient = removeGiftRecipient;
+window.saveNewWrapping = saveNewWrapping;
+window.deleteWrapping = deleteWrapping;
+window.saveGiftSettings = saveGiftSettings;
