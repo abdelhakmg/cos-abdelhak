@@ -5,6 +5,7 @@ import { formatPrice, safeCall, showCustomAlert } from './utils/helpers.js';
 
 window.activeCategoryFilter = 'جميع المنتجات';
 window.currentHeroIdx = 0;
+let categoriesSwiperInstance = null;
 
 // ==========================================
 // 1. رسم المنتجات والبطاقات
@@ -17,7 +18,7 @@ export function renderSingleProductCard(p) {
     return `
         <div class="bg-[#121212] rounded-2xl border border-[#D4AF37]/20 p-3 text-right flex flex-col justify-between shadow-lg hover:border-[#D4AF37] hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
             
-            <!-- زر المفضلة (تم تصغيره وتغيير مكانه قليلاً) -->
+            <!-- زر المفضلة -->
             <button onclick="event.stopPropagation(); safeCall('toggleFavorite', '${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm cursor-pointer border border-gray-700 hover:border-red-500">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'} text-sm"></i>
             </button>
@@ -46,7 +47,7 @@ export function renderSingleProductCard(p) {
                 </div>
             </div>
 
-            <!-- الأزرار المحدثة (التركيز على الشراء المباشر) -->
+            <!-- الأزرار -->
             <div class="mt-auto flex gap-2">
                 ${inStock ? `
                     <button onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="flex-1 py-2 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-[0_4px_15px_rgba(212,175,55,0.2)] hover:opacity-90 transition cursor-pointer flex items-center justify-center gap-1.5">
@@ -64,6 +65,7 @@ export function renderSingleProductCard(p) {
         </div>
     `;
 }
+
 export function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
@@ -79,7 +81,6 @@ export function renderProducts() {
 export function updateAppHeaderInfo() {
     const navEl = document.getElementById('header-nav');
     if (navEl) {
-        // تحويل الروابط المزدحمة إلى قائمة منسدلة (Dropdown) احترافية
         navEl.innerHTML = `
             <button onclick="safeCall('showPage', 'home')" class="text-gray-300 hover:text-[#D4AF37] transition font-bold">الرئيسية</button>
             
@@ -93,11 +94,14 @@ export function updateAppHeaderInfo() {
                     <button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="text-right px-4 py-2.5 text-white hover:bg-[#1e1e1e] hover:text-[#D4AF37] transition font-bold text-xs border-b border-gray-800 flex items-center gap-2">
                         <i class="fa-solid fa-border-all text-[#D4AF37]"></i> جميع المنتجات
                     </button>
-                    ${state.categories.map(c => `
-                        <button onclick="safeCall('filterCategory', '${c.name}')" class="text-right px-4 py-2.5 text-gray-300 hover:bg-[#1e1e1e] hover:text-[#D4AF37] transition font-bold text-xs flex items-center gap-2">
+                    ${state.categories.map(c => {
+                        const safeName = (c.name || '').replace(/'/g, "\\'");
+                        return `
+                        <button onclick="safeCall('filterCategory', '${safeName}')" class="text-right px-4 py-2.5 text-gray-300 hover:bg-[#1e1e1e] hover:text-[#D4AF37] transition font-bold text-xs flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-gray-600"></span> ${c.name}
                         </button>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
@@ -107,26 +111,34 @@ export function updateAppHeaderInfo() {
     if (mobileListEl) {
         mobileListEl.innerHTML = `<button onclick="safeCall('showPage', 'home'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-[#D4AF37] font-bold mb-2">الرئيسية</button>
             <button onclick="safeCall('filterCategory', 'جميع المنتجات'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-white font-bold mb-2">جميع المنتجات</button>` + 
-            state.categories.map(c => `<button onclick="safeCall('filterCategory', '${c.name}'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`).join('');
+            state.categories.map(c => {
+                const safeName = (c.name || '').replace(/'/g, "\\'");
+                return `<button onclick="safeCall('filterCategory', '${safeName}'); safeCall('toggleMobileMenu');" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-gray-200 hover:text-[#D4AF37] font-bold mb-2">${c.name}</button>`;
+            }).join('');
     }
 
     const homeCatGrid = document.getElementById('home-category-cards');
     if (homeCatGrid) {
-        // 🚀 التعديل 1: إضافة كلاس 'swiper-slide' للبطاقة
-        homeCatGrid.innerHTML = state.categories.map(c => `
-            <div onclick="safeCall('filterCategory', '${c.name}')" class="swiper-slide bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
+        homeCatGrid.innerHTML = state.categories.map(c => {
+            const safeName = (c.name || '').replace(/'/g, "\\'");
+            return `
+            <div onclick="safeCall('filterCategory', '${safeName}')" class="swiper-slide bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
                 <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
                     <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black" loading="lazy">
                 </div>
                 <h3 class="text-white font-bold text-sm tracking-wide group-hover:text-[#D4AF37]">${c.name}</h3>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
-        // 🚀 التعديل 2: تفعيل شريط التمرير Swiper وتجاوبه مع الشاشات
+        // 🌟 تصحيح: تدمير نسخة Swiper السابقة إن وجدت لمنع ثقل الصفحة وتداخل الحركة
         setTimeout(() => {
             if (typeof Swiper !== 'undefined') {
-                new Swiper('.categories-swiper', {
-                    slidesPerView: 2.5, // عرض بطاقتين ونصف في الهاتف ليعرف المستخدم أنه قابل للسحب
+                if (categoriesSwiperInstance) {
+                    categoriesSwiperInstance.destroy(true, true);
+                }
+                categoriesSwiperInstance = new Swiper('.categories-swiper', {
+                    slidesPerView: 2.5,
                     spaceBetween: 10,
                     navigation: {
                         nextEl: '.swiper-btn-next',
@@ -141,6 +153,9 @@ export function updateAppHeaderInfo() {
             }
         }, 100);
     }
+
+    // تحديث قائمة الماركات في الفلتر الجانبي
+    renderBrandsFilterSidebar();
 }
 
 export function toggleMobileMenu() {
@@ -154,7 +169,7 @@ export function toggleMobileMenu() {
 export function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
-    const q = query.trim().toLowerCase();
+    const q = (query || '').trim().toLowerCase();
     
     if (!q) {
         if (dropdown) dropdown.classList.add('hidden');
@@ -162,20 +177,23 @@ export function handleLiveSearch(query) {
         return;
     }
 
-    // 🚀 التعديل هنا: إضافة شرط (p.inStock !== false) لتجاهل المنتجات غير المتوفرة
     const matches = state.products.filter(p => {
-        if (p.inStock === false) return false; // تجاهل المنتج إذا كان غير متوفر
+        if (p.inStock === false) return false;
         
         const skinsStr = Array.isArray(p.skinTypes) ? p.skinTypes.join(' ') : (p.skinType || '');
         const hairsStr = Array.isArray(p.hairTypes) ? p.hairTypes.join(' ') : (p.hairType || '');
+        const attrsStr = p.attributes ? Object.values(p.attributes).flat().join(' ') : '';
+
         return (p.name && p.name.toLowerCase().includes(q)) || 
                (p.category && p.category.toLowerCase().includes(q)) ||
                (p.brand && p.brand.toLowerCase().includes(q)) ||
-               skinsStr.toLowerCase().includes(q) || hairsStr.toLowerCase().includes(q);
+               skinsStr.toLowerCase().includes(q) || 
+               hairsStr.toLowerCase().includes(q) ||
+               attrsStr.toLowerCase().includes(q);
     }).slice(0, 5);
 
     let htmlContent = matches.length === 0 ? 
-        '<div class="p-4 text-xs text-amber-400 text-center">المنتج غير متوفر، تأكد من البحث عنه يدويا من الفئات.</div>' : 
+        '<div class="p-4 text-xs text-amber-400 text-center">المنتج غير متوفر، تأكد من البحث عنه يدوياً من الفئات.</div>' : 
         matches.map(p => `
             <div onclick="safeCall('openLandingPage', '${p.id}'); safeCall('hideAllDropdowns');" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
                 <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black" loading="lazy">
@@ -189,6 +207,28 @@ export function handleLiveSearch(query) {
     if (dropdown) { dropdown.innerHTML = htmlContent; dropdown.classList.remove('hidden'); }
     if (mobileDropdown) { mobileDropdown.innerHTML = htmlContent; mobileDropdown.classList.remove('hidden'); }
 }
+
+// 🌟 الدالة التي كانت مفقودة وتسبب خطأ عند الكتابة في حقل البحث
+export function handleSearchKeydown(event, query) {
+    if (!event) return;
+    if (event.key === 'Escape') {
+        hideAllDropdowns();
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        const q = (query || '').trim().toLowerCase();
+        if (!q) return;
+        const firstMatch = state.products.find(p => p.inStock !== false && (
+            (p.name && p.name.toLowerCase().includes(q)) ||
+            (p.category && p.category.toLowerCase().includes(q)) ||
+            (p.brand && p.brand.toLowerCase().includes(q))
+        ));
+        if (firstMatch) {
+            hideAllDropdowns();
+            safeCall('openLandingPage', firstMatch.id);
+        }
+    }
+}
+
 export function hideAllDropdowns() {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
@@ -197,21 +237,40 @@ export function hideAllDropdowns() {
 }
 
 // ==========================================
-// 4. الفلاتر والتصنيفات (المفقودة مسبقاً)
+// 4. نظام الفلاتر الديناميكي والماركات للزبائن 🚀
 // ==========================================
 export function filterCategory(catName) {
-    window.activeCategoryFilter = catName.trim();
+    window.activeCategoryFilter = (catName || 'جميع المنتجات').trim();
     const breadcrumb = document.getElementById('breadcrumb-current');
     if (breadcrumb) breadcrumb.innerText = window.activeCategoryFilter;
 
     renderDynamicSidebarFilters();
+    renderBrandsFilterSidebar();
     applyFilters();
     safeCall('showPage', 'catalog');
 }
 
-// ==========================================
-// 4. نظام الفلاتر الديناميكي الذكي للزبائن 🚀
-// ==========================================
+// 🌟 تفعيل فلتر العلامات التجارية (الماركات) في الكتالوج
+export function renderBrandsFilterSidebar() {
+    const brandsContainer = document.getElementById('filter-brands-list');
+    if (!brandsContainer) return;
+
+    const brandsFromState = (state.brands || []).map(b => typeof b === 'object' ? b.name : b);
+    const brandsFromProducts = (state.products || []).map(p => p.brand).filter(Boolean);
+    const allBrands = [...new Set([...brandsFromState, ...brandsFromProducts])].filter(Boolean);
+
+    if (allBrands.length === 0) {
+        brandsContainer.innerHTML = '<p class="text-[11px] text-gray-500">لا توجد علامات تجارية محددة.</p>';
+        return;
+    }
+
+    brandsContainer.innerHTML = allBrands.map(brand => `
+        <label class="flex items-center gap-2 cursor-pointer py-0.5 hover:text-white transition">
+            <input type="checkbox" value="${brand}" onchange="window.applyFilters()" class="brand-filter-cb accent-[#D4AF37] w-3.5 h-3.5 cursor-pointer rounded">
+            <span>${brand}</span>
+        </label>
+    `).join('');
+}
 
 export function renderDynamicSidebarFilters() {
     const dynamicContainer = document.getElementById('dynamic-category-filters');
@@ -220,7 +279,6 @@ export function renderDynamicSidebarFilters() {
     const activeCat = (window.activeCategoryFilter || 'جميع المنتجات').trim();
     let html = '';
 
-    // دالة مساعدة لرسم الفلتر بستايل فاخر
     const buildFilterGroup = (title, items, attrName) => {
         if (!items || items.length === 0) return '';
         return `
@@ -236,13 +294,12 @@ export function renderDynamicSidebarFilters() {
         </div><hr class="border-gray-800">`;
     };
 
-    // 1. جلب الفلاتر الديناميكية التي صنعها المدير في لوحة التحكم!
     if (state.categoryFilters && state.categoryFilters[activeCat] && state.categoryFilters[activeCat].length > 0) {
         state.categoryFilters[activeCat].forEach(filter => {
             html += buildFilterGroup(filter.name, filter.options, filter.name);
         });
     } else if (activeCat === 'جميع المنتجات') {
-        html += '<p class="text-[10px] text-gray-500 text-center py-4 bg-black/40 rounded-xl border border-gray-800">يرجى تحديد قسم (مثل ألعاب أو ديكور) لظهور فلاتر البحث الدقيقة.</p>';
+        html += '<p class="text-[10px] text-gray-500 text-center py-4 bg-black/40 rounded-xl border border-gray-800">يرجى تحديد قسم من الأعلى لظهور فلاتر البحث الدقيقة الخاصة به.</p>';
     }
 
     dynamicContainer.innerHTML = html;
@@ -260,7 +317,7 @@ export function applyFilters() {
 
     // 2. فلتر المخزون
     const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
-    if (inStockOnly) filtered = filtered.filter(p => p.inStock === true);
+    if (inStockOnly) filtered = filtered.filter(p => p.inStock !== false);
 
     // 3. فلتر السعر
     const priceRangeInput = document.getElementById('filter-price-range');
@@ -269,32 +326,32 @@ export function applyFilters() {
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
     }
 
-    // 4. الفلاتر الديناميكية للزبائن (Smart Dynamic Filtering)
+    // 4. فلتر الماركات (العلامة التجارية)
+    const checkedBrands = Array.from(document.querySelectorAll('.brand-filter-cb:checked')).map(cb => cb.value);
+    if (checkedBrands.length > 0) {
+        filtered = filtered.filter(p => p.brand && checkedBrands.includes(p.brand));
+    }
+
+    // 5. الفلاتر الديناميكية للأقسام
     const dynamicCheckboxes = document.querySelectorAll('.dynamic-customer-cb:checked');
     if (dynamicCheckboxes.length > 0) {
         const selectedFilters = {};
-        // تجميع الاختيارات حسب اسم الفلتر
         dynamicCheckboxes.forEach(cb => {
             const attrName = cb.getAttribute('data-filter-name');
             if (!selectedFilters[attrName]) selectedFilters[attrName] = [];
             selectedFilters[attrName].push(cb.value);
         });
 
-        // تطبيق الفلتر على المنتجات
         filtered = filtered.filter(p => {
-            // إذا كان المنتج قديماً وليس له خصائص ديناميكية، يتم استبعاده من البحث الدقيق
             if (!p.attributes) return false;
-
-            // يجب أن يطابق المنتج *جميع* أنواع الفلاتر المحددة (AND logic)
             return Object.keys(selectedFilters).every(attrName => {
                 const productAttrValues = p.attributes[attrName] || [];
-                // يكفي أن يمتلك المنتج *أحد* الخيارات المحددة داخل هذا الفلتر (OR logic)
                 return selectedFilters[attrName].some(val => productAttrValues.includes(val));
             });
         });
     }
 
-    // 5. الترتيب (Sorting)
+    // 6. الترتيب (Sorting)
     const sortVal = document.getElementById('sort-select')?.value || 'best';
     if (sortVal === 'low') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     else if (sortVal === 'high') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
@@ -311,10 +368,16 @@ export function applyFilters() {
             filtered.map(renderSingleProductCard).join('');
     }
 }
+
 export function resetFilters() {
     window.activeCategoryFilter = 'جميع المنتجات';
+    const breadcrumb = document.getElementById('breadcrumb-current');
+    if (breadcrumb) breadcrumb.innerText = 'جميع المنتجات';
+
     const inStockCb = document.getElementById('filter-in-stock-only');
     if (inStockCb) inStockCb.checked = false;
+
+    document.querySelectorAll('.brand-filter-cb').forEach(cb => cb.checked = false);
 
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) priceRangeInput.value = 20000;
@@ -361,7 +424,12 @@ export function renderHeroSlider() {
     const dotsContainer = document.getElementById('hero-slider-dots');
     if (!container || !state.heroSlides || state.heroSlides.length === 0) return;
 
+    if (window.currentHeroIdx >= state.heroSlides.length) {
+        window.currentHeroIdx = 0;
+    }
+
     const currentSlide = state.heroSlides[window.currentHeroIdx];
+    if (!currentSlide) return;
 
     container.innerHTML = `
         <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
@@ -380,12 +448,22 @@ export function renderHeroSlider() {
             <button onclick="safeCall('setHeroSlide', ${idx})" class="h-2.5 rounded-full transition-all duration-300 ${idx === window.currentHeroIdx ? 'bg-[#D4AF37] w-8' : 'bg-gray-600 w-2.5'}"></button>
         `).join('');
     }
+
+    // 🌟 تشغيل التقليب التلقائي للبانر الإعلاني كل 5 ثوانٍ إذا كان هناك أكثر من شريحة
+    if (window.heroSliderTimer) clearInterval(window.heroSliderTimer);
+    if (state.heroSlides.length > 1) {
+        window.heroSliderTimer = setInterval(() => {
+            window.currentHeroIdx = (window.currentHeroIdx + 1) % state.heroSlides.length;
+            renderHeroSlider();
+        }, 5000);
+    }
 }
 
 export function setHeroSlide(idx) {
     window.currentHeroIdx = idx;
     renderHeroSlider();
 }
+
 export function startBannerTicker() {
     const bannerEl = document.getElementById('top-announcement-text');
     if (!bannerEl || !state.bannerMessages || state.bannerMessages.length === 0) return;
@@ -404,24 +482,20 @@ export function startBannerTicker() {
         }, 300);
     }, 3000);
 }
+
 // ==========================================
-// 7. التحكم الديناميكي بشاشة الافتتاح (Admin)
+// 6. التحكم الديناميكي بشاشة الافتتاح (Admin)
 // ==========================================
 export function saveSplashSettings() {
-    const title = document.getElementById('admin-splash-title').value.trim();
-    const subtitle = document.getElementById('admin-splash-subtitle').value.trim();
+    const title = document.getElementById('admin-splash-title')?.value.trim() || '';
+    const subtitle = document.getElementById('admin-splash-subtitle')?.value.trim() || '';
     
     if (typeof window.db !== 'undefined') {
-        // الحفظ في Firebase
         window.db.collection('settings').doc('main').set({
             splashTitle: title,
             splashSubtitle: subtitle
         }, { merge: true }).then(() => {
-            if (typeof showCustomAlert === 'function') {
-                showCustomAlert('تم الحفظ بنجاح 👑', 'تم تغيير نصوص شاشة البداية بنجاح وسيراها جميع الزوار فوراً.', true);
-            } else {
-                alert('تم الحفظ بنجاح!');
-            }
+            showCustomAlert('تم الحفظ بنجاح 👑', 'تم تغيير نصوص شاشة البداية بنجاح وسيراها جميع الزوار فوراً.', true);
         }).catch(err => console.error("Error saving splash settings:", err));
     }
 }
@@ -429,32 +503,29 @@ export function saveSplashSettings() {
 export function updateSplashScreenText() {
     if (!state.storeSettings) return;
     
-    // 1. تحديث النصوص في شاشة الزائر الخارجية
     const titleEl = document.getElementById('splash-title-display');
     const subEl = document.getElementById('splash-subtitle-display');
     if (titleEl && state.storeSettings.splashTitle) titleEl.innerText = state.storeSettings.splashTitle;
     if (subEl && state.storeSettings.splashSubtitle) subEl.innerText = state.storeSettings.splashSubtitle;
 
-    // 2. تحديث الحقول في لوحة تحكم الإدارة (لكي لا تكون فارغة عند دخولك)
     const adminTitleInput = document.getElementById('admin-splash-title');
     const adminSubInput = document.getElementById('admin-splash-subtitle');
     if (adminTitleInput && state.storeSettings.splashTitle) adminTitleInput.value = state.storeSettings.splashTitle;
     if (adminSubInput && state.storeSettings.splashSubtitle) adminSubInput.value = state.storeSettings.splashSubtitle;
 }
 
-// ربط الدوال بالواجهة
-window.saveSplashSettings = saveSplashSettings;
-window.updateSplashScreenText = updateSplashScreenText;window.startBannerTicker = startBannerTicker;
 // ==========================================
-// 6. ربط كافة الدوال بالواجهة (Window Bindings) 
+// 7. ربط كافة الدوال بالواجهة (Window Bindings) 
 // ==========================================
 window.renderSingleProductCard = renderSingleProductCard;
 window.renderProducts = renderProducts;
 window.updateAppHeaderInfo = updateAppHeaderInfo;
 window.toggleMobileMenu = toggleMobileMenu;
 window.handleLiveSearch = handleLiveSearch;
+window.handleSearchKeydown = handleSearchKeydown;
 window.hideAllDropdowns = hideAllDropdowns;
 window.filterCategory = filterCategory;
+window.renderBrandsFilterSidebar = renderBrandsFilterSidebar;
 window.renderDynamicSidebarFilters = renderDynamicSidebarFilters;
 window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
@@ -463,3 +534,6 @@ window.toggleFavorite = toggleFavorite;
 window.renderWishlistPage = renderWishlistPage;
 window.renderHeroSlider = renderHeroSlider;
 window.setHeroSlide = setHeroSlide;
+window.startBannerTicker = startBannerTicker;
+window.saveSplashSettings = saveSplashSettings;
+window.updateSplashScreenText = updateSplashScreenText;
