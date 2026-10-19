@@ -14,7 +14,12 @@ import './custom-builder.js';
 
 // تشغيل الوظائف الأساسية فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. بدء الاتصال بقاعدة البيانات
+    // 1. تحديث عدادات السلة والمفضلة المحفوظة مسبقاً فور فتح الموقع
+    if (typeof window.updateBadges === 'function') {
+        window.updateBadges();
+    }
+
+    // 2. بدء الاتصال بقاعدة البيانات ومزامنة البيانات
     if (typeof window.initFirebaseSync === 'function') {
         window.initFirebaseSync();
     }
@@ -22,20 +27,33 @@ document.addEventListener('DOMContentLoaded', () => {
         window.loadCustomAdminData();
     }
     
-    // 2. تشغيل شاشة الافتتاح الفاخرة
+    // 3. تشغيل شاشة الافتتاح الفاخرة
     if (typeof window.initLuxurySplashScreen === 'function') {
         window.initLuxurySplashScreen();
     }
     
-    // 3. التحقق من تسجيل دخول الإدارة لتثبيت الجلسة
+    // 4. التحقق من تسجيل دخول الإدارة لتثبيت الجلسة
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
         if (typeof window.showPage === 'function') {
             window.showPage('admin');
         }
     }
+
+    // 5. إغلاق قائمة نتائج البحث تلقائياً عند النقر خارجها
+    document.addEventListener('click', (e) => {
+        const desktopSearch = document.getElementById('live-search-input');
+        const mobileSearch = document.getElementById('mobile-search-input');
+        const desktopDropdown = document.getElementById('search-results-dropdown');
+        const mobileDropdown = document.getElementById('mobile-search-dropdown');
+
+        const clickedInsideSearch = 
+            (desktopSearch && desktopSearch.contains(e.target)) ||
+            (mobileSearch && mobileSearch.contains(e.target)) ||
+            (desktopDropdown && desktopDropdown.contains(e.target)) ||
+            (mobileDropdown && mobileDropdown.contains(e.target));
+
+        if (!clickedInsideSearch && typeof window.hideAllDropdowns === 'function') {
+            window.hideAllDropdowns();
+        }
+    });
 });
-setTimeout(() => {
-    if (typeof window.updateStoreFooterLinks === 'function') {
-        window.updateStoreFooterLinks();
-    }
-}, 1500);
