@@ -21,7 +21,7 @@ export function initFirebaseSync() {
         safeCall('renderAdminProductsTable');
     }, (error) => console.error("Error fetching products:", error));
 
-    // 2. مزامنة الولايات
+    // 2. مزامنة الولايات (باستخدام batch للكتابة دفعة واحدة)
     window.db.collection("wilayas").onSnapshot((snapshot) => {
         state.WILAYAS = [];
         snapshot.forEach((doc) => {
@@ -29,10 +29,13 @@ export function initFirebaseSync() {
         });
         
         if (state.WILAYAS.length === 0) {
-            console.log("قائمة الولايات فارغة، جاري حقن الـ 58 ولاية تلقائياً...");
+            console.log("قائمة الولايات فارغة، جاري حقن الـ 58 ولاية دفعة واحدة...");
+            const batch = window.db.batch();
             INITIAL_WILAYAS_58.forEach(w => {
-                window.db.collection("wilayas").doc(w.code).set(w);
+                const ref = window.db.collection("wilayas").doc(w.code);
+                batch.set(ref, w);
             });
+            batch.commit().catch(err => console.error("Batch error:", err));
         } else {
             state.WILAYAS.sort((a, b) => parseInt(a.code) - parseInt(b.code));
             safeCall('populateWilayas');
@@ -52,35 +55,39 @@ export function initFirebaseSync() {
         safeCall('renderAdminCategoriesList');
     }, (error) => console.error("Error fetching categories:", error));
 
-    // 4. مزامنة الإعدادات العامة للمتجر (هنا تم حل مشكلة فقدان الذاكرة!)
+    // 4. مزامنة الإعدادات العامة للمتجر
     window.db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
             state.storeSettings = { ...state.storeSettings, ...data };
             if (data.brands) state.brands = data.brands;
             if (data.bannerMessages) state.bannerMessages = data.bannerMessages;
-
-            // 🚀 السطر السحري: جلب الفلاتر الديناميكية التي تصنعها في الإدارة
             if (data.categoryFilters) state.categoryFilters = data.categoryFilters;
 
-            // الإبقاء على الفلاتر القديمة لعدم كسر المنتجات السابقة
             state.availableSkinTypes = (data.skinTypes && data.skinTypes.length > 0) ? data.skinTypes : state.availableSkinTypes;
             state.availableHairTypes = (data.hairTypes && data.hairTypes.length > 0) ? data.hairTypes : state.availableHairTypes;
         }
         
-        // تحديث الواجهات فوراً بعد جلب الإعدادات والفلاتر
         safeCall('updateAppHeaderInfo');
         safeCall('updateSplashScreenText');
-        safeCall('renderDynamicSidebarFilters'); // تحديث فلاتر الزبون
-        safeCall('populateAdminDropdowns'); // تحديث فلاتر الإدارة
+        safeCall('renderDynamicSidebarFilters');
+        safeCall('populateAdminDropdowns');
         safeCall('renderAdminAttributesTab'); 
         safeCall('renderAdminBrandsList'); 
         safeCall('renderBannerTextsList'); 
         safeCall('startBannerTicker'); 
         safeCall('updateStoreFooterLinks');
-    }, (error) => console.error("Error fetching settings:", error));
+    }, (error) => console.error("Error settings error:", error));
 
-    // 5. مزامنة الطلبيات (للإدارة)
+    // 🌟 5. الأمان أولاً: مزامنة الطلبيات للإدارة فقط عندما يكون المدير مسجلاً
+    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        initAdminOrdersSync();
+    }
+}
+
+// دالة منفصلة لجلب الطلبيات للمسؤول حصرياً
+export function initAdminOrdersSync() {
+    if (typeof window.db === 'undefined') return;
     window.db.collection("orders").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         state.orders = [];
         snapshot.forEach((doc) => {
@@ -88,15 +95,7 @@ export function initFirebaseSync() {
         });
         safeCall('renderAdminDashboard');
     }, (error) => console.error("Error fetching orders:", error));
-
-    // 6. مزامنة البانر الإعلاني
-    window.db.collection("heroSlides").onSnapshot((snapshot) => {
-        state.heroSlides = [];
-        snapshot.forEach((doc) => {
-            state.heroSlides.push({ id: doc.id, ...doc.data() });
-        });
-        safeCall('renderHeroSlider');
-    }, (error) => console.error("Error fetching hero slides:", error));
 }
 
 window.initFirebaseSync = initFirebaseSync;
+window.initAdminOrdersSync = initAdminOrdersSync;
