@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-    <!-- Swiper CSS & JS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
+
     <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cosmetic">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Font Awesome Icons & Google Fonts -->
+    <!-- Swiper CSS & JS (تم نقلها داخل الـ head) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
+    <!-- Font Awesome Icons & Google Fonts (تمت إضافة خط Cairo) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     
     <!-- SheetJS CDN للتصدير إلى إكسل -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -30,27 +32,24 @@
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
 
     <!-- 🌟 شاشة الافتتاح الفاخرة (Luxury Splash Screen) 🌟 -->
-<div id="luxury-splash-screen" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center text-center p-6 transition-opacity duration-700 ease-in-out">
-    <div class="relative mb-8 animate-pulse">
-        <div class="absolute inset-0 bg-[#D4AF37]/20 blur-3xl rounded-full scale-150"></div>
-        <!-- تم التكبير من w-32 md:w-48 إلى w-48 md:w-64 -->
-        <img src="logo.png" class="w-48 md:w-64 relative z-10 drop-shadow-[0_0_25px_rgba(212,175,55,0.8)]" alt="Logo" loading="lazy">
+    <div id="luxury-splash-screen" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center text-center p-6 transition-opacity duration-700 ease-in-out">
+        <div class="relative mb-8 animate-pulse">
+            <div class="absolute inset-0 bg-[#D4AF37]/20 blur-3xl rounded-full scale-150"></div>
+            <img src="logo.png" class="w-48 md:w-64 relative z-10 drop-shadow-[0_0_25px_rgba(212,175,55,0.8)]" alt="Logo" loading="lazy">
+        </div>
+        
+        <h1 id="splash-title-display" class="text-4xl md:text-6xl font-bold text-white tracking-widest mb-4 drop-shadow-lg font-['Amiri']">
+            كوسمتيك عبد الحق
+        </h1>
+        
+        <p id="splash-subtitle-display" class="text-sm md:text-lg text-[#D4AF37] font-medium max-w-md leading-relaxed tracking-widest drop-shadow-md px-4 font-['Tajawal']">
+            ✨ أهلاً بك في عالم الفخامة... حيث تبدأ حكايتك مع التميز 🔥
+        </p>
+        
+        <div class="w-40 h-1 bg-gray-900 rounded-full mt-10 overflow-hidden relative border border-[#D4AF37]/30">
+            <div class="w-full h-full gold-gradient animate-pulse"></div>
+        </div>
     </div>
-    
-    <!-- أعطينا الـ h1 ايدي splash-title-display -->
-    <h1 id="splash-title-display" class="text-4xl md:text-6xl font-bold text-white tracking-widest mb-4 drop-shadow-lg font-['Amiri']">
-        كوسمتيك عبد الحق
-    </h1>
-    
-    <!-- أعطينا الـ p ايدي splash-subtitle-display -->
-    <p id="splash-subtitle-display" class="text-sm md:text-lg text-[#D4AF37] font-medium max-w-md leading-relaxed tracking-widest drop-shadow-md px-4 font-['Tajawal']">
-        ✨ أهلاً بك في عالم الفخامة... حيث تبدأ حكايتك مع التميز 🔥
-    </p>
-    
-    <div class="w-40 h-1 bg-gray-900 rounded-full mt-10 overflow-hidden relative border border-[#D4AF37]/30">
-        <div class="w-full h-full gold-gradient animate-pulse"></div>
-    </div>
-</div>
 
     <!-- Sticky Top Yellow Banner Ticker -->
     <div class="sticky top-0 z-50 bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#E5C158] text-black text-center text-xs md:text-sm font-extrabold py-2 px-4 shadow-md overflow-hidden">
@@ -62,17 +61,18 @@
     <!-- Main Header Navigation -->
     <header class="bg-black text-white sticky top-8 z-30 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between gap-3">
-           <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
-    <div class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-        <img src="logo.png" class="w-full h-full object-cover" alt="شعار المتجر" loading="lazy">
-    </div>
-    <div class="overflow-visible whitespace-nowrap hidden sm:block">
-        <span class="text-sm sm:text-base md:text-lg font-black text-[#D4AF37] block leading-tight tracking-wider">كوسمتيك</span>
-        <span class="text-xs sm:text-sm text-white block font-bold mt-0.5 tracking-[0.2em]">عبدالحق</span>
-    </div>
-</div>
+            <div class="flex items-center gap-3 cursor-pointer select-none" id="logo-trigger" onclick="handleLogoClick(event)">
+                <div class="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)]">
+                    <img id="header-logo-img" src="logo.png" class="w-full h-full object-cover" alt="شعار المتجر" loading="lazy">
+                </div>
+                <div class="overflow-visible whitespace-nowrap hidden sm:block">
+                    <span class="text-sm sm:text-base md:text-lg font-black text-[#D4AF37] block leading-tight tracking-wider">كوسمتيك</span>
+                    <span class="text-xs sm:text-sm text-white block font-bold mt-0.5 tracking-[0.2em]">عبدالحق</span>
+                </div>
+            </div>
+
             <!-- شريط البحث المباشر في الوسط -->
-            <div class="flex-1 max-w-sm hidden md:block relative mx-4">
+            <div class="flex-1 max-w-sm hidden md:block relative mx-4 search-container">
                 <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج،..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
                 <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
                 <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
@@ -80,14 +80,17 @@
 
             <div class="flex items-center gap-2">
                 <div id="header-nav" class="hidden lg:flex items-center gap-4 font-bold text-xs text-gray-300"></div>
-<!-- زر صانع الهدايا (صغير ومدمج مع نص) -->
-                 <button onclick="openGiftBuilder()" class="hidden md:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                
+                <!-- زر صانع الهدايا -->
+                <button onclick="openGiftBuilder()" class="hidden md:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> أطلب هديتك
                 </button>
+                
                 <!-- زر قسم التخصيص والورشة -->
-<button onclick="openCustomBuilder()" class="hidden md:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-    <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
-</button>
+                <button onclick="openCustomBuilder()" class="hidden md:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
+                </button>
+                
                 <button onclick="showPage('tracking')" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition relative" title="تتبع طلبي">
                     <i class="fa-solid fa-truck-fast text-lg"></i>
                 </button>
@@ -104,7 +107,7 @@
                 </button>
             </div>
         </div>
-        <div class="px-4 pb-3 md:hidden relative">
+        <div class="px-4 pb-3 md:hidden relative search-container">
             <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج، بشرة دهنية، شعر..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute right-7 top-2.5 text-[#D4AF37] text-xs"></i>
             <div id="mobile-search-dropdown" class="absolute top-11 left-4 right-4 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-60 overflow-y-auto"></div>
@@ -162,30 +165,27 @@
             </section>
 
             <section class="bg-[#0f0f0f] py-8 border-b border-[#D4AF37]/20 relative">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-white text-xl font-black gold-text flex items-center gap-2">
-                <i class="fa-solid fa-layer-group text-[#D4AF37]"></i> أقسام المتجر
-            </h2>
-            <!-- أزرار التنقل (تظهر في الشاشات الكبيرة فقط) -->
-            <div class="hidden md:flex gap-2" dir="ltr">
-                <button class="swiper-btn-prev w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/50 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all shadow-md cursor-pointer z-10">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <button class="swiper-btn-next w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/50 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all shadow-md cursor-pointer z-10">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
+                <div class="max-w-7xl mx-auto px-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-white text-xl font-black gold-text flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-[#D4AF37]"></i> أقسام المتجر
+                        </h2>
+                        <div class="hidden md:flex gap-2" dir="ltr">
+                            <button class="swiper-btn-prev w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/50 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all shadow-md cursor-pointer z-10">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button class="swiper-btn-next w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/50 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition-all shadow-md cursor-pointer z-10">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
 
-        <!-- حاوية Swiper -->
-        <div class="swiper categories-swiper w-full overflow-hidden !pb-6 !pt-2">
-            <div class="swiper-wrapper" id="home-category-cards">
-                <!-- سيتم إضافة البطاقات هنا عبر الجافاسكريبت -->
-            </div>
-        </div>
-    </div>
-</section>
+                    <!-- حاوية Swiper -->
+                    <div class="swiper categories-swiper w-full overflow-hidden !pb-6 !pt-2">
+                        <div class="swiper-wrapper" id="home-category-cards"></div>
+                    </div>
+                </div>
+            </section>
 
             <section class="py-10 max-w-7xl mx-auto px-4">
                 <div class="text-center mb-8">
@@ -319,7 +319,6 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold mb-2 text-gray-300">البلدية *</label>
-                            <!-- سنجعله قائمة منسدلة تُملأ برمجياً عند اختيار الولاية، أو حقل نصي حسب رغبتك. حالياً كحقل نصي متوافق مع Firebase -->
                             <input type="text" id="cust-baladiya" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-800 p-3.5 rounded-xl text-sm outline-none text-white focus:border-[#D4AF37]">
                         </div>
                         <div class="md:col-span-2">
@@ -452,7 +451,7 @@
                     <button onclick="adminSignOut()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-lg transition">تسجيل الخروج الآمن</button>
                 </div>
 
-                <!-- 🌟 شريط التبويبات الخماسي الجديد والمريح 🌟 -->
+                <!-- شريط التبويبات -->
                 <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-3 custom-scrollbar">
                     <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-black text-white shadow-md border border-[#D4AF37]/30 whitespace-nowrap" id="tab-btn-analytics">📊 المبيعات والطلبات</button>
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-products">🛍️ المنتجات والمخزون</button>
@@ -460,14 +459,14 @@
                     <button onclick="switchAdminTab('marketing_ui')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-marketing_ui">🎨 الواجهة والتسويق</button>
                     <button onclick="switchAdminTab('shipping_settings')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-shipping_settings">🚚 التوصيل والإعدادات</button>
                     <button onclick="switchAdminTab('gift')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-gift">
-    <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-1"></i> صانع الهدايا
-</button>
-           <button onclick="switchAdminTab('custom_services')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-custom_services">
-    <i class="fa-solid fa-pen-ruler text-[#D4AF37] ml-1"></i> الورشة والتخصيص
-</button>         
+                        <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-1"></i> صانع الهدايا
+                    </button>
+                    <button onclick="switchAdminTab('custom_services')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-custom_services">
+                        <i class="fa-solid fa-pen-ruler text-[#D4AF37] ml-1"></i> الورشة والتخصيص
+                    </button>         
                 </div>
 
-                <!-- التبويب 1: المبيعات والطلبات -->
+                <!-- التبويب 1: المبيعات والطلبات (تم إصلاح الجدول المكرر والوسم الزائد) -->
                 <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
@@ -488,12 +487,12 @@
                         </div>
                     </div>
 
-                   <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 mt-6">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 mt-6">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-4">
                             <h3 class="font-bold text-lg text-gray-900 whitespace-nowrap"><i class="fa-solid fa-list-check text-[#B8860B]"></i> سجل الطلبيات وإدارة التوصيل</h3>
                             
                             <div class="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
-                                <!-- 🖨️ حاوية الأزرار الجماعية (تظهر فقط عند التحديد) -->
+                                <!-- حاوية الأزرار الجماعية -->
                                 <div id="bulk-actions-container" class="hidden gap-2">
                                     <button onclick="printSelectedOrders()" class="bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition">
                                         <i class="fa-solid fa-print"></i> طباعة المحدد
@@ -503,7 +502,7 @@
                                     </button>
                                 </div>
 
-                                <!-- 🔍 شريط البحث الذكي -->
+                                <!-- شريط البحث الذكي -->
                                 <div class="relative flex-grow md:flex-grow-0 ml-2">
                                     <input type="text" id="order-search-input" oninput="renderAdminDashboard()" placeholder="ابحث بالاسم، الهاتف..." class="w-full md:w-64 border border-gray-300 p-2.5 pr-9 rounded-xl text-xs outline-none focus:border-[#D4AF37] transition bg-gray-50">
                                     <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-gray-400 text-xs"></i>
@@ -523,34 +522,17 @@
                             </div>
                         </div>
 
-                        <!-- 📋 جدول الطلبات المحدث بـ Checkboxes -->
+                        <!-- جدول الطلبات الموحد -->
                         <div class="overflow-x-auto rounded-xl border border-gray-100">
                             <table class="w-full text-right text-sm">
                                 <thead class="bg-gray-50 border-b text-gray-700">
                                     <tr>
-                                        <!-- مربع تحديد الكل -->
                                         <th class="p-4 text-center w-10">
                                             <input type="checkbox" id="select-all-orders" onchange="toggleAllOrders(this)" class="accent-red-600 w-4 h-4 cursor-pointer">
                                         </th>
                                         <th class="p-4 font-bold">الطلب والتاريخ</th>
                                         <th class="p-4 font-bold">الزبون والهاتف</th>
                                         <th class="p-4 font-bold">العنوان (الولاية)</th>
-                                        <th class="p-4 font-bold">المنتج والمبلغ</th>
-                                        <th class="p-4 font-bold text-center">حالة الطلب</th>
-                                        <th class="p-4 font-bold text-center">الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-orders-log" class="divide-y divide-gray-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                        <div class="overflow-x-auto rounded-xl border border-gray-100">
-                            <table class="w-full text-right text-sm">
-                                <thead class="bg-gray-50 border-b text-gray-700">
-                                    <tr>
-                                        <th class="p-4 font-bold">الزبون والهاتف</th>
-                                        <th class="p-4 font-bold">العنوان (الولاية / البلدية)</th>
                                         <th class="p-4 font-bold">المنتج والمبلغ</th>
                                         <th class="p-4 font-bold text-center">حالة الطلب</th>
                                         <th class="p-4 font-bold text-center">الإجراءات</th>
@@ -647,144 +629,135 @@
                         </div>
                     </div>
                 </div>
-<!-- 🎁 قسم إدارة صانع الهدايا -->
-       <div id="admin-tab-gift" class="tab-content hidden space-y-6 text-gray-900">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
-                <div>
-                    <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-gift text-[#D4AF37] mr-2"></i> إدارة صانع الهدايا</h3>
-                    <p class="text-xs text-gray-500 mt-1">تحكم في الهدايا، الأسعار، والمناسبات. وارفع صور التغليف من هاتفك.</p>
-                </div>
-                
-                <!-- زر تشغيل/إيقاف صانع الهدايا (Master Switch) -->
-                <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                    <span class="font-bold text-sm text-gray-700">حالة النظام:</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="gift-master-switch" class="sr-only peer" onchange="toggleGiftSystem(this.checked)">
-                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                        <span id="gift-status-text" class="mr-3 text-xs font-bold text-gray-500">متوقف</span>
-                    </label>
-                </div>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- إعدادات عامة -->
-                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                    <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-sliders text-[#D4AF37] ml-1"></i> إعدادات عامة</h4>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">المقولة الترحيبية</label>
-                        <input type="text" id="gift-slogan-input" placeholder="مثال: يبدو أن أحدهم سيغدو سعيداً اليوم" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                <!-- 🎁 قسم إدارة صانع الهدايا (تم إزالة كلاس hidden المتعارض) -->
+                <div id="admin-tab-gift" class="tab-content space-y-6 text-gray-900">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
+                        <div>
+                            <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-gift text-[#D4AF37] mr-2"></i> إدارة صانع الهدايا</h3>
+                            <p class="text-xs text-gray-500 mt-1">تحكم في الهدايا، الأسعار، والمناسبات. وارفع صور التغليف من هاتفك.</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                            <span class="font-bold text-sm text-gray-700">حالة النظام:</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="gift-master-switch" class="sr-only peer" onchange="toggleGiftSystem(this.checked)">
+                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                <span id="gift-status-text" class="mr-3 text-xs font-bold text-gray-500">متوقف</span>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">الحد الأدنى للطلب (دج)</label>
-                        <input type="number" id="gift-min-order-input" placeholder="مثال: 2000" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                            <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-sliders text-[#D4AF37] ml-1"></i> إعدادات عامة</h4>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">المقولة الترحيبية</label>
+                                <input type="text" id="gift-slogan-input" placeholder="مثال: يبدو أن أحدهم سيغدو سعيداً اليوم" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">الحد الأدنى للطلب (دج)</label>
+                                <input type="number" id="gift-min-order-input" placeholder="مثال: 2000" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                            <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-users text-[#D4AF37] ml-1"></i> المستلمين والمناسبات</h4>
+                            <div class="flex gap-2">
+                                <input type="text" id="new-recipient-input" placeholder="أضف مستلم (مثال: عيد الأم)" class="flex-1 border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                                <button onclick="addGiftRecipient()" class="bg-gray-900 text-white px-4 rounded-xl text-sm font-bold hover:bg-black transition"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                            <div id="admin-recipients-list" class="flex flex-wrap gap-2 mt-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h4 class="font-bold text-gray-800"><i class="fa-solid fa-ribbon text-[#D4AF37] ml-1"></i> أشكال التغليف</h4>
+                            <button onclick="document.getElementById('add-wrapping-modal').classList.remove('hidden');document.getElementById('add-wrapping-modal').classList.add('flex')" class="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 transition flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> إضافة صورة تغليف
+                            </button>
+                        </div>
+                        
+                        <div class="overflow-x-auto rounded-xl border border-gray-100">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-gray-50 border-b text-gray-700">
+                                    <tr>
+                                        <th class="p-3 font-bold w-20">الصورة</th>
+                                        <th class="p-3 font-bold">اسم التغليف</th>
+                                        <th class="p-3 font-bold">السعر (دج)</th>
+                                        <th class="p-3 font-bold text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-wrappings-list" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end pt-2">
+                        <button onclick="saveGiftSettings()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات
+                        </button>
                     </div>
                 </div>
 
-                <!-- قائمة المستلمين -->
-                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                    <h4 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-users text-[#D4AF37] ml-1"></i> المستلمين والمناسبات</h4>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-recipient-input" placeholder="أضف مستلم (مثال: عيد الأم)" class="flex-1 border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                        <button onclick="addGiftRecipient()" class="bg-gray-900 text-white px-4 rounded-xl text-sm font-bold hover:bg-black transition"><i class="fa-solid fa-plus"></i></button>
+                <!-- نافذة إضافة تغليف جديد -->
+                <div id="add-wrapping-modal" class="hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm items-center justify-center p-4">
+                    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 overflow-hidden relative">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-ribbon text-[#D4AF37] mr-2"></i> رفع تغليف جديد</h3>
+                            <button onclick="this.closest('#add-wrapping-modal').classList.add('hidden');this.closest('#add-wrapping-modal').classList.remove('flex')" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">صورة التغليف (مباشرة من الهاتف/الكاميرا)</label>
+                                <input type="file" id="wrap-image-file" accept="image/*" class="w-full border border-gray-300 p-2 rounded-xl text-sm bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37]/20 file:text-[#b08b2c] hover:file:bg-[#D4AF37]/30 cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">اسم/لون التغليف</label>
+                                <input type="text" id="wrap-name" placeholder="مثال: تغليف ورق كرافت أسود" class="w-full border border-gray-300 p-3 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">تكلفة التغليف (ضع 0 إذا كان مجانياً)</label>
+                                <input type="number" id="wrap-price" placeholder="مثال: 300" class="w-full border border-gray-300 p-3 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                            </div>
+                            <button id="btn-save-wrap" onclick="saveNewWrapping()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition mt-4 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة
+                            </button>
+                        </div>
                     </div>
-                    <div id="admin-recipients-list" class="flex flex-wrap gap-2 mt-2">
-                        <!-- سيتم حقنها من الجافاسكريبت -->
+                </div>
+
+                <!-- التبويب 7: إدارة ورشة التخصيص (تم إزالة كلاس hidden المتعارض) -->
+                <div id="admin-tab-custom_services" class="tab-content space-y-6 text-gray-900">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
+                        <div>
+                            <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-pen-ruler text-[#D4AF37] mr-2"></i> إدارة الورشة وخدمات التخصيص</h3>
+                            <p class="text-xs text-gray-500 mt-1">تحكم في أسعار حفر الليزر، طباعة الكؤوس، الكادرات، وخدمات الكاميو.</p>
+                        </div>
+                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
+                            <span class="font-bold text-sm text-gray-700">حالة الورشة:</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="custom-master-switch" class="sr-only peer" onchange="toggleCustomSystem(this.checked)">
+                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                <span id="custom-status-text" class="mr-3 text-xs font-bold text-gray-500">مغلقة</span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- إدارة التغليف (Wrappings) -->
-            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center border-b pb-2">
-                    <h4 class="font-bold text-gray-800"><i class="fa-solid fa-ribbon text-[#D4AF37] ml-1"></i> أشكال التغليف</h4>
-                    <button onclick="document.getElementById('add-wrapping-modal').classList.remove('hidden');document.getElementById('add-wrapping-modal').classList.add('flex')" class="bg-[#D4AF37] text-black px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 transition flex items-center gap-1">
-                        <i class="fa-solid fa-plus"></i> إضافة صورة تغليف
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
-                    <table class="w-full text-right text-sm">
-                        <thead class="bg-gray-50 border-b text-gray-700">
-                            <tr>
-                                <th class="p-3 font-bold w-20">الصورة</th>
-                                <th class="p-3 font-bold">اسم التغليف</th>
-                                <th class="p-3 font-bold">السعر (دج)</th>
-                                <th class="p-3 font-bold text-center">إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-wrappings-list" class="divide-y divide-gray-100">
-                            <!-- سيتم الحقن من الجافاسكريبت -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="flex justify-end pt-2">
-                <button onclick="saveGiftSettings()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات
-                </button>
-            </div>
-        </div>
+                    <div id="admin-custom-settings-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
 
-    <!-- 🎀 نافذة إضافة تغليف جديد (مع رفع الصورة من الهاتف) -->
-    <div id="add-wrapping-modal" class="hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 overflow-hidden relative">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-ribbon text-[#D4AF37] mr-2"></i> رفع تغليف جديد</h3>
-                <button onclick="this.closest('#add-wrapping-modal').classList.add('hidden');this.closest('#add-wrapping-modal').classList.remove('flex')" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">صورة التغليف (مباشرة من الهاتف/الكاميرا)</label>
-                    <!-- accept="image/*" سيفتح كاميرا الهاتف أو المعرض مباشرة -->
-                    <input type="file" id="wrap-image-file" accept="image/*" class="w-full border border-gray-300 p-2 rounded-xl text-sm bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37]/20 file:text-[#b08b2c] hover:file:bg-[#D4AF37]/30 cursor-pointer">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">اسم/لون التغليف</label>
-                    <input type="text" id="wrap-name" placeholder="مثال: تغليف ورق كرافت أسود" class="w-full border border-gray-300 p-3 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">تكلفة التغليف (ضع 0 إذا كان مجانياً)</label>
-                    <input type="number" id="wrap-price" placeholder="مثال: 300" class="w-full border border-gray-300 p-3 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <button id="btn-save-wrap" onclick="saveNewWrapping()" class="w-full bg-gray-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition mt-4 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة
-                </button>
-            </div>
-        </div>
-    </div>
-       <!-- التبويب 7: إدارة ورشة التخصيص (الليزر، الكاميو، الطباعة) -->
-<div id="admin-tab-custom_services" class="tab-content hidden space-y-6 text-gray-900">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
-        <div>
-            <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-pen-ruler text-[#D4AF37] mr-2"></i> إدارة الورشة وخدمات التخصيص</h3>
-            <p class="text-xs text-gray-500 mt-1">تحكم في أسعار حفر الليزر، طباعة الكؤوس، الكادرات، وخدمات الكاميو.</p>
-        </div>
-        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-            <span class="font-bold text-sm text-gray-700">حالة الورشة:</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="custom-master-switch" class="sr-only peer" onchange="toggleCustomSystem(this.checked)">
-                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                <span id="custom-status-text" class="mr-3 text-xs font-bold text-gray-500">مغلقة</span>
-            </label>
-        </div>
-    </div>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="saveCustomServicesSettings()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات الورشة
+                        </button>
+                    </div>
+                </div>     
 
-    <!-- شبكة الإعدادات ستُحقن هنا بواسطة الجافاسكريبت -->
-    <div id="admin-custom-settings-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-
-    <div class="flex justify-end pt-2">
-        <button onclick="saveCustomServicesSettings()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2">
-            <i class="fa-solid fa-floppy-disk"></i> حفظ إعدادات الورشة
-        </button>
-    </div>
-</div>     
                 <!-- التبويب 3: الأقسام والخصائص المجمعة -->
                 <div id="admin-tab-categories_attributes" class="tab-content space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        
-                        <!-- إدارة الفئات -->
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                             <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-folder-tree text-[#B8860B]"></i> إدارة الأقسام (الفئات الرئيسية)</h3>
                             <form onsubmit="handleSaveCategory(event)" class="space-y-3">
@@ -797,7 +770,6 @@
                             <div id="admin-categories-list" class="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-2"></div>
                         </div>
 
-                        <!-- إدارة الماركات -->
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                             <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-tags text-[#B8860B]"></i> إدارة الماركات (العلامات التجارية)</h3>
                             <form onsubmit="handleSaveBrand(event)" class="flex gap-2">
@@ -807,7 +779,6 @@
                             <div id="admin-brands-list" class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2"></div>
                         </div>
 
-                        <!-- 🌟 صانع الفلاتر والخصائص الشامل (الجديد) 🌟 -->
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5 lg:col-span-2 mt-4">
                             <div class="border-b pb-3">
                                 <h3 class="font-bold text-lg text-gray-800"><i class="fa-solid fa-filter text-[#B8860B]"></i> صانع الفلاتر والخصائص الشامل للأقسام</h3>
@@ -834,9 +805,7 @@
 
                             <div class="pt-4">
                                 <h4 class="font-bold text-sm mb-3 text-gray-800">الفلاتر المخصصة المضافة حالياً:</h4>
-                                <div id="admin-dynamic-attributes-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto custom-scrollbar pr-2">
-                                    <!-- سيتم عرض الفلاتر هنا تلقائياً -->
-                                </div>
+                                <div id="admin-dynamic-attributes-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto custom-scrollbar pr-2"></div>
                             </div>
                         </div>
                     </div>
@@ -844,532 +813,10 @@
 
                 <!-- التبويب 4: الواجهة والتسويق -->
                 <div id="admin-tab-marketing_ui" class="tab-content space-y-6 text-gray-900">
-                    <!-- التحكم في شاشة البداية (Splash Screen) -->
                     <div class="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 shadow-sm">
                         <h3 class="text-gray-900 font-bold text-lg mb-4 border-b border-gray-200 pb-2">
                             <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-2"></i> التحكم في شاشة الافتتاح (Splash Screen)
                         </h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-gray-600 text-xs font-bold mb-2">اسم المتجر (العنوان الرئيسي)</label>
-                                <input type="text" id="admin-splash-title" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="مثال: كوسمتيك عبد الحق">
-                            </div>
-                            <div>
-                                <label class="block text-gray-600 text-xs font-bold mb-2">الجملة الترحيبية الفاخرة</label>
-                                <input type="text" id="admin-splash-subtitle" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="أدخل عبارتك هنا...">
-                            </div>
-                            <button onclick="safeCall('saveSplashSettings')" class="w-full py-3 bg-[#D4AF37] text-black font-extrabold rounded-xl hover:opacity-90 transition shadow-md cursor-pointer">
-                                حفظ نصوص شاشة البداية 👑
-                            </button>
-                        </div>
-                    </div>
-                    <!-- البانر الإعلاني الرئيسي -->
-                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
-                        <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-regular fa-images text-[#B8860B]"></i> صور المنزلقة الإعلانية (الصفحة الرئيسية)</h3>
-                        <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير *" required class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-                            <input type="text" id="hero-desc-input" placeholder="وصف قصير *" required class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-                            
-                            <div class="md:col-span-2 flex flex-col space-y-2">
-                                <label class="block text-xs font-bold text-gray-600">صورة الإعلان (اختر من الهاتف/الحاسوب أو ضع رابط) *</label>
-                                <div class="flex flex-col sm:flex-row gap-3">
-                                    <!-- زر رفع الصورة المخفي -->
-                                    <input type="file" id="hero-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'hero-img-input')">
-                                    
-                                    <!-- زر الرفع الأنيق -->
-                                    <button type="button" onclick="document.getElementById('hero-file-input').click()" class="bg-gray-800 text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition flex items-center justify-center gap-2 whitespace-nowrap shadow-sm">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة
-                                    </button>
-                                    
-                                    <!-- حقل الرابط (سيمتلئ تلقائياً عند الرفع) -->
-                                    <input type="url" id="hero-img-input" placeholder="أو ضع رابط الصورة هنا (URL)..." required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50 outline-none focus:border-[#D4AF37]">
-                                    
-                                    <!-- زر الإضافة -->
-                                    <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md whitespace-nowrap">إضافة الإعلان</button>
-                                </div>
-                            </div>
-                        </form>
-                        <div id="admin-hero-slides-list" class="space-y-3 pt-4 border-t border-gray-100"></div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- البانر الأصفر المتحرك -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
-                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-bullhorn text-[#B8860B]"></i> الشريط الأصفر المتحرك (أعلى الموقع)</h3>
-                            <div class="flex gap-2">
-                                <input type="text" id="new-banner-text" placeholder="مثال: خصم 50% اليوم..." class="border p-3 rounded-xl text-sm flex-1 bg-gray-50">
-                                <button onclick="addBannerText()" class="bg-black text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition whitespace-nowrap">+ إضافة للبانر</button>
-                            </div>
-                            <div id="banner-texts-list" class="space-y-2 pt-2"></div>
-                        </div>
-
-                        <!-- هوية المتجر -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-store text-[#B8860B]"></i> هوية المتجر المرئية</h3>
-                            <form class="space-y-4">
-                                <div><label class="block text-xs font-bold mb-1 text-gray-600">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                <div><label class="block text-xs font-bold mb-1 text-gray-600">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                <button type="button" onclick="handleSaveSettings(event)" class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-md hover:opacity-90 transition mt-2">حفظ الهوية البصرية</button>
-                            </form>
-                        </div>
-                        <!-- إعدادات أرقام وروابط التواصل -->
-<div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 mt-6">
-    <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-hashtag text-[#B8860B]"></i> أرقام وروابط التواصل</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">رقم الهاتف (للزبائن)</label><input type="text" id="set-phone" placeholder="مثال: 0555000000" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">البريد الإلكتروني</label><input type="email" id="set-email" placeholder="contact@example.com" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط فيسبوك</label><input type="text" id="set-facebook" placeholder="https://facebook.com/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط إنستغرام</label><input type="text" id="set-instagram" placeholder="https://instagram.com/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">رقم واتساب (يبدأ بـ 213)</label><input type="text" id="set-whatsapp-num" placeholder="مثال: 213555000000" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط تليغرام</label><input type="text" id="set-telegram" placeholder="https://t.me/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-    </div>
-    <button type="button" onclick="handleSaveSettings(event)" class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-md hover:opacity-90 transition mt-4">حفظ أرقام وروابط التواصل</button>
-</div>
-                    </div>
-                </div>
-
-                <!-- التبويب 5: التوصيل والإعدادات -->
-                <div id="admin-tab-shipping_settings" class="tab-content space-y-6 text-gray-900">
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- إدارة الولايات والتسعير -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5 lg:col-span-2">
-                            <div class="flex justify-between items-center border-b pb-3">
-                                <h3 id="wilaya-form-title" class="font-bold text-lg text-gray-800"><i class="fa-solid fa-map-location-dot text-[#B8860B]"></i> تسعيرة التوصيل للولايات</h3>
-                                <button type="button" onclick="resetWilayaForm()" id="cancel-wilaya-edit-btn" class="hidden text-xs bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">إلغاء التعديل</button>
-                            </div>
-                            <form onsubmit="handleSaveWilaya(event)" id="wilaya-edit-form" class="space-y-4">
-                                <input type="hidden" id="editing-wilaya-id">
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                    <div><label class="block text-xs font-bold text-gray-600 mb-1">رمز الولاية *</label><input type="text" id="wilaya-code" placeholder="مثال: 17" required class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                    <div class="md:col-span-2"><label class="block text-xs font-bold text-gray-600 mb-1">اسم الولاية *</label><input type="text" id="wilaya-name" placeholder="مثال: الجلفة" required class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                    <div><label class="block text-xs font-bold text-gray-600 mb-1">توصيل المكتب *</label><input type="number" id="wilaya-office-cost" placeholder="مثال: 500" required class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                </div>
-                                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 flex flex-col sm:flex-row items-center gap-4">
-                                    <label class="text-sm font-bold text-emerald-800 whitespace-nowrap"><i class="fa-solid fa-house"></i> سعر توصيل المنزل (دج) *</label>
-                                    <input type="number" id="wilaya-home-cost" placeholder="مثال: 700" required class="flex-1 border p-3 rounded-xl text-sm bg-white">
-                                    <button type="submit" id="save-wilaya-btn" class="w-full sm:w-auto bg-black text-white font-bold px-8 py-3 rounded-xl hover:bg-[#D4AF37] hover:text-black transition">حفظ الولاية</button>
-                                </div>
-                            </form>
-                            <div id="admin-wilayas-list" class="space-y-2 pt-4 border-t border-gray-100 max-h-96 overflow-y-auto custom-scrollbar pr-2"></div>
-                        </div>
-<!-- إعدادات الحد الأدنى للطلب الذكي -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-coins text-[#B8860B]"></i> إعدادات الحد الأدنى للطلب</h3>
-                            <form class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-bold mb-1 text-gray-600">الولاية المحلية (ولايتك)</label>
-                                    <select id="set-local-wilaya" class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]"></select>
-                                    <p class="text-[10px] text-gray-400 mt-1">سيتم تطبيق الحد الأدنى المحلي على هذه الولاية.</p>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold mb-1 text-gray-600">الحد الأدنى المحلي (دج)</label>
-                                        <input type="number" id="set-min-order-local" placeholder="مثال: 1500" class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold mb-1 text-gray-600">الحد الأدنى الوطني لباقي الولايات (دج)</label>
-                                        <input type="number" id="set-min-order-national" placeholder="مثال: 3000" class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-                                    </div>
-                                </div>
-                                <button type="button" onclick="handleSaveMinOrderSettings()" class="w-full bg-black text-white font-bold py-3.5 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">حفظ إعدادات الحد الأدنى</button>
-                            </form>
-                        </div>
-                        <!-- إعدادات الرسائل -->
-                        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-envelope-open-text text-[#B8860B]"></i> رسائل النظام والتنبيهات</h3>
-                            <form class="space-y-4">
-                                <div>
-                                    <label class="block text-xs font-bold mb-1 text-gray-600">رسالة "تم استلام الطلب" (تظهر للزبون)</label>
-                                    <textarea id="set-msg-success" rows="2" class="w-full border p-3 rounded-xl text-sm bg-gray-50" placeholder="تم استلام طلبك بنجاح!"></textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold mb-1 text-gray-600">رسالة "نقص البيانات"</label>
-                                    <textarea id="set-msg-warning" rows="2" class="w-full border p-3 rounded-xl text-sm bg-gray-50" placeholder="يرجى ملء كافة المعلومات!"></textarea>
-                                </div>
-                                <button type="button" onclick="handleSaveSettings(event)" class="w-full bg-black text-white font-bold py-3.5 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">حفظ رسائل النظام</button>
-                            </form>
-                        </div>
-
-                        <div class="space-y-6">
-                            <!-- الربط مع شركات التوصيل -->
-                            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-                                <h3 class="font-bold text-lg border-b pb-3 text-gray-800 flex items-center gap-2">
-                                    <i class="fa-solid fa-plug text-[#B8860B]"></i> API شركات التوصيل
-                                </h3>
-                                <div class="space-y-3">
-                                    <input type="text" id="shipping-api-key" placeholder="مفتاح الـ API (API Key)..." class="w-full border p-3 rounded-xl text-sm bg-gray-50">
-                                    <input type="text" id="shipping-api-token" placeholder="رمز الأمان (API Token)..." class="w-full border p-3 rounded-xl text-sm bg-gray-50">
-                                    <button onclick="saveShippingApiSettings()" class="w-full bg-black text-white font-bold py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition">تفعيل الربط</button>
-                                </div>
-                            </div>
-
-                            <!-- تغيير كلمة المرور -->
-                            <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-4">
-                                <h3 class="font-bold text-lg border-b pb-3 text-red-600"><i class="fa-solid fa-shield-halved"></i> الأمان: تغيير كلمة المرور</h3>
-                                <div class="space-y-3">
-                                    <input type="password" id="new-admin-password" placeholder="أدخل كلمة المرور الجديدة (6 أحرف/أرقام)..." class="w-full border p-3 rounded-xl text-sm bg-gray-50">
-                                    <button type="button" onclick="updateAdminPasswordSecure()" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-red-700 transition shadow-sm">تحديث كلمة المرور بحماية</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <!-- App-like Bottom Navigation for Mobile -->
-    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-[#D4AF37]/30 z-40 px-4 py-2 flex justify-around items-center text-white">
-        <button onclick="showPage('home')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
-            <i class="fa-solid fa-house text-lg"></i>
-            <span>الرئيسية</span>
-        </button>
-        <button onclick="filterCategory('جميع المنتجات')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
-            <i class="fa-solid fa-border-all text-lg"></i>
-            <span>المنتجات</span>
-        </button>
-        <button onclick="openCustomBuilder()" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
-    <i class="fa-solid fa-pen-ruler text-lg"></i>
-    <span>صمم منتجك</span>
-</button>
-        <button onclick="openGiftBuilder()" class="flex flex-col items-center gap-1 text-[10px] font-extrabold text-[#D4AF37] animate-bounce">
-    <div class="w-8 h-8 rounded-full gold-gradient text-black flex items-center justify-center text-sm shadow-lg">🎁</div>
-           <span>هديتك</span>
-        </button>
-        <button onclick="showPage('wishlist')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
-            <i class="fa-solid fa-heart text-lg"></i>
-            <span>المفضلة</span>
-        </button>
-        <button onclick="showPage('cart')" class="flex flex-col items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-[#D4AF37]">
-            <i class="fa-solid fa-bag-shopping text-lg"></i>
-            <span>السلة</span>
-        </button>
-    </div>
-
-    <!-- Modals -->
-    <div id="image-lightbox-modal" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4 cursor-zoom-out" onclick="closeLightbox()">
-        <img id="lightbox-target-img" class="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl border border-[#D4AF37]/40 shadow-2xl">
-    </div>
-
-    <div id="custom-alert-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] hidden items-center justify-center p-4">
-        <div class="bg-[#121212] border border-[#D4AF37]/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
-            <div id="alert-icon-box" class="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto text-black text-2xl shadow-lg">
-                <i id="alert-icon" class="fa-solid fa-check"></i>
-            </div>
-            <h3 id="alert-title" class="text-xl font-black text-white gold-text">تم الاستلام بنجاح!</h3>
-            <p id="alert-message" class="text-sm text-gray-300 leading-relaxed"></p>
-            <button onclick="closeCustomAlert()" class="w-full py-3.5 gold-gradient text-black font-black rounded-xl text-sm shadow-lg hover:opacity-90 transition">حسناً 👍</button>
-        </div>
-    </div>
-
-    <div id="custom-confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] hidden items-center justify-center p-4">
-        <div class="bg-[#121212] border border-red-500/40 rounded-3xl p-6 md:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
-            <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 text-2xl shadow-lg">
-                <i class="fa-solid fa-trash-can"></i>
-            </div>
-            <h3 class="text-xl font-black text-white">حذف العنصر؟</h3>
-            <p id="confirm-message" class="text-sm text-gray-300 leading-relaxed">هل أنت تأكد من رغبتك في الحذف نهائياً؟</p>
-            <div class="flex gap-3">
-               <button id="confirm-action-btn" onclick="confirmDeleteOrder()" class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl text-sm shadow-lg hover:bg-red-700 transition">نعم، حذف</button>
-                <button onclick="closeCustomConfirm()" class="flex-1 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-700 transition">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="admin-auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl text-gray-900">
-            <h3 class="text-xl font-black">دخول لوحة التحكم الآمنة</h3>
-            <p class="text-xs text-gray-500">أدخل البريد الإلكتروني وكلمة المرور للإدارة</p>
-            
-            <!-- حقل البريد الإلكتروني الجديد -->
-            <input type="email" id="admin-email-input" placeholder="البريد الإلكتروني للإدارة..." class="w-full border p-3.5 rounded-xl text-center outline-none text-sm bg-gray-50">
-            
-            <!-- حقل كلمة المرور -->
-            <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." class="w-full border p-3.5 rounded-xl text-center outline-none text-sm bg-gray-50">
-            
-            <div class="flex gap-3 pt-2">
-                <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md">دخول</button>
-                <button onclick="document.getElementById('admin-auth-modal').style.display='none'" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-<!-- 🌟 الفوتر (القسم السفلي الاحترافي) -->
-<!-- ========================================== -->
-<footer class="bg-gray-950 border-t border-[#D4AF37]/30 pt-12 pb-24 md:pb-8 mt-12">
-    <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-right">
-        
-        <!-- العمود الأول: عن المتجر -->
-        <div class="space-y-4">
-            <h3 class="text-2xl font-black text-[#D4AF37]"><i class="fa-solid fa-crown text-xl mr-2"></i> كوسمتيك عبد الحق</h3>
-            <p class="text-gray-400 text-sm leading-relaxed pr-0 md:pr-4">وجهتكم الأولى لأرقى منتجات التجميل، العناية بالبشرة، والهدايا الفاخرة. نسعى دائماً لتقديم الأفضل لعملائنا الكرام بضمان الجودة والأصالة.</p>
-        </div>
-        
-        <!-- العمود الثاني: روابط سريعة -->
-        <div class="space-y-4">
-            <h4 class="text-white font-bold text-lg">روابط هامة</h4>
-            <ul class="text-gray-400 text-sm space-y-3">
-                <li><a href="#" class="hover:text-[#D4AF37] transition"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37] ml-1"></i> الرئيسية</a></li>
-                <li><a href="#" onclick="openGiftBuilder(); return false;" class="hover:text-[#D4AF37] transition"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37] ml-1"></i> صانع الهدايا VIP</a></li>
-                <li><a href="#" class="hover:text-[#D4AF37] transition"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37] ml-1"></i> تتبع طلبيتك</a></li>
-            </ul>
-        </div>
-        
-        <!-- العمود الثالث: تواصل معنا -->
-        <div class="space-y-4">
-            <h4 class="text-white font-bold text-lg">تواصل معنا</h4>
-            <p class="text-gray-400 text-sm font-bold dir-ltr text-right" id="footer-phone"><i class="fa-solid fa-phone text-[#D4AF37] ml-2"></i> <span>+213 550 87 55 80</span></p>
-            <p class="text-gray-400 text-sm font-bold" id="footer-email"><i class="fa-solid fa-envelope text-[#D4AF37] ml-2"></i> <span>cos.abdelhak@gmail.com</span></p>
-            
-            <div class="flex justify-center md:justify-start gap-3 mt-5">
-                <a href="#" id="link-facebook" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#1877F2] hover:bg-[#1877F2] hover:text-white transition shadow-sm"><i class="fa-brands fa-facebook-f"></i></a>
-                <a href="#" id="link-instagram" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#E4405F] hover:bg-[#E4405F] hover:text-white transition shadow-sm"><i class="fa-brands fa-instagram"></i></a>
-                <a href="#" id="link-whatsapp" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white transition shadow-sm"><i class="fa-brands fa-whatsapp"></i></a>
-                <a href="#" id="link-telegram" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#0088cc] hover:bg-[#0088cc] hover:text-white transition shadow-sm"><i class="fa-brands fa-telegram"></i></a>
-            </div>
-        </div>
-    </div>
-    
-    <div class="border-t border-[#D4AF37]/20 mt-10 pt-6 text-center text-xs text-gray-500 font-bold">
-        &copy; 2026 كوسمتيك عبد الحق - جميع الحقوق محفوظة.
-    </div>
-</footer>
-
-    <!-- Firebase SDKs & Config -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyBhOF2rgPJFQRVoLW7TD0t64A4skGewjsA",
-        authDomain: "cos-abdelhak.firebaseapp.com",
-        projectId: "cos-abdelhak",
-        storageBucket: "cos-abdelhak.firebasestorage.app",
-        messagingSenderId: "425194527542",
-        appId: "1:425194527542:web:fa10d4cd5fcf904826f197"
-      };
-
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-       window.db = firebase.firestore();
-        window.firebase = firebase;
-
-        // كود تثبيت جلسة الإدارة حتى عند التحديث (Refresh)
-        window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
-        window.firebase.auth().onAuthStateChanged(function(user) {
-            if (user && user.email === 'mohamed.pato@gmail.com') {
-                localStorage.setItem('cosAdminLoggedIn', 'true');
-            } else {
-                localStorage.removeItem('cosAdminLoggedIn');
-            }
-        });
-
-        if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
-            const splash = document.getElementById('luxury-splash-screen');
-            if (splash) splash.style.display = 'none';
-        }
-    </script>
-
-    <!-- استدعاء الملف الرئيسي بنظام Modules -->
-    <script type="module" src="js/main.js?v=5"></script>
-    
-    <!-- 🎁 نافذة تصنيع الهدية المخصصة (Gift Builder Wizard Modal) -->
-<!-- 🎁 نافذة صانع الهدايا الفاخر (VIP Gift Builder) -->
-    <div id="gift-builder-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-md items-center justify-center p-4">
-        <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-3xl rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden max-h-[95vh]">
-            
-            <!-- الهيدر -->
-            <div class="flex justify-between items-center p-5 border-b border-[#D4AF37]/20 relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 text-6xl text-[#D4AF37] opacity-10"><i class="fa-solid fa-gift"></i></div>
-                <div>
-                    <h3 class="text-xl font-black text-[#D4AF37] flex items-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> صانع الهدايا المخصص
-                    </h3>
-                    <p id="gift-step-indicator" class="text-xs text-gray-400 font-bold mt-1">الخطوة 1 من 5</p>
-                </div>
-                <button onclick="closeGiftBuilder()" class="w-10 h-10 bg-gray-800/50 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm relative z-10">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- محتوى الخطوات (هنا يضخ الجافاسكريبت السحر) -->
-            <div id="gift-wizard-content" class="p-6 overflow-y-auto custom-scrollbar flex-1 relative">
-                <!-- سيتم حقن الخطوات هنا ديناميكياً -->
-            </div>
-
-            <!-- الفوتر وأزرار التنقل -->
-            <div class="p-5 border-t border-gray-800 flex justify-between items-center bg-black/50">
-                <button id="gift-prev-btn" onclick="prevGiftStep()" class="hidden bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold px-6 py-3 rounded-xl transition shadow-sm border border-gray-700">
-                    <i class="fa-solid fa-arrow-right ml-1"></i> رجوع
-                </button>
-                <div class="flex-1"></div> <!-- مساحة فارغة لدفع زر التالي لليسار -->
-                <button id="gift-next-btn" onclick="nextGiftStep()" class="gold-gradient text-black text-sm font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                    التالي <i class="fa-solid fa-arrow-left mr-1"></i>
-                </button>
-            </div>
-            
-        </div>
-    </div>
-   <!-- 🎨 نافذة ورشة التخصيص (Custom Builder Wizard) -->
-<div id="custom-builder-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-md items-center justify-center p-4">
-    <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-3xl rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden max-h-[95vh]">
-        
-        <!-- الهيدر -->
-        <div class="flex justify-between items-center p-5 border-b border-[#D4AF37]/20 relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 text-6xl text-[#D4AF37] opacity-10"><i class="fa-solid fa-pen-ruler"></i></div>
-            <div>
-                <h3 class="text-xl font-black text-[#D4AF37] flex items-center gap-2">
-                    <i class="fa-solid fa-palette"></i> صمم وأطلب منتجك جاهز 
-                </h3>
-                <p id="custom-step-indicator" class="text-xs text-gray-400 font-bold mt-1">الخطوة 1 من 4</p>
-            </div>
-            <button onclick="closeCustomBuilder()" class="w-10 h-10 bg-gray-800/50 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm relative z-10">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-        </div>
-
-        <!-- محتوى الخطوات الديناميكي -->
-        <div id="custom-wizard-content" class="p-6 overflow-y-auto custom-scrollbar flex-1 relative">
-            <!-- سيتم حقن الخطوات هنا بواسطة الجافاسكريبت -->
-        </div>
-
-        <!-- الفوتر وأزرار التنقل -->
-        <div class="p-5 border-t border-gray-800 flex justify-between items-center bg-black/50">
-            <button id="custom-prev-btn" onclick="prevCustomStep()" class="hidden bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold px-6 py-3 rounded-xl transition shadow-sm border border-gray-700">
-                <i class="fa-solid fa-arrow-right ml-1"></i> رجوع
-            </button>
-            <div class="flex-1 text-center">
-                <span id="custom-live-price" class="hidden text-[#D4AF37] font-black text-lg bg-[#D4AF37]/10 px-4 py-1.5 rounded-full border border-[#D4AF37]/30">0 دج</span>
-            </div>
-            <button id="custom-next-btn" onclick="nextCustomStep()" class="gold-gradient text-black text-sm font-black px-8 py-3 rounded-xl hover:opacity-90 transition shadow-[0_0_15px_rgba(212,175,55,0.3)] hidden">
-                التالي <i class="fa-solid fa-arrow-left mr-1"></i>
-            </button>
-        </div>
-        
-    </div>
-</div>
-    <!-- 🛠️ نافذة الإدارة: إضافة/تعديل منتج في ورشة التخصيص -->
-<div id="admin-custom-prod-modal" class="hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 overflow-hidden relative max-h-[95vh] overflow-y-auto custom-scrollbar">
-        <div class="flex justify-between items-center mb-6 border-b pb-3">
-            <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-box-open text-[#D4AF37] mr-2"></i> بيانات منتج الورشة المخصص</h3>
-            <button onclick="document.getElementById('admin-custom-prod-modal').classList.add('hidden');document.getElementById('admin-custom-prod-modal').classList.remove('flex')" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        
-        <form id="custom-prod-form" onsubmit="saveCustomProduct(event)" class="space-y-4 text-right">
-            <input type="hidden" id="cp-id">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">القسم / نوع الخدمة *</label>
-                    <select id="cp-category" required class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                        <option value="laser">حفر بالليزر 🪵</option>
-                        <option value="print">طباعة حرارية 👕</option>
-                        <option value="frame">كادرات وصور 🖼️</option>
-                        <option value="cameo">قص كاميو ✂️</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">اسم المنتج *</label>
-                    <input type="text" id="cp-name" required placeholder="مثال: محفظة جلدية فاخرة" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1">صورة المنتج (من الهاتف/الكمبيوتر) *</label>
-                <!-- accept="image/*" يفتح كاميرا الهاتف أو المعرض مباشرة -->
-                <input type="file" id="cp-image-file" accept="image/*" onchange="handleAdminCustomImage(event)" class="w-full border border-gray-300 p-2 rounded-xl text-sm bg-gray-50 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37]/20 file:text-[#b08b2c] hover:file:bg-[#D4AF37]/30">
-                <input type="hidden" id="cp-image-base64">
-                <div id="cp-image-preview" class="mt-2 hidden">
-                    <img id="cp-img-tag" src="" class="w-24 h-24 object-cover rounded-xl border border-gray-300 shadow-sm">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">السعر الأساسي / سعر الوجه 1 (دج) *</label>
-                    <input type="number" id="cp-base-price" required placeholder="مثال: 1000" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">الألوان المتوفرة (افصل بفاصلة ،)</label>
-                    <input type="text" id="cp-colors" placeholder="مثال: أسود, بني داكن (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">المقاسات (مثال: S,M,L أو A4,A5)</label>
-                    <input type="text" id="cp-sizes" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">أنواع الخطوط (مثال: ديواني,رقعة)</label>
-                    <input type="text" id="cp-fonts" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">أماكن الطباعة (مثال: الأمام,الخلف)</label>
-                    <input type="text" id="cp-positions" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">الحد الأقصى لعدد الحروف</label>
-                    <input type="number" id="cp-max-chars" placeholder="مثال: 15 (فارغ للعدد اللامحدود)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-600 mb-1">إلزامية الصورة من الزبون 📸</label>
-                    <select id="cp-img-req" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
-                        <option value="optional">صورة اختيارية (يمكنه الطلب بـ 0 إلى 3 صور)</option>
-                        <option value="required">صورة إجبارية (يجب رفع صورة واحدة على الأقل)</option>
-                        <option value="none">لا يتطلب صور (إخفاء حقل رفع الصور نهائياً)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
-                <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-sliders text-[#D4AF37]"></i> إعدادات الأوجه والنصوص للزبون</h4>
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">سعر الوجه الثاني (دج) - إن وجد</label>
-                    <input type="number" id="cp-face2-price" placeholder="مثال: 500 (اتركه فارغاً إذا كان المنتج بوجه واحد فقط)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">عنوان المربع النصي 1</label>
-                        <input type="text" id="cp-label-1" placeholder="مثال: ماذا نكتب على الوجه الخارجي؟" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">عنوان المربع النصي 2</label>
-                        <input type="text" id="cp-label-2" placeholder="مثال: ماذا نكتب في الداخل؟" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">عنوان حقل الملاحظات</label>
-                    <input type="text" id="cp-label-notes" placeholder="مثال: ملاحظات إضافية (مثال: الخط عربي، حجم الكاميو)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 mt-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                <input type="checkbox" id="cp-in-stock" checked class="w-4 h-4 accent-green-600">
-                <label class="text-sm font-bold text-emerald-800">المنتج متوفر حالياً (يظهر للزبون)</label>
-            </div>
-
-            <button type="submit" class="w-full bg-black text-white font-black py-4 rounded-xl hover:bg-[#D4AF37] hover:text-black transition mt-4 flex items-center justify-center gap-2 shadow-lg">
-                <i class="fa-solid fa-cloud-arrow-up"></i> حفظ ونشر المنتج
-            </button>
-        </form>
-    </div>
-</div>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('PWA Service Worker Registered', reg);
-                }).catch(err => {
-                    console.error('PWA Registration failed', err);
-                });
-            });
-        }
-    </script>
-</body>
-</html>
+                                <label class="block text-gray
