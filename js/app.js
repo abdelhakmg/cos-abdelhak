@@ -1,12 +1,8 @@
 // --- ملف js/app.js ---
 
-// 1. استيراد البيانات والدوال المساعدة من الملفات الجديدة
 import { state, saveCartToLocal, saveFavsToLocal } from './store/state.js';
-import { showCustomAlert, calculateShippingCost, formatPrice, safeCall } from './utils/helpers.js';
+import { showCustomAlert, calculateShippingCost, formatPrice, safeCall, isValidDzPhone } from './utils/helpers.js';
 
-let currentBannerIdx = 0;
-let currentHeroIdx = 0;
-let activeCategoryFilter = 'جميع المنتجات';
 let logoClickCount = 0;
 let logoClickTimer = null;
 
@@ -30,7 +26,7 @@ export function initLuxurySplashScreen() {
     }, 3000);
 }
 
-// الدخول السري للوحة التحكم
+// الدخول السري للوحة التحكم (3 نقرات على الشعار)
 export function handleLogoClick(event) {
     if (event) event.preventDefault();
     logoClickCount++;
@@ -63,12 +59,12 @@ export function showPage(pageId, addToHistory = true) {
     
     if (pageId === 'admin') safeCall('renderAdminDashboard');
     if (pageId === 'cart') {
-        renderCart();
         populateCartWilayas();
+        renderCart();
     }
-    if (pageId === 'wishlist') renderWishlistPage();
+    if (pageId === 'wishlist') safeCall('renderWishlistPage');
 
-    // 🌟 إضافة مسار الصفحة لسجل المتصفح ليعمل زر الرجوع
+    // إضافة مسار الصفحة لسجل المتصفح ليعمل زر الرجوع في الهاتف
     if (addToHistory) {
         window.history.pushState({ page: pageId }, '', '#' + pageId);
     }
@@ -85,13 +81,23 @@ window.addEventListener('popstate', (event) => {
         overlayClosed = true;
     }
 
-    // 2. إغلاق أي نافذة منبثقة مفتوحة (مثل صانع الهدايا، مكبر الصور، الخ)
-    const modals = ['gift-builder-modal', 'custom-builder-modal', 'image-lightbox-modal', 'admin-auth-modal', 'admin-custom-prod-modal', 'add-wrapping-modal'];
+    // 2. إغلاق أي نافذة منبثقة مفتوحة
+    const modals = [
+        'gift-builder-modal', 
+        'custom-builder-modal', 
+        'image-lightbox-modal', 
+        'admin-auth-modal', 
+        'admin-custom-prod-modal', 
+        'add-wrapping-modal',
+        'custom-alert-modal',
+        'custom-confirm-modal'
+    ];
     modals.forEach(id => {
         const modal = document.getElementById(id);
         if (modal && !modal.classList.contains('hidden')) {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            modal.style.display = '';
             overlayClosed = true;
         }
     });
@@ -105,7 +111,7 @@ window.addEventListener('popstate', (event) => {
 
     // 3. التنقل الفعلي بين الصفحات (الرجوع للصفحة السابقة)
     if (event.state && event.state.page) {
-        showPage(event.state.page, false); // false تمنع التكرار في السجل
+        showPage(event.state.page, false);
     } else {
         const hash = window.location.hash.replace('#', '');
         showPage(hash || 'home', false);
@@ -119,11 +125,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 🛒 دوال السلة (Cart) المحسنة (تبقى كما هي تماماً لا تمسحها)
-export function addToCart(id) {
+// ==========================================
+// 🛒 دوال السلة (Cart) المحسنة
+// ==========================================
+
+// 🌟 تصحيح: دعم حفظ اللون والرقم/الدرجة عند الإضافة للسلة من صفحة الهبوط
+export function addToCart(id, selectedColor = '', selectedNum = '') {
     const prod = state.products.find(p => p.id === id);
     if (prod) {
-        state.cart.push(prod);
+        const cartItem = { ...prod };
+        
+        let optionsArr = [];
+        if (selectedColor) optionsArr.push(`اللون: ${selectedColor}`);
+        if (selectedNum) optionsArr.push(`الدرجة: ${selectedNum}`);
+        
+        if (optionsArr.length > 0) {
+            const optsText = `(${optionsArr.join(' - ')})`;
+            cartItem.selectedOptionsText = optsText;
+            cartItem.customDetails = optsText;
+        }
+
+        state.cart.push(cartItem);
         saveCartToLocal();
         updateBadges();
         showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" إلى السلة بنجاح.`, true);
@@ -142,12 +164,14 @@ export function renderCart() {
 
     cartList.innerHTML = state.cart.map((prod, idx) => {
         const img = (prod.images && prod.images[0]) || prod.image || 'https://via.placeholder.com/100';
+        const extraInfo = prod.selectedOptionsText ? `<span class="block text-[11px] text-gray-400 mt-0.5">${prod.selectedOptionsText}</span>` : '';
         return `
             <div class="flex items-center justify-between border-b border-gray-800 pb-4">
                 <div class="flex items-center gap-4">
                     <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-black border border-gray-800" loading="lazy">
                     <div>
                         <h4 class="font-bold text-sm text-white">${prod.name}</h4>
+                        ${extraInfo}
                         <span class="text-xs text-[#D4AF37] font-bold">${formatPrice(prod.price)}</span>
                     </div>
                 </div>
@@ -171,8 +195,15 @@ export function removeFromCart(idx) {
 export function populateCartWilayas() {
     const select = document.getElementById('cart-cust-wilaya');
     if (!select) return;
+    const currentVal = select.value;
     select.innerHTML = '<option value="">اختر الولاية...</option>' + 
         state.WILAYAS.map(w => `<option value="${w.code}">${w.code} - ${w.name}</option>`).join('');
+    if (currentVal) select.value = currentVal;
+}
+
+// 🌟 الدالة التي كانت مفقودة ومربوطة بـ onchange في قائمة ولايات السلة داخل index.html
+export function handleCartWilayaChange() {
+    updateCartCalculations();
 }
 
 export function updateCartCalculations() {
@@ -181,10 +212,9 @@ export function updateCartCalculations() {
     const totalEl = document.getElementById('total');
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     
-    let subtotal = state.cart.reduce((sum, item) => sum + (item.price || 0), 0);
+    let subtotal = state.cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     
-    // استخدام الدالة الموحدة الجديدة لحساب التوصيل
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
     if (subtotalEl) subtotalEl.innerText = formatPrice(subtotal);
@@ -199,35 +229,29 @@ export function submitCartCheckout() {
     }
 
     const name = document.getElementById('cart-cust-name')?.value.trim();
-    const phone = document.getElementById('cart-cust-phone')?.value.trim();
+    const rawPhone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
-    
-    // 1. جلب البلدية والعنوان (التعديل الجديد)
     const baladiya = document.getElementById('cart-cust-baladiya')?.value.trim() || '';
     const address = document.getElementById('cart-cust-address')?.value.trim() || document.getElementById('cart-cust-commune')?.value.trim() || '';
 
     if (!name || !wilayaCode || !baladiya || !address) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء كافة المعلومات الأساسية (البلدية والعنوان)!', false);
+        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء كافة المعلومات الأساسية (الاسم، الولاية، البلدية، والعنوان)!', false);
         return;
     }
 
-    if (typeof window.isValidDzPhone === 'function' && !window.isValidDzPhone(phone)) {
-        showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري مكون من 10 أرقام.', false);
+    if (!isValidDzPhone(rawPhone)) {
+        showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام (يبدأ بـ 05 أو 06 أو 07).', false);
         return;
     }
 
-    // 2. التحقق من "الحد الأدنى للطلب الذكي" (التعديل الجديد)
+    // التحقق من "الحد الأدنى للطلب الذكي"
     const localWilaya = state.storeSettings?.localWilaya;
-    const minLocal = state.storeSettings?.minOrderLocal || 0;
-    const minNational = state.storeSettings?.minOrderNational || 0;
+    const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
+    const minNational = Number(state.storeSettings?.minOrderNational) || 0;
     
-    // حساب المجموع الحالي للسلة (بدون توصيل)
-    const subtotal = state.cart.reduce((sum, item) => sum + (item.price || 0), 0);
-    
-    // تحديد الحد الأدنى المطلوب حسب الولاية
+    const subtotal = state.cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
     const requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
 
-    // إذا كان المجموع أقل من الحد الأدنى، نمنع الطلب ونظهر تنبيهاً
     if (subtotal < requiredMin) {
         showCustomAlert(
             'لم تصل للحد الأدنى ⚠️', 
@@ -237,41 +261,57 @@ export function submitCartCheckout() {
         return;
     }
 
-    // 3. استكمال إجراءات الطلب الطبيعية
     const wilaya = state.WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
     const itemsNames = state.cart.map(item => {
-        return item.customDetails ? `\n${item.name}\n${item.customDetails}\n` : item.name;
+        return item.customDetails ? `\n${item.name} ${item.customDetails}\n` : item.name;
     }).join(' + ');
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
+    // 🌟 تصحيح: تجميع الصور المرفقة من عناصر السلة المخصصة (إن وجدت) حتى لا تضيع
+    let attachedImages = [];
+    state.cart.forEach(item => {
+        if (item.attachedImage1) attachedImages.push(item.attachedImage1);
+        if (item.attachedImage2) attachedImages.push(item.attachedImage2);
+        if (item.attachedImage3) attachedImages.push(item.attachedImage3);
+    });
+
     const newOrder = {
         customer: name,
-        phone: phone,
+        phone: rawPhone.replace(/\s+/g, ''),
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        // دمج البلدية والعنوان بشكل مرتب لمدير المتجر
         commune: `البلدية: ${baladiya} | العنوان: ${address} (${shippingTypeText})`,
         product: `طلبية سلة: (${itemsNames})`,
         total: subtotal + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
-        createdAt: new Date()
+        createdAt: new Date(),
+        attachedImage1: attachedImages[0] || null,
+        attachedImage2: attachedImages[1] || null,
+        attachedImage3: attachedImages[2] || null
     };
 
-    // إرسال الطلب لفايربيس
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
             state.cart = [];
             saveCartToLocal();
             updateBadges();
             renderCart();
+
+            // تفريغ حقول الاستمارة بعد نجاح الطلب
+            ['cart-cust-name', 'cart-cust-phone', 'cart-cust-wilaya', 'cart-cust-baladiya', 'cart-cust-address'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
             showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح', true);
             showPage('home');
         }).catch(err => showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false));
     }
 }
+
 // الشارات (Badges) للمفضلة والسلة
 export function updateBadges() {
     const cartBadge = document.getElementById('cart-badge');
@@ -280,34 +320,28 @@ export function updateBadges() {
     if (wishBadge) wishBadge.innerText = state.favorites.length;
 }
 
-// --- ربط كل الدوال بالواجهة (Window Binding) لتظل أزرار HTML تعمل بدون مشاكل ---
-window.initLuxurySplashScreen = initLuxurySplashScreen;
-window.handleLogoClick = handleLogoClick;
-window.showPage = showPage;
-window.addToCart = addToCart;
-window.renderCart = renderCart;
-window.removeFromCart = removeFromCart;
-window.populateCartWilayas = populateCartWilayas;
-window.updateCartCalculations = updateCartCalculations;
-window.submitCartCheckout = submitCartCheckout;
-window.updateBadges = updateBadges;
-
+// ==========================================
+// 📦 تتبع الطلبات وإشعارات المبيعات والفوتر
+// ==========================================
 export function searchOrderTracking() {
     const input = document.getElementById('track-phone-input');
     const container = document.getElementById('tracking-results-container');
     if (!input || !container) return;
 
-    const phone = input.value.trim();
-    if (!phone || phone.length < 10) {
-        showCustomAlert('تنبيه', 'يرجى إدخال رقم هاتف جزائري صحيح!', false);
+    let phone = input.value.trim().replace(/\s+/g, '');
+    if (phone.startsWith('+213')) phone = '0' + phone.substring(4);
+    else if (phone.startsWith('00213')) phone = '0' + phone.substring(5);
+
+    if (!isValidDzPhone(phone)) {
+        showCustomAlert('تنبيه', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام!', false);
         return;
     }
 
     container.classList.remove('hidden');
     container.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs">جاري البحث عن الطلبيات... ⏳</p>';
 
-    if (typeof db !== 'undefined') {
-        db.collection("orders").where("phone", "==", phone).get().then((snapshot) => {
+    if (typeof window.db !== 'undefined') {
+        window.db.collection("orders").where("phone", "==", phone).get().then((snapshot) => {
             if (snapshot.empty) {
                 container.innerHTML = `<div class="bg-black/50 border border-gray-800 rounded-2xl p-6 text-center space-y-2"><i class="fa-solid fa-box-open text-3xl text-gray-600"></i><p class="text-sm font-bold text-gray-300">لم نجد أي طلب مسجل برقم الهاتف هذا (${phone})</p></div>`;
                 return;
@@ -317,8 +351,8 @@ export function searchOrderTracking() {
                 const o = doc.data();
                 html += `<div class="bg-black/60 border border-gray-800 rounded-2xl p-5 mt-2 text-right shadow-md">
                     <p class="text-[#D4AF37] font-bold">${o.status || 'جديد'}</p>
-                    <h4 class="font-bold text-sm text-white">${o.product}</h4>
-                    <p class="text-xs text-gray-400 mt-1">المبلغ الإجمالي: ${(o.total || 0).toLocaleString()} دج</p>
+                    <h4 class="font-bold text-sm text-white whitespace-pre-line mt-1">${o.product}</h4>
+                    <p class="text-xs text-gray-400 mt-2">المبلغ الإجمالي: ${formatPrice(o.total)}</p>
                 </div>`;
             });
             container.innerHTML = html;
@@ -345,9 +379,7 @@ export function initRealOrdersTicker() {
         currentOrderTickerIndex++;
     }, 12000);
 }
-// ==========================================
-// 🔗 الدالة النهائية المتوافقة مع الفوتر لديك
-// ==========================================
+
 export function updateStoreFooterLinks() {
     const s = state.storeSettings || {};
 
@@ -365,7 +397,7 @@ export function updateStoreFooterLinks() {
         if (span) span.innerText = s.email;
     }
 
-    // 3. تحديث روابط السوشيال ميديا (فيسبوك، إنستغرام، واتساب)
+    // 3. تحديث روابط السوشيال ميديا (فيسبوك، إنستغرام، واتساب، تليغرام)
     const fbEl = document.getElementById('link-facebook');
     if (fbEl) {
         if (s.facebook) { fbEl.href = s.facebook; fbEl.style.display = 'flex'; }
@@ -379,17 +411,20 @@ export function updateStoreFooterLinks() {
     }
 
     const waEl = document.getElementById('link-whatsapp');
-    if (waEl) {
-        if (s.whatsappNum) {
-            let cleanWa = s.whatsappNum.replace(/\s+/g, '');
+    const floatingWa = document.getElementById('floating-whatsapp');
+    if (s.whatsappNum) {
+        let cleanWa = s.whatsappNum.replace(/\s+/g, '');
+        if (waEl) {
             waEl.href = `https://wa.me/${cleanWa}`;
             waEl.style.display = 'flex';
-        } else {
-            waEl.style.display = 'none';
         }
+        if (floatingWa) {
+            floatingWa.href = `https://wa.me/${cleanWa}`;
+        }
+    } else if (waEl) {
+        waEl.style.display = 'none';
     }
 
-    // 4. تحديث رابط تليغرام (أصبح الآن داخل الدالة)
     const tgEl = document.getElementById('link-telegram');
     if (tgEl) {
         if (s.telegram) { 
@@ -401,7 +436,20 @@ export function updateStoreFooterLinks() {
     }
 }
 
-// تصدير الدوال للنافذة العامة
-window.updateStoreFooterLinks = updateStoreFooterLinks;
+// ==========================================
+// ربط الدوال بالواجهة العامة (Window Bindings)
+// ==========================================
+window.initLuxurySplashScreen = initLuxurySplashScreen;
+window.handleLogoClick = handleLogoClick;
+window.showPage = showPage;
+window.addToCart = addToCart;
+window.renderCart = renderCart;
+window.removeFromCart = removeFromCart;
+window.populateCartWilayas = populateCartWilayas;
+window.handleCartWilayaChange = handleCartWilayaChange;
+window.updateCartCalculations = updateCartCalculations;
+window.submitCartCheckout = submitCartCheckout;
+window.updateBadges = updateBadges;
 window.searchOrderTracking = searchOrderTracking;
 window.initRealOrdersTicker = initRealOrdersTicker;
+window.updateStoreFooterLinks = updateStoreFooterLinks;
