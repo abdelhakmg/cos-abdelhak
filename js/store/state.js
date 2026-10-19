@@ -8,10 +8,17 @@ export const state = {
     orders: [],
     brands: [],
     WILAYAS: [],
-    // 🌟 المحرك الجديد: تخزين الفلاتر الديناميكية هنا
     categoryFilters: {}, 
-    favorites: JSON.parse(localStorage.getItem('lb_favs_v7')) || [],
-    cart: JSON.parse(localStorage.getItem('lb_cart_v7')) || [],
+    availableSkinTypes: [],
+    availableHairTypes: [],
+    favorites: (() => {
+        try { return JSON.parse(localStorage.getItem('lb_favs_v7')) || []; } 
+        catch (e) { return []; }
+    })(),
+    cart: (() => {
+        try { return JSON.parse(localStorage.getItem('lb_cart_v7')) || []; } 
+        catch (e) { return []; }
+    })(),
     storeSettings: {
         name: "كوسمتيك عبد الحق",
         slogan: "يبدو أن أحدهم سيغدو سعيداً اليوم",
