@@ -132,29 +132,55 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// 🛒 دوال السلة (Cart) المحسنة
+// 🛒 دوال السلة الذكية (Smart Cart مع دعم الكميات + / -)
 // ==========================================
 
-// 🌟 تصحيح: دعم حفظ اللون والرقم/الدرجة عند الإضافة للسلة من صفحة الهبوط
-export function addToCart(id, selectedColor = '', selectedNum = '') {
+export function addToCart(id, selectedColor = '', selectedNum = '', qtyToAdd = 1) {
     const prod = state.products.find(p => p.id === id);
-    if (prod) {
-        const cartItem = { ...prod };
-        
-        let optionsArr = [];
-        if (selectedColor) optionsArr.push(`اللون: ${selectedColor}`);
-        if (selectedNum) optionsArr.push(`الدرجة: ${selectedNum}`);
-        
-        if (optionsArr.length > 0) {
-            const optsText = `(${optionsArr.join(' - ')})`;
+    if (!prod) return;
+
+    const addedQty = Math.max(1, parseInt(qtyToAdd) || 1);
+    let optionsArr = [];
+    if (selectedColor) optionsArr.push(`اللون: ${selectedColor}`);
+    if (selectedNum) optionsArr.push(`الدرجة: ${selectedNum}`);
+    const optsText = optionsArr.length > 0 ? `(${optionsArr.join(' - ')})` : '';
+
+    // 🌟 البحث عما إذا كان نفس المنتج بنفس اللون/الدرجة موجوداً مسبقاً في السلة لدمج الكمية
+    const existingItem = state.cart.find(item => 
+        item.id === id && (item.selectedOptionsText || '') === optsText
+    );
+
+    if (existingItem) {
+        existingItem.qty = (Number(existingItem.qty) || 1) + addedQty;
+    } else {
+        const cartItem = { 
+            ...prod,
+            qty: addedQty
+        };
+        if (optsText) {
             cartItem.selectedOptionsText = optsText;
             cartItem.customDetails = optsText;
         }
-
         state.cart.push(cartItem);
+    }
+
+    saveCartToLocal();
+    updateBadges();
+    showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" (${addedQty > 1 ? addedQty + ' قطع' : 'قطعة واحدة'}) إلى السلة بنجاح.`, true);
+}
+
+export function updateCartItemQty(idx, delta) {
+    if (!state.cart[idx]) return;
+    const currentQty = Number(state.cart[idx].qty) || 1;
+    const newQty = currentQty + delta;
+
+    if (newQty <= 0) {
+        removeFromCart(idx);
+    } else {
+        state.cart[idx].qty = newQty;
         saveCartToLocal();
         updateBadges();
-        showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" إلى السلة بنجاح.`, true);
+        renderCart();
     }
 }
 
@@ -170,20 +196,35 @@ export function renderCart() {
 
     cartList.innerHTML = state.cart.map((prod, idx) => {
         const img = (prod.images && prod.images[0]) || prod.image || 'https://via.placeholder.com/100';
+        const qty = Number(prod.qty) || 1;
+        const itemTotal = (Number(prod.price) || 0) * qty;
         const extraInfo = prod.selectedOptionsText ? `<span class="block text-[11px] text-gray-400 mt-0.5">${prod.selectedOptionsText}</span>` : '';
+        
         return `
-            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-                <div class="flex items-center gap-4">
-                    <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-black border border-gray-800" loading="lazy">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <img src="${img}" class="w-16 h-16 object-contain rounded-xl bg-black border border-gray-800 flex-shrink-0" loading="lazy">
                     <div>
-                        <h4 class="font-bold text-sm text-white">${prod.name}</h4>
+                        <h4 class="font-bold text-sm text-white line-clamp-1">${prod.name}</h4>
                         ${extraInfo}
-                        <span class="text-xs text-[#D4AF37] font-bold">${formatPrice(prod.price)}</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-[#D4AF37] font-black">${formatPrice(itemTotal)}</span>
+                            ${qty > 1 ? `<span class="text-[10px] text-gray-500">(${formatPrice(prod.price)} للقطعة)</span>` : ''}
+                        </div>
                     </div>
                 </div>
-                <button onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-400 font-bold text-xs bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
-                    <i class="fa-solid fa-trash-can"></i> حذف
-                </button>
+                
+                <!-- أزرار التحكم في الكمية والحذف -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 bg-black/40 sm:bg-transparent p-2 sm:p-0 rounded-xl">
+                    <div class="flex items-center gap-2 bg-black border border-gray-800 rounded-xl p-1">
+                        <button type="button" onclick="updateCartItemQty(${idx}, -1)" class="w-7 h-7 rounded-lg bg-[#1a1a1a] hover:bg-gray-800 text-white font-bold text-xs flex items-center justify-center transition cursor-pointer">-</button>
+                        <span class="w-6 text-center font-black text-xs text-[#D4AF37]">${qty}</span>
+                        <button type="button" onclick="updateCartItemQty(${idx}, 1)" class="w-7 h-7 rounded-lg gold-gradient text-black font-black text-xs flex items-center justify-center hover:opacity-90 transition cursor-pointer">+</button>
+                    </div>
+                    <button type="button" onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-400 font-bold text-xs bg-red-500/10 px-3 py-2 rounded-xl border border-red-500/20 cursor-pointer" title="حذف من السلة">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </div>
         `;
     }).join('');
@@ -207,7 +248,6 @@ export function populateCartWilayas() {
     if (currentVal) select.value = currentVal;
 }
 
-// 🌟 الدالة التي كانت مفقودة ومربوطة بـ onchange في قائمة ولايات السلة داخل index.html
 export function handleCartWilayaChange() {
     updateCartCalculations();
 }
@@ -218,7 +258,8 @@ export function updateCartCalculations() {
     const totalEl = document.getElementById('total');
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     
-    let subtotal = state.cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+    // 🌟 حساب المجموع بضرب سعر كل منتج في كميته (qty)
+    let subtotal = state.cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
@@ -234,7 +275,6 @@ export function submitCartCheckout() {
         return;
     }
 
-    // 🛡️ 1. الحاجز الذكي: منع تكرار الطلبات خلال 60 ثانية
     const lastOrderTime = localStorage.getItem('last_order_timestamp');
     if (lastOrderTime && (Date.now() - parseInt(lastOrderTime)) < 60000) {
         showCustomAlert('تم استلام طلبك مسبقاً ⏳', 'لقد قمت بإرسال طلب منذ لحظات. يرجى الانتظار دقيقة قبل إرسال طلب آخر.', false);
@@ -248,7 +288,7 @@ export function submitCartCheckout() {
     const address = document.getElementById('cart-cust-address')?.value.trim() || document.getElementById('cart-cust-commune')?.value.trim() || '';
 
     if (!name || !wilayaCode || !baladiya) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء المعلومات الأساسية (الاسم، رقم الهاتف، الولاية، والبلدية)!', false);
+        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء المعلومات الأساسية (الاسم، الولاية، والبلدية)!', false);
         return;
     }
 
@@ -261,7 +301,7 @@ export function submitCartCheckout() {
     const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
     const minNational = Number(state.storeSettings?.minOrderNational) || 0;
     
-    const subtotal = state.cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+    const subtotal = state.cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
     const requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
 
     if (subtotal < requiredMin) {
@@ -277,8 +317,11 @@ export function submitCartCheckout() {
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
+    // 🌟 تضمين الكمية (x2, x3...) في تفاصيل الطلب المرسل للإدارة
     const itemsNames = state.cart.map(item => {
-        return item.customDetails ? `\n${item.name} ${item.customDetails}\n` : item.name;
+        const qty = Number(item.qty) || 1;
+        const qtyLabel = qty > 1 ? ` (x${qty})` : '';
+        return item.customDetails ? `\n${item.name}${qtyLabel} ${item.customDetails}\n` : `${item.name}${qtyLabel}`;
     }).join(' + ');
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
@@ -304,7 +347,6 @@ export function submitCartCheckout() {
         attachedImage3: attachedImages[2] || null
     };
 
-    // 🔒 2. قفل زر إرسال السلة لمنع النقر المزدوج
     const checkoutBtn = document.querySelector('button[onclick="submitCartCheckout()"]');
     const originalBtnText = checkoutBtn ? checkoutBtn.innerHTML : '';
     if (checkoutBtn) {
@@ -312,18 +354,18 @@ export function submitCartCheckout() {
         checkoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تسجيل طلبك...';
     }
 
-    // نحتفظ بنسخة من معرفات المنتجات لتحديث مبيعاتها
     const purchasedItems = [...state.cart];
 
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
             localStorage.setItem('last_order_timestamp', Date.now().toString());
 
-            // 📈 3. زيادة عداد المبيعات (salesCount) لكل منتج حقيقي داخل السلة
+            // زيادة عداد المبيعات بنفس كمية القطع المشتراة
             purchasedItems.forEach(item => {
+                const qty = Number(item.qty) || 1;
                 if (item.id && !String(item.id).startsWith('custom_') && !String(item.id).startsWith('gift_')) {
                     window.db.collection("products").doc(item.id).update({
-                        salesCount: window.firebase.firestore.FieldValue.increment(1)
+                        salesCount: window.firebase.firestore.FieldValue.increment(qty)
                     }).catch(() => {});
                 }
             });
@@ -348,11 +390,13 @@ export function submitCartCheckout() {
         });
     }
 }
-// الشارات (Badges) للمفضلة والسلة
+
+// 🌟 حساب إجمالي عدد القطع في شارة السلة العلوية
 export function updateBadges() {
     const cartBadge = document.getElementById('cart-badge');
     const wishBadge = document.getElementById('wishlist-badge');
-    if (cartBadge) cartBadge.innerText = state.cart.length;
+    const totalCartQty = state.cart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
+    if (cartBadge) cartBadge.innerText = totalCartQty;
     if (wishBadge) wishBadge.innerText = state.favorites.length;
 }
 
@@ -489,3 +533,4 @@ window.updateBadges = updateBadges;
 window.searchOrderTracking = searchOrderTracking;
 window.initRealOrdersTicker = initRealOrdersTicker;
 window.updateStoreFooterLinks = updateStoreFooterLinks;
+window.updateCartItemQty = updateCartItemQty;
