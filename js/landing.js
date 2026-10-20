@@ -180,8 +180,8 @@ export function submitLandingOrder() {
     const baladiya = document.getElementById('cust-baladiya')?.value.trim() || '';
     const address = document.getElementById('cust-address')?.value.trim() || '';
 
-    if (!name || !wilayaCode || !baladiya || !address) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء كافة المعلومات الأساسية!', false);
+    if (!name || !wilayaCode || !baladiya) {
+        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء المعلومات الأساسية (الاسم، رقم الهاتف، الولاية، والبلدية)!', false);
         return;
     }
 
@@ -219,7 +219,7 @@ export function submitLandingOrder() {
         customer: name,
         phone: rawPhone.replace(/\s+/g, ''),
         wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: `البلدية: ${baladiya} | العنوان: ${address} (${shippingTypeText})`,
+        commune: `البلدية: ${baladiya}${address ? ' | العنوان: ' + address : ''} (${shippingTypeText})`,
         product: productDetails,
         total: basePrice + shipCost,
         status: 'جديد',
