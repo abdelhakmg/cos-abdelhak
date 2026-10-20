@@ -109,18 +109,24 @@ window.addEventListener('popstate', (event) => {
         return;
     }
 
-    // 3. التنقل الفعلي بين الصفحات (الرجوع للصفحة السابقة)
-    if (event.state && event.state.page) {
+    // 3. التنقل الفعلي بين الصفحات (الرجوع للصفحة السابقة أو لمنتج مخصص)
+    if (event.state && event.state.productId) {
+        safeCall('openLandingPage', event.state.productId, false);
+    } else if (event.state && event.state.page) {
         showPage(event.state.page, false);
     } else {
-        const hash = window.location.hash.replace('#', '');
-        showPage(hash || 'home', false);
+        const hash = window.location.hash;
+        if (hash.startsWith('#product=')) {
+            safeCall('checkInitialProductDeepLink');
+        } else {
+            showPage(hash.replace('#', '') || 'home', false);
+        }
     }
 });
 
-// تسجيل الصفحة الرئيسية كأول محطة عند فتح الموقع
+// تسجيل الصفحة الرئيسية كأول محطة عند فتح الموقع (إلا إذا كان الرابط يوجه لمنتج معين)
 document.addEventListener('DOMContentLoaded', () => {
-    if (!window.history.state) {
+    if (!window.history.state && !window.location.hash.startsWith('#product=')) {
         window.history.replaceState({ page: 'home' }, '', '#home');
     }
 });
