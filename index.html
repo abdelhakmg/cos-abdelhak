@@ -843,6 +843,48 @@
                             <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-2"></i> التحكم في شاشة الافتتاح (Splash Screen)
                         </h3>
                         <div class="space-y-4">
+                            <!-- 🎟️ إدارة أكواد الخصم والكوبونات (عام أو لمنتج مخصص) -->
+                    <div class="bg-white border border-[#D4AF37]/40 rounded-2xl p-6 shadow-sm space-y-5">
+                        <div class="border-b border-gray-200 pb-3 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-gray-900 font-bold text-lg flex items-center gap-2">
+                                    <i class="fa-solid fa-ticket text-[#B8860B]"></i> صانع أكواد الخصم والكوبونات (Promo Codes)
+                                </h3>
+                                <p class="text-xs text-gray-500 mt-1">أنشئ كوبون خصم شامل للمتجر أو مخصص لمنتج واحد فقط لتنشيط مبيعاتك.</p>
+                            </div>
+                        </div>
+
+                        <form onsubmit="handleSaveCoupon(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">رمز الكوبون *</label>
+                                <input type="text" id="coupon-code-input" placeholder="مثال: VIP20" required class="w-full border p-2.5 rounded-xl text-sm bg-white uppercase font-black outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">نوع الخصم *</label>
+                                <select id="coupon-type-select" class="w-full border p-2.5 rounded-xl text-sm bg-white outline-none focus:border-[#D4AF37] cursor-pointer">
+                                    <option value="percent">نسبة مئوية (%)</option>
+                                    <option value="fixed">مبلغ ثابت (دج)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">قيمة الخصم *</label>
+                                <input type="number" id="coupon-value-input" placeholder="مثال: 10 أو 500" required min="1" class="w-full border p-2.5 rounded-xl text-sm bg-white outline-none focus:border-[#D4AF37]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">نطاق الكوبون (لمن يطبق؟) *</label>
+                                <select id="coupon-target-product" class="w-full border p-2.5 rounded-xl text-sm bg-white outline-none focus:border-[#D4AF37] cursor-pointer">
+                                    <option value="all">🌐 شامل لجميع المنتجات</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-4 flex justify-end">
+                                <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md cursor-pointer">
+                                    <i class="fa-solid fa-plus"></i> حفظ وتفعيل الكوبون
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="admin-coupons-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2"></div>
+                    </div>
                             <div>
                                 <label class="block text-gray-600 text-xs font-bold mb-2">اسم المتجر (العنوان الرئيسي)</label>
                                 <input type="text" id="admin-splash-title" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="مثال: كوسمتيك عبد الحق">
