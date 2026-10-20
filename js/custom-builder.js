@@ -199,7 +199,7 @@ export function renderCustomStep() {
                                 <input type="text" id="c-baladiya" value="${customOrderData.baladiya || ''}" oninput="customOrderData.baladiya=this.value" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                             <div class="md:col-span-2">
-                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي *</label>
+                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي (اختياري) *</label>
                                 <input type="text" id="c-commune" value="${customOrderData.commune || ''}" oninput="customOrderData.commune=this.value" placeholder="الحي، الشارع، أو نقطة استدلال..." class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                         </div>
@@ -681,10 +681,11 @@ export function nextCustomStep() {
         customOrderData.customerPhone = document.getElementById('c-phone')?.value.trim() || customOrderData.customerPhone;
         customOrderData.wilaya = document.getElementById('c-wilaya')?.value || customOrderData.wilaya;
         customOrderData.baladiya = document.getElementById('c-baladiya')?.value.trim() || customOrderData.baladiya;
-        customOrderData.commune = document.getElementById('c-commune')?.value.trim() || customOrderData.commune;
+        customOrderData.commune = document.getElementById('c-commune')?.value.trim() || '';
 
-        if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.baladiya || !customOrderData.commune) {
-            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال جميع معلومات الإرسال والبلدية والعنوان لحساب التوصيل بنجاح!', false); 
+        // 🌟 العنوان (commune) أصبح اختيارياً هنا
+        if (!customOrderData.customerName || !customOrderData.customerPhone || !customOrderData.wilaya || !customOrderData.baladiya) {
+            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال المعلومات الأساسية (الاسم، الهاتف، الولاية، والبلدية)!', false); 
             return;
         }
 
@@ -732,7 +733,7 @@ export function submitCustomOrder() {
         customer: customOrderData.customerName,
         phone: customOrderData.customerPhone.replace(/\s+/g, ''),
         wilaya: state.WILAYAS.find(w => w.code === customOrderData.wilaya)?.name || customOrderData.wilaya,
-        commune: `البلدية: ${customOrderData.baladiya} | العنوان: ${customOrderData.commune} (${customOrderData.shippingType === 'home' ? 'توصيل للمنزل' : 'استلام من المكتب'})`,
+        commune: `البلدية: ${customOrderData.baladiya}${customOrderData.commune ? ' | العنوان: ' + customOrderData.commune : ''} (${customOrderData.shippingType === 'home' ? 'توصيل للمنزل' : 'استلام من المكتب'})`,
         product: getCustomOrderFullDesc(),
         total: grandTotal,
         status: 'جديد',
@@ -750,7 +751,6 @@ export function submitCustomOrder() {
         }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
     }
 }
-
 // 🌟 تصحيح حرج: حفظ الصور المرفقة وصورة المنتج وتعبئة بيانات السلة تلقائياً
 export function addCustomToCart() {
     const cartItem = {
