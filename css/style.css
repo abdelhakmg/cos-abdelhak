@@ -1,3 +1,5 @@
+/* --- ملف css/style.css --- */
+
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap');
 
 * {
@@ -6,8 +8,11 @@
     padding: 0;
 }
 
-html {
+html, body {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
 }
 
 body {
@@ -16,7 +21,6 @@ body {
     color: #FFFFFF;
     direction: rtl;
     text-align: right;
-    overflow-x: hidden;
 }
 
 .gold-gradient {
@@ -60,13 +64,14 @@ body {
     border-top: 1px solid rgba(212, 175, 55, 0.3);
 }
 
+/* التحكم في الصفحات والتبويبات */
 .page-sec { 
     display: none; 
 }
 
 .page-sec.active { 
     display: block; 
-    animation: fadeIn 0.4s ease-in-out;
+    animation: fadeIn 0.4s ease-out forwards;
 }
 
 .tab-content { 
@@ -75,47 +80,46 @@ body {
 
 .tab-content.active { 
     display: block; 
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
+    from { 
+        opacity: 0; 
+        transform: translateY(8px); 
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
     }
 }
 
-::-webkit-scrollbar {
-    width: 8px;
+/* تنسيق شريط التمرير (Scrollbar) */
+::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
     background: #0A0A0A;
+    border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
     background: #D4AF37;
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #B8860B;
-}
-.animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
-}
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-/* منع تحرك الصفحة كلياً يميناً ويساراً في الهواتف */
-html, body {
-    overflow-x: hidden;
-    width: 100%;
-    position: relative;
 }
 
 /* توجيه اللمس في شريط الأقسام (سحب أفقي للبطاقات، وتمرير عمودي للصفحة) */
