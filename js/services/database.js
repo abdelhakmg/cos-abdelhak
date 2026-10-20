@@ -32,6 +32,7 @@ export function initFirebaseSync() {
         safeCall('renderBrandsFilterSidebar');
         safeCall('applyFilters');
         safeCall('renderAdminProductsTable');
+        safeCall('checkInitialProductDeepLink'); // 🌟 يفتح صفحة المنتج فوراً إذا دخل الزبون من رابط فيسبوك
     }, (error) => console.error("Error fetching products:", error));
 
     // 2. مزامنة الولايات
