@@ -303,6 +303,16 @@
                         <p id="landing-desc" class="text-gray-300 text-sm leading-relaxed"></p>
 
                         <div id="landing-options-container" class="space-y-3 pt-2"></div>
+
+<!-- 🌟 محرك اختيار الكمية في صفحة الطلب السريع 🌟 -->
+<div class="pt-3 border-t border-gray-800/80 flex items-center justify-between">
+    <span class="text-xs font-bold text-gray-300">الكمية المطلوبة:</span>
+    <div class="flex items-center gap-3 bg-black border border-[#D4AF37]/40 rounded-xl p-1.5 shadow-inner">
+        <button type="button" onclick="changeLandingQty(-1)" class="w-8 h-8 rounded-lg bg-[#1a1a1a] hover:bg-gray-800 text-white font-black text-sm flex items-center justify-center transition cursor-pointer">-</button>
+        <span id="landing-qty-val" class="w-8 text-center font-black text-base text-[#D4AF37]">1</span>
+        <button type="button" onclick="changeLandingQty(1)" class="w-8 h-8 rounded-lg gold-gradient text-black font-black text-sm flex items-center justify-center hover:opacity-90 transition cursor-pointer">+</button>
+    </div>
+</div>
                     </div>
                 </div>
 
