@@ -4,6 +4,7 @@ import { state } from './store/state.js';
 import { formatPrice, showCustomAlert, safeCall, calculateShippingCost, isValidDzPhone } from './utils/helpers.js';
 
 let currentLandingProduct = null;
+let currentLandingQty = 1; // 🌟 متغير الكمية في صفحة المنتج
 
 export function openLandingPage(productId, updateUrl = true) {
     currentLandingProduct = state.products.find(p => p.id === productId);
@@ -43,7 +44,9 @@ export function openLandingPage(productId, updateUrl = true) {
             `;
         }).join('');
     }
-
+currentLandingQty = 1;
+    const qtyEl = document.getElementById('landing-qty-val');
+    if (qtyEl) qtyEl.innerText = '1';
     populateWilayas();
     handleWilayaChange();
     renderRelatedProducts(currentLandingProduct); // 🌟 رسم المنتجات المشابهة في الأسفل
@@ -93,6 +96,17 @@ export function handleWilayaChange() {
     checkSmartOrderButton();
 }
 
+// 🌟 دالة زيادة وإنقاص الكمية في صفحة الهبوط
+export function changeLandingQty(delta) {
+    if (!currentLandingProduct) return;
+    currentLandingQty = Math.max(1, currentLandingQty + delta);
+    const qtyEl = document.getElementById('landing-qty-val');
+    if (qtyEl) qtyEl.innerText = currentLandingQty;
+    
+    calculateLandingTotal();
+    checkSmartOrderButton();
+}
+
 export function checkSmartOrderButton() {
     if (!currentLandingProduct) return;
     const wilayaCode = document.getElementById('cust-wilaya')?.value;
@@ -121,9 +135,10 @@ export function checkSmartOrderButton() {
     const minNational = Number(state.storeSettings?.minOrderNational) || 0;
 
     let requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
-    let currentPrice = Number(currentLandingProduct.price) || 0;
+    // 🌟 ضرب سعر المنتج في الكمية المختارة لمعرفة إن كان قد وصل للحد الأدنى!
+    let currentSubtotal = (Number(currentLandingProduct.price) || 0) * currentLandingQty;
 
-    if (currentPrice < requiredMin) {
+    if (currentSubtotal < requiredMin) {
         orderBtn.innerHTML = `أضف إلى السلة لتصل للحد الأدنى (${formatPrice(requiredMin)}) 🛒`;
         orderBtn.setAttribute('onclick', 'addToCartFromLanding()');
         orderBtn.className = 'w-full py-4 bg-[#121212] text-[#D4AF37] border border-[#D4AF37]/50 font-extrabold text-lg rounded-2xl transition hover:bg-[#1a1a1a]';
@@ -141,8 +156,8 @@ export function addToCartFromLanding() {
     const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
     
     if (typeof window.addToCart === 'function') {
-        window.addToCart(currentLandingProduct.id, selectedColor, selectedNum);
-        showCustomAlert('تمت الإضافة للسلة 🛒', 'سعر هذا المنتج أقل من الحد الأدنى لولايتك. يرجى إضافة المزيد من المنتجات لتتمكن من إتمام الطلب.', true);
+        window.addToCart(currentLandingProduct.id, selectedColor, selectedNum, currentLandingQty);
+        showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة المنتج للسلة. يرجى إضافة المزيد من المنتجات لتتمكن من الوصول للحد الأدنى وإتمام الطلب.', true);
         safeCall('showPage', 'cart');
     } else {
         showCustomAlert('تنبيه', 'يجب أن يصل مجموع طلبك إلى الحد الأدنى لتأكيد التوصيل.', false);
@@ -154,17 +169,22 @@ export function calculateLandingTotal() {
     const wilayaCode = document.getElementById('cust-wilaya')?.value;
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     
-    let basePrice = Number(currentLandingProduct.price) || 0;
+    let unitPrice = Number(currentLandingProduct.price) || 0;
+    let prodSubtotal = unitPrice * currentLandingQty;
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
     const sumProdEl = document.getElementById('sum-prod-price');
-    if (sumProdEl) sumProdEl.innerText = formatPrice(basePrice);
+    if (sumProdEl) {
+        sumProdEl.innerText = currentLandingQty > 1 
+            ? `${formatPrice(prodSubtotal)} (${currentLandingQty} قطع)` 
+            : formatPrice(prodSubtotal);
+    }
 
     const sumShipEl = document.getElementById('sum-ship-price');
     if (sumShipEl) sumShipEl.innerText = wilayaCode ? formatPrice(shipCost) : 'حدد الولاية';
 
     const sumTotalEl = document.getElementById('sum-total-price');
-    if (sumTotalEl) sumTotalEl.innerText = formatPrice(basePrice + shipCost);
+    if (sumTotalEl) sumTotalEl.innerText = formatPrice(prodSubtotal + shipCost);
 }
 
 export function submitLandingOrder() {
@@ -173,7 +193,6 @@ export function submitLandingOrder() {
         return;
     }
 
-    // 🛡️ 1. الحاجز الذكي: منع تكرار الطلبات خلال 60 ثانية
     const lastOrderTime = localStorage.getItem('last_order_timestamp');
     if (lastOrderTime && (Date.now() - parseInt(lastOrderTime)) < 60000) {
         showCustomAlert('تم استلام طلبك مسبقاً ⏳', 'لقد قمت بإرسال طلب منذ لحظات. يرجى الانتظار دقيقة قبل إرسال طلب آخر.', false);
@@ -187,7 +206,7 @@ export function submitLandingOrder() {
     const address = document.getElementById('cust-address')?.value.trim() || '';
 
     if (!name || !wilayaCode || !baladiya) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء المعلومات الأساسية (الاسم، رقم الهاتف، الولاية، والبلدية)!', false);
+        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء المعلومات الأساسية (الاسم، الولاية، والبلدية)!', false);
         return;
     }
 
@@ -196,14 +215,13 @@ export function submitLandingOrder() {
         return;
     }
 
-    // التحقق من الحد الأدنى للطلب
     const localWilaya = state.storeSettings?.localWilaya;
     const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
     const minNational = Number(state.storeSettings?.minOrderNational) || 0;
     const requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
-    const basePrice = Number(currentLandingProduct.price) || 0;
+    const prodSubtotal = (Number(currentLandingProduct.price) || 0) * currentLandingQty;
 
-    if (basePrice < requiredMin) {
+    if (prodSubtotal < requiredMin) {
         addToCartFromLanding();
         return;
     }
@@ -216,6 +234,7 @@ export function submitLandingOrder() {
     const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
     
     let productDetails = currentLandingProduct.name;
+    if (currentLandingQty > 1) productDetails += ` (x${currentLandingQty})`;
     if (selectedColor) productDetails += ` (اللون: ${selectedColor})`;
     if (selectedNum) productDetails += ` (الدرجة: ${selectedNum})`;
 
@@ -227,13 +246,12 @@ export function submitLandingOrder() {
         wilaya: wilaya ? wilaya.name : wilayaCode,
         commune: `البلدية: ${baladiya}${address ? ' | العنوان: ' + address : ''} (${shippingTypeText})`,
         product: productDetails,
-        total: basePrice + shipCost,
+        total: prodSubtotal + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
     };
 
-    // 🔒 2. قفل زر الإرسال لمنع النقر المزدوج (Double Click)
     const submitBtn = document.querySelector('#order-form-section button:last-of-type');
     const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
     if (submitBtn) {
@@ -241,15 +259,15 @@ export function submitLandingOrder() {
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تسجيل طلبك...';
     }
 
+    const orderedQty = currentLandingQty;
+
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
-            // حفظ وقت الطلب لمنع التكرار
             localStorage.setItem('last_order_timestamp', Date.now().toString());
 
-            // 📈 3. زيادة عداد المبيعات (salesCount) لهذا المنتج تلقائياً
             if (currentLandingProduct && currentLandingProduct.id) {
                 window.db.collection("products").doc(currentLandingProduct.id).update({
-                    salesCount: window.firebase.firestore.FieldValue.increment(1)
+                    salesCount: window.firebase.firestore.FieldValue.increment(orderedQty)
                 }).catch(() => {});
             }
 
@@ -399,3 +417,4 @@ window.addToCartFromLanding = addToCartFromLanding;
 window.shareCurrentProduct = shareCurrentProduct;
 window.renderRelatedProducts = renderRelatedProducts;
 window.checkInitialProductDeepLink = checkInitialProductDeepLink;
+window.changeLandingQty = changeLandingQty;
