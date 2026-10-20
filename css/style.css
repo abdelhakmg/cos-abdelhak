@@ -8,9 +8,12 @@
     padding: 0;
 }
 
-html, body {
+html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
+}
+
+body {
+    overflow-x: clip; /* يمنع التمدد الأفقي دون تعطيل خاصية التثبيت Sticky */
     width: 100%;
     position: relative;
 }
