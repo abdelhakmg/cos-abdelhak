@@ -70,8 +70,8 @@ export function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
     let bestSellers = [...state.products].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, 8);
-    grid.innerHTML = bestSellers.length === 0 ? 
-        const skeletonHtml = Array(4).fill(0).map(() => `
+    
+    const skeletonHtml = Array(4).fill(0).map(() => `
         <div class="bg-[#121212] rounded-2xl border border-gray-800 p-3 space-y-3 animate-pulse">
             <div class="h-36 sm:h-48 bg-gray-800/60 rounded-xl"></div>
             <div class="h-3 bg-gray-800 rounded w-1/3"></div>
@@ -79,8 +79,9 @@ export function renderProducts() {
             <div class="h-5 bg-[#D4AF37]/20 rounded w-1/2"></div>
             <div class="h-9 bg-gray-800 rounded-xl w-full"></div>
         </div>
-    `).join(''); 
-        bestSellers.map(renderSingleProductCard).join('');
+    `).join('');
+
+    grid.innerHTML = bestSellers.length === 0 ? skeletonHtml : bestSellers.map(renderSingleProductCard).join('');
 }
 
 // ==========================================
