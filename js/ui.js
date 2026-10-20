@@ -440,25 +440,46 @@ export function renderHeroSlider() {
     const currentSlide = state.heroSlides[window.currentHeroIdx];
     if (!currentSlide) return;
 
+    const prevIdx = (window.currentHeroIdx - 1 + state.heroSlides.length) % state.heroSlides.length;
+    const nextIdx = (window.currentHeroIdx + 1) % state.heroSlides.length;
+
     container.innerHTML = `
-        <div class="relative w-full h-[450px] md:h-[500px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/30">
-            <img src="${currentSlide.image}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-center items-center text-center p-6 transition-opacity duration-500 pointer-events-none">
-                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-4 py-1.5 rounded-full text-xs font-bold mb-4">✨ التشكيلة الحصرية</span>
-                <h1 class="text-3xl font-black text-white mb-4 drop-shadow-2xl">${currentSlide.title}</h1>
-                <p class="text-gray-200 text-sm mb-6 drop-shadow-lg">${currentSlide.desc}</p>
-                <button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="pointer-events-auto px-8 py-3.5 gold-gradient text-black font-extrabold rounded-full shadow-xl hover:scale-105 transition cursor-pointer">تسوقي الآن 🔥</button>
+        <div class="relative w-full aspect-[16/10] sm:aspect-[16/8] md:h-[460px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/40 bg-[#080808]">
+            
+            <!-- خلفية مضببة من نفس الصورة لملء أي فراغات بشكل سينمائي فاخر -->
+            <img src="${currentSlide.image}" class="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none">
+            
+            <!-- الصورة الأساسية كاملة 100% بدون قص الأطراف على الهاتف -->
+            <img src="${currentSlide.image}" class="relative z-10 w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-700" loading="lazy">
+            
+            <!-- تدرج سفلي أنيق يضمن وضوح النصوص دون تغطية وسط الإعلان -->
+            <div class="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/30 to-transparent flex flex-col justify-end items-center text-center p-4 sm:p-8 pointer-events-none">
+                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold mb-2 backdrop-blur-md">✨ التشكيلة الحصرية</span>
+                <h1 class="text-lg sm:text-2xl md:text-4xl font-black text-white mb-1 sm:mb-2 drop-shadow-2xl line-clamp-1">${currentSlide.title}</h1>
+                <p class="text-gray-300 text-[11px] sm:text-sm mb-3 sm:mb-5 drop-shadow-lg max-w-xl line-clamp-2">${currentSlide.desc}</p>
+                <button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="pointer-events-auto px-6 py-2 sm:px-8 sm:py-3 gold-gradient text-black text-xs sm:text-sm font-extrabold rounded-full shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:scale-105 transition cursor-pointer">
+                    تسوق الآن 🔥
+                </button>
             </div>
+
+            ${state.heroSlides.length > 1 ? `
+                <!-- أزرار تقليب سريع يمين ويسار -->
+                <button onclick="safeCall('setHeroSlide', ${prevIdx})" class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 border border-[#D4AF37]/40 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition cursor-pointer backdrop-blur-sm">
+                    <i class="fa-solid fa-chevron-right text-xs sm:text-sm"></i>
+                </button>
+                <button onclick="safeCall('setHeroSlide', ${nextIdx})" class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/60 border border-[#D4AF37]/40 text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-black transition cursor-pointer backdrop-blur-sm">
+                    <i class="fa-solid fa-chevron-left text-xs sm:text-sm"></i>
+                </button>
+            ` : ''}
         </div>
     `;
 
     if (dotsContainer) {
         dotsContainer.innerHTML = state.heroSlides.map((_, idx) => `
-            <button onclick="safeCall('setHeroSlide', ${idx})" class="h-2.5 rounded-full transition-all duration-300 ${idx === window.currentHeroIdx ? 'bg-[#D4AF37] w-8' : 'bg-gray-600 w-2.5'}"></button>
+            <button onclick="safeCall('setHeroSlide', ${idx})" class="h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === window.currentHeroIdx ? 'bg-[#D4AF37] w-8' : 'bg-gray-600 w-2'}"></button>
         `).join('');
     }
 
-    // 🌟 تشغيل التقليب التلقائي للبانر الإعلاني كل 5 ثوانٍ إذا كان هناك أكثر من شريحة
     if (window.heroSliderTimer) clearInterval(window.heroSliderTimer);
     if (state.heroSlides.length > 1) {
         window.heroSliderTimer = setInterval(() => {
