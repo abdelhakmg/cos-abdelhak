@@ -488,10 +488,11 @@ export function nextGiftStep() {
         giftData.receiverPhone = document.getElementById('g-receiver-phone')?.value.trim() || giftData.receiverPhone;
         giftData.wilaya = document.getElementById('g-wilaya')?.value || giftData.wilaya;
         giftData.baladiya = document.getElementById('g-baladiya')?.value.trim() || giftData.baladiya;
-        giftData.commune = document.getElementById('g-commune')?.value.trim() || giftData.commune;
+        giftData.commune = document.getElementById('g-commune')?.value.trim() || '';
 
-        if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.receiverPhone || !giftData.wilaya || !giftData.baladiya || !giftData.commune) {
-            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال جميع معلومات الإرسال والبلدية لحساب الشحن بنجاح!', false); 
+        // 🌟 العنوان (commune) أصبح اختيارياً هنا
+        if (!giftData.senderName || !giftData.senderPhone || !giftData.receiverName || !giftData.receiverPhone || !giftData.wilaya || !giftData.baladiya) {
+            showCustomAlert('معلومات ناقصة ⚠️', 'يرجى إكمال المعلومات الأساسية (أسماء وأرقام المرسل والمستلم، الولاية، والبلدية)!', false); 
             return;
         }
 
@@ -505,7 +506,6 @@ export function nextGiftStep() {
     currentGiftStep++;
     renderGiftStep();
 }
-
 export function prevGiftStep() {
     if (currentGiftStep > 1) { currentGiftStep--; renderGiftStep(); }
 }
@@ -533,7 +533,7 @@ export function submitGiftOrder() {
         customer: giftData.receiverName,
         phone: (giftData.receiverPhone || giftData.senderPhone).replace(/\s+/g, ''),
         wilaya: wilayaObj ? wilayaObj.name : giftData.wilaya,
-        commune: `البلدية: ${giftData.baladiya} | العنوان: ${giftData.commune} (${giftData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'})`,
+        commune: `البلدية: ${giftData.baladiya}${giftData.commune ? ' | العنوان: ' + giftData.commune : ''} (${giftData.shippingType === 'home' ? 'للمنزل' : 'للمكتب'})`,
         product: getGiftOrderFullDesc(),
         total: grandTotal,
         status: 'جديد',
@@ -548,7 +548,6 @@ export function submitGiftOrder() {
         }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
     }
 }
-
 export function addGiftToCart() {
     const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const boxPrice = giftData.selectedBox ? (giftData.selectedBox.price || 0) : 0;
