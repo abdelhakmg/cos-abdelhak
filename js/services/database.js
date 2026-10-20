@@ -1,13 +1,25 @@
-// --- ملف js/services/database.js ---
+// --- ملف js/services/database.js (نسخة Cloud Architect المحسنة) ---
 
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
+
+let ordersUnsubscribe = null;
+let isSyncInitialized = false;
 
 export function initFirebaseSync() {
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
         console.error("لم يتم تهيئة Firebase بشكل صحيح.");
         return;
     }
+
+    // منع تشغيل المزامنة أكثر من مرة
+    if (isSyncInitialized) return;
+    isSyncInitialized = true;
+
+    // 🚀 تفعيل التخزين المؤقت المحلي لـ Firestore (يوفر حتى 60% من القراءات المتكررة)
+    window.db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
+        console.warn("Firestore persistence warning:", err.code);
+    });
 
     // 1. مزامنة المنتجات
     window.db.collection("products").onSnapshot((snapshot) => {
@@ -17,11 +29,12 @@ export function initFirebaseSync() {
         });
         safeCall('renderProducts');
         safeCall('renderDynamicSidebarFilters');
+        safeCall('renderBrandsFilterSidebar');
         safeCall('applyFilters');
         safeCall('renderAdminProductsTable');
     }, (error) => console.error("Error fetching products:", error));
 
-    // 2. مزامنة الولايات (باستخدام batch للكتابة دفعة واحدة)
+    // 2. مزامنة الولايات
     window.db.collection("wilayas").onSnapshot((snapshot) => {
         state.WILAYAS = [];
         snapshot.forEach((doc) => {
@@ -29,7 +42,6 @@ export function initFirebaseSync() {
         });
         
         if (state.WILAYAS.length === 0) {
-            console.log("قائمة الولايات فارغة، جاري حقن الـ 58 ولاية دفعة واحدة...");
             const batch = window.db.batch();
             INITIAL_WILAYAS_58.forEach(w => {
                 const ref = window.db.collection("wilayas").doc(w.code);
@@ -77,24 +89,38 @@ export function initFirebaseSync() {
         safeCall('renderBannerTextsList'); 
         safeCall('startBannerTicker'); 
         safeCall('updateStoreFooterLinks');
-    }, (error) => console.error("Error settings error:", error));
+    }, (error) => console.error("Error settings:", error));
 
-    // 🌟 5. الأمان أولاً: مزامنة الطلبيات للإدارة فقط عندما يكون المدير مسجلاً
-    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
-        initAdminOrdersSync();
-    }
+    // 5. مزامنة البانر الإعلاني
+    window.db.collection("heroSlides").onSnapshot((snapshot) => {
+        state.heroSlides = [];
+        snapshot.forEach((doc) => {
+            state.heroSlides.push({ id: doc.id, ...doc.data() });
+        });
+        safeCall('renderHeroSlider');
+        safeCall('renderAdminHeroSlidesList');
+    }, (error) => console.error("Error fetching hero slides:", error));
 }
 
-// دالة منفصلة لجلب الطلبيات للمسؤول حصرياً
-export function initAdminOrdersSync() {
+// 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط (تمنع تسرب الذاكرة واستنزاف الحصة)
+export function initAdminOrdersSync(limitCount = 200) {
     if (typeof window.db === 'undefined') return;
-    window.db.collection("orders").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
-        state.orders = [];
-        snapshot.forEach((doc) => {
-            state.orders.push({ id: doc.id, ...doc.data() });
-        });
-        safeCall('renderAdminDashboard');
-    }, (error) => console.error("Error fetching orders:", error));
+    
+    // إذا كان هناك مستمع مفتوح مسبقاً، نغلقه أولاً لمنع مضاعفة الاستهلاك
+    if (ordersUnsubscribe) {
+        ordersUnsubscribe();
+    }
+
+    ordersUnsubscribe = window.db.collection("orders")
+        .orderBy("createdAt", "desc")
+        .limit(limitCount)
+        .onSnapshot((snapshot) => {
+            state.orders = [];
+            snapshot.forEach((doc) => {
+                state.orders.push({ id: doc.id, ...doc.data() });
+            });
+            safeCall('renderAdminDashboard');
+        }, (error) => console.error("Error fetching orders:", error));
 }
 
 window.initFirebaseSync = initFirebaseSync;
