@@ -5,7 +5,7 @@ import { formatPrice, showCustomAlert, safeCall, calculateShippingCost, isValidD
 
 let currentLandingProduct = null;
 
-export function openLandingPage(productId) {
+export function openLandingPage(productId, updateUrl = true) {
     currentLandingProduct = state.products.find(p => p.id === productId);
     if (!currentLandingProduct) return;
 
@@ -45,8 +45,14 @@ export function openLandingPage(productId) {
     }
 
     populateWilayas();
-    handleWilayaChange(); // يحدث الأسعار، يحسب المجموع، ويفحص الزر الذكي معاً
-    safeCall('showPage', 'landing');
+    handleWilayaChange();
+    renderRelatedProducts(currentLandingProduct); // 🌟 رسم المنتجات المشابهة في الأسفل
+
+    // 🌟 فتح الصفحة بدون مسح رابط المنتج المخصص
+    safeCall('showPage', 'landing', false);
+    if (updateUrl) {
+        window.history.pushState({ page: 'landing', productId: currentLandingProduct.id }, '', `#product=${currentLandingProduct.id}`);
+    }
 }
 
 export function swapLandingMainImage(newUrl) {
@@ -316,7 +322,69 @@ export function closeLightbox() {
         lightboxModal.classList.remove('flex');
     }
 }
+// 🌟 1. دالة مشاركة ونسخ الرابط المباشر للمنتج (لإعلانات فيسبوك وواتساب)
+export function shareCurrentProduct() {
+    if (!currentLandingProduct) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}#product=${currentLandingProduct.id}`;
+    const shareTitle = `${currentLandingProduct.name} - ${ state.storeSettings.name || 'كوسمتيك عبد الحق' }`;
 
+    if (navigator.share) {
+        navigator.share({
+            title: shareTitle,
+            text: `اكتشف هذا المنتج الفاخر: ${currentLandingProduct.name} بسعر ${formatPrice(currentLandingProduct.price)}`,
+            url: shareUrl
+        }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showCustomAlert('تم نسخ الرابط! 🔗', 'تم نسخ الرابط المباشر للمنتج، يمكنك الآن لصقه في إعلانات فيسبوك أو إرساله لأي زبون!', true);
+        }).catch(() => {
+            prompt('انسخ رابط المنتج المباشر:', shareUrl);
+        });
+    }
+}
+
+// 🌟 2. دالة عرض "منتجات قد تعجبك أيضاً" من نفس القسم (Cross-Selling)
+export function renderRelatedProducts(currentProd) {
+    const section = document.getElementById('related-products-section');
+    const grid = document.getElementById('related-products-grid');
+    if (!section || !grid || !state.products) return;
+
+    // جلب حتى 4 منتجات متوفرة من نفس الفئة (أو الأكثر مبيعاً إن لم يوجد في نفس الفئة)
+    let related = state.products.filter(p => 
+        p.id !== currentProd.id && 
+        p.inStock !== false && 
+        p.category === currentProd.category
+    ).slice(0, 4);
+
+    if (related.length < 4) {
+        const extra = state.products.filter(p => 
+            p.id !== currentProd.id && 
+            p.inStock !== false && 
+            !related.some(r => r.id === p.id)
+        ).slice(0, 4 - related.length);
+        related = [...related, ...extra];
+    }
+
+    if (related.length === 0 || typeof window.renderSingleProductCard !== 'function') {
+        section.classList.add('hidden');
+        return;
+    }
+
+    section.classList.remove('hidden');
+    grid.innerHTML = related.map(window.renderSingleProductCard).join('');
+}
+
+// 🌟 3. دالة فحص الرابط عند فتح المتجر لأول مرة (إذا جاء الزبون من رابط منتج في فيسبوك)
+export function checkInitialProductDeepLink() {
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#product=')) {
+        const prodId = decodeURIComponent(hash.replace('#product=', '').trim());
+        const targetProd = state.products.find(p => p.id === prodId);
+        if (targetProd) {
+            openLandingPage(prodId, false);
+        }
+    }
+}
 // Window Binding
 window.openLandingPage = openLandingPage;
 window.swapLandingMainImage = swapLandingMainImage;
@@ -328,3 +396,6 @@ window.openLightbox = openLightbox;
 window.closeLightbox = closeLightbox;
 window.checkSmartOrderButton = checkSmartOrderButton;
 window.addToCartFromLanding = addToCartFromLanding;
+window.shareCurrentProduct = shareCurrentProduct;
+window.renderRelatedProducts = renderRelatedProducts;
+window.checkInitialProductDeepLink = checkInitialProductDeepLink;
