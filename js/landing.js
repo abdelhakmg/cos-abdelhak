@@ -162,6 +162,35 @@ export function calculateLandingTotal() {
 }
 
 export function submitLandingOrder() {
+    // 1. حماية ضد الطلبات المتكررة (Spam Protection - 60 ثانية)
+    const lastOrderTime = localStorage.getItem('last_order_timestamp');
+    if (lastOrderTime && (Date.now() - parseInt(lastOrderTime)) < 60000) {
+        showCustomAlert('تم استلام طلبك مسبقاً ⏳', 'لقد قمت بإرسال طلب منذ لحظات. يرجى الانتظار دقيقة قبل إرسال طلب آخر.', false);
+        return;
+    }
+
+    // ... (نفس كود التحقق من الحقول والهاتف) ...
+
+    // 2. قفل زر الإرسال فوراً لمنع النقر المزدوج (Double Click)
+    const submitBtn = document.querySelector('#order-form-section button:last-of-type');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تسجيل طلبك...';
+    }
+
+    if (typeof window.db !== 'undefined') {
+        window.db.collection("orders").add(newOrder).then(() => {
+            localStorage.setItem('last_order_timestamp', Date.now().toString());
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
+            showCustomAlert('تم استلام طلبك! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح!', true);
+            safeCall('showPage', 'home');
+        }).catch(err => {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
+            showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+        });
+    }
+}
     if (!currentLandingProduct || currentLandingProduct.inStock === false) {
         showCustomAlert('غير متوفر', 'عذراً، هذا المنتج غير متوفر في المخزون حالياً.', false);
         return;
