@@ -228,6 +228,13 @@ export function submitCartCheckout() {
         return;
     }
 
+    // 🛡️ 1. الحاجز الذكي: منع تكرار الطلبات خلال 60 ثانية
+    const lastOrderTime = localStorage.getItem('last_order_timestamp');
+    if (lastOrderTime && (Date.now() - parseInt(lastOrderTime)) < 60000) {
+        showCustomAlert('تم استلام طلبك مسبقاً ⏳', 'لقد قمت بإرسال طلب منذ لحظات. يرجى الانتظار دقيقة قبل إرسال طلب آخر.', false);
+        return;
+    }
+
     const name = document.getElementById('cart-cust-name')?.value.trim();
     const rawPhone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
@@ -244,7 +251,6 @@ export function submitCartCheckout() {
         return;
     }
 
-    // التحقق من "الحد الأدنى للطلب الذكي"
     const localWilaya = state.storeSettings?.localWilaya;
     const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
     const minNational = Number(state.storeSettings?.minOrderNational) || 0;
@@ -270,7 +276,6 @@ export function submitCartCheckout() {
     }).join(' + ');
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
-    // 🌟 تصحيح: تجميع الصور المرفقة من عناصر السلة المخصصة (إن وجدت) حتى لا تضيع
     let attachedImages = [];
     state.cart.forEach(item => {
         if (item.attachedImage1) attachedImages.push(item.attachedImage1);
@@ -293,14 +298,37 @@ export function submitCartCheckout() {
         attachedImage3: attachedImages[2] || null
     };
 
+    // 🔒 2. قفل زر إرسال السلة لمنع النقر المزدوج
+    const checkoutBtn = document.querySelector('button[onclick="submitCartCheckout()"]');
+    const originalBtnText = checkoutBtn ? checkoutBtn.innerHTML : '';
+    if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تسجيل طلبك...';
+    }
+
+    // نحتفظ بنسخة من معرفات المنتجات لتحديث مبيعاتها
+    const purchasedItems = [...state.cart];
+
     if (typeof window.db !== 'undefined') {
         window.db.collection("orders").add(newOrder).then(() => {
+            localStorage.setItem('last_order_timestamp', Date.now().toString());
+
+            // 📈 3. زيادة عداد المبيعات (salesCount) لكل منتج حقيقي داخل السلة
+            purchasedItems.forEach(item => {
+                if (item.id && !String(item.id).startsWith('custom_') && !String(item.id).startsWith('gift_')) {
+                    window.db.collection("products").doc(item.id).update({
+                        salesCount: window.firebase.firestore.FieldValue.increment(1)
+                    }).catch(() => {});
+                }
+            });
+
+            if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
+
             state.cart = [];
             saveCartToLocal();
             updateBadges();
             renderCart();
 
-            // تفريغ حقول الاستمارة بعد نجاح الطلب
             ['cart-cust-name', 'cart-cust-phone', 'cart-cust-wilaya', 'cart-cust-baladiya', 'cart-cust-address'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
@@ -308,10 +336,12 @@ export function submitCartCheckout() {
 
             showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح', true);
             showPage('home');
-        }).catch(err => showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false));
+        }).catch(err => {
+            if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
+            showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+        });
     }
 }
-
 // الشارات (Badges) للمفضلة والسلة
 export function updateBadges() {
     const cartBadge = document.getElementById('cart-badge');
