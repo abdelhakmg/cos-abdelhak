@@ -1,23 +1,28 @@
 {
+  "id": "/",
   "name": "كوسمتيك عبد الحق",
-  "short_name": "Cosmetic",
-  "description": "يبدو أن أحدهم سينام سعيداً اليوم",
+  "short_name": "كوسمتيك عبدالحق",
+  "description": "يبدو أن أحدهم سيغدو سعيداً اليوم - متجر العطور ومستحضرات التجميل والهدايا المخصصة",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#D4AF37",
   "dir": "rtl",
   "lang": "ar",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192/000000/D4AF37?text=Logo",
+      "src": "logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "شعار كوزميتيك فاخر بتاج ذهبي.png",
-      "sizes": "192x192 512x512",
-      "type": "image/png"
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
