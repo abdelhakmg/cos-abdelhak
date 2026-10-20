@@ -199,7 +199,7 @@ export function renderCustomStep() {
                                 <input type="text" id="c-baladiya" value="${customOrderData.baladiya || ''}" oninput="customOrderData.baladiya=this.value" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                             <div class="md:col-span-2">
-                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">البلدية *</label>
+                                <label class="text-xs text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي (اختياري) *</label>
                                 <input type="text" id="c-commune" value="${customOrderData.commune || ''}" oninput="customOrderData.commune=this.value" placeholder="الحي، الشارع، أو نقطة استدلال..." class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                         </div>
