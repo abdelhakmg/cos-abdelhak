@@ -700,9 +700,13 @@
                     </div>
 
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                        <div class="p-4 border-b border-gray-100 bg-gray-50">
+                        <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
                             <h3 class="font-bold text-gray-800"><i class="fa-solid fa-table-list text-[#B8860B]"></i> المنتجات المعروضة حالياً</h3>
-                        </div>
+                            <div class="relative w-full sm:w-64">
+                            <input type="text" id="admin-prod-search" oninput="renderAdminProductsTable()" placeholder="ابحث بالاسم أو القسم..." class="w-full border border-gray-300 p-2 pr-8 rounded-lg text-xs outline-none focus:border-[#D4AF37]">
+                            <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-2.5 text-gray-400 text-xs"></i>
+                     </div>
+                     </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-right text-sm">
                                 <thead class="bg-gray-100 border-b text-gray-700">
