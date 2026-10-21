@@ -17,37 +17,30 @@ export function renderSingleProductCard(p) {
 
     return `
         <div class="bg-[#121212] rounded-2xl border border-[#D4AF37]/20 p-3 text-right flex flex-col justify-between shadow-lg hover:border-[#D4AF37] hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
-            
-            <!-- زر المفضلة -->
             <button onclick="event.stopPropagation(); safeCall('toggleFavorite', '${p.id}');" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 shadow flex items-center justify-center text-gray-400 hover:text-red-500 transition z-10 backdrop-blur-sm cursor-pointer border border-gray-700 hover:border-red-500">
                 <i class="${isFav ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'} text-sm"></i>
             </button>
 
-            <!-- محتوى البطاقة القابل للنقر -->
             <div class="cursor-pointer" onclick="${inStock ? `safeCall('openLandingPage', '${p.id}')` : ''}">
-                
-                <!-- صورة المنتج -->
+                <!-- 🌟 تم إصلاح ظهور الصورة وطبقة نفدت الكمية -->
                 <div class="h-36 sm:h-48 bg-black rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden relative border border-gray-800">
-                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-500 ${!inStock ? 'opacity-50 grayscale' : ''}">
-                    ${!inStock ? '<div class="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"><span class="bg-red-600 text-white font-black px-3 py-1.5 rounded-lg text-xs transform -rotate-12 shadow-lg border border-red-400">نفدت الكمية</span></div>' : ''}
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-500">
+                    ${!inStock ? '<div class="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-10"><span class="bg-red-600 text-white font-black px-4 py-1.5 rounded-lg text-xs transform -rotate-12 shadow-lg border border-red-400">نفدت الكمية</span></div>' : ''}
                 </div>
-                
-                <!-- حالة التوفر واسم المنتج -->
+
                 <div class="flex items-center gap-1.5 mb-1">
                     <span class="w-2 h-2 rounded-full ${inStock ? 'bg-green-500 animate-pulse' : 'bg-red-500'} shadow-[0_0_8px_rgba(0,0,0,0.5)]"></span>
                     <span class="text-[10px] font-bold ${inStock ? 'text-green-500' : 'text-red-500'} tracking-wide">${inStock ? 'متوفر في المخزون' : 'غير متوفر حالياً'}</span>
                 </div>
-                
+
                 <h3 class="font-bold text-xs sm:text-sm text-gray-200 line-clamp-2 my-1.5 group-hover:text-[#D4AF37] transition leading-snug">${p.name || 'منتج'}</h3>
-                
-                <!-- السعر -->
+
                 <div class="flex items-center gap-2 mb-2">
                     <span class="font-black text-base sm:text-lg text-[#D4AF37]">${formatPrice(p.price)}</span>
                     ${p.oldPrice ? `<span class="text-[10px] text-gray-500 line-through">${formatPrice(p.oldPrice)}</span>` : ''}
                 </div>
             </div>
 
-            <!-- الأزرار -->
             <div class="mt-auto flex gap-2">
                 ${inStock ? `
                     <button onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="flex-1 py-2 gold-gradient text-black font-extrabold text-xs rounded-xl shadow-[0_4px_15px_rgba(212,175,55,0.2)] hover:opacity-90 transition cursor-pointer flex items-center justify-center gap-1.5">
@@ -57,15 +50,15 @@ export function renderSingleProductCard(p) {
                         <i class="fa-solid fa-cart-plus text-sm"></i>
                     </button>
                 ` : `
-                    <button disabled class="w-full py-2 bg-[#1a1a1a] text-gray-500 font-bold text-xs rounded-xl border border-gray-800 flex items-center justify-center gap-1.5 cursor-not-allowed">
-                        <i class="fa-solid fa-bell"></i> أعلمني عند التوفر
+                    <!-- 🌟 تم تغيير الزر إلى غير متوفر -->
+                    <button disabled class="w-full py-2 bg-[#1a1a1a] text-red-500 font-bold text-xs rounded-xl border border-red-900/50 flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <i class="fa-solid fa-ban"></i> غير متوفر
                     </button>
                 `}
             </div>
         </div>
     `;
 }
-
 export function renderProducts() {
     const grid = document.getElementById('home-products');
     if (!grid) return;
