@@ -156,7 +156,7 @@ export function changeLandingQty(delta) {
 export function checkSmartOrderButton() {
     if (!currentLandingProduct) return;
     const wilayaCode = document.getElementById('cust-wilaya')?.value;
-    const orderBtn = document.querySelector('#order-form-section button:last-of-type');
+    const orderBtn = document.getElementById('main-submit-order-btn');
     
     if (!orderBtn) return;
     
@@ -315,7 +315,7 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
         createdAt: new Date()
     };
 
-    const submitBtn = document.querySelector('#order-form-section button:last-of-type');
+    const submitBtn = document.getElementById('main-submit-order-btn');
     const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
     if (submitBtn) {
         submitBtn.disabled = true;
