@@ -427,15 +427,30 @@ export function renderAdminCategoriesList() {
 
 export function handleSaveCategory(e) {
     if (e) e.preventDefault();
-    const name = document.getElementById('cat-name-input').value.trim();
-    const image = document.getElementById('cat-img-input').value.trim();
+    const nameInput = document.getElementById('cat-name-input');
+    const imgInput = document.getElementById('cat-img-input');
+    const name = nameInput.value.trim();
+    const image = imgInput.value.trim();
     if (!name || !image) return;
 
-    window.db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
-        document.getElementById('cat-name-input').value = '';
-        document.getElementById('cat-img-input').value = '';
-        showCustomAlert('تم الحفظ', 'تمت إضافة الفئة الجديدة بنجاح!', true);
-    });
+    // 🌟 ميزة ذكية: إذا كان اسم القسم موجوداً مسبقاً، نقوم بتحديث صورته فقط دون تكراره!
+    const existingCat = state.categories.find(c => c.name.trim() === name);
+
+    if (existingCat) {
+        window.db.collection("categories").doc(existingCat.id).update({ image, updatedAt: new Date() }).then(() => {
+            nameInput.value = '';
+            imgInput.value = '';
+            imgInput.classList.remove('border-green-500', 'bg-green-50');
+            showCustomAlert('تم التحديث 🖼️', `تم تغيير وتحديث صورة قسم (${name}) بنجاح!`, true);
+        });
+    } else {
+        window.db.collection("categories").add({ name, image, createdAt: new Date() }).then(() => {
+            nameInput.value = '';
+            imgInput.value = '';
+            imgInput.classList.remove('border-green-500', 'bg-green-50');
+            showCustomAlert('تم الحفظ 🎉', 'تمت إضافة الفئة الجديدة بنجاح!', true);
+        });
+    }
 }
 
 export function deleteCategory(id) {
@@ -970,8 +985,8 @@ export function renderAdminHeroSlidesList() {
             <div class="flex items-center gap-3">
                 <img src="${slide.image}" class="w-16 h-10 object-cover rounded-lg border" loading="lazy">
                 <div>
-                    <h4 class="font-bold text-gray-900">${slide.title}</h4>
-                    <p class="text-[10px] text-gray-500">${slide.desc}</p>
+                    <h4 class="font-bold text-gray-900">${slide.title || 'صورة إعلانية (بدون نص)'}</h4>
+                    <p class="text-[10px] text-gray-500">${slide.desc || ''}</p>
                 </div>
             </div>
             <button type="button" onclick="deleteHeroSlide('${slide.id}')" class="text-red-600 bg-red-100 hover:bg-red-200 font-bold px-3 py-1.5 rounded-lg transition">حذف</button>
@@ -990,10 +1005,16 @@ export function deleteHeroSlide(id) {
 
 export function handleSaveHeroSlide(e) {
     if (e) e.preventDefault();
-    const title = document.getElementById('hero-title-input').value.trim();
-    const desc = document.getElementById('hero-desc-input').value.trim();
-    const image = document.getElementById('hero-img-input').value.trim();
-    if (!title || !desc || !image) return;
+    const title = document.getElementById('hero-title-input')?.value.trim() || '';
+    const desc = document.getElementById('hero-desc-input')?.value.trim() || '';
+    const image = document.getElementById('hero-img-input')?.value.trim() || '';
+    
+    // 🌟 الصورة فقط هي الإجبارية الآن، أما العنوان والوصف فاختياريان
+    if (!image) {
+        showCustomAlert('تنبيه', 'يرجى رفع صورة الإعلان أو وضع رابطها!', false);
+        return;
+    }
+
     window.db.collection("heroSlides").add({ title, desc, image, createdAt: new Date() }).then(() => {
         document.getElementById('hero-title-input').value = '';
         document.getElementById('hero-desc-input').value = '';
@@ -1001,7 +1022,7 @@ export function handleSaveHeroSlide(e) {
         imgInput.value = '';
         imgInput.classList.remove('border-green-500', 'bg-green-50');
         setTimeout(renderAdminHeroSlidesList, 300);
-        showCustomAlert('تم', 'تمت إضافة البانر بنجاح!', true);
+        showCustomAlert('تم الحفظ 🎉', 'تمت إضافة البانر الإعلاني بنجاح!', true);
     });
 }
 
