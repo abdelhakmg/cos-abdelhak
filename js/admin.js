@@ -937,7 +937,7 @@ export function handleSaveSettings(e) {
         instagram: getValOrKeep('set-instagram', s.instagram),
         whatsappNum: getValOrKeep('set-whatsapp-num', s.whatsappNum),
         telegram: getValOrKeep('set-telegram', s.telegram)
-        gpsLink: getValOrKeep('set-gps-link', s.gpsLink)
+        gpsLink: getValOrKeep('set-gps-link', s.gpsLink) // 🌟 هذا هو السطر الجديد
     };
     
     window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
