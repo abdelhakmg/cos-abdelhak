@@ -356,8 +356,19 @@
                             </label>
                         </div>
                     </div>
+                    <!-- 🎟️ خانة كود الخصم في صفحة الهبوط -->
+                    <div class="bg-black/40 p-3.5 rounded-2xl border border-[#D4AF37]/30 space-y-2">
+                        <label class="block text-xs font-bold text-[#D4AF37]"><i class="fa-solid fa-ticket"></i> هل لديك كود خصم (كوبون)؟</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="landing-coupon-input" placeholder="أدخل الكود هنا..." class="flex-1 bg-black border border-gray-800 p-2.5 rounded-xl text-xs text-white uppercase outline-none focus:border-[#D4AF37]">
+                            <button type="button" onclick="applyLandingCoupon()" class="bg-[#D4AF37] text-black font-black px-5 py-2.5 rounded-xl text-xs hover:opacity-90 transition cursor-pointer whitespace-nowrap">تطبيق</button>
+                        </div>
+                        <p id="landing-coupon-msg" class="text-[11px] font-bold hidden"></p>
+                    </div>
+
                     <div class="bg-black/60 p-5 rounded-2xl border border-gray-800 space-y-3 text-gray-300">
                         <div class="flex justify-between text-sm"><span>سعر المنتج:</span><span id="sum-prod-price" class="font-bold text-white">0 دج</span></div>
+                        <div id="landing-discount-row" class="flex justify-between text-sm text-emerald-400 hidden"><span>قيمة الخصم 🎟️:</span><span id="sum-discount-price" class="font-bold">- 0 دج</span></div>
                         <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold text-[#D4AF37]">0 دج</span></div>
                         <div class="border-t border-gray-800 pt-3 flex justify-between text-lg font-black"><span>المجموع الإجمالي:</span><span id="sum-total-price" class="gold-text">0 دج</span></div>
                     </div>
