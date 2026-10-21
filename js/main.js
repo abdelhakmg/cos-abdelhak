@@ -8,7 +8,7 @@ import './app.js';
 import './ui.js';
 import './landing.js';
 import './gift-builder.js';
-import './admin.js';
+import './admin.js?v=8';
 import './admin-custom.js';
 import './custom-builder.js';
 
