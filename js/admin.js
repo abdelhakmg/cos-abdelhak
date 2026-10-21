@@ -936,7 +936,7 @@ export function handleSaveSettings(e) {
         facebook: getValOrKeep('set-facebook', s.facebook),
         instagram: getValOrKeep('set-instagram', s.instagram),
         whatsappNum: getValOrKeep('set-whatsapp-num', s.whatsappNum),
-        telegram: getValOrKeep('set-telegram', s.telegram)
+        telegram: getValOrKeep('set-telegram', s.telegram),
         gpsLink: getValOrKeep('set-gps-link', s.gpsLink)
     };
     
