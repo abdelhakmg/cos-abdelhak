@@ -5,7 +5,7 @@ import { showCustomAlert, calculateShippingCost, formatPrice, safeCall, isValidD
 
 let logoClickCount = 0;
 let logoClickTimer = null;
-
+let activeCartCoupon = null;
 // 🌟 شاشة الافتتاح الفاخرة
 export function initLuxurySplashScreen() {
     const splash = document.getElementById('luxury-splash-screen');
@@ -252,21 +252,86 @@ export function handleCartWilayaChange() {
     updateCartCalculations();
 }
 
+export function applyCartCoupon() {
+    const input = document.getElementById('cart-coupon-input');
+    const msgEl = document.getElementById('cart-coupon-msg');
+    if (!input || !msgEl) return;
+
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+
+    const found = (state.coupons || []).find(c => c.code === code);
+    msgEl.classList.remove('hidden', 'text-emerald-400', 'text-red-400');
+
+    if (!found) {
+        activeCartCoupon = null;
+        msgEl.innerText = '❌ كود الخصم غير صحيح.';
+        msgEl.classList.add('text-red-400');
+        updateCartCalculations();
+        return;
+    }
+
+    if (found.targetProductId !== 'all') {
+        const hasTargetInCart = state.cart.some(item => item.id === found.targetProductId);
+        if (!hasTargetInCart) {
+            activeCartCoupon = null;
+            msgEl.innerText = `⚠️ هذا الكوبون مخصص فقط لمنتج (${found.targetProductName}) وهو غير موجود في سلتك.`;
+            msgEl.classList.add('text-red-400');
+            updateCartCalculations();
+            return;
+        }
+    }
+
+    activeCartCoupon = found;
+    msgEl.innerText = `✅ تم تطبيق كوبون (${found.code}) بنجاح!`;
+    msgEl.classList.add('text-emerald-400');
+    updateCartCalculations();
+}
+
+export function getCartDiscountAmount() {
+    if (!activeCartCoupon || state.cart.length === 0) return 0;
+
+    if (activeCartCoupon.targetProductId === 'all') {
+        const subtotal = state.cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+        const disc = activeCartCoupon.type === 'percent' ? Math.round(subtotal * (activeCartCoupon.value / 100)) : Number(activeCartCoupon.value);
+        return Math.min(disc, subtotal);
+    } else {
+        // إذا كان الكوبون مخصصاً لمنتج معين، يُحسب الخصم على ذلك المنتج فقط داخل السلة!
+        const targetItemsTotal = state.cart
+            .filter(item => item.id === activeCartCoupon.targetProductId)
+            .reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+        if (targetItemsTotal <= 0) return 0;
+        const disc = activeCartCoupon.type === 'percent' ? Math.round(targetItemsTotal * (activeCartCoupon.value / 100)) : Number(activeCartCoupon.value);
+        return Math.min(disc, targetItemsTotal);
+    }
+}
+
 export function updateCartCalculations() {
     const subtotalEl = document.getElementById('subtotal');
     const shipCostEl = document.getElementById('cart-shipping-cost');
     const totalEl = document.getElementById('total');
+    const discountRow = document.getElementById('cart-discount-row');
+    const discountAmountEl = document.getElementById('cart-discount-amount');
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     
-    // 🌟 حساب المجموع بضرب سعر كل منتج في كميته (qty)
     let subtotal = state.cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+    let discount = getCartDiscountAmount();
+    let finalSubtotal = Math.max(0, subtotal - discount);
+
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
-    
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
     if (subtotalEl) subtotalEl.innerText = formatPrice(subtotal);
+    if (discountRow && discountAmountEl) {
+        if (discount > 0) {
+            discountRow.classList.remove('hidden');
+            discountAmountEl.innerText = `- ${formatPrice(discount)}`;
+        } else {
+            discountRow.classList.add('hidden');
+        }
+    }
     if (shipCostEl) shipCostEl.innerText = wilayaCode ? formatPrice(shipCost) : 'حدد الولاية';
-    if (totalEl) totalEl.innerText = formatPrice(subtotal + shipCost);
+    if (totalEl) totalEl.innerText = formatPrice(finalSubtotal + shipCost);
 }
 
 export function submitCartCheckout() {
@@ -331,14 +396,16 @@ export function submitCartCheckout() {
         if (item.attachedImage2) attachedImages.push(item.attachedImage2);
         if (item.attachedImage3) attachedImages.push(item.attachedImage3);
     });
-
+const discount = getCartDiscountAmount();
+    const finalSubtotal = Math.max(0, subtotal - discount);
+    const couponNote = (discount > 0 && activeCartCoupon) ? ` | كوبون: ${activeCartCoupon.code} (-${discount} دج)` : '';
     const newOrder = {
         customer: name,
         phone: rawPhone.replace(/\s+/g, ''),
         wilaya: wilaya ? wilaya.name : wilayaCode,
         commune: `البلدية: ${baladiya}${address ? ' | العنوان: ' + address : ''} (${shippingTypeText})`,
-        product: `طلبية سلة: (${itemsNames})`,
-        total: subtotal + shipCost,
+        product: `طلبية سلة: (${itemsNames})${couponNote}`,
+        total: finalSubtotal + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date(),
@@ -534,3 +601,4 @@ window.searchOrderTracking = searchOrderTracking;
 window.initRealOrdersTicker = initRealOrdersTicker;
 window.updateStoreFooterLinks = updateStoreFooterLinks;
 window.updateCartItemQty = updateCartItemQty;
+window.applyCartCoupon = applyCartCoupon;
