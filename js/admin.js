@@ -124,6 +124,7 @@ export function switchAdminTab(tabName) {
         if (document.getElementById('set-instagram')) document.getElementById('set-instagram').value = s.instagram || '';
         if (document.getElementById('set-whatsapp-num')) document.getElementById('set-whatsapp-num').value = s.whatsappNum || '';
         if (document.getElementById('set-telegram')) document.getElementById('set-telegram').value = s.telegram || '';
+        if (document.getElementById('set-gps-link')) document.getElementById('set-gps-link').value = s.gpsLink || '';
     }
 
     if (tabName === 'gift') {
@@ -936,6 +937,7 @@ export function handleSaveSettings(e) {
         instagram: getValOrKeep('set-instagram', s.instagram),
         whatsappNum: getValOrKeep('set-whatsapp-num', s.whatsappNum),
         telegram: getValOrKeep('set-telegram', s.telegram)
+        gpsLink: getValOrKeep('set-gps-link', s.gpsLink)
     };
     
     window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
