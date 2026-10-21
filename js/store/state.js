@@ -7,6 +7,7 @@ export const state = {
     bannerMessages: [],
     orders: [],
     brands: [],
+    coupons: [],
     WILAYAS: [],
     categoryFilters: {}, 
     availableSkinTypes: [],
