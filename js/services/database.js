@@ -75,6 +75,12 @@ export function initFirebaseSync() {
         if (doc.exists) {
             const data = doc.data();
             state.storeSettings = { ...state.storeSettings, ...data };
+            // 🌟 إظهار أو إخفاء زر الخريطة بناءً على الرابط المحفوظ
+            const gpsBtn = document.getElementById('link-gps');
+            if (gpsBtn) {
+                gpsBtn.href = data.gpsLink || '#';
+                gpsBtn.style.display = data.gpsLink ? 'flex' : 'none';
+            }
             if (data.brands) state.brands = data.brands;
             if (data.bannerMessages) state.bannerMessages = data.bannerMessages;
             if (data.categoryFilters) state.categoryFilters = data.categoryFilters;
