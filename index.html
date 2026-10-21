@@ -857,12 +857,16 @@
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                             <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-folder-tree text-[#B8860B]"></i> إدارة الأقسام (الفئات الرئيسية)</h3>
                             <form onsubmit="handleSaveCategory(event)" class="space-y-3">
-                                <input type="text" id="cat-name-input" placeholder="اسم القسم (مثال: عطور) *" required class="w-full border p-3 rounded-xl text-sm bg-gray-50">
-                                <div class="flex gap-2">
-                                    <input type="url" id="cat-img-input" placeholder="رابط صورة القسم (URL) *" required class="flex-1 border p-3 rounded-xl text-sm bg-gray-50">
-                                    <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition whitespace-nowrap">حفظ القسم</button>
-                                </div>
-                            </form>
+    <input type="text" id="cat-name-input" placeholder="اسم القسم (أو اكتب اسم قسم موجود لتحديث صورته) *" required class="w-full border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+    <div class="flex flex-col sm:flex-row gap-2">
+        <input type="file" id="cat-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'cat-img-input')">
+        <button type="button" onclick="document.getElementById('cat-file-input').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-3 rounded-xl text-xs hover:opacity-90 transition flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm cursor-pointer">
+            <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة
+        </button>
+        <input type="text" id="cat-img-input" placeholder="أو رابط صورة القسم (URL) *" required class="flex-1 border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+        <button type="submit" class="bg-black text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition whitespace-nowrap cursor-pointer">حفظ القسم</button>
+    </div>
+</form>
                             <div id="admin-categories-list" class="grid grid-cols-3 sm:grid-cols-4 gap-3 pt-2"></div>
                         </div>
 
@@ -973,8 +977,21 @@
                     <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                         <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-regular fa-images text-[#B8860B]"></i> صور المنزلقة الإعلانية (الصفحة الرئيسية)</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير *" required class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-                            <input type="text" id="hero-desc-input" placeholder="وصف قصير *" required class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+    <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير (اختياري)" class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+    <input type="text" id="hero-desc-input" placeholder="وصف قصير (اختياري)" class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+    
+    <div class="md:col-span-2 flex flex-col space-y-2">
+        <label class="block text-xs font-bold text-gray-600">صورة الإعلان (اختر من الهاتف/الحاسوب أو ضع رابط) *</label>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <input type="file" id="hero-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'hero-img-input')">
+            <button type="button" onclick="document.getElementById('hero-file-input').click()" class="bg-gray-800 text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition flex items-center justify-center gap-2 whitespace-nowrap shadow-sm cursor-pointer">
+                <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة
+            </button>
+            <input type="text" id="hero-img-input" placeholder="أو ضع رابط الصورة هنا (URL)..." required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50 outline-none focus:border-[#D4AF37]">
+            <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md whitespace-nowrap cursor-pointer">إضافة الإعلان</button>
+        </div>
+    </div>
+</form>
                             
                             <div class="md:col-span-2 flex flex-col space-y-2">
                                 <label class="block text-xs font-bold text-gray-600">صورة الإعلان (اختر من الهاتف/الحاسوب أو ضع رابط) *</label>
