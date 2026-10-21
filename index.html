@@ -513,7 +513,53 @@
                 </div>
 
                 <!-- التبويب 1: المبيعات والطلبات (تم إصلاح الجدول المكرر والوسم الزائد) -->
+                <!-- التبويب 1: المبيعات والطلبات -->
                 <div id="admin-tab-analytics" class="tab-content active space-y-6 text-gray-900">
+                    
+                    <!-- 🟢 رادار الزوار الحي وإحصائيات التصفح 🟢 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 1. المتواجدون الآن (النقطة الخضراء النابضة) -->
+                        <div class="bg-gradient-to-l from-emerald-950 via-gray-900 to-black text-white p-5 rounded-2xl border border-emerald-500/40 shadow-lg flex items-center justify-between">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="relative flex h-3 w-3">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_10px_#10b981]"></span>
+                                    </span>
+                                    <span class="text-xs text-emerald-400 font-bold">المتواجدون الآن في المتجر</span>
+                                </div>
+                                <span id="stat-visitors-live" class="text-3xl font-black text-white">1</span>
+                                <span class="text-[11px] text-gray-400 mr-1">زائر نشط حالياً</span>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl">
+                                <i class="fa-solid fa-users-viewfinder"></i>
+                            </div>
+                        </div>
+
+                        <!-- 2. زوار اليوم -->
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-gray-400 font-bold block mb-1">📅 زوار اليوم</span>
+                                <span id="stat-visitors-today" class="text-2xl font-black text-gray-900">0</span>
+                                <span class="text-[11px] text-gray-400 mr-1">زيارة</span>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#B8860B] text-xl">
+                                <i class="fa-solid fa-calendar-day"></i>
+                            </div>
+                        </div>
+
+                        <!-- 3. زوار هذا الشهر -->
+                        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-gray-400 font-bold block mb-1">📆 زوار هذا الشهر</span>
+                                <span id="stat-visitors-month" class="text-2xl font-black text-purple-700">0</span>
+                                <span class="text-[11px] text-gray-400 mr-1">زيارة</span>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 text-xl">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
                             <span class="text-xs text-gray-400 font-bold block mb-1">إجمالي المبيعات المؤكدة</span>
