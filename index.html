@@ -1020,8 +1020,8 @@
                                 <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط إنستغرام</label><input type="text" id="set-instagram" placeholder="https://instagram.com/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
                                 <div><label class="block text-xs font-bold mb-1 text-gray-600">رقم واتساب (يبدأ بـ 213)</label><input type="text" id="set-whatsapp-num" placeholder="مثال: 213555000000" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
                                 <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط تليغرام</label><input type="text" id="set-telegram" placeholder="https://t.me/..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-                                <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط خريطة المحل (GPS)</label><input type="url" id="set-gps-link" placeholder="رابط خرائط جوجل (Google Maps)..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
                             </div>
+                            <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط خريطة المحل (GPS)</label><input type="url" id="set-gps-link" placeholder="رابط خرائط جوجل (Google Maps)..." class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
                             <button type="button" onclick="handleSaveSettings(event)" class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-md hover:opacity-90 transition mt-4">حفظ أرقام وروابط التواصل</button>
                         </div>
                     </div>
@@ -1382,11 +1382,12 @@
                     <a href="#" id="link-instagram" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#E4405F] hover:bg-[#E4405F] hover:text-white transition shadow-sm"><i class="fa-brands fa-instagram"></i></a>
                     <a href="#" id="link-whatsapp" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#25D366] hover:bg-[#25D366] hover:text-white transition shadow-sm"><i class="fa-brands fa-whatsapp"></i></a>
                     <a href="#" id="link-telegram" target="_blank" class="w-10 h-10 rounded-full border border-gray-800 bg-black flex items-center justify-center text-gray-400 hover:border-[#0088cc] hover:bg-[#0088cc] hover:text-white transition shadow-sm"><i class="fa-brands fa-telegram"></i></a>
-                    <a href="#" id="link-gps" target="_blank" class="hidden items-center justify-center gap-2 mt-4 text-[#D4AF37] hover:text-black border border-[#D4AF37]/50 hover:bg-[#D4AF37] px-4 py-2.5 rounded-xl transition w-full md:w-fit mx-auto md:mx-0 shadow-sm">
-                    <i class="fa-solid fa-location-dot text-lg"></i>
-                    <span class="text-sm font-bold">موقع المتجر على الخريطة</span>
-                </a>
                 </div>
+                <!-- 🌟 زر الخريطة المبرمج -->
+<a href="#" id="link-gps" target="_blank" style="display: none;" class="items-center justify-center gap-2 mt-4 text-[#D4AF37] hover:text-black border border-[#D4AF37]/50 hover:bg-[#D4AF37] px-4 py-2.5 rounded-xl transition w-full md:w-fit mx-auto md:mx-0 shadow-sm">
+    <i class="fa-solid fa-location-dot text-lg"></i>
+    <span class="text-sm font-bold">موقع المتجر على الخريطة</span>
+</a>
             </div>
         </div>
         <div class="border-t border-[#D4AF37]/20 mt-10 pt-6 text-center text-xs text-gray-500 font-bold">
