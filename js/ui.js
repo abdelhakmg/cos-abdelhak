@@ -426,7 +426,7 @@ export function renderHeroSlider() {
     const dotsContainer = document.getElementById('hero-slider-dots');
     if (!container || !state.heroSlides || state.heroSlides.length === 0) return;
 
-    if (window.currentHeroIdx >= state.heroSlides.length) {
+    if (typeof window.currentHeroIdx !== 'number' || window.currentHeroIdx >= state.heroSlides.length) {
         window.currentHeroIdx = 0;
     }
 
@@ -435,6 +435,10 @@ export function renderHeroSlider() {
 
     const prevIdx = (window.currentHeroIdx - 1 + state.heroSlides.length) % state.heroSlides.length;
     const nextIdx = (window.currentHeroIdx + 1) % state.heroSlides.length;
+
+    const hasTitle = currentSlide.title && currentSlide.title.trim() !== '';
+    const hasDesc = currentSlide.desc && currentSlide.desc.trim() !== '';
+    const hasAnyText = hasTitle || hasDesc;
 
     container.innerHTML = `
         <div class="relative w-full aspect-[16/10] sm:aspect-[16/8] md:h-[460px] rounded-3xl overflow-hidden group shadow-2xl border border-[#D4AF37]/40 bg-[#080808]">
@@ -445,11 +449,10 @@ export function renderHeroSlider() {
             <!-- الصورة الأساسية كاملة 100% بدون قص الأطراف على الهاتف -->
             <img src="${currentSlide.image}" class="relative z-10 w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-700" loading="lazy">
             
-            <!-- تدرج سفلي أنيق يضمن وضوح النصوص دون تغطية وسط الإعلان -->
-            <div class="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/30 to-transparent flex flex-col justify-end items-center text-center p-4 sm:p-8 pointer-events-none">
-                <span class="bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold mb-2 backdrop-blur-md">✨ التشكيلة الحصرية</span>
-                <h1 class="text-lg sm:text-2xl md:text-4xl font-black text-white mb-1 sm:mb-2 drop-shadow-2xl line-clamp-1">${currentSlide.title}</h1>
-                <p class="text-gray-300 text-[11px] sm:text-sm mb-3 sm:mb-5 drop-shadow-lg max-w-xl line-clamp-2">${currentSlide.desc}</p>
+            <!-- تدرج سفلي يظهر فقط عند وجود نص، مع بقاء زر تسوق الآن -->
+            <div class="absolute inset-0 z-20 ${hasAnyText ? 'bg-gradient-to-t from-black/95 via-black/30 to-transparent' : ''} flex flex-col justify-end items-center text-center p-4 sm:p-8 pointer-events-none">
+                ${hasTitle ? `<h1 class="text-lg sm:text-2xl md:text-4xl font-black text-white mb-1 sm:mb-2 drop-shadow-2xl line-clamp-1">${currentSlide.title}</h1>` : ''}
+                ${hasDesc ? `<p class="text-gray-300 text-[11px] sm:text-sm mb-3 sm:mb-5 drop-shadow-lg max-w-xl line-clamp-2">${currentSlide.desc}</p>` : ''}
                 <button onclick="safeCall('filterCategory', 'جميع المنتجات')" class="pointer-events-auto px-6 py-2 sm:px-8 sm:py-3 gold-gradient text-black text-xs sm:text-sm font-extrabold rounded-full shadow-[0_0_20px_rgba(212,175,55,0.4)] hover:scale-105 transition cursor-pointer">
                     تسوق الآن 🔥
                 </button>
@@ -481,7 +484,6 @@ export function renderHeroSlider() {
         }, 5000);
     }
 }
-
 export function setHeroSlide(idx) {
     window.currentHeroIdx = idx;
     renderHeroSlider();
