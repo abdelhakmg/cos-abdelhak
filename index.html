@@ -443,7 +443,17 @@
                         </div>
 
                         <hr class="border-gray-800">
+                        <!-- 🎟️ خانة كود الخصم في السلة -->
+                        <div class="bg-black/50 p-3 rounded-xl border border-[#D4AF37]/30 space-y-2">
+                            <div class="flex gap-2">
+                                <input type="text" id="cart-coupon-input" placeholder="كود الخصم (كوبون)..." class="flex-1 bg-black border border-gray-800 p-2 rounded-lg text-xs text-white uppercase outline-none focus:border-[#D4AF37]">
+                                <button type="button" onclick="applyCartCoupon()" class="bg-[#D4AF37] text-black font-black px-4 py-2 rounded-lg text-xs hover:opacity-90 transition cursor-pointer">تطبيق</button>
+                            </div>
+                            <p id="cart-coupon-msg" class="text-[11px] font-bold hidden"></p>
+                        </div>
+
                         <div class="flex justify-between text-xs"><span class="text-gray-400">مجموع المنتجات</span><span id="subtotal" class="font-bold">0 دج</span></div>
+                        <div id="cart-discount-row" class="flex justify-between text-xs text-emerald-400 hidden"><span>قيمة الخصم 🎟️</span><span id="cart-discount-amount" class="font-bold">- 0 دج</span></div>
                         <div class="flex justify-between text-xs"><span class="text-gray-400">تكلفة التوصيل</span><span id="cart-shipping-cost" class="font-bold text-[#D4AF37]">0 دج</span></div>
                         <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-lg"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
                         
@@ -854,7 +864,21 @@
                             <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-2"></i> التحكم في شاشة الافتتاح (Splash Screen)
                         </h3>
                         <div class="space-y-4">
-                            <!-- 🎟️ إدارة أكواد الخصم والكوبونات (عام أو لمنتج مخصص) -->
+                            
+                            <div>
+                                <label class="block text-gray-600 text-xs font-bold mb-2">اسم المتجر (العنوان الرئيسي)</label>
+                                <input type="text" id="admin-splash-title" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="مثال: كوسمتيك عبد الحق">
+                            </div>
+                            <div>
+                                <label class="block text-gray-600 text-xs font-bold mb-2">الجملة الترحيبية الفاخرة</label>
+                                <input type="text" id="admin-splash-subtitle" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="أدخل عبارتك هنا...">
+                            </div>
+                            <button onclick="safeCall('saveSplashSettings')" class="w-full py-3 bg-[#D4AF37] text-black font-extrabold rounded-xl hover:opacity-90 transition shadow-md cursor-pointer">
+                                حفظ نصوص شاشة البداية 👑
+                            </button>
+                        </div>
+                    </div>
+<!-- 🎟️ إدارة أكواد الخصم والكوبونات (عام أو لمنتج مخصص) -->
                     <div class="bg-white border border-[#D4AF37]/40 rounded-2xl p-6 shadow-sm space-y-5">
                         <div class="border-b border-gray-200 pb-3 flex justify-between items-center">
                             <div>
@@ -896,20 +920,6 @@
 
                         <div id="admin-coupons-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2"></div>
                     </div>
-                            <div>
-                                <label class="block text-gray-600 text-xs font-bold mb-2">اسم المتجر (العنوان الرئيسي)</label>
-                                <input type="text" id="admin-splash-title" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="مثال: كوسمتيك عبد الحق">
-                            </div>
-                            <div>
-                                <label class="block text-gray-600 text-xs font-bold mb-2">الجملة الترحيبية الفاخرة</label>
-                                <input type="text" id="admin-splash-subtitle" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-[#D4AF37] outline-none transition" placeholder="أدخل عبارتك هنا...">
-                            </div>
-                            <button onclick="safeCall('saveSplashSettings')" class="w-full py-3 bg-[#D4AF37] text-black font-extrabold rounded-xl hover:opacity-90 transition shadow-md cursor-pointer">
-                                حفظ نصوص شاشة البداية 👑
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                         <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-regular fa-images text-[#B8860B]"></i> صور المنزلقة الإعلانية (الصفحة الرئيسية)</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
