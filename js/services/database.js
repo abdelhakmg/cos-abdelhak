@@ -135,12 +135,11 @@ export function initAdminOrdersSync(limitCount = 200) {
 // ==========================================
 // 🟢 محرك رادار الزوار الذكي (Live Presence & Daily/Monthly Analytics)
 // ==========================================
-let analyticsUnsubscribe = null;
+let analyticsUnsubscribe = null; // تم تعريفه في البداية لتجنب أي خطأ
 
 export async function initVisitorTracking() {
     if (typeof window.db === 'undefined') return;
 
-    // إنشاء معرف فريد لجلسة التصفح الحالية
     let sessionId = sessionStorage.getItem('cos_session_id');
     const isNewSession = !sessionId;
     if (!sessionId) {
@@ -149,8 +148,8 @@ export async function initVisitorTracking() {
     }
 
     const now = new Date();
-    const todayKey = now.toISOString().slice(0, 10); // مثال: 2026-10-21
-    const monthKey = now.toISOString().slice(0, 7);  // مثال: 2026-10
+    const todayKey = now.toISOString().slice(0, 10);
+    const monthKey = now.toISOString().slice(0, 7);
     const analyticsRef = window.db.collection("settings").doc("analytics");
 
     const updatePresence = async (countVisit = false) => {
@@ -165,7 +164,6 @@ export async function initVisitorTracking() {
             let monthViews = Number(data.monthViews) || 0;
             let activeSessions = data.activeSessions || {};
 
-            // تصفير تلقائي عند بداية يوم جديد أو شهر جديد
             if (dayDate !== todayKey) {
                 dayDate = todayKey;
                 todayViews = 0;
@@ -175,20 +173,17 @@ export async function initVisitorTracking() {
                 monthViews = 0;
             }
 
-            // زيادة عداد اليوم والشهر مرة واحدة فقط لكل جلسة تصفح حقيقية
             if (countVisit) {
                 todayViews += 1;
                 monthViews += 1;
             }
 
-            // تنظيف الجلسات الخاملة التي مضى عليها أكثر من 4 دقائق (240,000 مللي ثانية)
             Object.keys(activeSessions).forEach(id => {
                 if (nowMs - activeSessions[id] > 240000) {
                     delete activeSessions[id];
                 }
             });
 
-            // تسجيل تواجد الزائر الحالي بالوقت الفعلي
             activeSessions[sessionId] = nowMs;
 
             await analyticsRef.set({
@@ -203,17 +198,14 @@ export async function initVisitorTracking() {
         }
     };
 
-    // تسجيل الزيارة فور فتح الموقع
     updatePresence(isNewSession);
 
-    // تحديث النبض كل دقيقتين طالما الزائر يتصفح المتجر
     setInterval(() => {
         if (document.visibilityState === 'visible') {
             updatePresence(false);
         }
     }, 120000);
 
-    // إزالة الزائر من "المتواجدون الآن" فور إغلاقه لصفحة المتجر
     window.addEventListener('beforeunload', () => {
         analyticsRef.update({
             [`activeSessions.${sessionId}`]: window.firebase.firestore.FieldValue.delete()
@@ -221,7 +213,6 @@ export async function initVisitorTracking() {
     });
 }
 
-// مزامنة قراءة الرادار حية داخل لوحة تحكم المدير
 export function initAdminAnalyticsSync() {
     if (typeof window.db === 'undefined') return;
     if (analyticsUnsubscribe) analyticsUnsubscribe();
@@ -234,7 +225,6 @@ export function initAdminAnalyticsSync() {
             const todayKey = new Date().toISOString().slice(0, 10);
             const monthKey = new Date().toISOString().slice(0, 7);
 
-            // حساب المتواجدين النشطين خلال آخر 4 دقائق
             const sessions = data.activeSessions || {};
             const liveCount = Object.values(sessions).filter(ts => (nowMs - ts) <= 240000).length;
 
