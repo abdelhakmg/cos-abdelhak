@@ -5,11 +5,13 @@ import { formatPrice, showCustomAlert, safeCall, calculateShippingCost, isValidD
 
 let currentLandingProduct = null;
 let currentLandingQty = 1; // 🌟 متغير الكمية في صفحة المنتج
-
+let activeLandingCoupon = null; // 🌟 الكوبون المطبق حالياً في صفحة المنتج
 export function openLandingPage(productId, updateUrl = true) {
     currentLandingProduct = state.products.find(p => p.id === productId);
     if (!currentLandingProduct) return;
-
+activeLandingCoupon = null;
+    if (document.getElementById('landing-coupon-input')) document.getElementById('landing-coupon-input').value = '';
+    if (document.getElementById('landing-coupon-msg')) document.getElementById('landing-coupon-msg').classList.add('hidden');
     let mainImg = (currentLandingProduct.images && currentLandingProduct.images[0]) || currentLandingProduct.image || 'https://via.placeholder.com/500';
         
     const landingImgEl = document.getElementById('landing-main-img');
@@ -95,7 +97,51 @@ export function handleWilayaChange() {
     calculateLandingTotal();
     checkSmartOrderButton();
 }
+// 🌟 تطبيق كود الخصم في صفحة الهبوط
+export function applyLandingCoupon() {
+    if (!currentLandingProduct) return;
+    const input = document.getElementById('landing-coupon-input');
+    const msgEl = document.getElementById('landing-coupon-msg');
+    if (!input || !msgEl) return;
 
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+
+    const found = (state.coupons || []).find(c => c.code === code);
+    msgEl.classList.remove('hidden', 'text-emerald-400', 'text-red-400');
+
+    if (!found) {
+        activeLandingCoupon = null;
+        msgEl.innerText = '❌ كود الخصم غير صحيح أو انتهت صلاحيته.';
+        msgEl.classList.add('text-red-400');
+        calculateLandingTotal();
+        return;
+    }
+
+    // التحقق مما إذا كان الكوبون مخصصاً لمنتج آخر
+    if (found.targetProductId !== 'all' && found.targetProductId !== currentLandingProduct.id) {
+        activeLandingCoupon = null;
+        msgEl.innerText = `⚠️ هذا الكوبون مخصص فقط لمنتج (${found.targetProductName || 'آخر'}).`;
+        msgEl.classList.add('text-red-400');
+        calculateLandingTotal();
+        return;
+    }
+
+    activeLandingCoupon = found;
+    msgEl.innerText = `✅ تم تفعيل خصم (${found.value}${found.type === 'percent' ? '%' : ' دج'}) بنجاح!`;
+    msgEl.classList.add('text-emerald-400');
+    calculateLandingTotal();
+}
+
+function getLandingDiscountAmount(prodSubtotal) {
+    if (!activeLandingCoupon) return 0;
+    if (activeLandingCoupon.targetProductId !== 'all' && activeLandingCoupon.targetProductId !== currentLandingProduct?.id) return 0;
+    
+    let discount = activeLandingCoupon.type === 'percent' 
+        ? Math.round(prodSubtotal * (activeLandingCoupon.value / 100)) 
+        : Number(activeLandingCoupon.value);
+    return Math.min(discount, prodSubtotal);
+}
 // 🌟 دالة زيادة وإنقاص الكمية في صفحة الهبوط
 export function changeLandingQty(delta) {
     if (!currentLandingProduct) return;
@@ -171,6 +217,8 @@ export function calculateLandingTotal() {
     
     let unitPrice = Number(currentLandingProduct.price) || 0;
     let prodSubtotal = unitPrice * currentLandingQty;
+    let discountAmount = getLandingDiscountAmount(prodSubtotal);
+    let finalProdPrice = Math.max(0, prodSubtotal - discountAmount);
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
     const sumProdEl = document.getElementById('sum-prod-price');
@@ -180,11 +228,22 @@ export function calculateLandingTotal() {
             : formatPrice(prodSubtotal);
     }
 
+    const discountRow = document.getElementById('landing-discount-row');
+    const discountPriceEl = document.getElementById('sum-discount-price');
+    if (discountRow && discountPriceEl) {
+        if (discountAmount > 0) {
+            discountRow.classList.remove('hidden');
+            discountPriceEl.innerText = `- ${formatPrice(discountAmount)}`;
+        } else {
+            discountRow.classList.add('hidden');
+        }
+    }
+
     const sumShipEl = document.getElementById('sum-ship-price');
     if (sumShipEl) sumShipEl.innerText = wilayaCode ? formatPrice(shipCost) : 'حدد الولاية';
 
     const sumTotalEl = document.getElementById('sum-total-price');
-    if (sumTotalEl) sumTotalEl.innerText = formatPrice(prodSubtotal + shipCost);
+    if (sumTotalEl) sumTotalEl.innerText = formatPrice(finalProdPrice + shipCost);
 }
 
 export function submitLandingOrder() {
@@ -239,14 +298,18 @@ export function submitLandingOrder() {
     if (selectedNum) productDetails += ` (الدرجة: ${selectedNum})`;
 
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
-
+const discountAmount = getLandingDiscountAmount(prodSubtotal);
+    const finalProdPrice = Math.max(0, prodSubtotal - discountAmount);
+    if (discountAmount > 0 && activeLandingCoupon) {
+        productDetails += ` [كوبون: ${activeLandingCoupon.code} (-${discountAmount} دج)]`;
+    }
     const newOrder = {
         customer: name,
         phone: rawPhone.replace(/\s+/g, ''),
         wilaya: wilaya ? wilaya.name : wilayaCode,
         commune: `البلدية: ${baladiya}${address ? ' | العنوان: ' + address : ''} (${shippingTypeText})`,
         product: productDetails,
-        total: prodSubtotal + shipCost,
+        total: finalProdPrice + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date()
@@ -418,3 +481,4 @@ window.shareCurrentProduct = shareCurrentProduct;
 window.renderRelatedProducts = renderRelatedProducts;
 window.checkInitialProductDeepLink = checkInitialProductDeepLink;
 window.changeLandingQty = changeLandingQty;
+window.applyLandingCoupon = applyLandingCoupon;
