@@ -1393,7 +1393,9 @@ export async function saveGiftSettings() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(loadGiftAdminData, 1000); 
+    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        setTimeout(loadGiftAdminData, 1000);
+    }
 });
 
 // =====================================
