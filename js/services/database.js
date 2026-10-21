@@ -76,6 +76,7 @@ export function initFirebaseSync() {
             if (data.brands) state.brands = data.brands;
             if (data.bannerMessages) state.bannerMessages = data.bannerMessages;
             if (data.categoryFilters) state.categoryFilters = data.categoryFilters;
+            if (data.coupons) state.coupons = data.coupons; // 🌟 جلب الكوبونات
 
             state.availableSkinTypes = (data.skinTypes && data.skinTypes.length > 0) ? data.skinTypes : state.availableSkinTypes;
             state.availableHairTypes = (data.hairTypes && data.hairTypes.length > 0) ? data.hairTypes : state.availableHairTypes;
@@ -88,6 +89,7 @@ export function initFirebaseSync() {
         safeCall('renderAdminAttributesTab'); 
         safeCall('renderAdminBrandsList'); 
         safeCall('renderBannerTextsList'); 
+        safeCall('renderAdminCouponsList');
         safeCall('startBannerTicker'); 
         safeCall('updateStoreFooterLinks');
     }, (error) => console.error("Error settings:", error));
