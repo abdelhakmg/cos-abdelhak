@@ -1412,6 +1412,9 @@
               localStorage.setItem('cosAdminLoggedIn', 'true');
               if (typeof window.initAdminOrdersSync === 'function') {
                   window.initAdminOrdersSync();
+                  }
+                  if (typeof window.initAdminAnalyticsSync === 'function') {
+                  window.initAdminAnalyticsSync();
               }
           } else {
               localStorage.removeItem('cosAdminLoggedIn');
