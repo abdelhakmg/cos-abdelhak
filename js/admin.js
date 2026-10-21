@@ -936,12 +936,20 @@ export function handleSaveSettings(e) {
         facebook: getValOrKeep('set-facebook', s.facebook),
         instagram: getValOrKeep('set-instagram', s.instagram),
         whatsappNum: getValOrKeep('set-whatsapp-num', s.whatsappNum),
-        telegram: getValOrKeep('set-telegram', s.telegram),
+        telegram: getValOrKeep('set-telegram', s.telegram), // 👈 تمت إضافة الفاصلة هنا!
         gpsLink: getValOrKeep('set-gps-link', s.gpsLink)
     };
     
     window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
         state.storeSettings = { ...state.storeSettings, ...settings };
+        
+        // تحديث زر الخريطة فوراً بعد الحفظ
+        const gpsBtn = document.getElementById('link-gps');
+        if (gpsBtn) {
+            gpsBtn.href = settings.gpsLink || '#';
+            gpsBtn.style.display = settings.gpsLink ? 'flex' : 'none';
+        }
+
         safeCall('updateStoreFooterLinks');
         showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر وروابط التواصل بأمان!', true); 
     }).catch(err => {
