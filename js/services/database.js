@@ -1,9 +1,11 @@
-// --- ملف js/services/database.js (نسخة Cloud Architect المحسنة) ---
+// --- ملف js/services/database.js (النسخة النهائية المصححة بالكامل) ---
 
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
+// 🌟 جميع متغيرات الحالة في أعلى الملف لتجنب أي خطأ ReferenceError نهائياً
 let ordersUnsubscribe = null;
+let analyticsUnsubscribe = null;
 let isSyncInitialized = false;
 
 export function initFirebaseSync() {
@@ -16,7 +18,7 @@ export function initFirebaseSync() {
     if (isSyncInitialized) return;
     isSyncInitialized = true;
 
-    // 🚀 تفعيل التخزين المؤقت المحلي لـ Firestore (يوفر حتى 60% من القراءات المتكررة)
+    // 🚀 تفعيل التخزين المؤقت المحلي لـ Firestore
     window.db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
         console.warn("Firestore persistence warning:", err.code);
     });
@@ -32,7 +34,7 @@ export function initFirebaseSync() {
         safeCall('renderBrandsFilterSidebar');
         safeCall('applyFilters');
         safeCall('renderAdminProductsTable');
-        safeCall('checkInitialProductDeepLink'); // 🌟 يفتح صفحة المنتج فوراً إذا دخل الزبون من رابط فيسبوك
+        safeCall('checkInitialProductDeepLink');
     }, (error) => console.error("Error fetching products:", error));
 
     // 2. مزامنة الولايات
@@ -76,7 +78,7 @@ export function initFirebaseSync() {
             if (data.brands) state.brands = data.brands;
             if (data.bannerMessages) state.bannerMessages = data.bannerMessages;
             if (data.categoryFilters) state.categoryFilters = data.categoryFilters;
-            if (data.coupons) state.coupons = data.coupons; // 🌟 جلب الكوبونات
+            if (data.coupons) state.coupons = data.coupons;
 
             state.availableSkinTypes = (data.skinTypes && data.skinTypes.length > 0) ? data.skinTypes : state.availableSkinTypes;
             state.availableHairTypes = (data.hairTypes && data.hairTypes.length > 0) ? data.hairTypes : state.availableHairTypes;
@@ -103,20 +105,21 @@ export function initFirebaseSync() {
         safeCall('renderHeroSlider');
         safeCall('renderAdminHeroSlidesList');
     }, (error) => console.error("Error fetching hero slides:", error));
-}
-// 6. تشغيل نظام تتبع الزوار الذكي
+
+    // 6. تشغيل نظام تتبع الزوار الذكي (داخل الدالة بعد تهيئة Firebase)
     initVisitorTracking();
 
-    // 7. مزامنة الطلبيات ورادار الزوار للإدارة فقط عندما يكون المدير مسجلاً
+    // 7. مزامنة الطلبيات ورادار الزوار للإدارة إذا كان المدير مسجلاً
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
         initAdminOrdersSync();
         initAdminAnalyticsSync();
     }
-// 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط (تمنع تسرب الذاكرة واستنزاف الحصة)
+} // 👈 هنا ينتهي قوس initFirebaseSync الصحيح
+
+// 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط
 export function initAdminOrdersSync(limitCount = 200) {
     if (typeof window.db === 'undefined') return;
     
-    // إذا كان هناك مستمع مفتوح مسبقاً، نغلقه أولاً لمنع مضاعفة الاستهلاك
     if (ordersUnsubscribe) {
         ordersUnsubscribe();
     }
@@ -132,11 +135,10 @@ export function initAdminOrdersSync(limitCount = 200) {
             safeCall('renderAdminDashboard');
         }, (error) => console.error("Error fetching orders:", error));
 }
+
 // ==========================================
 // 🟢 محرك رادار الزوار الذكي (Live Presence & Daily/Monthly Analytics)
 // ==========================================
-let analyticsUnsubscribe = null; // تم تعريفه في البداية لتجنب أي خطأ
-
 export async function initVisitorTracking() {
     if (typeof window.db === 'undefined') return;
 
@@ -215,7 +217,9 @@ export async function initVisitorTracking() {
 
 export function initAdminAnalyticsSync() {
     if (typeof window.db === 'undefined') return;
-    if (analyticsUnsubscribe) analyticsUnsubscribe();
+    if (analyticsUnsubscribe) {
+        analyticsUnsubscribe();
+    }
 
     analyticsUnsubscribe = window.db.collection("settings").doc("analytics")
         .onSnapshot((doc) => {
