@@ -818,12 +818,23 @@ export function deleteSelectedOrders() {
 
 export function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
+    const searchInput = document.getElementById('admin-prod-search');
     if (!tbody) return;
-    if (!state.products || state.products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">لا توجد منتجات مسجلة بعد</td></tr>';
+
+    let filteredProducts = state.products || [];
+    if (searchInput && searchInput.value.trim() !== '') {
+        const term = searchInput.value.trim().toLowerCase();
+        filteredProducts = filteredProducts.filter(p => 
+            (p.name && p.name.toLowerCase().includes(term)) || 
+            (p.category && p.category.toLowerCase().includes(term))
+        );
+    }
+
+    if (filteredProducts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">لا توجد منتجات مطابقة للبحث</td></tr>';
         return;
     }
-    tbody.innerHTML = state.products.map(p => {
+    tbody.innerHTML = filteredProducts.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
         const isStock = p.inStock !== false;
         return `
@@ -846,7 +857,6 @@ export function renderAdminProductsTable() {
         `;
     }).join('');
 }
-
 export function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
