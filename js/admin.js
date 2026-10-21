@@ -111,6 +111,7 @@ export function switchAdminTab(tabName) {
     if (tabName === 'marketing_ui') {
         renderBannerTextsList();
         renderAdminHeroSlidesList();
+        renderAdminCouponsList();
         
         // 🌟 تعبئة كافة خانات الهوية البصرية والتواصل الاجتماعي بالبيانات المحفوظة
         if (document.getElementById('set-store-name')) document.getElementById('set-store-name').value = s.name || '';
@@ -134,6 +135,14 @@ export function switchAdminTab(tabName) {
 }
 
 export function populateAdminDropdowns() {
+    // 🌟 تعبئة قائمة المنتجات في صانع الكوبونات
+    const couponTargetSelect = document.getElementById('coupon-target-product');
+    if (couponTargetSelect) {
+        const currentTarget = couponTargetSelect.value;
+        couponTargetSelect.innerHTML = '<option value="all">🌐 شامل لجميع المنتجات</option>' + 
+            state.products.map(p => `<option value="${p.id}">🎯 مخصص لـ: ${p.name}</option>`).join('');
+        if (currentTarget) couponTargetSelect.value = currentTarget;
+    }
     const catSelect = document.getElementById('prod-category-select');
     if (catSelect) {
         const currentCat = catSelect.value;
@@ -1408,7 +1417,82 @@ export function handleSaveMinOrderSettings() {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     });
 }
+// =====================================
+// 🎟️ إدارة أكواد الخصم والكوبونات (Coupons)
+// =====================================
+export function handleSaveCoupon(e) {
+    if (e) e.preventDefault();
+    const codeInput = document.getElementById('coupon-code-input');
+    const typeSelect = document.getElementById('coupon-type-select');
+    const valInput = document.getElementById('coupon-value-input');
+    const targetSelect = document.getElementById('coupon-target-product');
 
+    if (!codeInput || !valInput) return;
+    const code = codeInput.value.trim().toUpperCase();
+    const type = typeSelect ? typeSelect.value : 'percent';
+    const value = parseFloat(valInput.value) || 0;
+    const targetProductId = targetSelect ? targetSelect.value : 'all';
+
+    if (!code || value <= 0) return;
+    if (type === 'percent' && value > 100) {
+        showCustomAlert('تنبيه', 'نسبة الخصم لا يمكن أن تتجاوز 100%!', false);
+        return;
+    }
+
+    const targetProd = targetProductId === 'all' ? null : state.products.find(p => p.id === targetProductId);
+    const targetProductName = targetProd ? targetProd.name : 'جميع المنتجات 🌐';
+
+    if (!state.coupons) state.coupons = [];
+    // تحديث الكود إن كان موجوداً أو إضافته كجديد
+    state.coupons = state.coupons.filter(c => c.code !== code);
+    state.coupons.push({
+        code,
+        type,
+        value,
+        targetProductId,
+        targetProductName,
+        createdAt: Date.now()
+    });
+
+    window.db.collection("settings").doc("main").set({ coupons: state.coupons }, { merge: true }).then(() => {
+        codeInput.value = '';
+        valInput.value = '';
+        if (targetSelect) targetSelect.value = 'all';
+        renderAdminCouponsList();
+        showCustomAlert('تم الحفظ 🎟️', `تم تفعيل كود الخصم (${code}) بنجاح!`, true);
+    });
+}
+
+export function renderAdminCouponsList() {
+    const container = document.getElementById('admin-coupons-list');
+    if (!container) return;
+
+    if (!state.coupons || state.coupons.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 col-span-full py-2">لا توجد أكواد خصم فعالة حالياً.</p>';
+        return;
+    }
+
+    container.innerHTML = state.coupons.map((c, idx) => `
+        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex justify-between items-center text-xs shadow-sm">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="bg-black text-[#D4AF37] font-mono font-black px-2.5 py-1 rounded-lg text-sm tracking-wider">${c.code}</span>
+                    <span class="font-black text-emerald-600 text-sm">-${c.value}${c.type === 'percent' ? '%' : ' دج'}</span>
+                </div>
+                <p class="text-[11px] text-gray-500 font-bold truncate max-w-[180px]">${c.targetProductId === 'all' ? '🌐 شامل لكل المتجر' : '🎯 خاص بـ: ' + (c.targetProductName || 'منتج مخصص')}</p>
+            </div>
+            <button type="button" onclick="deleteCoupon(${idx})" class="text-red-600 bg-red-100 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold transition cursor-pointer">حذف</button>
+        </div>
+    `).join('');
+}
+
+export function deleteCoupon(idx) {
+    if (confirm('هل أنت متأكد من إيقاف وحذف كود الخصم هذا؟')) {
+        state.coupons.splice(idx, 1);
+        renderAdminCouponsList();
+        window.db.collection("settings").doc("main").set({ coupons: state.coupons }, { merge: true });
+    }
+}
 // =====================================
 // 9. التصدير للـ Window
 // =====================================
@@ -1470,3 +1554,6 @@ window.removeGiftRecipient = removeGiftRecipient;
 window.saveNewWrapping = saveNewWrapping;
 window.deleteWrapping = deleteWrapping;
 window.saveGiftSettings = saveGiftSettings;
+window.handleSaveCoupon = handleSaveCoupon;
+window.renderAdminCouponsList = renderAdminCouponsList;
+window.deleteCoupon = deleteCoupon;
