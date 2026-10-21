@@ -41,6 +41,7 @@ export function checkAdminPassword() {
                 
                 // 🌟 تشغيل مزامنة الطلبيات فور تسجيل دخول المدير
                 safeCall('initAdminOrdersSync');
+                safeCall('initAdminAnalyticsSync');
                 safeCall('showPage', 'admin');
                 showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
             })
