@@ -104,7 +104,14 @@ export function initFirebaseSync() {
         safeCall('renderAdminHeroSlidesList');
     }, (error) => console.error("Error fetching hero slides:", error));
 }
+// 6. تشغيل نظام تتبع الزوار الذكي
+    initVisitorTracking();
 
+    // 7. مزامنة الطلبيات ورادار الزوار للإدارة فقط عندما يكون المدير مسجلاً
+    if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        initAdminOrdersSync();
+        initAdminAnalyticsSync();
+    }
 // 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط (تمنع تسرب الذاكرة واستنزاف الحصة)
 export function initAdminOrdersSync(limitCount = 200) {
     if (typeof window.db === 'undefined') return;
@@ -125,6 +132,126 @@ export function initAdminOrdersSync(limitCount = 200) {
             safeCall('renderAdminDashboard');
         }, (error) => console.error("Error fetching orders:", error));
 }
+// ==========================================
+// 🟢 محرك رادار الزوار الذكي (Live Presence & Daily/Monthly Analytics)
+// ==========================================
+let analyticsUnsubscribe = null;
 
+export async function initVisitorTracking() {
+    if (typeof window.db === 'undefined') return;
+
+    // إنشاء معرف فريد لجلسة التصفح الحالية
+    let sessionId = sessionStorage.getItem('cos_session_id');
+    const isNewSession = !sessionId;
+    if (!sessionId) {
+        sessionId = 'v_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now();
+        sessionStorage.setItem('cos_session_id', sessionId);
+    }
+
+    const now = new Date();
+    const todayKey = now.toISOString().slice(0, 10); // مثال: 2026-10-21
+    const monthKey = now.toISOString().slice(0, 7);  // مثال: 2026-10
+    const analyticsRef = window.db.collection("settings").doc("analytics");
+
+    const updatePresence = async (countVisit = false) => {
+        try {
+            const doc = await analyticsRef.get();
+            const nowMs = Date.now();
+            let data = doc.exists ? doc.data() : {};
+
+            let dayDate = data.dayDate || todayKey;
+            let monthDate = data.monthDate || monthKey;
+            let todayViews = Number(data.todayViews) || 0;
+            let monthViews = Number(data.monthViews) || 0;
+            let activeSessions = data.activeSessions || {};
+
+            // تصفير تلقائي عند بداية يوم جديد أو شهر جديد
+            if (dayDate !== todayKey) {
+                dayDate = todayKey;
+                todayViews = 0;
+            }
+            if (monthDate !== monthKey) {
+                monthDate = monthKey;
+                monthViews = 0;
+            }
+
+            // زيادة عداد اليوم والشهر مرة واحدة فقط لكل جلسة تصفح حقيقية
+            if (countVisit) {
+                todayViews += 1;
+                monthViews += 1;
+            }
+
+            // تنظيف الجلسات الخاملة التي مضى عليها أكثر من 4 دقائق (240,000 مللي ثانية)
+            Object.keys(activeSessions).forEach(id => {
+                if (nowMs - activeSessions[id] > 240000) {
+                    delete activeSessions[id];
+                }
+            });
+
+            // تسجيل تواجد الزائر الحالي بالوقت الفعلي
+            activeSessions[sessionId] = nowMs;
+
+            await analyticsRef.set({
+                dayDate,
+                monthDate,
+                todayViews,
+                monthViews,
+                activeSessions
+            }, { merge: true });
+        } catch (err) {
+            console.warn("Analytics tracking info:", err.message);
+        }
+    };
+
+    // تسجيل الزيارة فور فتح الموقع
+    updatePresence(isNewSession);
+
+    // تحديث النبض كل دقيقتين طالما الزائر يتصفح المتجر
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            updatePresence(false);
+        }
+    }, 120000);
+
+    // إزالة الزائر من "المتواجدون الآن" فور إغلاقه لصفحة المتجر
+    window.addEventListener('beforeunload', () => {
+        analyticsRef.update({
+            [`activeSessions.${sessionId}`]: window.firebase.firestore.FieldValue.delete()
+        }).catch(() => {});
+    });
+}
+
+// مزامنة قراءة الرادار حية داخل لوحة تحكم المدير
+export function initAdminAnalyticsSync() {
+    if (typeof window.db === 'undefined') return;
+    if (analyticsUnsubscribe) analyticsUnsubscribe();
+
+    analyticsUnsubscribe = window.db.collection("settings").doc("analytics")
+        .onSnapshot((doc) => {
+            if (!doc.exists) return;
+            const data = doc.data();
+            const nowMs = Date.now();
+            const todayKey = new Date().toISOString().slice(0, 10);
+            const monthKey = new Date().toISOString().slice(0, 7);
+
+            // حساب المتواجدين النشطين خلال آخر 4 دقائق
+            const sessions = data.activeSessions || {};
+            const liveCount = Object.values(sessions).filter(ts => (nowMs - ts) <= 240000).length;
+
+            const todayCount = (data.dayDate === todayKey) ? (data.todayViews || 0) : 0;
+            const monthCount = (data.monthDate === monthKey) ? (data.monthViews || 0) : 0;
+
+            const liveEl = document.getElementById('stat-visitors-live');
+            const todayEl = document.getElementById('stat-visitors-today');
+            const monthEl = document.getElementById('stat-visitors-month');
+
+            if (liveEl) liveEl.innerText = Math.max(1, liveCount).toLocaleString();
+            if (todayEl) todayEl.innerText = todayCount.toLocaleString();
+            if (monthEl) monthEl.innerText = monthCount.toLocaleString();
+        }, (err) => console.warn("Admin analytics sync warning:", err));
+}
+
+window.initVisitorTracking = initVisitorTracking;
+window.initAdminAnalyticsSync = initAdminAnalyticsSync;
 window.initFirebaseSync = initFirebaseSync;
 window.initAdminOrdersSync = initAdminOrdersSync;
