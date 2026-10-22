@@ -199,18 +199,28 @@ export function handleSaveDynamicAttribute(e) {
 
     if (!catName || !attrName || !attrOptionsStr) return;
 
-    const options = attrOptionsStr.split(/[,،]/).map(o => o.trim()).filter(Boolean);
+    const newOptions = attrOptionsStr.split(/[,،]/).map(o => o.trim()).filter(Boolean);
     
     if (!state.categoryFilters) state.categoryFilters = {};
     if (!state.categoryFilters[catName]) state.categoryFilters[catName] = [];
 
-    state.categoryFilters[catName].push({ name: attrName, options: options });
+    // 🌟 ميزة الدمج: البحث عما إذا كان الفلتر موجوداً مسبقاً
+    const existingAttrIndex = state.categoryFilters[catName].findIndex(a => a.name === attrName);
+
+    if (existingAttrIndex !== -1) {
+        // دمج الخيارات الجديدة مع القديمة وإزالة التكرار
+        const combined = [...state.categoryFilters[catName][existingAttrIndex].options, ...newOptions];
+        state.categoryFilters[catName][existingAttrIndex].options = [...new Set(combined)];
+    } else {
+        // إضافة فلتر جديد
+        state.categoryFilters[catName].push({ name: attrName, options: newOptions });
+    }
 
     window.db.collection("settings").doc("main").set({ categoryFilters: state.categoryFilters }, { merge: true }).then(() => {
         document.getElementById('new-attr-name').value = '';
         document.getElementById('new-attr-options').value = '';
         renderDynamicAttributesList();
-        showCustomAlert('تم الحفظ 🛠️', `تمت إضافة فلتر (${attrName}) لقسم (${catName}) بنجاح!`, true);
+        showCustomAlert('تم الحفظ 🛠️', `تم تحديث خيارات (${attrName}) بنجاح!`, true);
     });
 }
 
@@ -229,10 +239,15 @@ export function renderDynamicAttributesList() {
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm text-xs space-y-3">
             <div class="flex justify-between items-center border-b pb-2">
                 <span class="font-black text-[#B8860B]"><i class="fa-solid fa-filter"></i> ${attr.name}</span>
-                <button type="button" onclick="deleteDynamicAttribute('${safeCat}', ${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg font-bold transition">حذف الفلتر</button>
+                <button type="button" onclick="deleteDynamicAttribute('${safeCat}', ${idx})" class="text-red-500 hover:text-red-700 bg-red-50 px-3 py-1.5 rounded-lg font-bold transition">حذف الفلتر بالكامل</button>
             </div>
             <div class="flex flex-wrap gap-1.5">
-                ${attr.options.map(opt => `<span class="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg border border-gray-200 font-bold">${opt}</span>`).join('')}
+                ${attr.options.map((opt, optIdx) => `
+                    <span class="bg-gray-100 text-gray-700 pl-1 pr-2.5 py-1 rounded-lg border border-gray-200 font-bold flex items-center gap-1.5">
+                        ${opt}
+                        <button type="button" onclick="deleteDynamicAttributeOption('${safeCat}', ${idx}, ${optIdx})" class="text-red-400 hover:text-white hover:bg-red-500 rounded-md w-5 h-5 flex items-center justify-center transition cursor-pointer" title="حذف هذا الخيار"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                    </span>
+                `).join('')}
             </div>
         </div>
     `).join('');
@@ -246,7 +261,21 @@ export function deleteDynamicAttribute(catName, idx) {
         });
     }
 }
+export function deleteDynamicAttributeOption(catName, attrIdx, optIdx) {
+    if (confirm('هل أنت متأكد من حذف هذا الخيار؟')) {
+        // حذف الخيار المحدد
+        state.categoryFilters[catName][attrIdx].options.splice(optIdx, 1);
+        
+        // إذا أصبح الفلتر فارغاً تماماً من الخيارات، نحذفه بالكامل
+        if (state.categoryFilters[catName][attrIdx].options.length === 0) {
+            state.categoryFilters[catName].splice(attrIdx, 1);
+        }
 
+        window.db.collection("settings").doc("main").set({ categoryFilters: state.categoryFilters }, { merge: true }).then(() => {
+            renderDynamicAttributesList();
+        });
+    }
+}
 // =====================================
 // 3. عرض الفلاتر الديناميكية وإدارة المنتجات
 // =====================================
@@ -1601,3 +1630,4 @@ window.saveGiftSettings = saveGiftSettings;
 window.handleSaveCoupon = handleSaveCoupon;
 window.renderAdminCouponsList = renderAdminCouponsList;
 window.deleteCoupon = deleteCoupon;
+window.deleteDynamicAttributeOption = deleteDynamicAttributeOption;
