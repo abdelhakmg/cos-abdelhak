@@ -22,6 +22,11 @@ export function showCustomAlert(title, message, isSuccess = true) {
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+if (isSuccess && (title.includes('الاستلام') || title.includes('طلب') || title.includes('بنجاح'))) {
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'Purchase', { currency: 'DZD', value: 1 }); 
+        }
+    }
 }
 
 export function closeCustomAlert() {
