@@ -23,13 +23,35 @@ let giftData = {
     shippingType: 'office' // 🌟 تصحيح: جعل القيمة الافتراضية office لتتوافق مع helpers.js
 };
 
-export function openGiftBuilder() {
+export async function openGiftBuilder() {
     const storeSettings = state.storeSettings || {};
     const giftConfig = storeSettings.gift || {};
     
     if (giftConfig.isActive === false) {
         showCustomAlert("🎁✨ قريباً جداً... 🚀", "مفاجأة فاخرة قيد التجهيز قريباً!", true);
         return;
+    }
+
+    const modal = document.getElementById('gift-builder-modal');
+    const container = document.getElementById('gift-wizard-content');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (container) {
+            container.innerHTML = '<div class="flex flex-col items-center justify-center h-64"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-white mt-4 font-bold text-sm">جاري تجهيز عالم الهدايا...</p></div>';
+        }
+    }
+
+    // 🌟 جلب المنتجات المتاحة لصانع الهدايا فقط عند فتحه (للحفاظ على القراءات)
+    try {
+        if (!window.giftProductsPool) {
+            const snapshot = await window.db.collection('products').where('inStock', '==', true).get();
+            window.giftProductsPool = [];
+            snapshot.forEach(doc => window.giftProductsPool.push({ id: doc.id, ...doc.data() }));
+        }
+    } catch (error) {
+        console.error("Error fetching gift products:", error);
+        window.giftProductsPool = state.products; // كخيار احتياطي
     }
 
     currentGiftStep = 1;
@@ -40,11 +62,6 @@ export function openGiftBuilder() {
         receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' 
     };
     renderGiftStep();
-    const modal = document.getElementById('gift-builder-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
 }
 
 export function closeGiftBuilder() {
@@ -117,7 +134,7 @@ export function renderGiftStep() {
 
         case 2:
             // 🌟 تصحيح: استبعاد العلب غير المتوفرة (inStock === false)
-            const boxProducts = state.products.filter(p => {
+            const boxProducts = (window.giftProductsPool || state.products).filter(p => {
                 if (p.inStock === false) return false;
                 const cat = (p.category || '').toLowerCase().trim();
                 return cat === 'علب' || cat === 'علبة' || cat === 'صناديق';
@@ -154,7 +171,7 @@ export function renderGiftStep() {
 
         case 3:
             // 🌟 تصحيح: استبعاد المنتجات غير المتوفرة (inStock === false)
-            let availableProducts = state.products.filter(p => {
+            let availableProducts = (window.giftProductsPool || state.products).filter(p => {
                 if (p.inStock === false) return false;
                 const cat = (p.category || '').toLowerCase().trim();
                 return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف' && cat !== 'هدايا' && !cat.includes('هدية');
