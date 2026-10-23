@@ -22,7 +22,48 @@ let giftData = {
     commune: '',
     shippingType: 'office' // 🌟 تصحيح: جعل القيمة الافتراضية office لتتوافق مع helpers.js
 };
+// 🌟 ذاكرة التصفح الذكية لأقسام صانع الهدايا (Pagination)
+window.giftCategoryCursors = {};
+window.giftCategoryHasMore = {};
 
+export async function loadMoreGiftProducts() {
+    const cat = activeProductCategory;
+    if (!window.giftCategoryHasMore[cat] || !window.giftCategoryCursors[cat]) return;
+
+    const btn = document.getElementById('gift-load-more-btn');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
+
+    try {
+        let query = window.db.collection('products').where('inStock', '==', true);
+        if (cat !== 'الكل') {
+            query = query.where('category', '==', cat);
+        }
+
+        // جلب الـ 8 منتجات التالية للقسم
+        const snap = await query.startAfter(window.giftCategoryCursors[cat]).limit(8).get();
+
+        if (!snap.empty) {
+            window.giftCategoryCursors[cat] = snap.docs[snap.docs.length - 1];
+            window.giftCategoryHasMore[cat] = snap.docs.length === 8;
+            
+            snap.forEach(doc => {
+                const data = { id: doc.id, ...doc.data() };
+                if (!window.giftProductsPool.find(p => p.id === data.id)) {
+                    window.giftProductsPool.push(data);
+                }
+            });
+        } else {
+            window.giftCategoryHasMore[cat] = false;
+        }
+        
+        renderGiftStep();
+
+    } catch (err) {
+        console.error("Error loading more gift products:", err);
+        if (btn) btn.innerHTML = 'حدث خطأ <i class="fa-solid fa-rotate-right"></i>';
+    }
+}
+window.loadMoreGiftProducts = loadMoreGiftProducts;
 export async function openGiftBuilder() {
     const storeSettings = state.storeSettings || {};
     const giftConfig = storeSettings.gift || {};
@@ -42,28 +83,45 @@ export async function openGiftBuilder() {
         }
     }
 
-    // 🌟 جلب المنتجات المتاحة لصانع الهدايا فقط عند فتحه (للحفاظ على القراءات)
     try {
         if (!window.giftProductsPool) {
-            const snapshot = await window.db.collection('products').where('inStock', '==', true).get();
             window.giftProductsPool = [];
-            snapshot.forEach(doc => window.giftProductsPool.push({ id: doc.id, ...doc.data() }));
+            window.giftCategoryCache = {};
+            window.giftCategoryCursors = {};
+            window.giftCategoryHasMore = {};
+
+            // 1. جلب العلب للخطوة 2
+            const boxCategories = state.categories.map(c => c.name).filter(n => n.includes('علب') || n.includes('صندوق') || n.includes('صناديق'));
+            if (boxCategories.length > 0) {
+                const boxesSnap = await window.db.collection('products').where('category', 'in', boxCategories.slice(0, 10)).where('inStock', '==', true).get();
+                boxesSnap.forEach(doc => window.giftProductsPool.push({ id: doc.id, ...doc.data() }));
+            }
+
+            // 2. جلب أول 8 منتجات لقسم "الكل" 
+            const randomSnap = await window.db.collection('products').where('inStock', '==', true).limit(8).get();
+            if (!randomSnap.empty) {
+                window.giftCategoryCursors['الكل'] = randomSnap.docs[randomSnap.docs.length - 1];
+                window.giftCategoryHasMore['الكل'] = randomSnap.docs.length === 8;
+                randomSnap.forEach(doc => {
+                    if (!window.giftProductsPool.find(p => p.id === doc.id)) {
+                        window.giftProductsPool.push({ id: doc.id, ...doc.data() });
+                    }
+                });
+            } else {
+                window.giftCategoryHasMore['الكل'] = false;
+            }
+            window.giftCategoryCache['الكل'] = true;
         }
     } catch (error) {
         console.error("Error fetching gift products:", error);
-        window.giftProductsPool = state.products; // كخيار احتياطي
+        if (!window.giftProductsPool) window.giftProductsPool = state.products; 
     }
 
     currentGiftStep = 1;
     activeProductCategory = 'الكل';
-    giftData = { 
-        recipient: '', selectedBox: null, selectedProducts: [], 
-        selectedWrapping: null, giftMessage: '', senderName: '', senderPhone: '', 
-        receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' 
-    };
+    giftData = { recipient: '', selectedBox: null, selectedProducts: [], selectedWrapping: null, giftMessage: '', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' };
     renderGiftStep();
 }
-
 export function closeGiftBuilder() {
     const modal = document.getElementById('gift-builder-modal');
     if (modal) {
@@ -210,6 +268,42 @@ export function renderGiftStep() {
 
                     <div class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                         ${availableProducts.map(p => {
+                            const existing = giftData.selectedProducts.find(item => item.id === p.id);
+                            const qty = existing ? existing.qty : 0;
+                            const isAdded = qty > 0;
+                            const safeId = (p.id || '').replace(/'/g, "\\'");
+                            return `
+                                <div class="flex items-center justify-between bg-black/60 p-3 rounded-2xl border transition ${isAdded ? 'border-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.2)]' : 'border-gray-800'}">
+                                    <div class="flex items-center gap-3 flex-1 relative">
+                                        <button type="button" onclick="previewGiftProduct('${safeId}')" class="absolute -top-2 -right-1 w-6 h-6 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-sm cursor-pointer"><i class="fa-solid fa-eye text-[10px]"></i></button>
+                                        <div class="w-12 h-12 bg-white rounded-xl flex-shrink-0 p-1 cursor-pointer" onclick="previewGiftProduct('${safeId}')">
+                                            <img src="${(p.images && p.images[0]) || p.image || ''}" class="w-full h-full object-contain rounded-lg" loading="lazy">
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-xs text-white line-clamp-1">${p.name}</p>
+                                            <p class="text-[#D4AF37] font-black text-xs mt-1">${(p.price || 0).toLocaleString()} دج</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800">
+                                        <button type="button" onclick="updateGiftProductQty('${safeId}', -1)" class="w-7 h-7 bg-gray-800 text-white rounded-md flex items-center justify-center font-bold cursor-pointer">-</button>
+                                        <span class="w-5 text-center font-bold text-xs text-white">${qty}</span>
+                                        <button type="button" onclick="updateGiftProductQty('${safeId}', 1)" class="w-7 h-7 bg-[#D4AF37] text-black rounded-md flex items-center justify-center font-bold cursor-pointer">+</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                        
+                        ${window.giftCategoryHasMore && window.giftCategoryHasMore[activeProductCategory] ? `
+                        <div class="flex justify-center mt-4 pb-2">
+                            <button id="gift-load-more-btn" onclick="loadMoreGiftProducts()" class="bg-black border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold py-2.5 px-6 rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
+                                المزيد من (${activeProductCategory}) <i class="fa-solid fa-angle-down"></i>
+                            </button>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            break;
                             const existing = giftData.selectedProducts.find(item => item.id === p.id);
                             const qty = existing ? existing.qty : 0;
                             const isAdded = qty > 0;
@@ -463,7 +557,42 @@ export function previewWrapping(imgUrl, name, price) {
     document.getElementById('gift-wizard-content').insertAdjacentHTML('beforeend', modalHtml);
 }
 
-export function setActiveGiftCategory(cat) { activeProductCategory = cat; renderGiftStep(); }
+export async function setActiveGiftCategory(cat) { 
+    activeProductCategory = cat; 
+    
+    if (cat !== 'الكل' && !window.giftCategoryCache[cat]) {
+        const container = document.getElementById('gift-wizard-content');
+        if (container) {
+            container.innerHTML = '<div class="flex flex-col items-center justify-center h-[60vh]"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-white mt-4 font-bold text-sm">جاري جلب منتجات (' + cat + ')...</p></div>';
+        }
+        
+        try {
+            const snap = await window.db.collection('products')
+                .where('category', '==', cat)
+                .where('inStock', '==', true)
+                .limit(8) // 🌟 8 منتجات فقط كبداية للقسم
+                .get();
+            
+            if (!snap.empty) {
+                window.giftCategoryCursors[cat] = snap.docs[snap.docs.length - 1];
+                window.giftCategoryHasMore[cat] = snap.docs.length === 8;
+                snap.forEach(doc => {
+                    const data = { id: doc.id, ...doc.data() };
+                    if (!window.giftProductsPool.find(p => p.id === data.id)) {
+                        window.giftProductsPool.push(data);
+                    }
+                });
+            } else {
+                window.giftCategoryHasMore[cat] = false;
+            }
+            window.giftCategoryCache[cat] = true;
+        } catch (err) {
+            console.error("Error fetching category:", err);
+        }
+    }
+    
+    renderGiftStep(); 
+}
 export function setGiftRecipient(r) { giftData.recipient = r; nextGiftStep(); }
 export function selectGiftBox(boxId) { giftData.selectedBox = state.products.find(p => p.id === boxId); nextGiftStep(); }
 export function selectWrapping(id, name, price, image) { giftData.selectedWrapping = { id, name, price, image }; renderGiftStep(); }
