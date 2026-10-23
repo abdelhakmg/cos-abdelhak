@@ -168,10 +168,11 @@ export function toggleMobileMenu() {
 // ==========================================
 // 3. نظام البحث المباشر
 // ==========================================
+let searchTimeout = null;
 export function handleLiveSearch(query) {
     const dropdown = document.getElementById('search-results-dropdown');
     const mobileDropdown = document.getElementById('mobile-search-dropdown');
-    const q = (query || '').trim().toLowerCase();
+    const q = (query || '').trim();
     
     if (!q) {
         if (dropdown) dropdown.classList.add('hidden');
@@ -179,37 +180,48 @@ export function handleLiveSearch(query) {
         return;
     }
 
-    const matches = state.products.filter(p => {
-        if (p.inStock === false) return false;
-        
-        const skinsStr = Array.isArray(p.skinTypes) ? p.skinTypes.join(' ') : (p.skinType || '');
-        const hairsStr = Array.isArray(p.hairTypes) ? p.hairTypes.join(' ') : (p.hairType || '');
-        const attrsStr = p.attributes ? Object.values(p.attributes).flat().join(' ') : '';
+    // تأخير نصف ثانية (Debounce) لمنع إرسال طلب لفايرباس مع كل حرف يكتبه الزبون
+    if(searchTimeout) clearTimeout(searchTimeout);
+    
+    searchTimeout = setTimeout(async () => {
+        try {
+            // البحث المباشر في فايرباس باستخدام بادئة الاسم (Prefix)
+            const snapshot = await window.db.collection('products')
+                .where('name', '>=', q)
+                .where('name', '<=', q + '\uf8ff')
+                .limit(5).get();
+            
+            let matches = [];
+            snapshot.forEach(doc => matches.push({id: doc.id, ...doc.data()}));
 
-        return (p.name && p.name.toLowerCase().includes(q)) || 
-               (p.category && p.category.toLowerCase().includes(q)) ||
-               (p.brand && p.brand.toLowerCase().includes(q)) ||
-               skinsStr.toLowerCase().includes(q) || 
-               hairsStr.toLowerCase().includes(q) ||
-               attrsStr.toLowerCase().includes(q);
-    }).slice(0, 5);
+            // إذا لم ينجح البحث المباشر، نبحث في المنتجات المحملة مسبقاً للقسم
+            if (matches.length === 0) {
+                const localPool = window.currentCatalogProducts || state.products || [];
+                matches = localPool.filter(p => p.inStock !== false && (
+                    (p.name && p.name.includes(q)) || 
+                    (p.category && p.category.includes(q))
+                )).slice(0, 5);
+            }
 
-    let htmlContent = matches.length === 0 ? 
-        '<div class="p-4 text-xs text-amber-400 text-center">المنتج غير متوفر، تأكد من البحث عنه يدوياً من الفئات.</div>' : 
-        matches.map(p => `
-            <div onclick="safeCall('openLandingPage', '${p.id}'); safeCall('hideAllDropdowns');" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
-                <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black" loading="lazy">
-                <div class="text-right">
-                    <p class="text-xs font-bold text-white truncate">${p.name}</p>
-                    <p class="text-[10px] text-[#D4AF37] font-bold">${formatPrice(p.price)}</p>
-                </div>
-            </div>
-        `).join('');
+            let htmlContent = matches.length === 0 ? 
+                '<div class="p-4 text-xs text-amber-400 text-center">المنتج غير متوفر، تأكد من البحث عنه يدوياً من الفئات.</div>' : 
+                matches.map(p => `
+                    <div onclick="safeCall('openLandingPage', '${p.id}'); safeCall('hideAllDropdowns');" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
+                        <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black" loading="lazy">
+                        <div class="text-right">
+                            <p class="text-xs font-bold text-white truncate">${p.name}</p>
+                            <p class="text-[10px] text-[#D4AF37] font-bold">${formatPrice(p.price)}</p>
+                        </div>
+                    </div>
+                `).join('');
 
-    if (dropdown) { dropdown.innerHTML = htmlContent; dropdown.classList.remove('hidden'); }
-    if (mobileDropdown) { mobileDropdown.innerHTML = htmlContent; mobileDropdown.classList.remove('hidden'); }
+            if (dropdown) { dropdown.innerHTML = htmlContent; dropdown.classList.remove('hidden'); }
+            if (mobileDropdown) { mobileDropdown.innerHTML = htmlContent; mobileDropdown.classList.remove('hidden'); }
+        } catch (error) {
+            console.error("Search error:", error);
+        }
+    }, 500); 
 }
-
 // 🌟 الدالة التي كانت مفقودة وتسبب خطأ عند الكتابة في حقل البحث
 export function handleSearchKeydown(event, query) {
     if (!event) return;
@@ -241,15 +253,39 @@ export function hideAllDropdowns() {
 // ==========================================
 // 4. نظام الفلاتر الديناميكي والماركات للزبائن 🚀
 // ==========================================
-export function filterCategory(catName) {
+export async function filterCategory(catName) {
     window.activeCategoryFilter = (catName || 'جميع المنتجات').trim();
     const breadcrumb = document.getElementById('breadcrumb-current');
     if (breadcrumb) breadcrumb.innerText = window.activeCategoryFilter;
 
-    renderDynamicSidebarFilters();
-    renderBrandsFilterSidebar();
-    applyFilters();
     safeCall('showPage', 'catalog');
+
+    const catalogGrid = document.getElementById('catalog-products');
+    if (catalogGrid) {
+        catalogGrid.innerHTML = '<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-gray-400 text-sm mt-4">جاري جلب المنتجات...</p></div>';
+    }
+
+    try {
+        let query = window.db.collection('products');
+        if (window.activeCategoryFilter !== 'جميع المنتجات') {
+            query = query.where('category', '==', window.activeCategoryFilter);
+        }
+        
+        // نجلب 50 منتج فقط كحد أقصى للقسم لتوفير القراءات
+        const snapshot = await query.limit(50).get();
+        const fetched = [];
+        snapshot.forEach(doc => fetched.push({ id: doc.id, ...doc.data() }));
+        
+        // حفظها في متغير محلي جديد خاص بصفحة الكتالوج للفلترة السريعة
+        window.currentCatalogProducts = fetched;
+
+        renderDynamicSidebarFilters();
+        renderBrandsFilterSidebar();
+        applyFilters();
+    } catch (error) {
+        console.error("Catalog fetch error:", error);
+        if (catalogGrid) catalogGrid.innerHTML = '<p class="text-red-500 text-center col-span-full py-10">حدث خطأ أثناء جلب المنتجات. يرجى المحاولة لاحقاً.</p>';
+    }
 }
 
 // 🌟 تفعيل فلتر العلامات التجارية (الماركات) في الكتالوج
@@ -308,33 +344,25 @@ export function renderDynamicSidebarFilters() {
 }
 
 export function applyFilters() {
-    if (!state.products || !Array.isArray(state.products)) return;
-    let filtered = [...state.products];
+    // نستخدم المنتجات التي جلبناها للتو في الكتالوج، أو نعود لـ state.products كاحتياط
+    const baseProducts = window.currentCatalogProducts || state.products || [];
+    if (!Array.isArray(baseProducts)) return;
+    let filtered = [...baseProducts];
 
-    // 1. فلترة القسم
-    if (window.activeCategoryFilter && window.activeCategoryFilter !== 'جميع المنتجات') {
-        const targetCat = window.activeCategoryFilter.trim().toLowerCase();
-        filtered = filtered.filter(p => (p.category || '').toLowerCase().includes(targetCat));
-    }
-
-    // 2. فلتر المخزون
     const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
     if (inStockOnly) filtered = filtered.filter(p => p.inStock !== false);
 
-    // 3. فلتر السعر
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
         const maxPrice = parseFloat(priceRangeInput.value) || 20000;
         filtered = filtered.filter(p => (p.price || 0) <= maxPrice);
     }
 
-    // 4. فلتر الماركات (العلامة التجارية)
     const checkedBrands = Array.from(document.querySelectorAll('.brand-filter-cb:checked')).map(cb => cb.value);
     if (checkedBrands.length > 0) {
         filtered = filtered.filter(p => p.brand && checkedBrands.includes(p.brand));
     }
 
-    // 5. الفلاتر الديناميكية للأقسام
     const dynamicCheckboxes = document.querySelectorAll('.dynamic-customer-cb:checked');
     if (dynamicCheckboxes.length > 0) {
         const selectedFilters = {};
@@ -353,13 +381,11 @@ export function applyFilters() {
         });
     }
 
-    // 6. الترتيب (Sorting)
     const sortVal = document.getElementById('sort-select')?.value || 'best';
     if (sortVal === 'low') filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     else if (sortVal === 'high') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
     else filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
 
-    // تحديث الواجهة والعداد
     const catalogGrid = document.getElementById('catalog-products');
     const badge = document.getElementById('products-count-badge');
     if (badge) badge.innerText = filtered.length;
