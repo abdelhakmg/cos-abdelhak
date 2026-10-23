@@ -1,12 +1,93 @@
-// --- ملف js/services/database.js (النسخة النهائية المصححة بالكامل) ---
-
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
-// 🌟 جميع متغيرات الحالة في أعلى الملف لتجنب أي خطأ ReferenceError نهائياً
+// 🌟 متغيرات نظام التحميل التدريجي (Pagination) لحماية القراءات
+let lastVisibleProduct = null;
+let isFetchingProducts = false;
+let hasMoreProducts = true;
+
+// 🌟 متغيرات الحالة القديمة
 let ordersUnsubscribe = null;
 let analyticsUnsubscribe = null;
 let isSyncInitialized = false;
+
+// 🌟 دالة جلب المنتجات بالتدريج (Pagination)
+export async function loadProducts(isLoadMore = false) {
+    if (typeof window.db === 'undefined' || isFetchingProducts) return;
+    if (isLoadMore && !hasMoreProducts) return;
+
+    isFetchingProducts = true;
+    
+    const btns = [document.getElementById('load-more-home-btn'), document.getElementById('load-more-catalog-btn')];
+    btns.forEach(btn => {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
+    });
+
+    try {
+        const isAdmin = localStorage.getItem('cosAdminLoggedIn') === 'true';
+        let query = window.db.collection("products").orderBy("createdAt", "desc");
+        
+        if (!isAdmin) {
+            query = query.limit(16);
+            if (isLoadMore && lastVisibleProduct) {
+                query = query.startAfter(lastVisibleProduct);
+            }
+        }
+
+        const snapshot = await query.get();
+
+        if (snapshot.empty) {
+            hasMoreProducts = false;
+            btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
+            isFetchingProducts = false;
+            return;
+        }
+
+        lastVisibleProduct = snapshot.docs[snapshot.docs.length - 1];
+
+        const fetchedProducts = [];
+        snapshot.forEach((doc) => {
+            fetchedProducts.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (isLoadMore && !isAdmin) {
+            state.products = [...state.products, ...fetchedProducts];
+        } else {
+            state.products = fetchedProducts;
+        }
+
+        if (!isAdmin && snapshot.docs.length < 16) {
+            hasMoreProducts = false;
+            btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
+        } else if (!isAdmin) {
+            hasMoreProducts = true;
+            btns.forEach(btn => { 
+                if (btn) {
+                    btn.style.display = 'inline-flex';
+                    btn.innerHTML = 'عرض المزيد من المنتجات <i class="fa-solid fa-angle-down mr-2"></i>';
+                }
+            });
+        }
+
+        safeCall('renderProducts');
+        safeCall('renderDynamicSidebarFilters');
+        safeCall('renderBrandsFilterSidebar');
+        safeCall('applyFilters');
+        safeCall('renderAdminProductsTable');
+        if (!isLoadMore) safeCall('checkInitialProductDeepLink');
+
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        btns.forEach(btn => { 
+            if (btn) btn.innerHTML = 'حدث خطأ، حاول مجدداً <i class="fa-solid fa-rotate-right mr-2"></i>';
+        });
+    } finally {
+        isFetchingProducts = false;
+    }
+}
+
+// تصدير دالة تحميل المزيد ليستخدمها ملف HTML
+window.loadMoreProducts = () => loadProducts(true);
 
 export function initFirebaseSync() {
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
@@ -14,29 +95,15 @@ export function initFirebaseSync() {
         return;
     }
 
-    // منع تشغيل المزامنة أكثر من مرة
     if (isSyncInitialized) return;
     isSyncInitialized = true;
 
-    // 🚀 تفعيل التخزين المؤقت المحلي لـ Firestore
     window.db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
         console.warn("Firestore persistence warning:", err.code);
     });
 
-    // 1. مزامنة المنتجات
-    window.db.collection("products").onSnapshot((snapshot) => {
-        state.products = [];
-        snapshot.forEach((doc) => {
-            state.products.push({ id: doc.id, ...doc.data() });
-        });
-        safeCall('renderProducts');
-        safeCall('renderDynamicSidebarFilters');
-        safeCall('renderBrandsFilterSidebar');
-        safeCall('applyFilters');
-        safeCall('renderAdminProductsTable');
-        safeCall('checkInitialProductDeepLink');
-    }, (error) => console.error("Error fetching products:", error));
-
+    // 1. جلب المنتجات لمرة واحدة فقط (تم إيقاف onSnapshot المدمر للقراءات)
+    loadProducts(false);
     // 2. مزامنة الولايات
     window.db.collection("wilayas").onSnapshot((snapshot) => {
         state.WILAYAS = [];
