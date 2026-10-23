@@ -226,8 +226,8 @@ export function renderGiftStep() {
                 </div>
             `;
             break;
-
-        case 3:
+            
+case 3:
             // 🌟 تصحيح: استبعاد المنتجات غير المتوفرة (inStock === false)
             let availableProducts = (window.giftProductsPool || state.products).filter(p => {
                 if (p.inStock === false) return false;
@@ -235,7 +235,10 @@ export function renderGiftStep() {
                 return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف' && cat !== 'هدايا' && !cat.includes('هدية');
             });
             
-            const uniqueCategories = ['الكل', ...new Set(availableProducts.map(p => p.category || 'أخرى'))];
+            // 🌟 إظهار جميع أسماء الأقسام الموجودة في المتجر ليختار الزبون منها
+            const allStoreCategories = state.categories.map(c => c.name).filter(cat => !cat.includes('علب') && !cat.includes('صندوق') && !cat.includes('تغليف'));
+            const uniqueCategories = ['الكل', ...new Set(allStoreCategories)];
+
             if (activeProductCategory !== 'الكل') {
                 availableProducts = availableProducts.filter(p => (p.category || 'أخرى') === activeProductCategory);
             }
@@ -300,34 +303,6 @@ export function renderGiftStep() {
                             </button>
                         </div>
                         ` : ''}
-                    </div>
-                </div>
-            `;
-            break;
-                            const existing = giftData.selectedProducts.find(item => item.id === p.id);
-                            const qty = existing ? existing.qty : 0;
-                            const isAdded = qty > 0;
-                            const safeId = (p.id || '').replace(/'/g, "\\'");
-                            return `
-                                <div class="flex items-center justify-between bg-black/60 p-3 rounded-2xl border transition ${isAdded ? 'border-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.2)]' : 'border-gray-800'}">
-                                    <div class="flex items-center gap-3 flex-1 relative">
-                                        <button type="button" onclick="previewGiftProduct('${safeId}')" class="absolute -top-2 -right-1 w-6 h-6 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-sm cursor-pointer"><i class="fa-solid fa-eye text-[10px]"></i></button>
-                                        <div class="w-12 h-12 bg-white rounded-xl flex-shrink-0 p-1 cursor-pointer" onclick="previewGiftProduct('${safeId}')">
-                                            <img src="${(p.images && p.images[0]) || p.image || ''}" class="w-full h-full object-contain rounded-lg" loading="lazy">
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-xs text-white line-clamp-1">${p.name}</p>
-                                            <p class="text-[#D4AF37] font-black text-xs mt-1">${(p.price || 0).toLocaleString()} دج</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800">
-                                        <button type="button" onclick="updateGiftProductQty('${safeId}', -1)" class="w-7 h-7 bg-gray-800 text-white rounded-md flex items-center justify-center font-bold cursor-pointer">-</button>
-                                        <span class="w-5 text-center font-bold text-xs text-white">${qty}</span>
-                                        <button type="button" onclick="updateGiftProductQty('${safeId}', 1)" class="w-7 h-7 bg-[#D4AF37] text-black rounded-md flex items-center justify-center font-bold cursor-pointer">+</button>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
                     </div>
                 </div>
             `;
