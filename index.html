@@ -1434,7 +1434,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 <div class="flex flex-wrap justify-center gap-5 text-sm font-bold text-white mb-4 md:mb-0">
                     <a href="tel:0550875580" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-phone text-[#D4AF37]"></i> 0550875580</a>
                     <a href="mailto:cos.abdelhak@gmail.com" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-envelope text-[#D4AF37]"></i> cos.abdelhak@gmail.com</a>
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-[#D4AF37]"></i> الجلفة، دار الشيوخ</span>
+                    <a href="#" id="footer-location-link" target="_blank" class="hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer">
+    <i class="fa-solid fa-location-dot text-[#D4AF37]"></i> <span id="footer-location-text">موقعنا على الخريطة</span>
+</a>
                 </div>
                 <!-- أيقونات التواصل الاجتماعي -->
                 <div class="flex gap-3">
@@ -1483,7 +1485,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         </summary>
                         <ul class="space-y-3 text-sm text-gray-400 mt-2 md:mt-0 px-2 md:px-0">
                             <!-- الأزرار هنا مرتبطة بالدوال القديمة، لم نغير أي شيء في برمجتها -->
-                            <li><button type="button" onclick="document.getElementById('track-order-modal').classList.remove('hidden'); document.getElementById('track-order-modal').classList.add('flex');" class="hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer w-full text-right"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> تتبع طلبيتك</button></li>
+                            <li><button type="button" onclick="openTrackOrderModal()" class="hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer w-full text-right"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> تتبع طلبيتك</button></li>
                             <li><button type="button" onclick="openGiftBuilder()" class="text-white font-bold hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer w-full text-right"><i class="fa-solid fa-gift text-xs text-[#D4AF37]"></i> أطلب هديتك VIP</button></li>
                             <li><button type="button" onclick="openCustomBuilder()" class="text-white font-bold hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer w-full text-right"><i class="fa-solid fa-wand-magic-sparkles text-xs text-[#D4AF37]"></i> صمم منتجك</button></li>
                             <li><a href="#" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> الأسئلة الشائعة</a></li>
