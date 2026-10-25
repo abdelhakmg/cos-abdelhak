@@ -423,40 +423,40 @@ const discount = getCartDiscountAmount();
 
     const purchasedItems = [...state.cart];
 
-    if (typeof window.db !== 'undefined') {
-        window.db.collection("orders").add(newOrder).then(() => {
-            localStorage.setItem('last_order_timestamp', Date.now().toString());
+    // إرسال الطلب إلى Vercel API بدلاً من Firestore مباشرة
+    fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ...newOrder,
+            purchasedItems: purchasedItems // لتحديث المبيعات في السيرفر
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
 
-            // زيادة عداد المبيعات بنفس كمية القطع المشتراة
-            purchasedItems.forEach(item => {
-                const qty = Number(item.qty) || 1;
-                if (item.id && !String(item.id).startsWith('custom_') && !String(item.id).startsWith('gift_')) {
-                    window.db.collection("products").doc(item.id).update({
-                        salesCount: window.firebase.firestore.FieldValue.increment(qty)
-                    }).catch(() => {});
-                }
-            });
+        localStorage.setItem('last_order_timestamp', Date.now().toString());
 
-            if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
+        if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
 
-            state.cart = [];
-            saveCartToLocal();
-            updateBadges();
-            renderCart();
+        state.cart = [];
+        saveCartToLocal();
+        updateBadges();
+        renderCart();
 
-            ['cart-cust-name', 'cart-cust-phone', 'cart-cust-wilaya', 'cart-cust-baladiya', 'cart-cust-address'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-
-            showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح', true);
-            showPage('home');
-        }).catch(err => {
-            if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
-            showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+        ['cart-cust-name', 'cart-cust-phone', 'cart-cust-wilaya', 'cart-cust-baladiya', 'cart-cust-address'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
         });
-    }
-}
+
+        showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح', true);
+        showPage('home');
+    })
+    .catch(err => {
+        if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
+        showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+    });
 
 // 🌟 حساب إجمالي عدد القطع في شارة السلة العلوية
 export function updateBadges() {
