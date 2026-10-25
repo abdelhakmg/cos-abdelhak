@@ -146,51 +146,26 @@ export function openAdminCustomProdModal(productId = null) {
 }
 
 // 🌟 5. ضغط الصور الذكي (500x500 بصيغة WebP لتجنب تجاوز حد 1MB في Firestore)
-function compressAdminImage(file, callback) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 500;
-            const MAX_HEIGHT = 500;
-            let width = img.width;
-            let height = img.height;
 
-            if (width > height && width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-            } else if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-            }
-
-            canvas.width = Math.round(width);
-            canvas.height = Math.round(height);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            // استخدام WebP لتقليل الحجم، مع الرجوع لـ JPEG إن لم يدعمه المتصفح
-            let compressed = canvas.toDataURL('image/webp', 0.65);
-            if (!compressed.startsWith('data:image/webp')) {
-                compressed = canvas.toDataURL('image/jpeg', 0.65);
-            }
-            callback(compressed);
-        };
-    };
-}
-
-export function handleAdminCustomImage(event) {
+export async function handleAdminCustomImage(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    compressAdminImage(file, function(compressedBase64) {
-        document.getElementById('cp-image-base64').value = compressedBase64;
-        document.getElementById('cp-img-tag').src = compressedBase64;
-        document.getElementById('cp-image-preview').classList.remove('hidden');
-    });
+    const previewDiv = document.getElementById('cp-image-preview');
+    const imgTag = document.getElementById('cp-img-tag');
+    const base64Input = document.getElementById('cp-image-base64');
+    
+    if (previewDiv) previewDiv.classList.add('hidden');
+    
+    try {
+        // نستخدم base64Input لتخزين الرابط النهائي لتجنب كسر كود الحفظ
+        const downloadURL = await window.compressAndUploadImage(file, 'workshop_products', 500);
+        base64Input.value = downloadURL; 
+        imgTag.src = downloadURL;
+        previewDiv.classList.remove('hidden');
+    } catch(error) {
+        showCustomAlert("خطأ", "فشل رفع الصورة: " + error.message, false);
+    }
 }
 
 // 6. حفظ المنتج في المصفوفة وتحديث القاعدة
