@@ -388,7 +388,7 @@ function renderLandingDynamicOptions(p) {
     }
     container.innerHTML = html;
 }
-
+}
 export function openLightbox() {
     const mainImg = document.getElementById('landing-main-img')?.src;
     const lightboxModal = document.getElementById('image-lightbox-modal');
