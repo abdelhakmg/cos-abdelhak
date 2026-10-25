@@ -487,15 +487,18 @@ export function searchOrderTracking() {
     container.classList.remove('hidden');
     container.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs">جاري البحث عن الطلبيات... ⏳</p>';
 
-    if (typeof window.db !== 'undefined') {
-        window.db.collection("orders").where("phone", "==", phone).get().then((snapshot) => {
-            if (snapshot.empty) {
+    if (typeof window.firebase !== 'undefined') {
+        const trackOrderFn = window.firebase.functions().httpsCallable('trackOrder');
+        trackOrderFn({ phone: phone }).then((result) => {
+            const orders = result.data.orders;
+            
+            if (!orders || orders.length === 0) {
                 container.innerHTML = `<div class="bg-black/50 border border-gray-800 rounded-2xl p-6 text-center space-y-2"><i class="fa-solid fa-box-open text-3xl text-gray-600"></i><p class="text-sm font-bold text-gray-300">لم نجد أي طلب مسجل برقم الهاتف هذا (${phone})</p></div>`;
                 return;
             }
+            
             let html = '<h3 class="font-bold text-sm text-[#D4AF37] mb-3">📋 الطلبات المسجلة برقمك:</h3>';
-            snapshot.forEach((doc) => {
-                const o = doc.data();
+            orders.forEach((o) => {
                 html += `<div class="bg-black/60 border border-gray-800 rounded-2xl p-5 mt-2 text-right shadow-md">
                     <p class="text-[#D4AF37] font-bold">${o.status || 'جديد'}</p>
                     <h4 class="font-bold text-sm text-white whitespace-pre-line mt-1">${o.product}</h4>
@@ -503,7 +506,10 @@ export function searchOrderTracking() {
                 </div>`;
             });
             container.innerHTML = html;
-        }).catch(() => container.innerHTML = '<p class="text-center text-red-500 text-xs py-4">حدث خطأ أثناء البحث.</p>');
+        }).catch((error) => {
+            console.error("Tracking error:", error);
+            container.innerHTML = '<p class="text-center text-red-500 text-xs py-4">حدث خطأ أثناء البحث. يرجى المحاولة لاحقاً.</p>';
+        });
     }
 }
 
