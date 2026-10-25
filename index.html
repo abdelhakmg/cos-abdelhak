@@ -1241,17 +1241,24 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
         </div>
     </div>
 <!-- 👩‍⚕️ نافذة مستشارة الجمال (Beauty Advisor Modal) -->
-    <div id="advisor-modal" class="hidden fixed inset-0 z-[150] bg-black/90 backdrop-blur-md items-center justify-center p-4">
-        <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-lg rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden relative">
+    <div id="advisor-modal" class="hidden fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md items-center justify-center p-4">
+        <div class="bg-[#0a0a0a] w-full max-w-lg rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden relative max-h-[95vh]">
             
-            <button onclick="closeBeautyAdvisor()" class="absolute top-4 right-4 w-10 h-10 bg-gray-800/50 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm z-10 cursor-pointer">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            
-            <!-- خلفية زخرفية -->
-            <div class="absolute -left-10 -top-10 text-8xl text-[#D4AF37] opacity-5"><i class="fa-solid fa-leaf"></i></div>
+            <!-- ترويسة النافذة (Header) ثابتة وواضحة -->
+            <div class="flex justify-between items-center p-5 border-b border-[#D4AF37]/20 bg-black relative z-20">
+                <button id="advisor-back-btn" onclick="prevAdvisorStep()" class="w-10 h-10 bg-gray-900 hover:bg-gray-800 text-gray-300 rounded-full flex items-center justify-center transition shadow-sm cursor-pointer" style="visibility: hidden;">
+                    <i class="fa-solid fa-arrow-right text-sm"></i>
+                </button>
+                
+                <h3 id="advisor-header-title" class="text-lg font-black text-[#D4AF37]">مستشارة الجمال</h3>
+                
+                <button onclick="closeBeautyAdvisor()" class="w-10 h-10 bg-gray-900 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
 
-            <div id="advisor-content" class="p-8 relative z-10">
+            <!-- محتوى الأسئلة -->
+            <div id="advisor-content" class="p-6 relative z-10 flex-1 overflow-hidden flex flex-col justify-center">
                 <!-- المحتوى يحقن هنا من الجافاسكريبت -->
             </div>
         </div>
