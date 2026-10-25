@@ -14,6 +14,7 @@ let userAnswers = {
 };
 
 // بنك الأسئلة بالبطاقات البصرية
+// بنك الأسئلة بالبطاقات البصرية (محدث ليتطابق مع فلاتر المتجر)
 const questionsBank = {
     journey: {
         title: 'مرحباً بك يا جميلة ✨',
@@ -28,40 +29,54 @@ const questionsBank = {
         title: 'لنبدأ ببشرتك 🌸',
         subtitle: 'كيف تصفين نوع بشرتك؟',
         options: [
-            { value: 'دهنية', label: 'دهنية (تلمع)', icon: 'fa-solid fa-droplet' },
-            { value: 'جافة', label: 'جافة (مشدودة)', icon: 'fa-solid fa-leaf' },
-            { value: 'مختلطة', label: 'مختلطة (T-Zone)', icon: 'fa-solid fa-circle-half-stroke' },
-            { value: 'حساسة', label: 'حساسة (تتهيج بسرعة)', icon: 'fa-solid fa-feather-pointed' }
+            { value: 'العادية', label: 'العادية', icon: 'fa-solid fa-face-smile' },
+            { value: 'الجافة', label: 'الجافة', icon: 'fa-solid fa-leaf' },
+            { value: 'الدهنية', label: 'الدهنية', icon: 'fa-solid fa-droplet' },
+            { value: 'المختلطة', label: 'المختلطة', icon: 'fa-solid fa-circle-half-stroke' },
+            { value: 'الحساسة', label: 'الحساسة', icon: 'fa-solid fa-feather-pointed' }
         ]
     },
     skinConcern: {
         title: 'رائع! 🎯',
         subtitle: 'ما هو الهدف الأساسي الذي ترغبين في معالجته؟',
         options: [
-            { value: 'حب الشباب', label: 'حب الشباب وآثاره', icon: 'fa-solid fa-circle-dot' },
-            { value: 'تصبغات', label: 'تصبغات وبقع', icon: 'fa-solid fa-masks-theater' },
-            { value: 'تجاعيد', label: 'تجاعيد وشد البشرة', icon: 'fa-solid fa-face-grin-stars' },
-            { value: 'مسام', label: 'مسام واسعة', icon: 'fa-solid fa-magnifying-glass-chart' }
+            { value: 'حب الشباب', label: 'حب الشباب', icon: 'fa-solid fa-circle-dot' },
+            { value: 'الرؤوس السوداء والبيضاء', label: 'الرؤوس السوداء', icon: 'fa-solid fa-masks-theater' },
+            { value: 'المسام الواسعة', label: 'المسام الواسعة', icon: 'fa-solid fa-magnifying-glass-chart' },
+            { value: 'التصبغات والبقع الداكنة', label: 'التصبغات والبقع', icon: 'fa-solid fa-sun' },
+            { value: 'التجاعيد والخطوط الدقيقة', label: 'التجاعيد والخطوط', icon: 'fa-solid fa-face-grin-stars' },
+            { value: 'الجفاف والتقشر', label: 'الجفاف والتقشر', icon: 'fa-solid fa-water-arrow-down' },
+            { value: 'الهالات السوداء', label: 'الهالات السوداء', icon: 'fa-solid fa-eye-low-vision' },
+            { value: 'الاحمرار والتهيج', label: 'الاحمرار والتهيج', icon: 'fa-solid fa-fire-flame-simple' }
         ]
     },
     hairType: {
         title: 'ننتقل لجمال شعرك 💇‍♀️',
         subtitle: 'كيف تصفين طبيعة شعرك؟',
         options: [
-            { value: 'دهني', label: 'دهني', icon: 'fa-solid fa-water' },
-            { value: 'جاف', label: 'جاف ومتقصف', icon: 'fa-solid fa-seedling' },
-            { value: 'عادي', label: 'عادي / متوازن', icon: 'fa-solid fa-check-double' },
-            { value: 'مصبوغ', label: 'مصبوغ / معالج', icon: 'fa-solid fa-fill-drip' }
+            { value: 'العادي', label: 'العادي', icon: 'fa-solid fa-check-double' },
+            { value: 'الجاف', label: 'الجاف', icon: 'fa-solid fa-seedling' },
+            { value: 'الدهني', label: 'الدهني', icon: 'fa-solid fa-water' },
+            { value: 'الناعم', label: 'الناعم', icon: 'fa-solid fa-wind' },
+            { value: 'المموج', label: 'المموج', icon: 'fa-solid fa-water' },
+            { value: 'المجعد', label: 'المجعد', icon: 'fa-solid fa-infinity' },
+            { value: 'المصبوغ', label: 'المصبوغ', icon: 'fa-solid fa-fill-drip' },
+            { value: 'المعالج كيميائياً', label: 'المعالج كيميائياً', icon: 'fa-solid fa-flask' }
         ]
     },
     hairConcern: {
         title: 'سؤال أخير ⏳',
         subtitle: 'ما هي المشكلة المزعجة في شعرك؟',
         options: [
-            { value: 'تساقط', label: 'التساقط والفراغات', icon: 'fa-solid fa-turn-down' },
-            { value: 'قشرة', label: 'القشرة والحكة', icon: 'fa-solid fa-snowflake' },
-            { value: 'هيشان', label: 'الهيشان (Frizz)', icon: 'fa-solid fa-wind' },
-            { value: 'تلف', label: 'التلف الشديد', icon: 'fa-solid fa-scissors' }
+            { value: 'تساقط الشعر', label: 'تساقط الشعر', icon: 'fa-solid fa-turn-down' },
+            { value: 'القشرة', label: 'القشرة', icon: 'fa-solid fa-snowflake' },
+            { value: 'تقصف الأطراف', label: 'تقصف الأطراف', icon: 'fa-solid fa-scissors' },
+            { value: 'الهيشان والتطاير', label: 'الهيشان والتطاير', icon: 'fa-solid fa-bolt' },
+            { value: 'الجفاف والتلف', label: 'الجفاف والتلف', icon: 'fa-solid fa-ban' },
+            { value: 'بهتان اللون', label: 'بهتان اللون', icon: 'fa-solid fa-lightbulb' },
+            { value: 'حساسية فروة الرأس', label: 'حساسية الفروة', icon: 'fa-solid fa-shield-heart' },
+            { value: 'بطء النمو', label: 'بطء النمو', icon: 'fa-solid fa-hourglass-empty' },
+            { value: 'الشيب', label: 'الشيب', icon: 'fa-solid fa-user-tie' }
         ]
     }
 };
@@ -122,7 +137,7 @@ export function renderAdvisorStep() {
                 <h3 class="text-2xl font-black text-white gold-text">${q.title}</h3>
                 <p class="text-gray-400 text-sm mb-6">${q.subtitle}</p>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     ${q.options.map(opt => `
                         <button onclick="selectAdvisorAnswer('${stepKey}', '${opt.value}')" class="group relative bg-black border border-gray-700 hover:border-[#D4AF37] hover:bg-[#D4AF37]/5 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 transition-all duration-300 shadow-md hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] cursor-pointer overflow-hidden">
                             <div class="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
