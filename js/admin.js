@@ -534,51 +534,25 @@ export function deleteBrand(idx) {
 // =====================================
 // 5. التوصيل، الصور، والطلبيات
 // =====================================
-// استبدل دالة handleImageUploadWrapper في ملف js/admin.js بهذا الكود المحسن:
-export function handleImageUploadWrapper(event, targetId) {
+export async function handleImageUploadWrapper(event, targetId) {
     const file = event.target.files[0];
     if (!file) return;
 
     const targetInput = document.getElementById(targetId);
-    if (targetInput) targetInput.placeholder = "جاري معالجة وضغط الصورة... ⏳";
+    if (targetInput) targetInput.placeholder = "جاري الرفع إلى الخادم... ⏳";
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            // تقليص الأبعاد إلى 500px يوفر 65% من حجم البيانات مع وضوح ممتاز على الموبايل
-            const MAX_SIZE = 500;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height && width > MAX_SIZE) {
-                height *= MAX_SIZE / width;
-                width = MAX_SIZE;
-            } else if (height > MAX_SIZE) {
-                width *= MAX_SIZE / height;
-                height = MAX_SIZE;
-            }
-
-            canvas.width = Math.round(width);
-            canvas.height = Math.round(height);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            // ضغط فائق بصيغة WebP بجودة 0.60 (ينتج صورة بحجم ~12KB فقط بدلاً من 90KB)
-            let compressedBase64 = canvas.toDataURL('image/webp', 0.60);
-            if (!compressedBase64.startsWith('data:image/webp')) {
-                compressedBase64 = canvas.toDataURL('image/jpeg', 0.60);
-            }
-            
-            if (targetInput) {
-                targetInput.value = compressedBase64;
-                targetInput.classList.add('border-green-500', 'bg-green-50');
-            }
-        };
-    };
+    try {
+        const downloadURL = await window.compressAndUploadImage(file, 'products_images', 600);
+        if (targetInput) {
+            targetInput.value = downloadURL;
+            targetInput.classList.add('border-green-500', 'bg-green-50');
+            targetInput.placeholder = "أو رابط الصورة (URL) *";
+        }
+    } catch (error) {
+        console.error("Upload error:", error);
+        if (targetInput) targetInput.placeholder = "❌ فشل الرفع";
+        showCustomAlert("خطأ", "فشل رفع الصورة، يرجى المحاولة مرة أخرى.", false);
+    }
 }
 
 export function handleSaveWilaya(e) {
@@ -1329,7 +1303,7 @@ function renderGiftRecipients() {
     `).join('');
 }
 
-export function saveNewWrapping() {
+export async function saveNewWrapping() {
     const fileInput = document.getElementById('wrap-image-file');
     const nameInput = document.getElementById('wrap-name');
     const priceInput = document.getElementById('wrap-price');
@@ -1343,57 +1317,28 @@ export function saveNewWrapping() {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الرفع...';
     btn.disabled = true;
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 450; // ضغط ذكي لتجنب تجاوز حد وثيقة Firestore
-            const MAX_HEIGHT = 450;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height && width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-            } else if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-            }
-
-            canvas.width = Math.round(width);
-            canvas.height = Math.round(height);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            let compressedBase64 = canvas.toDataURL('image/webp', 0.65);
-            if (!compressedBase64.startsWith('data:image/webp')) {
-                compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
-            }
-
-            const newWrap = {
-                id: 'wrap_' + Date.now(),
-                name: nameInput.value.trim(),
-                price: parseFloat(priceInput.value) || 0,
-                image: compressedBase64
-            };
-            
-            if (!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
-            adminGiftSettings.wrappings.push(newWrap);
-            renderAdminWrappings();
-            
-            document.getElementById('add-wrapping-modal').classList.add('hidden');
-            document.getElementById('add-wrapping-modal').classList.remove('flex');
-            fileInput.value = ""; nameInput.value = ""; priceInput.value = "";
-            
-            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة';
-            btn.disabled = false;
+    try {
+        const downloadURL = await window.compressAndUploadImage(fileInput.files[0], 'gift_wrappings', 450);
+        const newWrap = {
+            id: 'wrap_' + Date.now(),
+            name: nameInput.value.trim(),
+            price: parseFloat(priceInput.value) || 0,
+            image: downloadURL
         };
-    };
-    reader.readAsDataURL(file);
+        
+        if (!adminGiftSettings.wrappings) adminGiftSettings.wrappings = [];
+        adminGiftSettings.wrappings.push(newWrap);
+        renderAdminWrappings();
+        
+        document.getElementById('add-wrapping-modal').classList.add('hidden');
+        document.getElementById('add-wrapping-modal').classList.remove('flex');
+        fileInput.value = ""; nameInput.value = ""; priceInput.value = "";
+    } catch (error) {
+        showCustomAlert("خطأ", "فشل الرفع: " + error.message, false);
+    } finally {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> رفع وإضافة';
+        btn.disabled = false;
+    }
 }
 
 export function deleteWrapping(id) {
