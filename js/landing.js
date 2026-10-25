@@ -324,30 +324,34 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
 
     const orderedQty = currentLandingQty;
 
-    if (typeof window.db !== 'undefined') {
-        window.db.collection("orders").add(newOrder).then(() => {
-            localStorage.setItem('last_order_timestamp', Date.now().toString());
+    // إرسال الطلب إلى Vercel API
+    fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ...newOrder,
+            purchasedItems: [{ id: currentLandingProduct.id, qty: orderedQty }] // لتحديث المبيعات
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
 
-            if (currentLandingProduct && currentLandingProduct.id) {
-                window.db.collection("products").doc(currentLandingProduct.id).update({
-                    salesCount: window.firebase.firestore.FieldValue.increment(orderedQty)
-                }).catch(() => {});
-            }
+        localStorage.setItem('last_order_timestamp', Date.now().toString());
 
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
-            
-            ['cust-name', 'cust-phone', 'cust-wilaya', 'cust-baladiya', 'cust-address'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
-            showCustomAlert('تم استلام طلبك! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح!', true);
-            safeCall('showPage', 'home');
-        }).catch(err => {
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
-            showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
+        
+        ['cust-name', 'cust-phone', 'cust-wilaya', 'cust-baladiya', 'cust-address'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
         });
-    }
-}
+        showCustomAlert('تم استلام طلبك! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح!', true);
+        safeCall('showPage', 'home');
+    })
+    .catch(err => {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
+        showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+    });
 function renderLandingDynamicOptions(p) {
     const container = document.getElementById('landing-options-container');
     if (!container) return;
