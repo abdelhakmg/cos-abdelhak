@@ -1240,7 +1240,22 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             </div>
         </div>
     </div>
+<!-- 👩‍⚕️ نافذة مستشارة الجمال (Beauty Advisor Modal) -->
+    <div id="advisor-modal" class="hidden fixed inset-0 z-[150] bg-black/90 backdrop-blur-md items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-lg rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden relative">
+            
+            <button onclick="closeBeautyAdvisor()" class="absolute top-4 right-4 w-10 h-10 bg-gray-800/50 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm z-10 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <!-- خلفية زخرفية -->
+            <div class="absolute -left-10 -top-10 text-8xl text-[#D4AF37] opacity-5"><i class="fa-solid fa-leaf"></i></div>
 
+            <div id="advisor-content" class="p-8 relative z-10">
+                <!-- المحتوى يحقن هنا من الجافاسكريبت -->
+            </div>
+        </div>
+    </div>
     <!-- 🎁 نافذة صانع الهدايا الفاخر (VIP Gift Builder) -->
     <div id="gift-builder-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-md items-center justify-center p-4">
         <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-3xl rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden max-h-[95vh]">
@@ -1599,21 +1614,5 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             });
         }
     </script>
-    <!-- 👩‍⚕️ نافذة مستشارة الجمال (Beauty Advisor Modal) -->
-    <div id="advisor-modal" class="hidden fixed inset-0 z-[150] bg-black/90 backdrop-blur-md items-center justify-center p-4">
-        <div class="bg-gradient-to-b from-gray-900 to-black w-full max-w-lg rounded-3xl border border-[#D4AF37]/40 shadow-[0_0_40px_rgba(212,175,55,0.15)] flex flex-col overflow-hidden relative">
-            
-            <button onclick="closeBeautyAdvisor()" class="absolute top-4 right-4 w-10 h-10 bg-gray-800/50 hover:bg-red-600 text-gray-300 hover:text-white rounded-full flex items-center justify-center transition shadow-sm z-10 cursor-pointer">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            
-            <!-- خلفية زخرفية -->
-            <div class="absolute -left-10 -top-10 text-8xl text-[#D4AF37] opacity-5"><i class="fa-solid fa-leaf"></i></div>
-
-            <div id="advisor-content" class="p-8 relative z-10">
-                <!-- المحتوى يحقن هنا من الجافاسكريبت -->
-            </div>
-        </div>
-    </div>
 </body>
 </html>
