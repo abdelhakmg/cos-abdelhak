@@ -681,6 +681,7 @@ export function submitGiftOrder() {
     .catch(err => {
         showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
     });
+    }
 export function addGiftToCart() {
     const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const boxPrice = giftData.selectedBox ? (giftData.selectedBox.price || 0) : 0;
