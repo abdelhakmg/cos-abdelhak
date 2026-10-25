@@ -348,7 +348,7 @@ case 3:
 
                     <div class="space-y-2 pt-4 border-t border-gray-800">
                         <label class="block text-sm font-bold text-[#D4AF37]">رسالة بطاقة الإهداء (تُطبع داخل الهدية):</label>
-                        <textarea oninput="giftData.giftMessage=this.value" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
+                        <textarea id="g-gift-message" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
                     </div>
                 </div>
             `;
@@ -600,7 +600,10 @@ export function nextGiftStep() {
     if (currentGiftStep === 1 && !giftData.recipient) { showCustomAlert('تنبيه ⚠️', 'يرجى تحديد لمن هذه الهدية.', false); return; }
     if (currentGiftStep === 2 && !giftData.selectedBox) { showCustomAlert('تنبيه ⚠️', 'يرجى اختيار صندوق الهدية.', false); return; }
     if (currentGiftStep === 3 && giftData.selectedProducts.length === 0) { showCustomAlert('علبة فارغة ⚠️', 'العلبة فارغة! يرجى إضافة منتج واحد على الأقل.', false); return; }
-    if (currentGiftStep === 4 && !giftData.selectedWrapping) { showCustomAlert('تنبيه ⚠️', 'يرجى اختيار شكل التغليف الخارجي للهدية.', false); return; }
+    if (currentGiftStep === 4) {
+        if (!giftData.selectedWrapping) { showCustomAlert('تنبيه ⚠️', 'يرجى اختيار شكل التغليف الخارجي للهدية.', false); return; }
+        giftData.giftMessage = document.getElementById('g-gift-message')?.value.trim() || '';
+    }
     
     if (currentGiftStep === 5) {
         giftData.senderName = document.getElementById('g-sender-name')?.value.trim() || giftData.senderName;
