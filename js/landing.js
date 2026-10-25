@@ -352,6 +352,7 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
         showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
     });
+    }
 function renderLandingDynamicOptions(p) {
     const container = document.getElementById('landing-options-container');
     if (!container) return;
