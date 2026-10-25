@@ -662,13 +662,25 @@ export function submitGiftOrder() {
         createdAt: new Date()
     };
 
-    if (typeof window.db !== 'undefined') {
-        window.db.collection("orders").add(newOrder).then(() => {
-            closeGiftBuilder();
-            showCustomAlert('تم استلام طلب الهدية بنجاح! 🎉', 'سنتصل بك (بالمُرسل) قريباً لتأكيد الطلب.', true);
-        }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
-    }
-}
+    // إرسال طلب الهدية إلى Vercel API
+    fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            ...newOrder,
+            purchasedItems: giftData.selectedProducts // لتحديث مبيعات المنتجات الموجودة داخل الهدية
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+
+        closeGiftBuilder();
+        showCustomAlert('تم استلام طلب الهدية بنجاح! 🎉', 'سنتصل بك (بالمُرسل) قريباً لتأكيد الطلب.', true);
+    })
+    .catch(err => {
+        showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
+    });
 export function addGiftToCart() {
     const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const boxPrice = giftData.selectedBox ? (giftData.selectedBox.price || 0) : 0;
