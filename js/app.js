@@ -90,7 +90,8 @@ window.addEventListener('popstate', (event) => {
         'admin-custom-prod-modal', 
         'add-wrapping-modal',
         'custom-alert-modal',
-        'custom-confirm-modal'
+        'custom-confirm-modal',
+        'advisor-modal'
     ];
     modals.forEach(id => {
         const modal = document.getElementById(id);
