@@ -736,6 +736,7 @@ export function submitCustomOrder() {
     .catch(err => {
         showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
     });
+    }
 // 🌟 تصحيح حرج: حفظ الصور المرفقة وصورة المنتج وتعبئة بيانات السلة تلقائياً
 export function addCustomToCart() {
     const cartItem = {
