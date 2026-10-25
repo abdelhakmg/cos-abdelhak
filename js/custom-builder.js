@@ -720,13 +720,22 @@ export function submitCustomOrder() {
         attachedImage3: customOrderData.uploadedImage3 || null
     };
     
-    if (typeof window.db !== 'undefined') {
-        window.db.collection("orders").add(newOrder).then(() => {
-            closeCustomBuilder();
-            showCustomAlert('تم استلام طلبك المخصص! 🎉', 'سنقوم بمراجعة التفاصيل والصور ونتصل بك قريباً.', true);
-        }).catch(err => showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false));
-    }
-}
+    // إرسال الطلب المخصص إلى Vercel API
+    fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+        
+        closeCustomBuilder();
+        showCustomAlert('تم استلام طلبك المخصص! 🎉', 'سنقوم بمراجعة التفاصيل والصور ونتصل بك قريباً.', true);
+    })
+    .catch(err => {
+        showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
+    });
 // 🌟 تصحيح حرج: حفظ الصور المرفقة وصورة المنتج وتعبئة بيانات السلة تلقائياً
 export function addCustomToCart() {
     const cartItem = {
