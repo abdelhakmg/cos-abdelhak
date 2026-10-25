@@ -457,7 +457,7 @@ const discount = getCartDiscountAmount();
         if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
         showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
     });
-
+}
 // 🌟 حساب إجمالي عدد القطع في شارة السلة العلوية
 export function updateBadges() {
     const cartBadge = document.getElementById('cart-badge');
