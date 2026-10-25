@@ -76,7 +76,51 @@ export function safeCall(fnName, ...args) {
         }
     }
 }
+export async function compressAndUploadImage(file, folderName, maxWidth = 800) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > height && width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                } else if (height > maxWidth) {
+                    width *= maxWidth / height;
+                    height = maxWidth;
+                }
+                
+                canvas.width = Math.round(width);
+                canvas.height = Math.round(height);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // تحويل الصورة لـ Blob ورفعها لـ Storage
+                canvas.toBlob(async (blob) => {
+                    if (!blob) return reject("فشل معالجة الصورة");
+                    try {
+                        const fileName = `${folderName}/img_${Date.now()}_${Math.floor(Math.random()*1000)}.webp`;
+                        const storageRef = window.storage.ref().child(fileName);
+                        const snapshot = await storageRef.put(blob, { contentType: 'image/webp' });
+                        const downloadURL = await snapshot.ref.getDownloadURL();
+                        resolve(downloadURL);
+                    } catch (error) {
+                        reject(error);
+                    }
+                }, 'image/webp', 0.70);
+            };
+        };
+        reader.onerror = error => reject(error);
+    });
+}
 
+window.compressAndUploadImage = compressAndUploadImage;
 window.showCustomAlert = showCustomAlert;
 window.closeCustomAlert = closeCustomAlert;
 window.isValidDzPhone = isValidDzPhone;
