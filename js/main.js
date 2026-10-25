@@ -11,6 +11,7 @@ import './gift-builder.js';
 import './admin.js?v=8';
 import './admin-custom.js';
 import './custom-builder.js';
+import './beauty-advisor.js';
 
 // تشغيل الوظائف الأساسية فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
