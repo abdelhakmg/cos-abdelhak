@@ -575,52 +575,28 @@ export function handleFacesChange(faces) {
 }
 
 // ضغط صور الزبون المرفقة
-function compressCustomerImage(file, callback) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = function(e) {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 650; 
-            const MAX_HEIGHT = 650; 
-            let width = img.width;
-            let height = img.height;
 
-            if (width > height && width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-            } else if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-            }
 
-            canvas.width = Math.round(width);
-            canvas.height = Math.round(height);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            let compressed = canvas.toDataURL('image/webp', 0.65);
-            if (!compressed.startsWith('data:image/webp')) {
-                compressed = canvas.toDataURL('image/jpeg', 0.65);
-            }
-            callback(compressed);
-        };
-    };
-}
-
-export function handleCustomImageUpload(event, imageIndex = 1) {
+export async function handleCustomImageUpload(event, imageIndex = 1) {
     const file = event.target.files[0];
     if (!file) return;
     
-    compressCustomerImage(file, function(compressedBase64) {
-        if (imageIndex === 1) customOrderData.uploadedImage1 = compressedBase64;
-        else if (imageIndex === 2) customOrderData.uploadedImage2 = compressedBase64;
-        else if (imageIndex === 3) customOrderData.uploadedImage3 = compressedBase64;
+    // إظهار تنبيه بصري مؤقت للزبون
+    const btnLabel = event.target.previousElementSibling;
+    const originalText = btnLabel ? btnLabel.innerText : '';
+    if (btnLabel) btnLabel.innerText = "جاري الرفع للورشة... ⏳";
+    
+    try {
+        const downloadURL = await window.compressAndUploadImage(file, 'customer_uploads', 700);
+        if (imageIndex === 1) customOrderData.uploadedImage1 = downloadURL;
+        else if (imageIndex === 2) customOrderData.uploadedImage2 = downloadURL;
+        else if (imageIndex === 3) customOrderData.uploadedImage3 = downloadURL;
         
-        renderCustomStep(); 
-    });
+        renderCustomStep();
+    } catch(error) {
+        if (btnLabel) btnLabel.innerText = originalText;
+        showCustomAlert("خطأ", "تعذر رفع الصورة، تأكد من اتصالك بالإنترنت.", false);
+    }
 }
 
 export function removeCustomUploadedImage(imageIndex) {
