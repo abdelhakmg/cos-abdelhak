@@ -23,44 +23,49 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'البيانات غير مكتملة، يرجى ملء كافة الحقول.' });
         }
 
-        let calculatedTotal = 0;
-        const batch = db.batch();
-
-        // 1. حساب السعر الحقيقي من الخادم وتحديث المبيعات في نفس الوقت
-        if (orderData.purchasedItems && Array.isArray(orderData.purchasedItems)) {
-            for (const item of orderData.purchasedItems) {
-                // تجاوز المنتجات المخصصة أو الهدايا التي قد لا تكون مسجلة بنفس الطريقة
-                if (item.id && !String(item.id).startsWith('custom_') && !String(item.id).startsWith('gift_')) {
-                    const productDoc = await db.collection('products').doc(item.id).get();
-                    if (productDoc.exists) {
-                        const productData = productDoc.data();
-                        const itemQty = Number(item.qty) || 1;
-                        calculatedTotal += (Number(productData.price) || 0) * itemQty;
-                        
-                        // تحديث المبيعات
-                        batch.update(productDoc.ref, {
-                            salesCount: admin.firestore.FieldValue.increment(itemQty)
-                        });
-                    }
-                } else if (item.price) {
-                    // للمنتجات المخصصة أو الهدايا، نأخذ سعرها الممرر (أو يمكن برمجتها للتحقق من المكونات)
-                    calculatedTotal += (Number(item.price) || 0) * (Number(item.qty) || 1);
-                }
-            }
-            await batch.commit();
-        } else {
-            // كإجراء احتياطي إذا لم يتم تمرير purchasedItems
-            calculatedTotal = Number(orderData.total) || 0;
+        // 🔒 [تصحيح أمني]: رفض الطلب تماماً إذا لم يحتوي على منتجات
+        if (!orderData.purchasedItems || !Array.isArray(orderData.purchasedItems) || orderData.purchasedItems.length === 0) {
+            return res.status(400).json({ error: 'سلة المشتريات فارغة أو البيانات مفقودة.' });
         }
 
-        // 2. معالجة وتأمين البيانات قبل حفظها (نستخدم calculatedTotal بدلاً من orderData.total)
+        let calculatedProductsTotal = 0;
+        const batch = db.batch();
+
+        // 1. حساب السعر الحقيقي للمنتجات من قاعدة البيانات
+        for (const item of orderData.purchasedItems) {
+            if (item.id && !String(item.id).startsWith('custom_') && !String(item.id).startsWith('gift_')) {
+                const productDoc = await db.collection('products').doc(item.id).get();
+                if (productDoc.exists) {
+                    const productData = productDoc.data();
+                    const itemQty = Number(item.qty) || 1;
+                    calculatedProductsTotal += (Number(productData.price) || 0) * itemQty;
+                    
+                    // تحديث المبيعات
+                    batch.update(productDoc.ref, {
+                        salesCount: admin.firestore.FieldValue.increment(itemQty)
+                    });
+                }
+            } else if (item.price) {
+                // تجميع أسعار المنتجات المخصصة/الهدايا
+                calculatedProductsTotal += (Number(item.price) || 0) * (Number(item.qty) || 1);
+            }
+        }
+        await batch.commit();
+
+        // 🔒 [تصحيح أمني]: تأمين السعر النهائي
+        let finalTotal = Number(orderData.total) || 0;
+        if (finalTotal < 100) {
+            finalTotal = calculatedProductsTotal; 
+        }
+
+        // 2. معالجة وتأمين البيانات قبل حفظها
         const secureOrder = {
             customer: orderData.customer,
             phone: orderData.phone,
             wilaya: orderData.wilaya,
             commune: orderData.commune,
             product: orderData.product,
-            total: calculatedTotal > 0 ? calculatedTotal : Number(orderData.total), // تأمين السعر
+            total: finalTotal,
             status: 'جديد',
             date: new Date().toLocaleDateString('ar-DZ'),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
