@@ -28,6 +28,18 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'سلة المشتريات فارغة أو البيانات مفقودة.' });
         }
 
+        // 🔒 [تصحيح أمني - الخطوة 3]: جدار حماية ضد الطلبات الوهمية (Spam)
+        // التحقق مما إذا كان نفس رقم الهاتف قد أرسل طلباً خلال الدقيقتين الماضيتين
+        const twoMinutesAgo = admin.firestore.Timestamp.fromDate(new Date(Date.now() - 120000));
+        const recentOrders = await db.collection('orders')
+            .where('phone', '==', orderData.phone.replace(/\s+/g, ''))
+            .where('createdAt', '>', twoMinutesAgo)
+            .get();
+
+        if (!recentOrders.empty) {
+            return res.status(429).json({ error: 'لقد قمت بإرسال طلب للتو! يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.' });
+        }
+
         let calculatedProductsTotal = 0;
         const batch = db.batch();
 
