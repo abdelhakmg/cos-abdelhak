@@ -76,7 +76,7 @@ export function safeCall(fnName, ...args) {
         }
     }
 }
-export async function compressAndUploadImage(file, folderName, maxWidth = 800) {
+export async function compressAndUploadImage(file, folderName, maxWidth = 1200) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -101,7 +101,7 @@ export async function compressAndUploadImage(file, folderName, maxWidth = 800) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
-                // تحويل الصورة لـ Blob ورفعها لـ Storage
+                // تحويل الصورة لـ Blob ورفعها لـ Storage بجودة 85% بدلاً من 70%
                 canvas.toBlob(async (blob) => {
                     if (!blob) return reject("فشل معالجة الصورة");
                     try {
@@ -113,13 +113,12 @@ export async function compressAndUploadImage(file, folderName, maxWidth = 800) {
                     } catch (error) {
                         reject(error);
                     }
-                }, 'image/webp', 0.70);
+                }, 'image/webp', 0.85); // 👈 تم رفع الجودة هنا
             };
         };
         reader.onerror = error => reject(error);
     });
 }
-
 window.compressAndUploadImage = compressAndUploadImage;
 window.showCustomAlert = showCustomAlert;
 window.closeCustomAlert = closeCustomAlert;
