@@ -642,6 +642,7 @@ export function saveShippingApiSettings() {
     });
 }
 let previousOrdersCount = -1;
+let isFirstRealDataRender = true; // 🌟 إضافة متغير للتحكم في التحميل الأولي
 
 function playNewOrderSound() {
     try {
@@ -665,11 +666,16 @@ function playNewOrderSound() {
         console.warn("Audio alert blocked until user interacts with page.");
     }
 }
+
 export function renderAdminDashboard() {
-    if (previousOrdersCount !== -1 && state.orders.length > previousOrdersCount) {
+    // 🌟 [تصحيح الإزعاج]: منع رنين الجرس عند تحديث الصفحة أو الدخول لأول مرة
+    if (isFirstRealDataRender && state.orders.length > 0) {
+        isFirstRealDataRender = false; // تسجيل أن الدفعة الأولى وصلت بصمت
+    } else if (previousOrdersCount !== -1 && state.orders.length > previousOrdersCount && !isFirstRealDataRender) {
         playNewOrderSound();
         showCustomAlert('طلبية جديدة وصلت! 🔔', 'تم استلام طلب جديد للتو في سجل الطلبيات.', true);
     }
+    
     previousOrdersCount = state.orders.length;
     const confirmedOrders = state.orders.filter(o => o.status === 'مكتملاً' || o.status === 'مؤكد' || !o.status);
     const totalSales = confirmedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
