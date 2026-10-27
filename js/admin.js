@@ -42,6 +42,7 @@ export function checkAdminPassword() {
                 // 🌟 تشغيل مزامنة الطلبيات فور تسجيل دخول المدير
                 safeCall('initAdminOrdersSync');
                 safeCall('initAdminAnalyticsSync');
+                safeCall('loadAllProductsForAdmin');
                 safeCall('showPage', 'admin');
                 showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
             })
@@ -460,27 +461,37 @@ export function toggleProductStock(productId, currentStockStatus) {
         showCustomAlert('خطأ', 'تعذر تحديث حالة المنتج.', false);
     });
 }
-// 🌟 دالة إنشاء وتحديث فهرس البحث الموحد (لتقليل قراءات Firebase)
+/// 🌟 دالة إنشاء وتحديث فهرس البحث الموحد (متوافقة مع قواعد حماية Firebase)
 export async function updateSearchIndex() {
     try {
-        // نصنع نسخة خفيفة جداً من المنتجات (نصوص وصورة رئيسية فقط)
-        const lightweightIndex = state.products.map(p => ({
+        // التأكد من جلب كافة المنتجات قبل بناء الفهرس حتى لا يتم حفظ 30 منتجاً فقط
+        const snapshot = await window.db.collection('products').get();
+        const allProducts = [];
+        snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
+        state.products = allProducts;
+
+        const lightweightIndex = allProducts.map(p => ({
             id: p.id,
             name: p.name || '',
             category: p.category || '',
+            brand: p.brand || '',
             price: p.price || 0,
+            oldPrice: p.oldPrice || null,
+            inStock: p.inStock !== false,
             image: (p.images && p.images.length > 0) ? p.images[0] : (p.image || ''),
-            // تجميع الاسم والوصف والقسم في سطر واحد لتسهيل البحث المتقاطع
-            keywords: `${p.name || ''} ${p.description || ''} ${p.category || ''} ${p.brand || ''}`.toLowerCase()
+            images: (p.images && p.images.length > 0) ? [p.images[0]] : [],
+            keywords: `${p.name || ''} ${p.desc || ''} ${p.category || ''} ${p.brand || ''}`.toLowerCase()
         }));
 
-        // نحفظ هذا الفهرس في وثيقة واحدة فقط اسمها 'search_index'
-        await window.db.collection('store_settings').doc('search_index').set({
+        // 🔒 الحفظ داخل settings/search_index المسموح به في قواعد الحماية
+        await window.db.collection('settings').doc('search_index').set({
             items: lightweightIndex,
             lastUpdated: new Date()
         });
         
-        console.log('✅ تم تحديث فهرس البحث الذكي بنجاح!');
+        window.totalStoreProductsCount = lightweightIndex.length;
+        renderAdminProductsTable();
+        console.log('✅ تم تحديث فهرس البحث الذكي بنجاح لكافة المنتجات:', lightweightIndex.length);
     } catch (error) {
         console.error('❌ خطأ في تحديث الفهرس:', error);
     }
