@@ -427,16 +427,35 @@ export function resetProductForm() {
     renderCategorySpecificAdminFields();
 }
 
-export function deleteProduct(id) {
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذا المنتج؟')) {
-        window.db.collection("products").doc(id).delete().then(() => showCustomAlert('تم الحذف', 'تم الحذف بنجاح.', true));
-    }
+export function deleteProduct(productId) {
+    if (!confirm('هل أنت متأكد من حذف هذا المنتج نهائياً؟')) return;
+
+    window.db.collection("products").doc(productId).delete().then(() => {
+        state.products = state.products.filter(p => p.id !== productId);
+        renderAdminProductsTable(); // التحديث الفوري
+        showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
+    }).catch(error => {
+        console.error("Error removing product: ", error);
+        showCustomAlert('خطأ', 'تعذر حذف المنتج.', false);
+    });
 }
 
-export function toggleProductStock(id, currentStatus) {
-    const newStatus = !currentStatus;
-    window.db.collection("products").doc(id).update({ inStock: newStatus })
-        .catch(err => showCustomAlert('خطأ', 'لم يتم تحديث المخزون: ' + err.message, false));
+export function toggleProductStock(productId, currentStockStatus) {
+    const newStockStatus = !currentStockStatus; 
+    
+    window.db.collection("products").doc(productId).update({
+        inStock: newStockStatus
+    }).then(() => {
+        const productIndex = state.products.findIndex(p => p.id === productId);
+        if (productIndex !== -1) {
+            state.products[productIndex].inStock = newStockStatus;
+        }
+        renderAdminProductsTable(); // التحديث الفوري
+        showCustomAlert('تم التحديث 🎉', 'تم تغيير حالة توفر المنتج بنجاح.', true);
+    }).catch(error => {
+        console.error("Error updating status: ", error);
+        showCustomAlert('خطأ', 'تعذر تحديث حالة المنتج.', false);
+    });
 }
 
 // =====================================
