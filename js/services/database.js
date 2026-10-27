@@ -13,11 +13,6 @@ let ordersUnsubscribe = null;
 let analyticsUnsubscribe = null;
 let isSyncInitialized = false;
 
-let lastVisibleProduct = null;
-let isFetchingProducts = false;
-let hasMoreProducts = true;
-let currentActiveCategory = null;
-
 // 🌟 دالة جلب المنتجات بالتدريج (Pagination) وفلترة الأقسام
 export async function loadProducts(isLoadMore = false, category = null) {
     if (typeof window.db === 'undefined' || isFetchingProducts) return;
