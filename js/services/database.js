@@ -1,116 +1,118 @@
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
-// 🌟 متغيرات نظام التحميل التدريجي (Pagination) لحماية القراءات
-let lastVisibleProduct = null;
+// 🌟 نظام إدارة حالة الكتالوج والجلب الديناميكي (Smart Pagination Engine)
+window.categoryCursors = {}; // حفظ نقطة التوقف لكل قسم بشكل مستقل
+window.categoryHasMore = {}; // تتبع هل يوجد المزيد في فايرباس لكل قسم
 let isFetchingProducts = false;
-let hasMoreProducts = true;
-let currentActiveCategory = null; // 🌟 لتتبع القسم المفتوح حالياً
-const ITEMS_PER_PAGE = 16; // 🌟 تحديد عدد المنتجات في كل دفعة
+window.activeCategoryFilter = 'جميع المنتجات'; 
 
+// 🌟 دالة مخصصة لترتيب الصفحة الرئيسية (أفضل 8 منتجات مبيعاً) وتجلب مرة واحدة
+export async function loadHomeBestSellers() {
+    try {
+        const snapshot = await window.db.collection('products')
+            .where('inStock', '==', true)
+            .orderBy('salesCount', 'desc')
+            .limit(8)
+            .get();
+            
+        const bestSellers = [];
+        snapshot.forEach(doc => bestSellers.push({id: doc.id, ...doc.data()}));
+        
+        // دمجها في المصفوفة المركزية دون تكرار
+        bestSellers.forEach(newP => {
+            if (!state.products.find(p => p.id === newP.id)) state.products.push(newP);
+        });
+        
+        const grid = document.getElementById('home-products');
+        if (grid) grid.innerHTML = bestSellers.map(window.renderSingleProductCard).join('');
+        
+        const btn = document.getElementById('load-more-home-btn');
+        if (btn) btn.style.display = 'none'; // الصفحة الرئيسية لا تحتاج لزر المزيد
+    } catch(err) {
+        console.error("Error loading home best sellers:", err);
+    }
+}
 // 🌟 متغيرات الحالة القديمة
 let ordersUnsubscribe = null;
 let analyticsUnsubscribe = null;
 let isSyncInitialized = false;
 
 // 🌟 دالة جلب المنتجات بالتدريج (Pagination) وفلترة الأقسام
-export async function loadProducts(isLoadMore = false, category = null) {
+export async function loadProducts(isLoadMore = false, category = 'جميع المنتجات') {
     if (typeof window.db === 'undefined' || isFetchingProducts) return;
     
-    // تحديث القسم الحالي إذا لم يكن تحميل المزيد
     if (!isLoadMore) {
-        currentActiveCategory = category;
-        hasMoreProducts = true; 
+        window.activeCategoryFilter = category;
     }
 
-    if (isLoadMore && !hasMoreProducts) return;
+    const cat = window.activeCategoryFilter;
+    
+    // إذا طلبنا المزيد ولا يوجد شيء في فايرباس لهذا القسم، نتوقف
+    if (isLoadMore && window.categoryHasMore[cat] === false) return;
 
     isFetchingProducts = true;
-    
-    const btns = [document.getElementById('load-more-home-btn'), document.getElementById('load-more-catalog-btn')];
-    btns.forEach(btn => {
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
-    });
+    const btn = document.getElementById('load-more-catalog-btn');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
 
     try {
-        const isAdmin = localStorage.getItem('cosAdminLoggedIn') === 'true';
         let query = window.db.collection("products");
         
-        // تطبيق فلتر القسم إذا تم تحديده
-        if (currentActiveCategory && currentActiveCategory !== 'الكل') {
-            query = query.where("category", "==", currentActiveCategory);
+        if (cat !== 'جميع المنتجات') {
+            query = query.where("category", "==", cat);
         }
         
-        // ترتيب المنتجات حسب الأحدث
         query = query.orderBy("createdAt", "desc");
         
-        if (!isAdmin) {
-            query = query.limit(16);
-            if (isLoadMore && lastVisibleProduct) {
-                query = query.startAfter(lastVisibleProduct);
-            }
+        // 🌟 30 منتج لقسم الكل، 16 لباقي الأقسام
+        const limitCount = cat === 'جميع المنتجات' ? 30 : 16;
+        query = query.limit(limitCount);
+        
+        if (isLoadMore && window.categoryCursors[cat]) {
+            query = query.startAfter(window.categoryCursors[cat]);
         }
 
         const snapshot = await query.get();
 
         if (snapshot.empty) {
-            hasMoreProducts = false;
-            btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
-            
-            // مسح الشاشة إذا كان القسم المختار فارغاً
-            if (!isLoadMore && !isAdmin) {
-                state.products = [];
-                safeCall('renderProducts');
-            }
+            window.categoryHasMore[cat] = false;
+            safeCall('applyFilters'); // إعادة رسم الواجهة
             isFetchingProducts = false;
             return;
         }
 
-        lastVisibleProduct = snapshot.docs[snapshot.docs.length - 1];
+        window.categoryCursors[cat] = snapshot.docs[snapshot.docs.length - 1];
+        window.categoryHasMore[cat] = snapshot.docs.length === limitCount;
 
         const fetchedProducts = [];
-        snapshot.forEach((doc) => {
-            fetchedProducts.push({ id: doc.id, ...doc.data() });
+        snapshot.forEach((doc) => fetchedProducts.push({ id: doc.id, ...doc.data() }));
+
+        // 🌟 دمج المنتجات الجديدة في الـ State المركزية بدون تكرار
+        fetchedProducts.forEach(newP => {
+            const index = state.products.findIndex(p => p.id === newP.id);
+            if (index === -1) {
+                state.products.push(newP);
+            } else {
+                state.products[index] = newP; // تحديث البيانات إن وجدت
+            }
         });
 
-        if (isLoadMore && !isAdmin) {
-            state.products = [...state.products, ...fetchedProducts];
-        } else {
-            state.products = fetchedProducts;
-        }
-
-        if (!isAdmin && snapshot.docs.length < 16) {
-            hasMoreProducts = false;
-            btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
-        } else if (!isAdmin) {
-            hasMoreProducts = true;
-            btns.forEach(btn => { 
-                if (btn) {
-                    btn.style.display = 'inline-flex';
-                    btn.innerHTML = 'عرض المزيد من المنتجات <i class="fa-solid fa-angle-down mr-2"></i>';
-                }
-            });
-        }
-
-        safeCall('renderProducts');
+        // 🌟 توجيه الرسم للكتالوج فقط (يفصل الواجهة عن الـ Fetching)
         safeCall('renderDynamicSidebarFilters');
         safeCall('renderBrandsFilterSidebar');
         safeCall('applyFilters');
         safeCall('renderAdminProductsTable');
+        
         if (!isLoadMore) safeCall('checkInitialProductDeepLink');
 
     } catch (error) {
         console.error("Error fetching products:", error);
-        btns.forEach(btn => { 
-            if (btn) btn.innerHTML = 'حدث خطأ، حاول مجدداً <i class="fa-solid fa-rotate-right mr-2"></i>';
-        });
+        if (btn) btn.innerHTML = 'حدث خطأ، حاول مجدداً <i class="fa-solid fa-rotate-right"></i>';
     } finally {
         isFetchingProducts = false;
     }
 }
-
-// تصدير دالة تحميل المزيد مع تمرير القسم الحالي
-window.loadMoreProducts = () => loadProducts(true, currentActiveCategory);
+window.loadMoreProducts = () => loadProducts(true, window.activeCategoryFilter);
 export function initFirebaseSync() {
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
         console.error("لم يتم تهيئة Firebase بشكل صحيح.");
