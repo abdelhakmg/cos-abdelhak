@@ -359,6 +359,7 @@ export function handleSaveProduct(e) {
                 }
                 resetProductForm();
                 renderAdminProductsTable(); // تحديث الجدول فوراً
+                updateSearchIndex(); // 🌟 مكانها الصحيح بعد التعديل
                 showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
             });
         } else {
@@ -367,6 +368,7 @@ export function handleSaveProduct(e) {
                 state.products.unshift({ id: docRef.id, ...productData });
                 resetProductForm();
                 renderAdminProductsTable(); // تحديث الجدول فوراً
+                updateSearchIndex(); // 🌟 مكانها الصحيح بعد الإضافة
                 showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
             });
         }
