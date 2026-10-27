@@ -1,11 +1,16 @@
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
+// 🌟 متغيرات المزامنة الأساسية (التي تسببت في الخطأ عند حذفها)
+let ordersUnsubscribe = null;
+let analyticsUnsubscribe = null;
+let isSyncInitialized = false;
+
 // 🌟 نظام إدارة حالة الكتالوج والجلب الديناميكي السريع
 window.categoryCursors = {}; 
 window.categoryHasMore = {}; 
-window.loadedCountsPerCategory = {}; // لتتبع عدد المنتجات المعروضة في كل قسم بدقة
-let activeFetchVersion = 0; // لمنع تعارض الطلبات دون تجميد الواجهة
+window.loadedCountsPerCategory = {}; 
+let activeFetchVersion = 0; 
 window.activeCategoryFilter = 'جميع المنتجات'; 
 
 // 🌟 1. دالة الصفحة الرئيسية (أفضل 8 منتجات مبيعاً - سريعة ومضمونة)
@@ -102,7 +107,7 @@ export async function loadProducts(isLoadMore = false, category = 'جميع ال
     try {
         let query = window.db.collection("products");
 
-        // ⚠️ هام جداً: عدم دمج where مع orderBy لتجنب تعليق Firebase بسبب الفهارس المركبة
+        // عدم دمج where مع orderBy لتجنب تعليق Firebase بسبب الفهارس المركبة
         if (cat !== 'جميع المنتجات') {
             query = query.where("category", "==", cat);
         }
@@ -160,6 +165,12 @@ export async function loadProducts(isLoadMore = false, category = 'جميع ال
 }
 
 window.loadMoreProducts = () => loadProducts(true, window.activeCategoryFilter);
+window.loadProducts = loadProducts;
+window.loadHomeBestSellers = loadHomeBestSellers;
+
+// ==========================================
+// 🟢 تهيئة ومزامنة Firebase الأساسية
+// ==========================================
 export function initFirebaseSync() {
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
         console.error("لم يتم تهيئة Firebase بشكل صحيح.");
@@ -173,8 +184,11 @@ export function initFirebaseSync() {
         console.warn("Firestore persistence warning:", err.code);
     });
 
-    // 1. جلب المنتجات لمرة واحدة فقط (تم إيقاف onSnapshot المدمر للقراءات)
-    loadProducts(false);
+    // 1. جلب الرئيسية والكتالوج وفهرس البحث السريع
+    loadHomeBestSellers();
+    loadProducts(false, 'جميع المنتجات');
+    loadSearchIndex();
+
     // 2. مزامنة الولايات
     window.db.collection("wilayas").onSnapshot((snapshot) => {
         state.WILAYAS = [];
@@ -213,7 +227,6 @@ export function initFirebaseSync() {
         if (doc.exists) {
             const data = doc.data();
             state.storeSettings = { ...state.storeSettings, ...data };
-            // 🌟 إظهار أو إخفاء زر الخريطة بناءً على الرابط المحفوظ
             const gpsBtn = document.getElementById('link-gps');
             if (gpsBtn) {
                 gpsBtn.href = data.gpsLink || '#';
@@ -250,15 +263,16 @@ export function initFirebaseSync() {
         safeCall('renderAdminHeroSlidesList');
     }, (error) => console.error("Error fetching hero slides:", error));
 
-    // 6. تشغيل نظام تتبع الزوار الذكي (داخل الدالة بعد تهيئة Firebase)
+    // 6. تشغيل نظام تتبع الزوار الذكي
     initVisitorTracking();
 
     // 7. مزامنة الطلبيات ورادار الزوار للإدارة إذا كان المدير مسجلاً
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
         initAdminOrdersSync();
         initAdminAnalyticsSync();
+        loadAllProductsForAdmin();
     }
-} // 👈 هنا ينتهي قوس initFirebaseSync الصحيح
+}
 
 // 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط
 export function initAdminOrdersSync(limitCount = 200) {
@@ -393,6 +407,7 @@ window.initVisitorTracking = initVisitorTracking;
 window.initAdminAnalyticsSync = initAdminAnalyticsSync;
 window.initFirebaseSync = initFirebaseSync;
 window.initAdminOrdersSync = initAdminOrdersSync;
+
 // ==========================================
 // 🌟 محرك البحث الذكي والمحلي (بحث عميق في كامل المتجر)
 // ==========================================
@@ -402,12 +417,10 @@ let isIndexLoaded = false;
 export async function loadSearchIndex() {
     if (isIndexLoaded) return;
     try {
-        // 🔒 تم تصحيح المسار إلى settings بدلاً من store_settings ليتوافق مع firestore.rules
         const doc = await window.db.collection('settings').doc('search_index').get();
         if (doc.exists && doc.data().items) {
             localSearchIndex = doc.data().items || [];
             isIndexLoaded = true;
-            // تحديث عداد إجمالي المنتجات الكلي في المتجر إن كنا في قسم جميع المنتجات
             window.totalStoreProductsCount = localSearchIndex.length;
         }
     } catch (error) {
@@ -429,7 +442,6 @@ export async function performAdvancedSearch(query) {
 
     const searchTerms = q.toLowerCase().split(/\s+/);
     
-    // البحث في الفهرس الشامل، وإذا لم يكن الفهرس منشأ بعد نبحث في state.products كاحتياط
     const searchPool = localSearchIndex.length > 0 ? localSearchIndex : state.products;
 
     const matchedProducts = searchPool.filter(product => {
