@@ -253,6 +253,12 @@ export function hideAllDropdowns() {
 // ==========================================
 // 4. نظام الفلاتر الديناميكي والماركات للزبائن 🚀
 // ==========================================
+// ==========================================
+// 4. نظام الفلاتر الديناميكي والماركات للزبائن 🚀
+// ==========================================
+window.catalogRenderCount = 0;
+window.currentFilteredCatalog = [];
+
 export async function filterCategory(catName) {
     window.activeCategoryFilter = (catName || 'جميع المنتجات').trim();
     const breadcrumb = document.getElementById('breadcrumb-current');
@@ -262,33 +268,13 @@ export async function filterCategory(catName) {
 
     const catalogGrid = document.getElementById('catalog-products');
     if (catalogGrid) {
-        catalogGrid.innerHTML = '<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-gray-400 text-sm mt-4">جاري جلب المنتجات...</p></div>';
+        catalogGrid.innerHTML = '<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-gray-400 text-sm mt-4">جاري جلب بيانات القسم...</p></div>';
     }
 
-    try {
-        let query = window.db.collection('products');
-        if (window.activeCategoryFilter !== 'جميع المنتجات') {
-            query = query.where('category', '==', window.activeCategoryFilter);
-        }
-        
-        // نجلب 50 منتج فقط كحد أقصى للقسم لتوفير القراءات
-        const snapshot = await query.limit(50).get();
-        const fetched = [];
-        snapshot.forEach(doc => fetched.push({ id: doc.id, ...doc.data() }));
-        
-        // حفظها في متغير محلي جديد خاص بصفحة الكتالوج للفلترة السريعة
-        window.currentCatalogProducts = fetched;
-
-        renderDynamicSidebarFilters();
-        renderBrandsFilterSidebar();
-        applyFilters();
-    } catch (error) {
-        console.error("Catalog fetch error:", error);
-        if (catalogGrid) catalogGrid.innerHTML = '<p class="text-red-500 text-center col-span-full py-10">حدث خطأ أثناء جلب المنتجات. يرجى المحاولة لاحقاً.</p>';
-    }
+    // 🌟 الاعتماد الكلي على محرك الجلب المركزي المطور
+    window.loadProducts(false, window.activeCategoryFilter);
 }
 
-// 🌟 تفعيل فلتر العلامات التجارية (الماركات) في الكتالوج
 export function renderBrandsFilterSidebar() {
     const brandsContainer = document.getElementById('filter-brands-list');
     if (!brandsContainer) return;
@@ -344,9 +330,12 @@ export function renderDynamicSidebarFilters() {
 }
 
 export function applyFilters() {
-    // نستخدم المنتجات التي جلبناها للتو في الكتالوج، أو نعود لـ state.products كاحتياط
-    const baseProducts = window.currentCatalogProducts || state.products || [];
-    if (!Array.isArray(baseProducts)) return;
+    // 🌟 فلترة محلية من المصفوفة المركزية الخاصة بالقسم المفتوح
+    let baseProducts = state.products || [];
+    if (window.activeCategoryFilter !== 'جميع المنتجات') {
+        baseProducts = baseProducts.filter(p => p.category === window.activeCategoryFilter);
+    }
+    
     let filtered = [...baseProducts];
 
     const inStockOnly = document.getElementById('filter-in-stock-only')?.checked;
@@ -386,16 +375,55 @@ export function applyFilters() {
     else if (sortVal === 'high') filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
     else filtered.sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0));
 
-    const catalogGrid = document.getElementById('catalog-products');
-    const badge = document.getElementById('products-count-badge');
-    if (badge) badge.innerText = filtered.length;
+    // 🌟 تحديث قائمة الكتالوج المفلترة وإعادة الرسم
+    window.currentFilteredCatalog = filtered;
+    renderCatalogProducts(false);
+}
 
-    if (catalogGrid) {
-        catalogGrid.innerHTML = filtered.length === 0 ? 
+// 🌟 المحرك الجديد لرسم الكتالوج التدريجي بدون استنزاف القراءات
+export function renderCatalogProducts(isLoadMoreLocal = false) {
+    const grid = document.getElementById('catalog-products');
+    const loadMoreBtn = document.getElementById('load-more-catalog-btn');
+    const badge = document.getElementById('products-count-badge');
+    
+    // عدد المنتجات في الدفعة الواحدة بناءً على القسم
+    const step = window.activeCategoryFilter === 'جميع المنتجات' ? 30 : 16;
+    
+    if (!isLoadMoreLocal) {
+        window.catalogRenderCount = step;
+    } else {
+        window.catalogRenderCount += step;
+    }
+    
+    const toRender = window.currentFilteredCatalog.slice(0, window.catalogRenderCount);
+    
+    if (grid) {
+        grid.innerHTML = toRender.length === 0 ? 
             '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لخيارات الفلترة.</p></div>' :
-            filtered.map(renderSingleProductCard).join('');
+            toRender.map(renderSingleProductCard).join('');
+    }
+    
+    if (badge) badge.innerText = window.currentFilteredCatalog.length;
+
+    // منطق الزر المزدوج (جلب محلي أو جلب من الخادم)
+    const hasMoreLocal = window.catalogRenderCount < window.currentFilteredCatalog.length;
+    const hasMoreFirebase = window.categoryHasMore && window.categoryHasMore[window.activeCategoryFilter];
+
+    if (loadMoreBtn) {
+        if (hasMoreLocal) {
+            loadMoreBtn.style.display = 'inline-flex';
+            loadMoreBtn.onclick = () => renderCatalogProducts(true);
+            loadMoreBtn.innerHTML = 'عرض المزيد من النتائج <i class="fa-solid fa-angle-down mr-2"></i>';
+        } else if (hasMoreFirebase) {
+            loadMoreBtn.style.display = 'inline-flex';
+            loadMoreBtn.onclick = () => window.loadProducts(true, window.activeCategoryFilter);
+            loadMoreBtn.innerHTML = 'جلب المزيد من المنتجات <i class="fa-solid fa-cloud-arrow-down mr-2"></i>';
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
     }
 }
+window.renderCatalogProducts = renderCatalogProducts;
 
 export function resetFilters() {
     window.activeCategoryFilter = 'جميع المنتجات';
@@ -420,7 +448,6 @@ export function updatePriceFilter(val) {
     if (valEl) valEl.innerText = formatPrice(parseFloat(val));
     applyFilters();
 }
-
 // ==========================================
 // 5. نظام المفضلة وبانر الإعلانات
 // ==========================================
