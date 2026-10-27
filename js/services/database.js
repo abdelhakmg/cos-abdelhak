@@ -5,15 +5,29 @@ import { safeCall } from '../utils/helpers.js';
 let lastVisibleProduct = null;
 let isFetchingProducts = false;
 let hasMoreProducts = true;
+let currentActiveCategory = null; // 🌟 لتتبع القسم المفتوح حالياً
+const ITEMS_PER_PAGE = 16; // 🌟 تحديد عدد المنتجات في كل دفعة
 
 // 🌟 متغيرات الحالة القديمة
 let ordersUnsubscribe = null;
 let analyticsUnsubscribe = null;
 let isSyncInitialized = false;
 
-// 🌟 دالة جلب المنتجات بالتدريج (Pagination)
-export async function loadProducts(isLoadMore = false) {
+let lastVisibleProduct = null;
+let isFetchingProducts = false;
+let hasMoreProducts = true;
+let currentActiveCategory = null;
+
+// 🌟 دالة جلب المنتجات بالتدريج (Pagination) وفلترة الأقسام
+export async function loadProducts(isLoadMore = false, category = null) {
     if (typeof window.db === 'undefined' || isFetchingProducts) return;
+    
+    // تحديث القسم الحالي إذا لم يكن تحميل المزيد
+    if (!isLoadMore) {
+        currentActiveCategory = category;
+        hasMoreProducts = true; 
+    }
+
     if (isLoadMore && !hasMoreProducts) return;
 
     isFetchingProducts = true;
@@ -25,7 +39,15 @@ export async function loadProducts(isLoadMore = false) {
 
     try {
         const isAdmin = localStorage.getItem('cosAdminLoggedIn') === 'true';
-        let query = window.db.collection("products").orderBy("createdAt", "desc");
+        let query = window.db.collection("products");
+        
+        // تطبيق فلتر القسم إذا تم تحديده
+        if (currentActiveCategory && currentActiveCategory !== 'الكل') {
+            query = query.where("category", "==", currentActiveCategory);
+        }
+        
+        // ترتيب المنتجات حسب الأحدث
+        query = query.orderBy("createdAt", "desc");
         
         if (!isAdmin) {
             query = query.limit(16);
@@ -39,6 +61,12 @@ export async function loadProducts(isLoadMore = false) {
         if (snapshot.empty) {
             hasMoreProducts = false;
             btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
+            
+            // مسح الشاشة إذا كان القسم المختار فارغاً
+            if (!isLoadMore && !isAdmin) {
+                state.products = [];
+                safeCall('renderProducts');
+            }
             isFetchingProducts = false;
             return;
         }
@@ -86,9 +114,8 @@ export async function loadProducts(isLoadMore = false) {
     }
 }
 
-// تصدير دالة تحميل المزيد ليستخدمها ملف HTML
-window.loadMoreProducts = () => loadProducts(true);
-
+// تصدير دالة تحميل المزيد مع تمرير القسم الحالي
+window.loadMoreProducts = () => loadProducts(true, currentActiveCategory);
 export function initFirebaseSync() {
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
         console.error("لم يتم تهيئة Firebase بشكل صحيح.");
