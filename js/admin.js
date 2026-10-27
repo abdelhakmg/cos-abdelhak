@@ -432,7 +432,8 @@ export function deleteProduct(productId) {
 
     window.db.collection("products").doc(productId).delete().then(() => {
         state.products = state.products.filter(p => p.id !== productId);
-        renderAdminProductsTable(); // التحديث الفوري
+        renderAdminProductsTable(); 
+        updateSearchIndex(); // 🌟 تحديث الفهرس فوراً بعد الحذف
         showCustomAlert('تم الحذف', 'تم حذف المنتج بنجاح.', true);
     }).catch(error => {
         console.error("Error removing product: ", error);
@@ -457,7 +458,31 @@ export function toggleProductStock(productId, currentStockStatus) {
         showCustomAlert('خطأ', 'تعذر تحديث حالة المنتج.', false);
     });
 }
+// 🌟 دالة إنشاء وتحديث فهرس البحث الموحد (لتقليل قراءات Firebase)
+export async function updateSearchIndex() {
+    try {
+        // نصنع نسخة خفيفة جداً من المنتجات (نصوص وصورة رئيسية فقط)
+        const lightweightIndex = state.products.map(p => ({
+            id: p.id,
+            name: p.name || '',
+            category: p.category || '',
+            price: p.price || 0,
+            image: (p.images && p.images.length > 0) ? p.images[0] : (p.image || ''),
+            // تجميع الاسم والوصف والقسم في سطر واحد لتسهيل البحث المتقاطع
+            keywords: `${p.name || ''} ${p.description || ''} ${p.category || ''} ${p.brand || ''}`.toLowerCase()
+        }));
 
+        // نحفظ هذا الفهرس في وثيقة واحدة فقط اسمها 'search_index'
+        await window.db.collection('store_settings').doc('search_index').set({
+            items: lightweightIndex,
+            lastUpdated: new Date()
+        });
+        
+        console.log('✅ تم تحديث فهرس البحث الذكي بنجاح!');
+    } catch (error) {
+        console.error('❌ خطأ في تحديث الفهرس:', error);
+    }
+}
 // =====================================
 // 4. إدارة الأقسام والماركات
 // =====================================
