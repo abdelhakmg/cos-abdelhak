@@ -90,7 +90,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
 
             <!-- شريط البحث المباشر في الوسط -->
             <div class="flex-1 max-w-sm hidden md:block relative mx-4 search-container">
-                <input type="text" id="live-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج،..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
+                <input type="text" id="customer-search-input" onfocus="window.loadSearchIndex()" oninput="window.performAdvancedSearch(this.value)" placeholder="ابحث عن منتج، ماركة، أو فئة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
                 <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
                 <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
             </div>
@@ -125,7 +125,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             </div>
         </div>
         <div class="px-4 pb-3 md:hidden relative search-container">
-            <input type="text" id="mobile-search-input" oninput="handleLiveSearch(this.value)" onkeydown="handleSearchKeydown(event, this.value)" placeholder="ابحث عن منتج، بشرة دهنية، شعر..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
+            <input type="text" id="customer-search-input-mobile" onfocus="window.loadSearchIndex()" oninput="window.performAdvancedSearch(this.value)" placeholder="ابحث عن منتج، بشرة دهنية، شعر..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2 px-4 pr-9 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute right-7 top-2.5 text-[#D4AF37] text-xs"></i>
             <div id="mobile-search-dropdown" class="absolute top-11 left-4 right-4 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-60 overflow-y-auto"></div>
         </div>
