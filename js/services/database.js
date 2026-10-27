@@ -1,117 +1,164 @@
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
-// 🌟 نظام إدارة حالة الكتالوج والجلب الديناميكي (Smart Pagination Engine)
-window.categoryCursors = {}; // حفظ نقطة التوقف لكل قسم بشكل مستقل
-window.categoryHasMore = {}; // تتبع هل يوجد المزيد في فايرباس لكل قسم
-let isFetchingProducts = false;
+// 🌟 نظام إدارة حالة الكتالوج والجلب الديناميكي السريع
+window.categoryCursors = {}; 
+window.categoryHasMore = {}; 
+window.loadedCountsPerCategory = {}; // لتتبع عدد المنتجات المعروضة في كل قسم بدقة
+let activeFetchVersion = 0; // لمنع تعارض الطلبات دون تجميد الواجهة
 window.activeCategoryFilter = 'جميع المنتجات'; 
 
-// 🌟 دالة مخصصة لترتيب الصفحة الرئيسية (أفضل 8 منتجات مبيعاً) وتجلب مرة واحدة
+// 🌟 1. دالة الصفحة الرئيسية (أفضل 8 منتجات مبيعاً - سريعة ومضمونة)
 export async function loadHomeBestSellers() {
+    if (typeof window.db === 'undefined') return;
     try {
-        const snapshot = await window.db.collection('products')
-            .where('inStock', '==', true)
-            .orderBy('salesCount', 'desc')
-            .limit(8)
-            .get();
-            
-        const bestSellers = [];
-        snapshot.forEach(doc => bestSellers.push({id: doc.id, ...doc.data()}));
-        
-        // دمجها في المصفوفة المركزية دون تكرار
-        bestSellers.forEach(newP => {
-            if (!state.products.find(p => p.id === newP.id)) state.products.push(newP);
+        const snapshot = await window.db.collection('products').limit(24).get();
+        let prods = [];
+        snapshot.forEach(doc => prods.push({ id: doc.id, ...doc.data() }));
+
+        // دمج في الذاكرة المركزية دون تكرار
+        prods.forEach(newP => {
+            const idx = state.products.findIndex(p => p.id === newP.id);
+            if (idx === -1) state.products.push(newP);
+            else state.products[idx] = newP;
         });
-        
+
+        // فلترة المتوفر وترتيبه محلياً حسب الأكثر مبيعاً ثم أخذ 8
+        const bestSellers = prods
+            .filter(p => p.inStock !== false)
+            .sort((a, b) => (Number(b.salesCount) || 0) - (Number(a.salesCount) || 0))
+            .slice(0, 8);
+
         const grid = document.getElementById('home-products');
-        if (grid) grid.innerHTML = bestSellers.map(window.renderSingleProductCard).join('');
-        
+        if (grid && typeof window.renderSingleProductCard === 'function') {
+            grid.innerHTML = bestSellers.map(window.renderSingleProductCard).join('');
+        }
+
         const btn = document.getElementById('load-more-home-btn');
-        if (btn) btn.style.display = 'none'; // الصفحة الرئيسية لا تحتاج لزر المزيد
-    } catch(err) {
+        if (btn) btn.style.display = 'none';
+    } catch (err) {
         console.error("Error loading home best sellers:", err);
     }
 }
-// 🌟 متغيرات الحالة القديمة
-let ordersUnsubscribe = null;
-let analyticsUnsubscribe = null;
-let isSyncInitialized = false;
 
-// 🌟 دالة جلب المنتجات بالتدريج (Pagination) وفلترة الأقسام
+// 🌟 2. دالة جلب كافة المنتجات للمدير فقط (للوحة التحكم وفهرس البحث الشامل)
+export async function loadAllProductsForAdmin() {
+    if (typeof window.db === 'undefined') return;
+    try {
+        const snapshot = await window.db.collection("products").get();
+        const allProds = [];
+        snapshot.forEach(doc => allProds.push({ id: doc.id, ...doc.data() }));
+
+        // ترتيب الأحدث أولاً محلياً
+        allProds.sort((a, b) => {
+            const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+            const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+            return tB - tA;
+        });
+
+        state.products = allProds;
+        safeCall('renderAdminProductsTable');
+        safeCall('populateAdminDropdowns');
+        safeCall('renderDynamicSidebarFilters');
+        safeCall('renderBrandsFilterSidebar');
+        safeCall('applyFilters');
+    } catch (err) {
+        console.error("Admin full products load error:", err);
+    }
+}
+window.loadAllProductsForAdmin = loadAllProductsForAdmin;
+
+// 🌟 3. دالة جلب المنتجات للزوار بالتدريج (30 للكل / 16 للأقسام) بسرعة فائقة
 export async function loadProducts(isLoadMore = false, category = 'جميع المنتجات') {
-    if (typeof window.db === 'undefined' || isFetchingProducts) return;
-    
-    if (!isLoadMore) {
-        window.activeCategoryFilter = category;
+    if (typeof window.db === 'undefined') return;
+
+    const isAdmin = localStorage.getItem('cosAdminLoggedIn') === 'true';
+
+    // إذا كان المدير مسجلاً وطلب الجلب الأولي، نجلب له كل المنتجات بدون قيود
+    if (isAdmin && !isLoadMore && state.products.length <= 30) {
+        await loadAllProductsForAdmin();
     }
 
-    const cat = window.activeCategoryFilter;
-    
-    // إذا طلبنا المزيد ولا يوجد شيء في فايرباس لهذا القسم، نتوقف
-    if (isLoadMore && window.categoryHasMore[cat] === false) return;
+    const cat = (category || window.activeCategoryFilter || 'جميع المنتجات').trim();
+    window.activeCategoryFilter = cat;
 
-    isFetchingProducts = true;
+    const step = cat === 'جميع المنتجات' ? 30 : 16;
+
+    if (!isLoadMore) {
+        window.loadedCountsPerCategory[cat] = step;
+    } else {
+        if (window.categoryHasMore[cat] === false) return;
+        window.loadedCountsPerCategory[cat] = (window.loadedCountsPerCategory[cat] || step) + step;
+    }
+
+    const currentFetchId = ++activeFetchVersion;
+
     const btn = document.getElementById('load-more-catalog-btn');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحميل...';
+    if (btn && isLoadMore) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري جلب المزيد...';
+    }
 
     try {
         let query = window.db.collection("products");
-        
+
+        // ⚠️ هام جداً: عدم دمج where مع orderBy لتجنب تعليق Firebase بسبب الفهارس المركبة
         if (cat !== 'جميع المنتجات') {
             query = query.where("category", "==", cat);
         }
-        
-        query = query.orderBy("createdAt", "desc");
-        
-        // 🌟 30 منتج لقسم الكل، 16 لباقي الأقسام
-        const limitCount = cat === 'جميع المنتجات' ? 30 : 16;
-        query = query.limit(limitCount);
-        
+
+        query = query.limit(step);
+
         if (isLoadMore && window.categoryCursors[cat]) {
             query = query.startAfter(window.categoryCursors[cat]);
         }
 
         const snapshot = await query.get();
 
+        // إذا قام الزبون بتغيير القسم أثناء التحميل، نتجاهل النتيجة القديمة
+        if (currentFetchId !== activeFetchVersion) return;
+
         if (snapshot.empty) {
             window.categoryHasMore[cat] = false;
-            safeCall('applyFilters'); // إعادة رسم الواجهة
-            isFetchingProducts = false;
+            safeCall('applyFilters', isLoadMore);
             return;
         }
 
         window.categoryCursors[cat] = snapshot.docs[snapshot.docs.length - 1];
-        window.categoryHasMore[cat] = snapshot.docs.length === limitCount;
+        window.categoryHasMore[cat] = snapshot.docs.length === step;
 
         const fetchedProducts = [];
-        snapshot.forEach((doc) => fetchedProducts.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach((doc) => {
+            fetchedProducts.push({ id: doc.id, ...doc.data() });
+        });
 
-        // 🌟 دمج المنتجات الجديدة في الـ State المركزية بدون تكرار
+        // دمج المنتجات الجديدة في state.products بدون تكرار
         fetchedProducts.forEach(newP => {
             const index = state.products.findIndex(p => p.id === newP.id);
             if (index === -1) {
                 state.products.push(newP);
             } else {
-                state.products[index] = newP; // تحديث البيانات إن وجدت
+                state.products[index] = newP;
             }
         });
 
-        // 🌟 توجيه الرسم للكتالوج فقط (يفصل الواجهة عن الـ Fetching)
         safeCall('renderDynamicSidebarFilters');
         safeCall('renderBrandsFilterSidebar');
-        safeCall('applyFilters');
-        safeCall('renderAdminProductsTable');
-        
+        safeCall('applyFilters', isLoadMore);
+        if (isAdmin) safeCall('renderAdminProductsTable');
         if (!isLoadMore) safeCall('checkInitialProductDeepLink');
 
     } catch (error) {
         console.error("Error fetching products:", error);
-        if (btn) btn.innerHTML = 'حدث خطأ، حاول مجدداً <i class="fa-solid fa-rotate-right"></i>';
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = 'حدث خطأ، اضغط للمحاولة مجدداً <i class="fa-solid fa-rotate-right mr-2"></i>';
+        }
     } finally {
-        isFetchingProducts = false;
+        if (btn) btn.disabled = false;
     }
 }
+
 window.loadMoreProducts = () => loadProducts(true, window.activeCategoryFilter);
 export function initFirebaseSync() {
     if (typeof window.firebase === 'undefined' || typeof window.db === 'undefined') {
@@ -347,41 +394,53 @@ window.initAdminAnalyticsSync = initAdminAnalyticsSync;
 window.initFirebaseSync = initFirebaseSync;
 window.initAdminOrdersSync = initAdminOrdersSync;
 // ==========================================
-// 🌟 محرك البحث الذكي والمحلي (بحث عميق بدون قراءات إضافية)
+// 🌟 محرك البحث الذكي والمحلي (بحث عميق في كامل المتجر)
 // ==========================================
 let localSearchIndex = [];
 let isIndexLoaded = false;
 
-// 1. تحميل الفهرس (قراءة واحدة فقط عند أول بحث للزائر)
 export async function loadSearchIndex() {
     if (isIndexLoaded) return;
     try {
-        const doc = await window.db.collection('store_settings').doc('search_index').get();
-        if (doc.exists) {
+        // 🔒 تم تصحيح المسار إلى settings بدلاً من store_settings ليتوافق مع firestore.rules
+        const doc = await window.db.collection('settings').doc('search_index').get();
+        if (doc.exists && doc.data().items) {
             localSearchIndex = doc.data().items || [];
             isIndexLoaded = true;
-            console.log('✅ تم تحميل فهرس البحث السريع بنجاح!');
+            // تحديث عداد إجمالي المنتجات الكلي في المتجر إن كنا في قسم جميع المنتجات
+            window.totalStoreProductsCount = localSearchIndex.length;
         }
     } catch (error) {
-        console.error("❌ خطأ في تحميل الفهرس:", error);
+        console.warn("Search index notice:", error.message);
     }
 }
 
-// 2. دالة البحث المتقدم (تعمل محلياً في هاتف الزبون بسرعة الخيال)
-export function performAdvancedSearch(query) {
-    if (!isIndexLoaded) return;
+export async function performAdvancedSearch(query) {
+    const q = (query || '').trim();
     
-    if (!query.trim()) {
-        safeCall('applyFilters'); // العودة للكتالوج الطبيعي عند تفريغ البحث
+    if (!q) {
+        safeCall('applyFilters', false);
         return;
     }
 
-    const searchTerms = query.toLowerCase().trim().split(/\s+/);
+    if (!isIndexLoaded) {
+        await loadSearchIndex();
+    }
+
+    const searchTerms = q.toLowerCase().split(/\s+/);
     
-    // البحث في الفهرس الخفيف لجميع منتجات المتجر
-    const matchedProducts = localSearchIndex.filter(product => {
-        return searchTerms.every(term => product.keywords.includes(term));
+    // البحث في الفهرس الشامل، وإذا لم يكن الفهرس منشأ بعد نبحث في state.products كاحتياط
+    const searchPool = localSearchIndex.length > 0 ? localSearchIndex : state.products;
+
+    const matchedProducts = searchPool.filter(product => {
+        const textToSearch = product.keywords || `${product.name || ''} ${product.desc || ''} ${product.category || ''} ${product.brand || ''}`.toLowerCase();
+        return searchTerms.every(term => textToSearch.includes(term));
     });
+
+    safeCall('showPage', 'catalog');
+    
+    const breadcrumb = document.getElementById('breadcrumb-current');
+    if (breadcrumb) breadcrumb.innerText = `نتائج البحث عن: "${q}"`;
 
     const grid = document.getElementById('catalog-products');
     const badge = document.getElementById('products-count-badge');
@@ -390,15 +449,12 @@ export function performAdvancedSearch(query) {
     if (badge) badge.innerText = matchedProducts.length;
     if (loadMoreBtn) loadMoreBtn.style.display = 'none';
 
-    if (grid) {
+    if (grid && typeof window.renderSingleProductCard === 'function') {
         grid.innerHTML = matchedProducts.length === 0 ? 
-            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد نتائج مطابقة لبحثك.</p></div>' :
-            matchedProducts.map(p => window.renderSingleProductCard(p)).join(''); // يعتمد على بيانات الفهرس الخفيفة
+            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد منتجات مطابقة لبحثك.</p></div>' :
+            matchedProducts.map(p => window.renderSingleProductCard(p)).join('');
     }
-    
-    safeCall('showPage', 'catalog');
 }
 
-// تصدير الدوال لتكون متاحة لشريط البحث في HTML
 window.performAdvancedSearch = performAdvancedSearch;
 window.loadSearchIndex = loadSearchIndex;
