@@ -352,12 +352,21 @@ export function handleSaveProduct(e) {
 
         if (editId) {
             window.db.collection("products").doc(editId).update(productData).then(() => {
+                // تحديث الذاكرة المحلية لتجنب إنعاش الصفحة
+                const index = state.products.findIndex(p => p.id === editId);
+                if (index !== -1) {
+                    state.products[index] = { ...state.products[index], ...productData };
+                }
                 resetProductForm();
+                renderAdminProductsTable(); // تحديث الجدول فوراً
                 showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
             });
         } else {
-            window.db.collection("products").add({ ...productData, createdAt: new Date() }).then(() => {
+            window.db.collection("products").add({ ...productData, createdAt: new Date() }).then((docRef) => {
+                // دفع المنتج الجديد للذاكرة وتحديث الجدول
+                state.products.unshift({ id: docRef.id, ...productData });
                 resetProductForm();
+                renderAdminProductsTable(); // تحديث الجدول فوراً
                 showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
             });
         }
@@ -542,7 +551,8 @@ export async function handleImageUploadWrapper(event, targetId) {
     if (targetInput) targetInput.placeholder = "جاري الرفع إلى الخادم... ⏳";
 
     try {
-        const downloadURL = await window.compressAndUploadImage(file, 'products_images', 600);
+        // 👈 تم تغيير 600 إلى 1200 للحفاظ على جودة التفاصيل
+        const downloadURL = await window.compressAndUploadImage(file, 'products_images', 1200);
         if (targetInput) {
             targetInput.value = downloadURL;
             targetInput.classList.add('border-green-500', 'bg-green-50');
