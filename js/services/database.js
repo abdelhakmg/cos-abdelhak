@@ -369,34 +369,34 @@ export async function loadSearchIndex() {
 
 // 2. دالة البحث المتقدم (تعمل محلياً في هاتف الزبون بسرعة الخيال)
 export function performAdvancedSearch(query) {
-    if (!isIndexLoaded) {
-        console.warn("الفهرس لم يحمل بعد");
-        return;
-    }
-
+    if (!isIndexLoaded) return;
+    
     if (!query.trim()) {
-        // إذا أفرغ الزبون مربع البحث، نعود لعرض المنتجات العادية حسب القسم الحالي
-        window.loadProducts(false, currentActiveCategory);
+        safeCall('applyFilters'); // العودة للكتالوج الطبيعي عند تفريغ البحث
         return;
     }
 
-    // تقسيم الكلمات للبحث المتقاطع (مثال: "شامبو مجعد")
     const searchTerms = query.toLowerCase().trim().split(/\s+/);
     
-    // فلترة المنتجات التي تحتوي على **كل** الكلمات المدخلة في أي مكان (الاسم، الوصف، الفئة)
+    // البحث في الفهرس الخفيف لجميع منتجات المتجر
     const matchedProducts = localSearchIndex.filter(product => {
         return searchTerms.every(term => product.keywords.includes(term));
     });
 
-    // تحديث واجهة المتجر بالنتائج فوراً
-    state.products = matchedProducts;
-    
-    // إخفاء أزرار "أظهر المزيد" لأننا في وضع البحث المصفى
-    const btns = [document.getElementById('load-more-home-btn'), document.getElementById('load-more-catalog-btn')];
-    btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
+    const grid = document.getElementById('catalog-products');
+    const badge = document.getElementById('products-count-badge');
+    const loadMoreBtn = document.getElementById('load-more-catalog-btn');
 
-    // إعادة رسم الشاشة بالنتائج المطابقة
-    safeCall('renderProducts');
+    if (badge) badge.innerText = matchedProducts.length;
+    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+
+    if (grid) {
+        grid.innerHTML = matchedProducts.length === 0 ? 
+            '<div class="col-span-full text-center py-16 space-y-3"><i class="fa-solid fa-box-open text-4xl text-gray-600"></i><p class="text-gray-400 text-sm">لا توجد نتائج مطابقة لبحثك.</p></div>' :
+            matchedProducts.map(p => window.renderSingleProductCard(p)).join(''); // يعتمد على بيانات الفهرس الخفيفة
+    }
+    
+    safeCall('showPage', 'catalog');
 }
 
 // تصدير الدوال لتكون متاحة لشريط البحث في HTML
