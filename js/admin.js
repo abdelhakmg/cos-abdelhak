@@ -854,7 +854,20 @@ export function deleteSelectedOrders() {
 export function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
     const searchInput = document.getElementById('admin-prod-search');
+    const counterElement = document.getElementById('admin-products-counter'); // العداد الجديد
+    
     if (!tbody) return;
+
+    // تحديث العداد
+    if (counterElement && state.products) {
+        counterElement.innerText = `إجمالي المنتجات: ${state.products.length}`;
+    }
+
+    // إضافة شريط التمرير للجدول
+    const tableContainer = tbody.closest('table').parentElement;
+    if (tableContainer) {
+        tableContainer.classList.add('max-h-[600px]', 'overflow-y-auto', 'block', 'w-full');
+    }
 
     let filteredProducts = state.products || [];
     if (searchInput && searchInput.value.trim() !== '') {
@@ -869,6 +882,7 @@ export function renderAdminProductsTable() {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">لا توجد منتجات مطابقة للبحث</td></tr>';
         return;
     }
+    
     tbody.innerHTML = filteredProducts.map(p => {
         const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
         const isStock = p.inStock !== false;
