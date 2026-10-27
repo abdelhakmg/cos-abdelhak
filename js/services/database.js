@@ -344,3 +344,59 @@ window.initVisitorTracking = initVisitorTracking;
 window.initAdminAnalyticsSync = initAdminAnalyticsSync;
 window.initFirebaseSync = initFirebaseSync;
 window.initAdminOrdersSync = initAdminOrdersSync;
+// ==========================================
+// 🌟 محرك البحث الذكي والمحلي (بحث عميق بدون قراءات إضافية)
+// ==========================================
+let localSearchIndex = [];
+let isIndexLoaded = false;
+
+// 1. تحميل الفهرس (قراءة واحدة فقط عند أول بحث للزائر)
+export async function loadSearchIndex() {
+    if (isIndexLoaded) return;
+    try {
+        const doc = await window.db.collection('store_settings').doc('search_index').get();
+        if (doc.exists) {
+            localSearchIndex = doc.data().items || [];
+            isIndexLoaded = true;
+            console.log('✅ تم تحميل فهرس البحث السريع بنجاح!');
+        }
+    } catch (error) {
+        console.error("❌ خطأ في تحميل الفهرس:", error);
+    }
+}
+
+// 2. دالة البحث المتقدم (تعمل محلياً في هاتف الزبون بسرعة الخيال)
+export function performAdvancedSearch(query) {
+    if (!isIndexLoaded) {
+        console.warn("الفهرس لم يحمل بعد");
+        return;
+    }
+
+    if (!query.trim()) {
+        // إذا أفرغ الزبون مربع البحث، نعود لعرض المنتجات العادية حسب القسم الحالي
+        window.loadProducts(false, currentActiveCategory);
+        return;
+    }
+
+    // تقسيم الكلمات للبحث المتقاطع (مثال: "شامبو مجعد")
+    const searchTerms = query.toLowerCase().trim().split(/\s+/);
+    
+    // فلترة المنتجات التي تحتوي على **كل** الكلمات المدخلة في أي مكان (الاسم، الوصف، الفئة)
+    const matchedProducts = localSearchIndex.filter(product => {
+        return searchTerms.every(term => product.keywords.includes(term));
+    });
+
+    // تحديث واجهة المتجر بالنتائج فوراً
+    state.products = matchedProducts;
+    
+    // إخفاء أزرار "أظهر المزيد" لأننا في وضع البحث المصفى
+    const btns = [document.getElementById('load-more-home-btn'), document.getElementById('load-more-catalog-btn')];
+    btns.forEach(btn => { if (btn) btn.style.display = 'none'; });
+
+    // إعادة رسم الشاشة بالنتائج المطابقة
+    safeCall('renderProducts');
+}
+
+// تصدير الدوال لتكون متاحة لشريط البحث في HTML
+window.performAdvancedSearch = performAdvancedSearch;
+window.loadSearchIndex = loadSearchIndex;
