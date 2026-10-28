@@ -1603,18 +1603,28 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
       }
     </script>
 
-    <!-- استدعاء الملف الرئيسي بنظام Modules -->
-    <script type="module" src="js/main.js?v=8"></script>
+    <!-- استدعاء الملف الرئيسي بنظام Modules (تم الترقية إلى v=9 لكسر الكاش) -->
+    <script type="module" src="js/main.js?v=9"></script>
     
-    <!-- PWA Service Worker -->
+    <!-- PWA Service Worker مع محرك التحديث التلقائي المحمي -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(reg => {
-                    console.log('PWA Service Worker Registered', reg);
+                    // فحص وجود تحديثات جديدة عند كل فتح للتطبيق
+                    reg.update();
                 }).catch(err => {
                     console.error('PWA Registration failed', err);
                 });
+            });
+
+            // 🌟 الحارس الذكي: يعيد تحميل الصفحة لمرة واحدة فقط فور تفعيل التحديث الجديد
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
             });
         }
     </script>
