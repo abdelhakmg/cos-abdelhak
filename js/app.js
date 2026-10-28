@@ -136,27 +136,30 @@ document.addEventListener('DOMContentLoaded', () => {
 // 🛒 دوال السلة الذكية (Smart Cart مع دعم الكميات + / -)
 // ==========================================
 
-export function addToCart(id, selectedColor = '', selectedNum = '', qtyToAdd = 1) {
+export function addToCart(id, selectedColor = '', selectedNum = '', qtyToAdd = 1, specificImage = null) {
     const prod = state.products.find(p => p.id === id);
     if (!prod) return;
 
     const addedQty = Math.max(1, parseInt(qtyToAdd) || 1);
     let optionsArr = [];
-    if (selectedColor) optionsArr.push(`اللون: ${selectedColor}`);
+    if (selectedColor) optionsArr.push(`الخيار: ${selectedColor}`);
     if (selectedNum) optionsArr.push(`الدرجة: ${selectedNum}`);
     const optsText = optionsArr.length > 0 ? `(${optionsArr.join(' - ')})` : '';
 
-    // 🌟 البحث عما إذا كان نفس المنتج بنفس اللون/الدرجة موجوداً مسبقاً في السلة لدمج الكمية
+    // 🌟 البحث عما إذا كان نفس المنتج بنفس الخيار/الدرجة موجوداً مسبقاً في السلة لدمج الكمية
     const existingItem = state.cart.find(item => 
         item.id === id && (item.selectedOptionsText || '') === optsText
     );
 
     if (existingItem) {
         existingItem.qty = (Number(existingItem.qty) || 1) + addedQty;
+        // تحديث الصورة في السلة إذا اختار الزبون صورة مخصصة جديدة
+        if (specificImage) existingItem.image = specificImage;
     } else {
         const cartItem = { 
             ...prod,
-            qty: addedQty
+            qty: addedQty,
+            image: specificImage || prod.image || (prod.images && prod.images[0]) // 🌟 الأولوية لصورة الخيار المخصص!
         };
         if (optsText) {
             cartItem.selectedOptionsText = optsText;
@@ -169,7 +172,6 @@ export function addToCart(id, selectedColor = '', selectedNum = '', qtyToAdd = 1
     updateBadges();
     showCustomAlert('تمت الإضافة! 🛍️', `تمت إضافة "${prod.name}" (${addedQty > 1 ? addedQty + ' قطع' : 'قطعة واحدة'}) إلى السلة بنجاح.`, true);
 }
-
 export function updateCartItemQty(idx, delta) {
     if (!state.cart[idx]) return;
     const currentQty = Number(state.cart[idx].qty) || 1;
