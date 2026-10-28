@@ -1,6 +1,6 @@
-// --- ملف sw.js ---
+// --- ملف sw.js (الإصدار الذكي v5 مع كسر كاش البرمجة وحفظ كاش الصور) ---
 
-const CACHE_NAME = 'cosmetic-abdelhak-v4'; // تم التحديث إلى v3 لفرض التحديث عند الزوار
+const CACHE_NAME = 'cosmetic-abdelhak-v5'; // تم الترقية إلى v5 لإجبار الهواتف على التحديث
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -9,7 +9,7 @@ const ASSETS_TO_CACHE = [
     '/manifest.json'
 ];
 
-// 1. تثبيت التطبيق وحفظ الملفات الأساسية
+// 1. تثبيت التطبيق وفرض التفعيل الفوري
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
@@ -21,7 +21,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. تفعيل التحديث ومسح الكاش القديم
+// 2. تفعيل التحديث ومسح الكاش البرمجي القديم (مع الحفاظ على كاش الصور)
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -36,7 +36,7 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// 3. إدارة الطلبات بذكاء (استثناء Firebase وتخزين الصور)
+// 3. إدارة الطلبات بذكاء (استثناء Firebase وتخزين الصور وتحديث البرمجة)
 self.addEventListener('fetch', (event) => {
     const reqUrl = event.request.url;
 
@@ -50,7 +50,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // 🌟 الإضافة الجديدة: التقاط صور المنتجات وتخزينها في الكاش (يوفر استهلاك الـ Bandwidth)
+    // 🌟 التقاط صور المنتجات وتخزينها في الكاش (يوفر استهلاك الـ Bandwidth)
     if (reqUrl.includes('firebasestorage.googleapis.com')) {
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
@@ -75,13 +75,17 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // استراتيجية Network First ثم العودة للكاش عند انقطاع الإنترنت لباقي ملفات الموقع
+    // 🌟 التعديل الجذري هنا: إجبار المتصفح على جلب أحدث كود برمجي من السيرفر وتحديث الكاش
     event.respondWith(
-        fetch(event.request)
+        fetch(event.request, { cache: 'no-store' })
             .then((networkResponse) => {
-                return networkResponse;
+                return caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, networkResponse.clone());
+                    return networkResponse;
+                });
             })
             .catch(() => {
+                // في حال انقطاع الإنترنت عند الزبون، نعرض له أحدث نسخة تم حفظها
                 return caches.match(event.request);
             })
     );
