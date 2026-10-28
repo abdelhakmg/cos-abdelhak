@@ -1,6 +1,6 @@
 // --- ملف sw.js ---
 
-const CACHE_NAME = 'cosmetic-abdelhak-v3'; // تم التحديث إلى v3 لفرض التحديث عند الزوار
+const CACHE_NAME = 'cosmetic-abdelhak-v4'; // تم التحديث إلى v3 لفرض التحديث عند الزوار
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
