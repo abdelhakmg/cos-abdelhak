@@ -184,34 +184,16 @@ export function initFirebaseSync() {
         console.warn("Firestore persistence warning:", err.code);
     });
 
-    // 1. جلب الرئيسية والكتالوج وفهرس البحث السريع
     loadHomeBestSellers();
     loadProducts(false, 'جميع المنتجات');
     loadSearchIndex();
 
-    // 2. مزامنة الولايات
-    window.db.collection("wilayas").onSnapshot((snapshot) => {
-        state.WILAYAS = [];
-        snapshot.forEach((doc) => {
-            state.WILAYAS.push({ id: doc.id, ...doc.data() });
-        });
-        
-        if (state.WILAYAS.length === 0) {
-            const batch = window.db.batch();
-            INITIAL_WILAYAS_58.forEach(w => {
-                const ref = window.db.collection("wilayas").doc(w.code);
-                batch.set(ref, w);
-            });
-            batch.commit().catch(err => console.error("Batch error:", err));
-        } else {
-            state.WILAYAS.sort((a, b) => parseInt(a.code) - parseInt(b.code));
-            safeCall('populateWilayas');
-            safeCall('populateCartWilayas');
-            safeCall('renderAdminWilayasList');
-        }
-    }, (error) => console.error("Error fetching wilayas:", error));
+    // 🌟 تحسين الولايات: الاعتماد على المصفوفة المحلية لتوفير 58 قراءة لكل زائر!
+    state.WILAYAS = [...INITIAL_WILAYAS_58].sort((a, b) => parseInt(a.code) - parseInt(b.code));
+    safeCall('populateWilayas');
+    safeCall('populateCartWilayas');
+    safeCall('renderAdminWilayasList');
 
-    // 3. مزامنة الفئات (الأقسام)
     window.db.collection("categories").onSnapshot((snapshot) => {
         state.categories = [];
         snapshot.forEach((doc) => {
@@ -222,7 +204,6 @@ export function initFirebaseSync() {
         safeCall('renderAdminCategoriesList');
     }, (error) => console.error("Error fetching categories:", error));
 
-    // 4. مزامنة الإعدادات العامة للمتجر
     window.db.collection("settings").doc("main").onSnapshot((doc) => {
         if (doc.exists) {
             const data = doc.data();
@@ -236,6 +217,15 @@ export function initFirebaseSync() {
             if (data.bannerMessages) state.bannerMessages = data.bannerMessages;
             if (data.categoryFilters) state.categoryFilters = data.categoryFilters;
             if (data.coupons) state.coupons = data.coupons;
+            
+            if (data.wilayasPricing) {
+                state.WILAYAS.forEach(w => {
+                    if(data.wilayasPricing[w.code]) {
+                        w.officeCost = data.wilayasPricing[w.code].officeCost;
+                        w.homeCost = data.wilayasPricing[w.code].homeCost;
+                    }
+                });
+            }
 
             state.availableSkinTypes = (data.skinTypes && data.skinTypes.length > 0) ? data.skinTypes : state.availableSkinTypes;
             state.availableHairTypes = (data.hairTypes && data.hairTypes.length > 0) ? data.hairTypes : state.availableHairTypes;
@@ -253,7 +243,6 @@ export function initFirebaseSync() {
         safeCall('updateStoreFooterLinks');
     }, (error) => console.error("Error settings:", error));
 
-    // 5. مزامنة البانر الإعلاني
     window.db.collection("heroSlides").onSnapshot((snapshot) => {
         state.heroSlides = [];
         snapshot.forEach((doc) => {
@@ -263,10 +252,8 @@ export function initFirebaseSync() {
         safeCall('renderAdminHeroSlidesList');
     }, (error) => console.error("Error fetching hero slides:", error));
 
-    // 6. تشغيل نظام تتبع الزوار الذكي
     initVisitorTracking();
 
-    // 7. مزامنة الطلبيات ورادار الزوار للإدارة إذا كان المدير مسجلاً
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
         initAdminOrdersSync();
         initAdminAnalyticsSync();
@@ -274,7 +261,7 @@ export function initFirebaseSync() {
     }
 }
 
-// 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط
+// 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط (يجب أن تبقى!)
 export function initAdminOrdersSync(limitCount = 200) {
     if (typeof window.db === 'undefined') return;
     
@@ -295,7 +282,7 @@ export function initAdminOrdersSync(limitCount = 200) {
 }
 
 // ==========================================
-// 🟢 محرك رادار الزوار الذكي (Live Presence & Daily/Monthly Analytics)
+// 🟢 محرك رادار الزوار الذكي (تم تخفيفه لحماية الـ Writes)
 // ==========================================
 export async function initVisitorTracking() {
     if (typeof window.db === 'undefined') return;
@@ -307,70 +294,31 @@ export async function initVisitorTracking() {
         sessionStorage.setItem('cos_session_id', sessionId);
     }
 
-    const now = new Date();
-    const todayKey = now.toISOString().slice(0, 10);
-    const monthKey = now.toISOString().slice(0, 7);
+    const todayKey = new Date().toISOString().slice(0, 10);
     const analyticsRef = window.db.collection("settings").doc("analytics");
 
-    const updatePresence = async (countVisit = false) => {
+    // 🌟 تحديث الإحصائيات مرة واحدة فقط عند الدخول لمنع استنزاف الخطة
+    if (isNewSession) {
         try {
-            const doc = await analyticsRef.get();
-            const nowMs = Date.now();
-            let data = doc.exists ? doc.data() : {};
-
-            let dayDate = data.dayDate || todayKey;
-            let monthDate = data.monthDate || monthKey;
-            let todayViews = Number(data.todayViews) || 0;
-            let monthViews = Number(data.monthViews) || 0;
-            let activeSessions = data.activeSessions || {};
-
-            if (dayDate !== todayKey) {
-                dayDate = todayKey;
-                todayViews = 0;
-            }
-            if (monthDate !== monthKey) {
-                monthDate = monthKey;
-                monthViews = 0;
-            }
-
-            if (countVisit) {
-                todayViews += 1;
-                monthViews += 1;
-            }
-
-            Object.keys(activeSessions).forEach(id => {
-                if (nowMs - activeSessions[id] > 240000) {
-                    delete activeSessions[id];
-                }
+            await window.db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(analyticsRef);
+                let data = doc.exists ? doc.data() : {};
+                
+                let todayViews = (data.dayDate === todayKey) ? (Number(data.todayViews) || 0) : 0;
+                let activeSessions = data.activeSessions || {};
+                
+                activeSessions[sessionId] = Date.now();
+                
+                transaction.set(analyticsRef, {
+                    dayDate: todayKey,
+                    todayViews: todayViews + 1,
+                    activeSessions
+                }, { merge: true });
             });
-
-            activeSessions[sessionId] = nowMs;
-
-            await analyticsRef.set({
-                dayDate,
-                monthDate,
-                todayViews,
-                monthViews,
-                activeSessions
-            }, { merge: true });
         } catch (err) {
-            console.warn("Analytics tracking info:", err.message);
+            console.warn("Analytics tracking skipped to save quota.");
         }
-    };
-
-    updatePresence(isNewSession);
-
-    setInterval(() => {
-        if (document.visibilityState === 'visible') {
-            updatePresence(false);
-        }
-    }, 120000);
-
-    window.addEventListener('beforeunload', () => {
-        analyticsRef.update({
-            [`activeSessions.${sessionId}`]: window.firebase.firestore.FieldValue.delete()
-        }).catch(() => {});
-    });
+    }
 }
 
 export function initAdminAnalyticsSync() {
