@@ -2,7 +2,8 @@
 
 import { state } from './store/state.js';
 import { showCustomAlert, safeCall } from './utils/helpers.js';
-
+// 🌟 المتغير العالمي لحفظ خيارات المنتج أثناء التعديل/الإضافة
+window.currentProductVariants = [];
 let pendingDeleteOrderId = null;
 
 // =====================================
@@ -332,6 +333,14 @@ export function handleSaveProduct(e) {
             customAttributes[attrName].push(cb.value);
         });
 
+        // 🌟 جمع بيانات المتغيرات (الخيارات) من الواجهة
+        const variantsToSave = window.currentProductVariants.map(v => ({
+            id: v.id,
+            name: document.getElementById(`var-name-${v.id}`).value.trim(),
+            image: document.getElementById(`var-img-${v.id}`).value.trim(),
+            inStock: document.getElementById(`var-stock-${v.id}`).checked
+        })).filter(v => v.name !== '');
+
         const productData = {
             name: document.getElementById('prod-name').value.trim(),
             price: parseFloat(document.getElementById('prod-price').value) || 0,
@@ -340,36 +349,33 @@ export function handleSaveProduct(e) {
             brand: document.getElementById('prod-brand-select').value,
             inStock: document.getElementById('prod-in-stock').value === 'true',
             attributes: customAttributes,
-            colors: document.getElementById('prod-colors')?.value.trim() || '',
-            numbers: document.getElementById('prod-numbers')?.value.trim() || '',
             desc: document.getElementById('prod-desc')?.value.trim() || '',
-            images: [
-                document.getElementById('prod-img-main').value.trim(),
-                document.getElementById('prod-img-2')?.value.trim(),
-                document.getElementById('prod-img-3')?.value.trim()
-            ].filter(Boolean),
+            image: document.getElementById('prod-img-main').value.trim(),
+            variants: variantsToSave, // 🌟 حفظ المصفوفة الجديدة الذكية
             updatedAt: new Date()
         };
 
+        // مسح الحقول القديمة حتى لا تتسبب في أخطاء (للتوافق)
+        productData.colors = '';
+        productData.numbers = '';
+        productData.images = [];
+
         if (editId) {
             window.db.collection("products").doc(editId).update(productData).then(() => {
-                // تحديث الذاكرة المحلية لتجنب إنعاش الصفحة
                 const index = state.products.findIndex(p => p.id === editId);
-                if (index !== -1) {
-                    state.products[index] = { ...state.products[index], ...productData };
-                }
+                if (index !== -1) state.products[index] = { ...state.products[index], ...productData };
                 resetProductForm();
-                renderAdminProductsTable(); // تحديث الجدول فوراً
-                updateSearchIndex(); // 🌟 مكانها الصحيح بعد التعديل
+                renderAdminProductsTable(); 
+                updateSearchIndex(); 
                 showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات المنتج بنجاح!', true);
             });
         } else {
-            window.db.collection("products").add({ ...productData, createdAt: new Date() }).then((docRef) => {
-                // دفع المنتج الجديد للذاكرة وتحديث الجدول
+            productData.createdAt = new Date();
+            window.db.collection("products").add(productData).then((docRef) => {
                 state.products.unshift({ id: docRef.id, ...productData });
                 resetProductForm();
-                renderAdminProductsTable(); // تحديث الجدول فوراً
-                updateSearchIndex(); // 🌟 مكانها الصحيح بعد الإضافة
+                renderAdminProductsTable(); 
+                updateSearchIndex(); 
                 showCustomAlert('تم الحفظ 🎉', 'تم إضافة المنتج الجديد بنجاح!', true);
             });
         }
@@ -390,15 +396,10 @@ export function editProduct(id) {
     document.getElementById('prod-brand-select').value = p.brand || '';
     document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
 
-    // 🌟 تصحيح: تعبئة حقول الألوان والأرقام عند التعديل
-    if (document.getElementById('prod-colors')) document.getElementById('prod-colors').value = p.colors || '';
-    if (document.getElementById('prod-numbers')) document.getElementById('prod-numbers').value = p.numbers || '';
-
     renderCategorySpecificAdminFields();
 
     if (p.attributes) {
-        const dynamicCheckboxes = document.querySelectorAll('.dynamic-attr-cb');
-        dynamicCheckboxes.forEach(cb => {
+        document.querySelectorAll('.dynamic-attr-cb').forEach(cb => {
             const attrName = cb.getAttribute('data-attr-name');
             if (p.attributes[attrName] && p.attributes[attrName].includes(cb.value)) {
                 cb.checked = true;
@@ -407,10 +408,21 @@ export function editProduct(id) {
     }
 
     document.getElementById('prod-desc').value = p.desc || '';
-    const imgs = p.images || [];
-    document.getElementById('prod-img-main').value = imgs[0] || '';
-    document.getElementById('prod-img-2').value = imgs[1] || '';
-    document.getElementById('prod-img-3').value = imgs[2] || '';
+    // دعم المنتجات القديمة التي كان لها images مصفوفة
+    document.getElementById('prod-img-main').value = p.image || (p.images && p.images[0]) || '';
+    
+    // 🌟 استرجاع الخيارات الديناميكية أو بناء مصفوفة فارغة
+    window.currentProductVariants = p.variants ? JSON.parse(JSON.stringify(p.variants)) : [];
+    
+    // تحويل الألوان القديمة إلى النظام الجديد تلقائياً ليسهل على المدير تعديلها!
+    if (!p.variants && p.colors) {
+        const oldColors = p.colors.split(/[,،]/).map(c => c.trim()).filter(Boolean);
+        oldColors.forEach((c, i) => {
+            window.currentProductVariants.push({ id: 'v_old_' + i, name: c, image: '', inStock: true });
+        });
+    }
+
+    renderAdminVariants();
 
     document.getElementById('product-form-title').innerText = 'تعديل المنتج: ' + p.name;
     document.getElementById('cancel-edit-btn').classList.remove('hidden');
@@ -423,13 +435,83 @@ export function resetProductForm() {
     document.getElementById('editing-product-id').value = '';
     document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
-    ['prod-img-main', 'prod-img-2', 'prod-img-3'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove('border-green-500', 'bg-green-50');
-    });
+    document.getElementById('prod-img-main').classList.remove('border-green-500', 'bg-green-50');
+    
+    window.currentProductVariants = [];
+    renderAdminVariants();
     renderCategorySpecificAdminFields();
 }
 
+// 🌟 دوال إدارة المتغيرات (أضفها مباشرة بعد resetProductForm)
+export function addAdminVariant() {
+    window.currentProductVariants.push({
+        id: 'var_' + Date.now(),
+        name: '',
+        image: '',
+        inStock: true
+    });
+    renderAdminVariants();
+}
+
+export function removeAdminVariant(id) {
+    window.currentProductVariants = window.currentProductVariants.filter(v => v.id !== id);
+    renderAdminVariants();
+}
+
+export function renderAdminVariants() {
+    const container = document.getElementById('admin-product-variants-container');
+    if (!container) return;
+
+    if (window.currentProductVariants.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">لا توجد خيارات مضافة. سيُباع المنتج كعنصر واحد أساسي.</p>';
+        return;
+    }
+
+    container.innerHTML = window.currentProductVariants.map(v => `
+        <div class="bg-white border border-gray-200 p-3 rounded-xl flex flex-col md:flex-row gap-3 items-start md:items-center shadow-sm relative">
+            <div class="flex-1 w-full">
+                <input type="text" id="var-name-${v.id}" value="${v.name}" placeholder="اسم الخيار (مثال: أحمر، 50ml)..." class="w-full border p-2.5 rounded-lg text-xs outline-none focus:border-[#D4AF37] bg-gray-50" oninput="updateVariantData('${v.id}', 'name', this.value)">
+            </div>
+            <div class="flex-1 flex gap-2 w-full">
+                <input type="file" id="file-${v.id}" accept="image/*" class="hidden" onchange="handleVariantImageUpload(event, '${v.id}')">
+                <button type="button" onclick="document.getElementById('file-${v.id}').click()" class="bg-gray-800 text-white px-3 py-2.5 rounded-lg text-[10px] font-bold hover:bg-gray-700 transition whitespace-nowrap flex items-center gap-1">
+                    <i class="fa-solid fa-image"></i> صورة الخيار
+                </button>
+                <input type="url" id="var-img-${v.id}" value="${v.image}" placeholder="URL الصورة" class="flex-1 border p-2.5 rounded-lg text-[10px] bg-gray-50" oninput="updateVariantData('${v.id}', 'image', this.value)">
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0 justify-between">
+                <label class="flex items-center gap-1.5 cursor-pointer bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 text-[10px] font-bold text-emerald-800">
+                    <input type="checkbox" id="var-stock-${v.id}" ${v.inStock ? 'checked' : ''} class="accent-emerald-600" onchange="updateVariantData('${v.id}', 'inStock', this.checked)">
+                    متوفر
+                </label>
+                <button type="button" onclick="removeAdminVariant('${v.id}')" class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition border border-red-100">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+export function updateVariantData(id, field, value) {
+    const variant = window.currentProductVariants.find(v => v.id === id);
+    if (variant) variant[field] = value;
+}
+
+export async function handleVariantImageUpload(event, variantId) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const input = document.getElementById(`var-img-${variantId}`);
+    if (input) input.placeholder = "جاري الرفع... ⏳";
+    try {
+        const downloadURL = await window.compressAndUploadImage(file, 'products_variants', 600); // دقة 600 تكفي جداً للخيارات
+        if (input) {
+            input.value = downloadURL;
+            updateVariantData(variantId, 'image', downloadURL);
+        }
+    } catch (error) {
+        showCustomAlert("خطأ", "فشل رفع صورة الخيار.", false);
+    }
+}
 export function deleteProduct(productId) {
     if (!confirm('هل أنت متأكد من حذف هذا المنتج نهائياً؟')) return;
 
@@ -1663,3 +1745,7 @@ window.handleSaveCoupon = handleSaveCoupon;
 window.renderAdminCouponsList = renderAdminCouponsList;
 window.deleteCoupon = deleteCoupon;
 window.deleteDynamicAttributeOption = deleteDynamicAttributeOption;
+window.addAdminVariant = addAdminVariant;
+window.removeAdminVariant = removeAdminVariant;
+window.handleVariantImageUpload = handleVariantImageUpload;
+window.updateVariantData = updateVariantData;
