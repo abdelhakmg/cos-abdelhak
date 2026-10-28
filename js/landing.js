@@ -321,7 +321,7 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
     if (discountAmount > 0 && activeLandingCoupon) {
         productDetails += ` [كوبون: ${activeLandingCoupon.code} (-${discountAmount} دج)]`;
     }
-    const newOrder = {
+   const newOrder = {
         customer: name,
         phone: rawPhone.replace(/\s+/g, ''),
         wilaya: wilaya ? wilaya.name : wilayaCode,
@@ -330,7 +330,8 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
         total: finalProdPrice + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
-        createdAt: new Date()
+        createdAt: new Date(),
+        attachedImage1: currentSelectedVariant ? currentSelectedVariant.image : null
     };
 
     const submitBtn = document.getElementById('main-submit-order-btn');
