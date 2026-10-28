@@ -6,7 +6,9 @@ import { formatPrice, showCustomAlert, safeCall, calculateShippingCost, isValidD
 let currentLandingProduct = null;
 let currentLandingQty = 1; // 🌟 متغير الكمية في صفحة المنتج
 let activeLandingCoupon = null; // 🌟 الكوبون المطبق حالياً في صفحة المنتج
+let currentSelectedVariant = null; // 🌟 حفظ الخيار الذي حدده الزبون
 export function openLandingPage(productId, updateUrl = true) {
+    currentSelectedVariant = null; // إعادة الضبط عند فتح أي منتج
     currentLandingProduct = state.products.find(p => p.id === productId);
     if (!currentLandingProduct) return;
 activeLandingCoupon = null;
@@ -198,15 +200,23 @@ export function checkSmartOrderButton() {
 export function addToCartFromLanding() {
     if (!currentLandingProduct) return;
     
-    const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
+    // دعم النظام القديم والجديد
+    let finalOption = '';
+    let finalImage = null;
+
+    if (currentSelectedVariant) {
+        finalOption = currentSelectedVariant.name;
+        finalImage = currentSelectedVariant.image; // تمرير صورة الذوق المختار!
+    } else {
+        finalOption = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
+    }
+
     const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
     
     if (typeof window.addToCart === 'function') {
-        window.addToCart(currentLandingProduct.id, selectedColor, selectedNum, currentLandingQty);
+        window.addToCart(currentLandingProduct.id, finalOption, selectedNum, currentLandingQty, finalImage);
         showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة المنتج للسلة. يرجى إضافة المزيد من المنتجات لتتمكن من الوصول للحد الأدنى وإتمام الطلب.', true);
         safeCall('showPage', 'cart');
-    } else {
-        showCustomAlert('تنبيه', 'يجب أن يصل مجموع طلبك إلى الحد الأدنى لتأكيد التوصيل.', false);
     }
 }
 
@@ -292,9 +302,17 @@ export function submitLandingOrder() {
     const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
     const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
     
-    let productDetails = currentLandingProduct.name;
+   let productDetails = currentLandingProduct.name;
     if (currentLandingQty > 1) productDetails += ` (x${currentLandingQty})`;
-    if (selectedColor) productDetails += ` (اللون: ${selectedColor})`;
+    
+    if (currentSelectedVariant) {
+        productDetails += ` (الخيار: ${currentSelectedVariant.name})`;
+    } else {
+        const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
+        if (selectedColor) productDetails += ` (اللون: ${selectedColor})`;
+    }
+
+    const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
     if (selectedNum) productDetails += ` (الدرجة: ${selectedNum})`;
 
     const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
@@ -353,18 +371,37 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
         showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
     });
     }
-function renderLandingDynamicOptions(p) {
+export function renderLandingDynamicOptions(p) {
     const container = document.getElementById('landing-options-container');
     if (!container) return;
     let html = '';
     
-    if (p.jewelryMetal || p.jewelryType) {
-        html += `<div class="bg-black/50 p-3 rounded-xl border border-gray-800 text-xs text-gray-200">
-            <span class="text-[#D4AF37] font-bold">المعدن/النوع:</span> ${p.jewelryMetal || ''} (${p.jewelryType || ''})
-        </div>`;
-    }
-    
-    if (p.colors && p.colors.trim().length > 0) {
+    // 🌟 النظام الجديد: المتغيرات الديناميكية (أذواق/ألوان بصور منفصلة)
+    if (p.variants && p.variants.length > 0) {
+        const inStockVariants = p.variants.filter(v => v.inStock !== false); // إخفاء المنتهي ذكياً
+        
+        if (inStockVariants.length > 0) {
+            html += `<div class="space-y-2 pt-2">
+                <label class="block text-xs font-bold text-gray-300">اختر النوع / الذوق المتوفر *</label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    ${inStockVariants.map((v, idx) => {
+                        const safeId = v.id || idx;
+                        const safeName = (v.name || '').replace(/'/g, "\\'");
+                        const safeImg = (v.image || '').replace(/'/g, "\\'");
+                        return `
+                        <label class="relative flex flex-col items-center justify-center bg-black/60 border border-gray-800 rounded-xl p-2 cursor-pointer hover:border-[#D4AF37] transition variant-label group">
+                            <input type="radio" name="product_dynamic_variant" value="${safeName}" class="hidden variant-radio" onchange="selectLandingVariant('${safeName}', '${safeImg}')">
+                            ${v.image ? `<img src="${v.image}" class="w-10 h-10 object-cover rounded-full mb-1 border border-gray-700 group-hover:border-[#D4AF37]">` : ''}
+                            <span class="text-[11px] text-white font-bold text-center leading-tight mt-1">${v.name}</span>
+                            <div class="absolute inset-0 border-2 border-transparent rounded-xl peer-checked:border-[#D4AF37] pointer-events-none variant-outline hidden"></div>
+                        </label>
+                    `}).join('')}
+                </div>
+            </div>`;
+        }
+    } 
+    // نظام الألوان القديم (للتوافق مع المنتجات القديمة التي لم تقم بتحديثها بعد)
+    else if (p.colors && p.colors.trim().length > 0) {
         const colorsArr = p.colors.split(/[,،]/).map(c => c.trim()).filter(Boolean);
         html += `<div class="space-y-1.5 pt-1"><label class="block text-xs font-bold text-gray-300">اختر اللون المتوفر *</label><div class="flex flex-wrap gap-2">
                 ${colorsArr.map((col, idx) => `
@@ -376,19 +413,26 @@ function renderLandingDynamicOptions(p) {
             </div></div>`;
     }
 
-    if (p.numbers && p.numbers.trim().length > 0) {
-        const numsArr = p.numbers.split(/[,،]/).map(n => n.trim()).filter(Boolean);
-        html += `<div class="space-y-1.5 pt-1"><label class="block text-xs font-bold text-gray-300">اختر الرقم / الدرجة *</label><div class="flex flex-wrap gap-2">
-                ${numsArr.map((num, idx) => `
-                    <label class="border border-gray-800 bg-black/60 px-3 py-1.5 rounded-xl text-xs text-white cursor-pointer hover:border-[#D4AF37] flex items-center gap-2">
-                        <input type="radio" name="selected_product_number" value="${num}" ${idx === 0 ? 'checked' : ''} class="accent-[#D4AF37]">
-                        <span>الدرجة ${num}</span>
-                    </label>
-                `).join('')}
-            </div></div>`;
-    }
     container.innerHTML = html;
 }
+
+// 🌟 دالة تفاعل الزبون: تبرز الاختيار وتغير الصورة الرئيسية فوراً
+export function selectLandingVariant(name, imgUrl) {
+    currentSelectedVariant = { name, image: imgUrl };
+    
+    // تغيير الصورة إذا كانت موجودة
+    if (imgUrl) {
+        swapLandingMainImage(imgUrl);
+    }
+    
+    // تحديث الشكل الجمالي (تلوين الحواف الذهبية)
+    document.querySelectorAll('.variant-outline').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.variant-radio:checked').forEach(radio => {
+        const outline = radio.parentElement.querySelector('.variant-outline');
+        if (outline) outline.classList.remove('hidden');
+    });
+}
+window.selectLandingVariant = selectLandingVariant;
 
 export function openLightbox() {
     const mainImg = document.getElementById('landing-main-img')?.src;
