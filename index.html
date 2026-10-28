@@ -690,38 +690,31 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
 
                             <div id="category-dynamic-fields-container" class="md:col-span-3"></div>
 
+                         <!-- 🌟 الصورة الرئيسية للمنتج -->
                             <div class="md:col-span-3 bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-3">
-                                <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-palette text-[#B8860B]"></i> الخيارات الإضافية (ألوان / أرقام):</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" id="prod-colors" placeholder="الألوان (مثل: أحمر, وردي, بني)" class="w-full border p-3 rounded-xl text-sm bg-white">
-                                    <input type="text" id="prod-numbers" placeholder="الأرقام / التدرجات (مثل: 1, 2, 3)" class="w-full border p-3 rounded-xl text-sm bg-white">
+                                <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-image text-[#B8860B]"></i> الصورة الرئيسية للمنتج (غلاف العرض) *</h4>
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <input type="file" id="file-input-main" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
+                                    <button type="button" onclick="document.getElementById('file-input-main').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm hover:opacity-90 transition whitespace-nowrap">
+                                        <i class="fa-solid fa-upload"></i> رفع الصورة الرئيسية
+                                    </button>
+                                    <input type="url" id="prod-img-main" placeholder="أو رابط الصورة (URL)" required class="flex-1 border p-3 rounded-xl text-xs bg-white outline-none focus:border-[#D4AF37]">
                                 </div>
                             </div>
 
-                            <div class="md:col-span-3 space-y-4 bg-gray-50 p-5 rounded-2xl border border-gray-200">
-                                <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-images text-[#B8860B]"></i> صور المنتج:</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div class="space-y-2">
-                                        <input type="file" id="file-input-1" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-main')">
-                                        <button type="button" onclick="document.getElementById('file-input-1').click()" class="w-full bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm hover:opacity-90 transition">
-                                            <i class="fa-solid fa-upload"></i> 1. الصورة الرئيسية *
-                                        </button>
-                                        <input type="url" id="prod-img-main" placeholder="أو رابط الصورة (URL)" required class="w-full border p-3 rounded-xl text-xs bg-white">
+                            <!-- 🌟 الخيارات والأذواق الديناميكية (المتغيرات) -->
+                            <div class="md:col-span-3 bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-4">
+                                <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-layer-group text-[#B8860B]"></i> خيارات المنتج (أذواق / ألوان / أحجام)</h4>
+                                        <p class="text-[10px] text-gray-500 mt-1">أضف خيارات بأسماء وصور مختلفة. (اختياري)</p>
                                     </div>
-                                    <div class="space-y-2">
-                                        <input type="file" id="file-input-2" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-2')">
-                                        <button type="button" onclick="document.getElementById('file-input-2').click()" class="w-full bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm hover:bg-gray-700 transition">
-                                            <i class="fa-solid fa-upload"></i> 2. الصورة الثانية
-                                        </button>
-                                        <input type="url" id="prod-img-2" placeholder="أو رابط الصورة (URL)" class="w-full border p-3 rounded-xl text-xs bg-white">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <input type="file" id="file-input-3" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'prod-img-3')">
-                                        <button type="button" onclick="document.getElementById('file-input-3').click()" class="w-full bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm hover:bg-gray-700 transition">
-                                            <i class="fa-solid fa-upload"></i> 3. الصورة الثالثة
-                                        </button>
-                                        <input type="url" id="prod-img-3" placeholder="أو رابط الصورة (URL)" class="w-full border p-3 rounded-xl text-xs bg-white">
-                                    </div>
+                                    <button type="button" onclick="addAdminVariant()" class="bg-black text-[#D4AF37] text-xs font-bold px-4 py-2 rounded-xl shadow-sm hover:bg-gray-800 transition flex items-center gap-1.5">
+                                        <i class="fa-solid fa-plus"></i> إضافة خيار
+                                    </button>
+                                </div>
+                                <div id="admin-product-variants-container" class="space-y-3 max-h-80 overflow-y-auto custom-scrollbar pr-2">
+                                    <p class="text-xs text-gray-400 text-center py-4">لا توجد خيارات مضافة. سيُباع المنتج كعنصر واحد أساسي.</p>
                                 </div>
                             </div>
 
