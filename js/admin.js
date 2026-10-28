@@ -608,8 +608,8 @@ export async function handleImageUploadWrapper(event, targetId) {
     if (targetInput) targetInput.placeholder = "جاري الرفع إلى الخادم... ⏳";
 
     try {
-        // 👈 تم تغيير 600 إلى 1200 للحفاظ على جودة التفاصيل
-        const downloadURL = await window.compressAndUploadImage(file, 'products_images', 1200);
+        // 👈 تم تغيير 600 إلى 900 للحفاظ على جودة التفاصيل
+        const downloadURL = await window.compressAndUploadImage(file, 'products_images', 900);
         if (targetInput) {
             targetInput.value = downloadURL;
             targetInput.classList.add('border-green-500', 'bg-green-50');
