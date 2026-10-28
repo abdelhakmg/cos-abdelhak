@@ -295,14 +295,12 @@ export function submitLandingOrder() {
         return;
     }
 
-    const wilaya = state.WILAYAS.find(w => w.code === wilayaCode);
+   const wilaya = state.WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="shipping_type"]:checked')?.value || 'home';
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
 
-    const selectedColor = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
-    const selectedNum = document.querySelector('input[name="selected_product_number"]:checked')?.value || '';
-    
-   let productDetails = currentLandingProduct.name;
+    // 🌟 بناء تفاصيل المنتج للطلبية (بدون تكرار تعريف المتغيرات)
+    let productDetails = currentLandingProduct.name;
     if (currentLandingQty > 1) productDetails += ` (x${currentLandingQty})`;
     
     if (currentSelectedVariant) {
