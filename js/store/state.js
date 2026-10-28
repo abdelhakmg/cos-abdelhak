@@ -1,6 +1,6 @@
-// --- ملف js/store/state.js ---
+// --- ملف js/store/state.js (حالة مركزية موحدة ومحمية عبر كافة الوحدات) ---
 
-export const state = {
+const defaultState = {
     products: [],
     categories: [],
     heroSlides: [],
@@ -22,12 +22,19 @@ export const state = {
     })(),
     storeSettings: {
         name: "كوسمتيك عبد الحق",
-        slogan: "يبدو أن أحدهم سيغدو سعيداً اليوم",
+        slogan: "يبدو أن أحدهم سينام سعيداً اليوم",
         logoUrl: "",
         msgSuccess: "تم استلام طلبك بنجاح! سنتصل بك هاتفياً لتأكيد التوصيل.",
         msgWarning: "يرجى ملء كافة معلومات الاستمارة الضرورية!"
     }
 };
+
+// 🌟 ضمان عدم تعدد نسخ الـ State حتى مع استخدام Cache Busting في الاستيراد
+if (!window.__COS_SHARED_STATE__) {
+    window.__COS_SHARED_STATE__ = defaultState;
+}
+
+export const state = window.__COS_SHARED_STATE__;
 
 export const INITIAL_WILAYAS_58 = [
     { code: "01", name: "أدرار", officeCost: 900, homeCost: 1200 },
