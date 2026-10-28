@@ -1,17 +1,17 @@
 // --- ملف js/main.js ---
 
-// استيراد كافة وحدات المشروع لتعمل معاً
+// استيراد كافة وحدات المشروع بإصدار موحد لكسر الكاش في الهواتف فوراً
 import './store/state.js';
 import './utils/helpers.js';
-import './services/database.js';
-import './app.js';
-import './ui.js';
-import './landing.js';
-import './gift-builder.js';
-import './admin.js?v=8';
-import './admin-custom.js';
-import './custom-builder.js';
-import './beauty-advisor.js';
+import './services/database.js?v=9';
+import './app.js?v=9';
+import './ui.js?v=9';
+import './landing.js?v=9';
+import './gift-builder.js?v=9';
+import './admin.js?v=9';
+import './admin-custom.js?v=9';
+import './custom-builder.js?v=9';
+import './beauty-advisor.js?v=9';
 
 // تشغيل الوظائف الأساسية فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
