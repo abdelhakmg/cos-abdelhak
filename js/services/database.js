@@ -73,7 +73,7 @@ export async function loadAllProductsForAdmin() {
 }
 window.loadAllProductsForAdmin = loadAllProductsForAdmin;
 
-// 🌟 3. دالة جلب المنتجات للزوار بالتدريج (30 للكل / 16 للأقسام) بسرعة فائقة
+// 🌟 3. دالة جلب المنتجات للزوار بالتدريج (مع حماية شاملة من مشكلة 0 منتج في الهاتف)
 export async function loadProducts(isLoadMore = false, category = 'جميع المنتجات') {
     if (typeof window.db === 'undefined') return;
 
@@ -107,7 +107,6 @@ export async function loadProducts(isLoadMore = false, category = 'جميع ال
     try {
         let query = window.db.collection("products");
 
-        // عدم دمج where مع orderBy لتجنب تعليق Firebase بسبب الفهارس المركبة
         if (cat !== 'جميع المنتجات') {
             query = query.where("category", "==", cat);
         }
@@ -118,10 +117,45 @@ export async function loadProducts(isLoadMore = false, category = 'جميع ال
             query = query.startAfter(window.categoryCursors[cat]);
         }
 
-        const snapshot = await query.get();
+        let snapshot = await query.get();
 
         // إذا قام الزبون بتغيير القسم أثناء التحميل، نتجاهل النتيجة القديمة
         if (currentFetchId !== activeFetchVersion) return;
+
+        // 🛡️ خط دفاع ذكي للهواتف: إذا رجع الاستعلام فارغاً لقسم معين (بسبب مسافات في الاسم أو كاش معلق)
+        if (snapshot.empty && !isLoadMore) {
+            if (cat !== 'جميع المنتجات') {
+                // محاولة الجلب مع مسافة في النهاية أو جلب عام وفلترة محلية
+                const fallbackSnap = await window.db.collection("products").limit(100).get();
+                const fallbackDocs = [];
+                fallbackSnap.forEach(doc => {
+                    const data = doc.data();
+                    if (data && (data.category || '').trim() === cat) {
+                        fallbackDocs.push({ id: doc.id, ...data });
+                    }
+                });
+
+                if (fallbackDocs.length > 0) {
+                    fallbackDocs.forEach(newP => {
+                        const idx = state.products.findIndex(p => p.id === newP.id);
+                        if (idx === -1) state.products.push(newP);
+                        else state.products[idx] = newP;
+                    });
+                } else if (localSearchIndex && localSearchIndex.length > 0) {
+                    // استخدام فهرس البحث كخطة طوارئ ثانية إن وجد
+                    localSearchIndex.filter(p => (p.category || '').trim() === cat).forEach(newP => {
+                        if (!state.products.some(p => p.id === newP.id)) {
+                            state.products.push(newP);
+                        }
+                    });
+                }
+            }
+            window.categoryHasMore[cat] = false;
+            safeCall('renderDynamicSidebarFilters');
+            safeCall('renderBrandsFilterSidebar');
+            safeCall('applyFilters', isLoadMore);
+            return;
+        }
 
         if (snapshot.empty) {
             window.categoryHasMore[cat] = false;
@@ -155,6 +189,8 @@ export async function loadProducts(isLoadMore = false, category = 'جميع ال
 
     } catch (error) {
         console.error("Error fetching products:", error);
+        // حتى في حالة حدوث خطأ في الشبكة، نعرض ما هو متوفر محلياً بدلاً من شاشة فارغة
+        safeCall('applyFilters', isLoadMore);
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = 'حدث خطأ، اضغط للمحاولة مجدداً <i class="fa-solid fa-rotate-right mr-2"></i>';
@@ -361,6 +397,7 @@ window.initAdminOrdersSync = initAdminOrdersSync;
 // ==========================================
 let localSearchIndex = [];
 let isIndexLoaded = false;
+window.localSearchIndex = localSearchIndex;
 
 export async function loadSearchIndex() {
     if (isIndexLoaded) return;
@@ -368,12 +405,38 @@ export async function loadSearchIndex() {
         const doc = await window.db.collection('settings').doc('search_index').get();
         if (doc.exists && doc.data().items) {
             localSearchIndex = doc.data().items || [];
+            window.localSearchIndex = localSearchIndex;
             isIndexLoaded = true;
             window.totalStoreProductsCount = localSearchIndex.length;
+
+            // 🌟 إذا كانت state.products فارغة على الهاتف لسبب ما، نملؤها مبدئياً من الفهرس فوراً!
+            if (state.products.length === 0 && localSearchIndex.length > 0) {
+                state.products = [...localSearchIndex.slice(0, 30)];
+                safeCall('renderProducts');
+                safeCall('applyFilters', false);
+            }
         }
     } catch (error) {
         console.warn("Search index notice:", error.message);
     }
+}
+
+// 🌟 دالة جلب منتج واحد من Firebase مباشرة إذا لم يكن محملاً في الذاكرة بعد
+export async function fetchProductById(productId) {
+    if (!productId || typeof window.db === 'undefined') return null;
+    try {
+        const doc = await window.db.collection('products').doc(productId).get();
+        if (doc.exists) {
+            const fullProd = { id: doc.id, ...doc.data() };
+            const idx = state.products.findIndex(p => p.id === fullProd.id);
+            if (idx === -1) state.products.push(fullProd);
+            else state.products[idx] = fullProd;
+            return fullProd;
+        }
+    } catch (err) {
+        console.error("Error fetching single product:", err);
+    }
+    return null;
 }
 
 export async function performAdvancedSearch(query) {
@@ -393,8 +456,15 @@ export async function performAdvancedSearch(query) {
     const searchPool = localSearchIndex.length > 0 ? localSearchIndex : state.products;
 
     const matchedProducts = searchPool.filter(product => {
-        const textToSearch = product.keywords || `${product.name || ''} ${product.desc || ''} ${product.category || ''} ${product.brand || ''}`.toLowerCase();
+        const textToSearch = (product.keywords || `${product.name || ''} ${product.desc || ''} ${product.category || ''} ${product.brand || ''}`).toLowerCase();
         return searchTerms.every(term => textToSearch.includes(term));
+    });
+
+    // 🌟 دمج المنتجات المطابقة في state.products حتى تفتح فوراً عند الضغط عليها!
+    matchedProducts.forEach(mp => {
+        if (!state.products.some(p => p.id === mp.id)) {
+            state.products.push(mp);
+        }
     });
 
     safeCall('showPage', 'catalog');
@@ -418,3 +488,4 @@ export async function performAdvancedSearch(query) {
 
 window.performAdvancedSearch = performAdvancedSearch;
 window.loadSearchIndex = loadSearchIndex;
+window.fetchProductById = fetchProductById;
