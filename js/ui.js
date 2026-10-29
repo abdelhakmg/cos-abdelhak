@@ -11,7 +11,7 @@ let categoriesSwiperInstance = null;
 // 1. رسم المنتجات والبطاقات
 // ==========================================
 export function renderSingleProductCard(p) {
-    let displayImg = (p.images && p.images[0]) || p.image || 'https://via.placeholder.com/300';
+    let displayImg = p.image || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.variants) && p.variants[0]?.image) || 'https://via.placeholder.com/300';
     const isFav = state.favorites.includes(p.id);
     const inStock = p.inStock !== false;
 
@@ -180,65 +180,72 @@ export function handleLiveSearch(query) {
         return;
     }
 
-    // تأخير نصف ثانية (Debounce) لمنع إرسال طلب لفايرباس مع كل حرف يكتبه الزبون
-    if(searchTimeout) clearTimeout(searchTimeout);
+    if (searchTimeout) clearTimeout(searchTimeout);
     
     searchTimeout = setTimeout(async () => {
         try {
-            // البحث المباشر في فايرباس باستخدام بادئة الاسم (Prefix)
-            const snapshot = await window.db.collection('products')
-                .where('name', '>=', q)
-                .where('name', '<=', q + '\uf8ff')
-                .limit(5).get();
-            
-            let matches = [];
-            snapshot.forEach(doc => matches.push({id: doc.id, ...doc.data()}));
+            const qLower = q.toLowerCase();
+            // 1. البحث الفوري الشامل في الفهرس الكلي أو المنتجات المحملة
+            const sourcePool = (window.localSearchIndex && window.localSearchIndex.length > 0) 
+                ? window.localSearchIndex 
+                : (state.products || []);
 
-            // إذا لم ينجح البحث المباشر، نبحث في المنتجات المحملة مسبقاً للقسم
-            if (matches.length === 0) {
-                const localPool = window.currentCatalogProducts || state.products || [];
-                matches = localPool.filter(p => p.inStock !== false && (
-                    (p.name && p.name.includes(q)) || 
-                    (p.category && p.category.includes(q))
-                )).slice(0, 5);
+            let matches = sourcePool.filter(p => p.inStock !== false && (
+                (p.name && p.name.toLowerCase().includes(qLower)) || 
+                (p.category && p.category.toLowerCase().includes(qLower)) ||
+                (p.brand && p.brand.toLowerCase().includes(qLower)) ||
+                (p.keywords && p.keywords.includes(qLower))
+            )).slice(0, 6);
+
+            // 2. إذا لم يكن الفهرس محملاً بعد ولم نجد في الدفعة الأولى، نبحث في Firebase
+            if (matches.length === 0 && typeof window.db !== 'undefined') {
+                const snapshot = await window.db.collection('products')
+                    .where('name', '>=', q)
+                    .where('name', '<=', q + '\uf8ff')
+                    .limit(5).get();
+                snapshot.forEach(doc => matches.push({ id: doc.id, ...doc.data() }));
             }
 
+            // 🌟 ضمان وجود المنتجات المطابقة في state.products لكي تفتح فوراً عند النقر
+            matches.forEach(mp => {
+                if (!state.products.some(p => p.id === mp.id)) {
+                    state.products.push(mp);
+                }
+            });
+
             let htmlContent = matches.length === 0 ? 
-                '<div class="p-4 text-xs text-amber-400 text-center">المنتج غير متوفر، تأكد من البحث عنه يدوياً من الفئات.</div>' : 
-                matches.map(p => `
+                '<div class="p-4 text-xs text-amber-400 text-center">لا توجد نتائج مطابقة، جرب كتابة كلمة أخرى.</div>' : 
+                matches.map(p => {
+                    const img = p.image || (Array.isArray(p.images) && p.images[0]) || 'https://via.placeholder.com/50';
+                    return `
                     <div onclick="safeCall('openLandingPage', '${p.id}'); safeCall('hideAllDropdowns');" class="flex items-center gap-3 p-3 hover:bg-[#1e1e1e] cursor-pointer transition border-b border-gray-800">
-                        <img src="${(p.images && p.images[0]) || p.image || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-contain rounded-lg bg-black" loading="lazy">
+                        <img src="${img}" class="w-10 h-10 object-contain rounded-lg bg-black" loading="lazy">
                         <div class="text-right">
                             <p class="text-xs font-bold text-white truncate">${p.name}</p>
                             <p class="text-[10px] text-[#D4AF37] font-bold">${formatPrice(p.price)}</p>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
 
             if (dropdown) { dropdown.innerHTML = htmlContent; dropdown.classList.remove('hidden'); }
             if (mobileDropdown) { mobileDropdown.innerHTML = htmlContent; mobileDropdown.classList.remove('hidden'); }
         } catch (error) {
             console.error("Search error:", error);
         }
-    }, 500); 
+    }, 300); 
 }
-// 🌟 الدالة التي كانت مفقودة وتسبب خطأ عند الكتابة في حقل البحث
+
 export function handleSearchKeydown(event, query) {
     if (!event) return;
     if (event.key === 'Escape') {
         hideAllDropdowns();
     } else if (event.key === 'Enter') {
         event.preventDefault();
-        const q = (query || '').trim().toLowerCase();
+        const q = (query || '').trim();
         if (!q) return;
-        const firstMatch = state.products.find(p => p.inStock !== false && (
-            (p.name && p.name.toLowerCase().includes(q)) ||
-            (p.category && p.category.toLowerCase().includes(q)) ||
-            (p.brand && p.brand.toLowerCase().includes(q))
-        ));
-        if (firstMatch) {
-            hideAllDropdowns();
-            safeCall('openLandingPage', firstMatch.id);
+        hideAllDropdowns();
+        if (typeof window.performAdvancedSearch === 'function') {
+            window.performAdvancedSearch(q);
         }
     }
 }
@@ -261,36 +268,41 @@ export async function filterCategory(catName) {
     const breadcrumb = document.getElementById('breadcrumb-current');
     if (breadcrumb) breadcrumb.innerText = window.activeCategoryFilter;
 
-    // تفريغ حقول البحث عند اختيار قسم
+    // 🌟 تصفير حقول البحث والفلاتر الجانبية القديمة حتى لا تتسبب في إخفاء منتجات القسم الجديد (0 منتج)!
     const desktopSearch = document.getElementById('customer-search-input');
     const mobileSearch = document.getElementById('customer-search-input-mobile');
     if (desktopSearch) desktopSearch.value = '';
     if (mobileSearch) mobileSearch.value = '';
+
+    document.querySelectorAll('.brand-filter-cb').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.dynamic-customer-cb').forEach(cb => cb.checked = false);
 
     safeCall('showPage', 'catalog');
 
     const step = window.activeCategoryFilter === 'جميع المنتجات' ? 30 : 16;
     window.catalogRenderCount = step;
 
-    // 🌟 استجابة فورية: إذا كان لدينا منتجات محملة مسبقاً لهذا القسم نعرضها فوراً بدون انتظار!
+    // فحص المنتجات الموجودة محلياً لهذا القسم
     const existingForCat = window.activeCategoryFilter === 'جميع المنتجات'
         ? state.products
         : state.products.filter(p => (p.category || '').trim() === window.activeCategoryFilter);
 
+    renderDynamicSidebarFilters();
+    renderBrandsFilterSidebar();
+
     if (existingForCat.length > 0) {
-        renderDynamicSidebarFilters();
-        renderBrandsFilterSidebar();
         applyFilters(false);
     } else {
         const catalogGrid = document.getElementById('catalog-products');
         if (catalogGrid) {
-            catalogGrid.innerHTML = '<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-gray-400 text-sm mt-4">جاري جلب بيانات القسم...</p></div>';
+            catalogGrid.innerHTML = '<div class="col-span-full text-center py-16"><i class="fa-solid fa-spinner fa-spin text-4xl text-[#D4AF37]"></i><p class="text-gray-400 text-sm mt-4">جاري جلب منتجات القسم...</p></div>';
         }
     }
 
-    // جلب الدفعة الأولى من قاعدة البيانات إن لم يتم جلب هذا القسم من قبل
-    if (typeof window.categoryCursors === 'undefined' || !window.categoryCursors[window.activeCategoryFilter]) {
-        window.loadProducts(false, window.activeCategoryFilter);
+    // 🌟 جلب الدفعة من قاعدة البيانات إذا لم يُجلب القسم من قبل أو كان عدد منتجاته المحلية 0
+    const hasCursor = window.categoryCursors && window.categoryCursors[window.activeCategoryFilter];
+    if (!hasCursor || existingForCat.length === 0) {
+        await window.loadProducts(false, window.activeCategoryFilter);
     }
 }
 
@@ -363,13 +375,17 @@ export function applyFilters(preserveCount = false) {
 
     const priceRangeInput = document.getElementById('filter-price-range');
     if (priceRangeInput) {
-        const maxPrice = parseFloat(priceRangeInput.value) || 20000;
-        filtered = filtered.filter(p => (Number(p.price) || 0) <= maxPrice);
+        const sliderMax = parseFloat(priceRangeInput.max) || 20000;
+        const maxPrice = parseFloat(priceRangeInput.value) || sliderMax;
+        // إذا كان السلايدر في أقصى قيمة له، لا نستبعد المنتجات الأغلى من السقف الافتراضي
+        if (maxPrice < sliderMax) {
+            filtered = filtered.filter(p => (Number(p.price) || 0) <= maxPrice);
+        }
     }
 
-    const checkedBrands = Array.from(document.querySelectorAll('.brand-filter-cb:checked')).map(cb => cb.value);
+    const checkedBrands = Array.from(document.querySelectorAll('.brand-filter-cb:checked')).map(cb => cb.value.trim());
     if (checkedBrands.length > 0) {
-        filtered = filtered.filter(p => p.brand && checkedBrands.includes(p.brand));
+        filtered = filtered.filter(p => p.brand && checkedBrands.includes(p.brand.trim()));
     }
 
     const dynamicCheckboxes = document.querySelectorAll('.dynamic-customer-cb:checked');
@@ -398,7 +414,6 @@ export function applyFilters(preserveCount = false) {
     window.currentFilteredCatalog = filtered;
     renderCatalogProducts(false, preserveCount);
 }
-
 export function renderCatalogProducts(isLoadMoreLocal = false, preserveCount = false) {
     const grid = document.getElementById('catalog-products');
     const loadMoreBtn = document.getElementById('load-more-catalog-btn');
