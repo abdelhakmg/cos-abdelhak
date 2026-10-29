@@ -177,9 +177,9 @@ async function generateSmartRoutine() {
     const headerTitle = document.getElementById('advisor-header-title');
     if (headerTitle) headerTitle.innerText = "النتيجة والتوصيات";
 
-    container.innerHTML = `<div class="flex flex-col items-center justify-center py-12 space-y-4"><i class="fa-solid fa-spinner fa-spin text-5xl text-[#D4AF37]"></i><p class="text-white font-bold text-sm">جاري تحليل إجاباتك وفلترة المنتجات...</p></div>`;
+    container.innerHTML = `<div class="flex flex-col items-center justify-center py-12 space-y-4"><i class="fa-solid fa-spinner fa-spin text-5xl text-[#D4AF37]"></i><p class="text-white font-bold text-sm">جاري تحليل إجاباتك وفلترة المنتجات بدقة...</p></div>`;
     
-    // 🌟 1. ضمان فحص كافة منتجات المتجر على الهاتف (وليس أول 30 منتجاً فقط)
+    // جلب كافة المنتجات للتأكد من شمولية البحث
     if (typeof window.db !== 'undefined' && state.products.length <= 35) {
         try {
             const snap = await window.db.collection('products').get();
@@ -195,7 +195,6 @@ async function generateSmartRoutine() {
     }
 
     setTimeout(() => {
-        // دالة تنظيف النصوص العربية لتوحيد الهمزات والتاء المربوطة والـ (ال) التعريف
         const normalizeAr = (text) => {
             return String(text || '')
                 .toLowerCase()
@@ -205,94 +204,54 @@ async function generateSmartRoutine() {
                 .trim();
         };
 
-        // استخراج الكلمات المفتاحية الفعالة من الخيار (مثلاً "الهيشان والتطاير" -> ["هيشان", "تطاير", "هائش"])
-        const extractTokens = (phrase) => {
-            if (!phrase) return [];
-            const norm = normalizeAr(phrase);
-            const rawWords = norm.split(/[\s،,/-]+/).filter(w => w.length > 2 && w !== 'الشعر' && w !== 'البشره');
-            const expanded = new Set([norm, ...rawWords]);
-            rawWords.forEach(w => {
-                if (w.startsWith('ال') && w.length > 4) expanded.add(w.substring(2));
-                if (w.includes('هيشان')) expanded.add('هائش');
-                if (w.includes('تقصف')) expanded.add('مقصف');
-                if (w.includes('جفاف') || w.includes('جاف')) { expanded.add('جاف'); expanded.add('جفاف'); }
-            });
-            return Array.from(expanded);
-        };
-
-        // حساب درجة تطابق المنتج مع (النوع + المشكلة) من داخل الفلاتر والأذواق والوصف
-        const scoreProduct = (product, typeAnswer, concernAnswer, domainWord) => {
-            const attrText = normalizeAr(JSON.stringify(product.attributes || {}));
-            const variantsText = normalizeAr(Array.isArray(product.variants) ? product.variants.map(v => v?.name || '').join(' ') : '');
-            const mainText = normalizeAr(`${product.name || ''} ${product.desc || ''} ${product.category || ''} ${product.colors || ''}`);
-            const fullPool = `${attrText} ${variantsText} ${mainText}`;
-
-            const typeTokens = extractTokens(typeAnswer);
-            const concernTokens = extractTokens(concernAnswer);
-
-            let score = 0;
-            let matchedType = false;
-            let matchedConcern = false;
-
-            // فحص تطابق المشكلة (الأهم للزبونة) - أولوية قصوى للفلاتر الديناميكية والأذواق
-            concernTokens.forEach(token => {
-                if (attrText.includes(token) || variantsText.includes(token)) {
-                    score += 10;
-                    matchedConcern = true;
-                } else if (mainText.includes(token)) {
-                    score += 5;
-                    matchedConcern = true;
-                }
-            });
-
-            // فحص تطابق نوع الشعر أو البشرة
-            typeTokens.forEach(token => {
-                if (attrText.includes(token) || variantsText.includes(token)) {
-                    score += 8;
-                    matchedType = true;
-                } else if (mainText.includes(token)) {
-                    score += 4;
-                    matchedType = true;
-                }
-            });
-
-            // مكافأة إضافية كبيرة للمنتج الذي يطابق (النوع + المشكلة معاً) في الفلاتر!
-            if (matchedType && matchedConcern) score += 20;
-
-            // التأكد من عدم خلط منتج شعر في بحث البشرة أو العكس
-            const normDomain = normalizeAr(domainWord); // 'شعر' أو 'بشره'
-            const oppositeDomain = normDomain === 'شعر' ? 'بشره' : 'شعر';
-            if (!fullPool.includes(normDomain) && fullPool.includes(oppositeDomain) && !matchedConcern) {
-                return 0;
-            }
-
-            return score;
-        };
-
         const availableProducts = state.products.filter(p => p.inStock !== false);
         let finalRoutine = [];
 
+        // 🌸 1. فلترة منتجات البشرة بدقة صارمة (منع ظهور الشامبو ومنتجات الشعر نهائياً)
         if (userAnswers.journey === 'skin' || userAnswers.journey === 'both') {
-            const scoredSkin = availableProducts
-                .map(p => ({ product: p, score: scoreProduct(p, userAnswers.skinType, userAnswers.skinConcern, 'بشرة') }))
-                .filter(item => item.score > 0)
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 6)
-                .map(item => item.product);
-            finalRoutine = [...finalRoutine, ...scoredSkin];
+            const skinProds = availableProducts.filter(p => {
+                const cat = normalizeAr(p.category || '');
+                const nameDesc = normalizeAr(`${p.name || ''} ${p.desc || ''}`);
+                const attrStr = normalizeAr(JSON.stringify(p.attributes || {}));
+
+                // استبعاد قاطع لأي منتج شعر
+                if (cat.includes('شعر') || nameDesc.includes('شامبو') || nameDesc.includes('بلسم للشعر') || nameDesc.includes('سيروم شعر')) {
+                    return false;
+                }
+
+                // يجب أن ينتمي المنتج لقسم البشرة/الوجه أو يحتوي على خصائصها
+                const isSkinCat = cat.includes('بشره') || cat.includes('وجه') || cat.includes('جسم') || cat.includes('مكياج') || cat.includes('عناية');
+                const matchesSkinType = attrStr.includes(normalizeAr(userAnswers.skinType)) || nameDesc.includes(normalizeAr(userAnswers.skinType));
+                const matchesConcern = attrStr.includes(normalizeAr(userAnswers.skinConcern)) || nameDesc.includes(normalizeAr(userAnswers.skinConcern));
+
+                // شرط القبول: إما أن يكون في قسم البشرة ويطابق المشكلة أو النوع بدقة
+                return isSkinCat && (matchesSkinType || matchesConcern || nameDesc.includes('غسول') || nameDesc.includes('هلام') || nameDesc.includes('مرطب') || nameDesc.includes('مقشر'));
+            });
+            finalRoutine = [...finalRoutine, ...skinProds];
         }
 
+        // 💇‍♀️ 2. فلترة منتجات الشعر بدقة صارمة (منع ظهور كريمات البشرة وغسول الوجه)
         if (userAnswers.journey === 'hair' || userAnswers.journey === 'both') {
-            const scoredHair = availableProducts
-                .map(p => ({ product: p, score: scoreProduct(p, userAnswers.hairType, userAnswers.hairConcern, 'شعر') }))
-                .filter(item => item.score > 0)
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 6)
-                .map(item => item.product);
-            finalRoutine = [...finalRoutine, ...scoredHair];
+            const hairProds = availableProducts.filter(p => {
+                const cat = normalizeAr(p.category || '');
+                const nameDesc = normalizeAr(`${p.name || ''} ${p.desc || ''}`);
+                const attrStr = normalizeAr(JSON.stringify(p.attributes || {}));
+
+                // استبعاد قاطع لأي منتج بشرة/وجه
+                if (cat.includes('بشره') || cat.includes('وجه') || nameDesc.includes('غسول للوجه') || nameDesc.includes('هلام تنظيف للوجه')) {
+                    return false;
+                }
+
+                const isHairCat = cat.includes('شعر') || nameDesc.includes('شامبو') || nameDesc.includes('بلسم') || nameDesc.includes('ماسك للشعر');
+                const matchesHairType = attrStr.includes(normalizeAr(userAnswers.hairType)) || nameDesc.includes(normalizeAr(userAnswers.hairType));
+                const matchesHairConcern = attrStr.includes(normalizeAr(userAnswers.hairConcern)) || nameDesc.includes(normalizeAr(userAnswers.hairConcern));
+
+                return isHairCat || matchesHairType || matchesHairConcern;
+            });
+            finalRoutine = [...finalRoutine, ...hairProds];
         }
 
-        // إزالة التكرار إن وجد
+        // إزالة التكرار
         finalRoutine = Array.from(new Set(finalRoutine.map(a => a.id)))
             .map(id => finalRoutine.find(a => a.id === id));
 
@@ -313,7 +272,7 @@ async function generateSmartRoutine() {
             <div class="animate-fade-in space-y-6 text-right max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar pb-24">
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-white mb-2">المنتجات المناسبة لكِ ✨</h3>
-                    <p class="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-full border border-[#D4AF37]/30">اخترنا لك الأفضل لحالتك (${finalRoutine.length} منتجات):</p>
+                    <p class="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-full border border-[#D4AF37]/30">اخترنا لك الأفضل لحالتك بدقة (${finalRoutine.length} منتجات):</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -339,7 +298,6 @@ async function generateSmartRoutine() {
                 </div>
             </div>
             
-            <!-- شريط سفلي ثابت يوجه للسلة -->
             <div class="absolute bottom-0 left-0 right-0 p-4 bg-black/95 border-t border-[#D4AF37]/30 backdrop-blur-md">
                 <button onclick="closeBeautyAdvisor(); safeCall('showPage', 'cart');" class="w-full py-3.5 gold-gradient text-black font-black rounded-xl shadow-[0_0_15px_rgba(212,175,55,0.2)] hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-bag-shopping"></i> الذهاب إلى السلة
