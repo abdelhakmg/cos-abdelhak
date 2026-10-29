@@ -172,38 +172,124 @@ export function selectAdvisorAnswer(questionId, answerValue) {
     renderAdvisorStep();
 }
 
-function generateSmartRoutine() {
+async function generateSmartRoutine() {
     const container = document.getElementById('advisor-content');
     const headerTitle = document.getElementById('advisor-header-title');
     if (headerTitle) headerTitle.innerText = "النتيجة والتوصيات";
 
     container.innerHTML = `<div class="flex flex-col items-center justify-center py-12 space-y-4"><i class="fa-solid fa-spinner fa-spin text-5xl text-[#D4AF37]"></i><p class="text-white font-bold text-sm">جاري تحليل إجاباتك وفلترة المنتجات...</p></div>`;
     
+    // 🌟 1. ضمان فحص كافة منتجات المتجر على الهاتف (وليس أول 30 منتجاً فقط)
+    if (typeof window.db !== 'undefined' && state.products.length <= 35) {
+        try {
+            const snap = await window.db.collection('products').get();
+            snap.forEach(doc => {
+                const prodData = { id: doc.id, ...doc.data() };
+                const idx = state.products.findIndex(p => p.id === prodData.id);
+                if (idx === -1) state.products.push(prodData);
+                else state.products[idx] = prodData;
+            });
+        } catch (err) {
+            console.warn("Advisor full fetch fallback:", err);
+        }
+    }
+
     setTimeout(() => {
-        const matchProduct = (product, keywords) => {
-            const str = [product.name, product.desc, product.category, JSON.stringify(product.attributes || {})].join(' ').toLowerCase();
-            return keywords.some(k => str.includes(k.toLowerCase()));
+        // دالة تنظيف النصوص العربية لتوحيد الهمزات والتاء المربوطة والـ (ال) التعريف
+        const normalizeAr = (text) => {
+            return String(text || '')
+                .toLowerCase()
+                .replace(/[أإآ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .trim();
+        };
+
+        // استخراج الكلمات المفتاحية الفعالة من الخيار (مثلاً "الهيشان والتطاير" -> ["هيشان", "تطاير", "هائش"])
+        const extractTokens = (phrase) => {
+            if (!phrase) return [];
+            const norm = normalizeAr(phrase);
+            const rawWords = norm.split(/[\s،,/-]+/).filter(w => w.length > 2 && w !== 'الشعر' && w !== 'البشره');
+            const expanded = new Set([norm, ...rawWords]);
+            rawWords.forEach(w => {
+                if (w.startsWith('ال') && w.length > 4) expanded.add(w.substring(2));
+                if (w.includes('هيشان')) expanded.add('هائش');
+                if (w.includes('تقصف')) expanded.add('مقصف');
+                if (w.includes('جفاف') || w.includes('جاف')) { expanded.add('جاف'); expanded.add('جفاف'); }
+            });
+            return Array.from(expanded);
+        };
+
+        // حساب درجة تطابق المنتج مع (النوع + المشكلة) من داخل الفلاتر والأذواق والوصف
+        const scoreProduct = (product, typeAnswer, concernAnswer, domainWord) => {
+            const attrText = normalizeAr(JSON.stringify(product.attributes || {}));
+            const variantsText = normalizeAr(Array.isArray(product.variants) ? product.variants.map(v => v?.name || '').join(' ') : '');
+            const mainText = normalizeAr(`${product.name || ''} ${product.desc || ''} ${product.category || ''} ${product.colors || ''}`);
+            const fullPool = `${attrText} ${variantsText} ${mainText}`;
+
+            const typeTokens = extractTokens(typeAnswer);
+            const concernTokens = extractTokens(concernAnswer);
+
+            let score = 0;
+            let matchedType = false;
+            let matchedConcern = false;
+
+            // فحص تطابق المشكلة (الأهم للزبونة) - أولوية قصوى للفلاتر الديناميكية والأذواق
+            concernTokens.forEach(token => {
+                if (attrText.includes(token) || variantsText.includes(token)) {
+                    score += 10;
+                    matchedConcern = true;
+                } else if (mainText.includes(token)) {
+                    score += 5;
+                    matchedConcern = true;
+                }
+            });
+
+            // فحص تطابق نوع الشعر أو البشرة
+            typeTokens.forEach(token => {
+                if (attrText.includes(token) || variantsText.includes(token)) {
+                    score += 8;
+                    matchedType = true;
+                } else if (mainText.includes(token)) {
+                    score += 4;
+                    matchedType = true;
+                }
+            });
+
+            // مكافأة إضافية كبيرة للمنتج الذي يطابق (النوع + المشكلة معاً) في الفلاتر!
+            if (matchedType && matchedConcern) score += 20;
+
+            // التأكد من عدم خلط منتج شعر في بحث البشرة أو العكس
+            const normDomain = normalizeAr(domainWord); // 'شعر' أو 'بشره'
+            const oppositeDomain = normDomain === 'شعر' ? 'بشره' : 'شعر';
+            if (!fullPool.includes(normDomain) && fullPool.includes(oppositeDomain) && !matchedConcern) {
+                return 0;
+            }
+
+            return score;
         };
 
         const availableProducts = state.products.filter(p => p.inStock !== false);
         let finalRoutine = [];
 
         if (userAnswers.journey === 'skin' || userAnswers.journey === 'both') {
-            const skinKeywords = [userAnswers.skinType, userAnswers.skinConcern];
-            const skinProds = availableProducts.filter(p => 
-                (p.category && (p.category.includes('بشرة') || p.category.includes('وجه'))) && 
-                matchProduct(p, skinKeywords)
-            ).slice(0, 4);
-            finalRoutine = [...finalRoutine, ...skinProds];
+            const scoredSkin = availableProducts
+                .map(p => ({ product: p, score: scoreProduct(p, userAnswers.skinType, userAnswers.skinConcern, 'بشرة') }))
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 6)
+                .map(item => item.product);
+            finalRoutine = [...finalRoutine, ...scoredSkin];
         }
 
         if (userAnswers.journey === 'hair' || userAnswers.journey === 'both') {
-            const hairKeywords = [userAnswers.hairType, userAnswers.hairConcern];
-            const hairProds = availableProducts.filter(p => 
-                (p.category && p.category.includes('شعر')) && 
-                matchProduct(p, hairKeywords)
-            ).slice(0, 4);
-            finalRoutine = [...finalRoutine, ...hairProds];
+            const scoredHair = availableProducts
+                .map(p => ({ product: p, score: scoreProduct(p, userAnswers.hairType, userAnswers.hairConcern, 'شعر') }))
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 6)
+                .map(item => item.product);
+            finalRoutine = [...finalRoutine, ...scoredHair];
         }
 
         // إزالة التكرار إن وجد
@@ -221,28 +307,35 @@ function generateSmartRoutine() {
             return;
         }
 
-        window.currentGeneratedRoutine = finalRoutine; // حفظ المنتجات
+        window.currentGeneratedRoutine = finalRoutine;
 
         let html = `
             <div class="animate-fade-in space-y-6 text-right max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar pb-24">
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-white mb-2">المنتجات المناسبة لكِ ✨</h3>
-                    <p class="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-full border border-[#D4AF37]/30">اخترنا لك الأفضل لحالتك، اختاري ما يناسبك منها:</p>
+                    <p class="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-full border border-[#D4AF37]/30">اخترنا لك الأفضل لحالتك (${finalRoutine.length} منتجات):</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    ${finalRoutine.map(p => `
+                    ${finalRoutine.map(p => {
+                        const displayImg = p.image || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.variants) && p.variants[0]?.image) || 'https://via.placeholder.com/150';
+                        return `
                         <div class="bg-gray-900 border border-gray-800 p-3 rounded-2xl flex flex-col justify-between hover:border-[#D4AF37] transition">
-                            <div>
-                                <img src="${(p.images && p.images[0]) || p.image}" class="w-full h-24 object-contain bg-black rounded-xl p-1 border border-gray-800 mb-2">
-                                <h4 class="font-bold text-white text-xs line-clamp-2 leading-snug">${p.name}</h4>
+                            <div class="cursor-pointer" onclick="closeBeautyAdvisor(); safeCall('openLandingPage', '${p.id}');">
+                                <img src="${displayImg}" class="w-full h-24 object-contain bg-black rounded-xl p-1 border border-gray-800 mb-2" loading="lazy">
+                                <h4 class="font-bold text-white text-xs line-clamp-2 leading-snug hover:text-[#D4AF37] transition">${p.name}</h4>
                                 <p class="text-[#D4AF37] font-black text-sm mt-2 mb-3">${formatPrice(p.price)}</p>
                             </div>
-                            <button onclick="addSingleRoutineItem('${p.id}', this)" class="w-full bg-[#1a1a1a] text-white border border-gray-700 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] text-xs font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-plus"></i> أضف للسلة
-                            </button>
+                            <div class="flex gap-1.5">
+                                <button onclick="closeBeautyAdvisor(); safeCall('openLandingPage', '${p.id}');" class="flex-1 gold-gradient text-black text-[11px] font-extrabold py-2 rounded-xl transition flex items-center justify-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-bolt"></i> اطلبي
+                                </button>
+                                <button onclick="addSingleRoutineItem('${p.id}', this)" class="px-3 bg-[#1a1a1a] text-white border border-gray-700 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] text-xs font-bold py-2 rounded-xl transition flex items-center justify-center cursor-pointer" title="أضف للسلة">
+                                    <i class="fa-solid fa-cart-plus"></i>
+                                </button>
+                            </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             </div>
             
@@ -254,9 +347,8 @@ function generateSmartRoutine() {
             </div>
         `;
         container.innerHTML = html;
-    }, 1200);
+    }, 600);
 }
-
 // دالة إضافة منتج واحد من القائمة للسلة بتأثير بصري
 export function addSingleRoutineItem(productId, btnElement) {
     const prod = window.currentGeneratedRoutine.find(p => p.id === productId);
