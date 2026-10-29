@@ -306,9 +306,35 @@ export async function filterCategory(catName) {
     }
 }
 
+// 🌟 دالة فتح وإغلاق قوائم الفلاتر المنسدلة (Accordion)
+export function toggleFilterAccordion(contentId, iconId) {
+    const content = document.getElementById(contentId);
+    const icon = document.getElementById(iconId);
+    if (!content) return;
+
+    const isHidden = content.classList.contains('hidden');
+    if (isHidden) {
+        content.classList.remove('hidden');
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        content.classList.add('hidden');
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+}
+window.toggleFilterAccordion = toggleFilterAccordion;
+
 export function renderBrandsFilterSidebar() {
     const brandsContainer = document.getElementById('filter-brands-list');
     if (!brandsContainer) return;
+
+    // إخفاء العنوان النصي الثابت فوق الماركات في HTML إن وجد لكي لا يتكرر مع الزر المنسدل
+    const parentBox = brandsContainer.parentElement;
+    if (parentBox) {
+        const staticHeader = parentBox.querySelector('h4, h3');
+        if (staticHeader && staticHeader.innerText.includes('العلامة التجارية')) {
+            staticHeader.style.display = 'none';
+        }
+    }
 
     const brandsFromState = (state.brands || []).map(b => typeof b === 'object' ? b.name : b);
     const brandsFromProducts = (state.products || []).map(p => p.brand).filter(Boolean);
@@ -319,12 +345,23 @@ export function renderBrandsFilterSidebar() {
         return;
     }
 
-    brandsContainer.innerHTML = allBrands.map(brand => `
-        <label class="flex items-center gap-2 cursor-pointer py-0.5 hover:text-white transition">
-            <input type="checkbox" value="${brand}" onchange="window.applyFilters(false)" class="brand-filter-cb accent-[#D4AF37] w-3.5 h-3.5 cursor-pointer rounded">
-            <span>${brand}</span>
-        </label>
-    `).join('');
+    brandsContainer.className = 'w-full';
+    brandsContainer.innerHTML = `
+        <div class="border border-gray-800 bg-black/50 rounded-xl overflow-hidden">
+            <button type="button" onclick="window.toggleFilterAccordion('acc-brands-body', 'acc-brands-icon')" class="w-full flex items-center justify-between p-3 text-xs font-bold text-[#D4AF37] hover:bg-[#1a1a1a] transition cursor-pointer">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-tags text-[11px]"></i> العلامة التجارية (${allBrands.length})</span>
+                <i id="acc-brands-icon" class="fa-solid fa-chevron-down text-[11px] text-gray-400 transition-transform duration-300"></i>
+            </button>
+            <div id="acc-brands-body" class="hidden px-3 pb-3 pt-2 border-t border-gray-800/80 space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto custom-scrollbar">
+                ${allBrands.map(brand => `
+                    <label class="flex items-center justify-between gap-2 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/5 hover:text-white transition">
+                        <span class="truncate">${brand}</span>
+                        <input type="checkbox" value="${brand}" onchange="window.applyFilters(false)" class="brand-filter-cb accent-[#D4AF37] w-4 h-4 cursor-pointer rounded shrink-0">
+                    </label>
+                `).join('')}
+            </div>
+        </div>
+    `;
 }
 
 export function renderDynamicSidebarFilters() {
@@ -334,32 +371,36 @@ export function renderDynamicSidebarFilters() {
     const activeCat = (window.activeCategoryFilter || 'جميع المنتجات').trim();
     let html = '';
 
-    const buildFilterGroup = (title, items, attrName) => {
+    const buildFilterGroup = (title, items, attrName, idx) => {
         if (!items || items.length === 0) return '';
+        const bodyId = `acc-dyn-body-${idx}`;
+        const iconId = `acc-dyn-icon-${idx}`;
         return `
-        <div class="space-y-3">
-            <h4 class="font-bold text-xs text-[#D4AF37]"><i class="fa-solid fa-caret-left"></i> ${title}</h4>
-            <div class="space-y-1 text-xs text-gray-300 max-h-36 overflow-y-auto pr-1 custom-scrollbar">
+        <div class="border border-gray-800 bg-black/50 rounded-xl overflow-hidden mb-2">
+            <button type="button" onclick="window.toggleFilterAccordion('${bodyId}', '${iconId}')" class="w-full flex items-center justify-between p-3 text-xs font-bold text-[#D4AF37] hover:bg-[#1a1a1a] transition cursor-pointer">
+                <span class="flex items-center gap-2"><i class="fa-solid fa-Sliders text-[11px]"></i> ${title}</span>
+                <i id="${iconId}" class="fa-solid fa-chevron-down text-[11px] text-gray-400 transition-transform duration-300"></i>
+            </button>
+            <div id="${bodyId}" class="hidden px-3 pb-3 pt-2 border-t border-gray-800/80 space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto custom-scrollbar">
                 ${items.map(item => `
-                <label class="flex items-center gap-2 cursor-pointer py-0.5 hover:text-white transition">
-                    <input type="checkbox" value="${item}" data-filter-name="${attrName}" onchange="window.applyFilters(false)" class="dynamic-customer-cb accent-[#D4AF37] w-3 h-3 cursor-pointer"> 
-                    <span>${item}</span>
+                <label class="flex items-center justify-between gap-2 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-white/5 hover:text-white transition">
+                    <span class="truncate">${item}</span>
+                    <input type="checkbox" value="${item}" data-filter-name="${attrName}" onchange="window.applyFilters(false)" class="dynamic-customer-cb accent-[#D4AF37] w-4 h-4 cursor-pointer rounded shrink-0"> 
                 </label>`).join('')}
             </div>
-        </div><hr class="border-gray-800">`;
+        </div>`;
     };
 
     if (state.categoryFilters && state.categoryFilters[activeCat] && state.categoryFilters[activeCat].length > 0) {
-        state.categoryFilters[activeCat].forEach(filter => {
-            html += buildFilterGroup(filter.name, filter.options, filter.name);
+        state.categoryFilters[activeCat].forEach((filter, idx) => {
+            html += buildFilterGroup(filter.name, filter.options, filter.name, idx);
         });
     } else if (activeCat === 'جميع المنتجات') {
-        html += '<p class="text-[10px] text-gray-500 text-center py-4 bg-black/40 rounded-xl border border-gray-800">يرجى تحديد قسم من الأعلى لظهور فلاتر البحث الدقيقة الخاصة به.</p>';
+        html += '<p class="text-[10px] text-gray-500 text-center py-3 bg-black/40 rounded-xl border border-gray-800">اختر قسماً من الأعلى لظهور فلاتره الخاصة.</p>';
     }
 
     dynamicContainer.innerHTML = html;
 }
-
 export function applyFilters(preserveCount = false) {
     const activeCat = (window.activeCategoryFilter || 'جميع المنتجات').trim();
     let baseProducts = state.products || [];
