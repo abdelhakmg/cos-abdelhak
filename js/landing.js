@@ -7,14 +7,30 @@ let currentLandingProduct = null;
 let currentLandingQty = 1; // 🌟 متغير الكمية في صفحة المنتج
 let activeLandingCoupon = null; // 🌟 الكوبون المطبق حالياً في صفحة المنتج
 let currentSelectedVariant = null; // 🌟 حفظ الخيار الذي حدده الزبون
-export function openLandingPage(productId, updateUrl = true) {
+export async function openLandingPage(productId, updateUrl = true) {
+    if (!productId) return;
     currentSelectedVariant = null; // إعادة الضبط عند فتح أي منتج
-    currentLandingProduct = state.products.find(p => p.id === productId);
+    
+    // 1. البحث في state.products أو في فهرس البحث المحلي
+    currentLandingProduct = state.products.find(p => p.id === productId) || 
+                            (window.localSearchIndex || []).find(p => p.id === productId);
+
+    // 2. إذا لم يكن المنتج محملاً بعد (أو كان قادماً من الفهرس المختصر بدون تفاصيل الأذواق)، نجلبه من Firebase
+    if ((!currentLandingProduct || typeof currentLandingProduct.variants === 'undefined') && typeof window.fetchProductById === 'function') {
+        const fetched = await window.fetchProductById(productId);
+        if (fetched) currentLandingProduct = fetched;
+    }
+
     if (!currentLandingProduct) return;
-activeLandingCoupon = null;
+
+    activeLandingCoupon = null;
     if (document.getElementById('landing-coupon-input')) document.getElementById('landing-coupon-input').value = '';
     if (document.getElementById('landing-coupon-msg')) document.getElementById('landing-coupon-msg').classList.add('hidden');
-    let mainImg = (currentLandingProduct.images && currentLandingProduct.images[0]) || currentLandingProduct.image || 'https://via.placeholder.com/500';
+    
+    let mainImg = currentLandingProduct.image || 
+                  (Array.isArray(currentLandingProduct.images) && currentLandingProduct.images[0]) || 
+                  (Array.isArray(currentLandingProduct.variants) && currentLandingProduct.variants[0]?.image) || 
+                  'https://via.placeholder.com/500';
         
     const landingImgEl = document.getElementById('landing-main-img');
     if (landingImgEl) landingImgEl.src = mainImg;
@@ -38,9 +54,16 @@ activeLandingCoupon = null;
 
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
     if (thumbsContainer) {
-        const imagesList = (currentLandingProduct.images && currentLandingProduct.images.length > 0) ? currentLandingProduct.images : [mainImg];
+        // جمع الصورة الرئيسية + مصفوفة الصور القديمة + صور الأذواق بدون تكرار
+        const rawImages = [
+            mainImg,
+            ...(Array.isArray(currentLandingProduct.images) ? currentLandingProduct.images : []),
+            ...(Array.isArray(currentLandingProduct.variants) ? currentLandingProduct.variants.map(v => v?.image) : [])
+        ].filter(Boolean);
+        const imagesList = [...new Set(rawImages)];
+
         thumbsContainer.innerHTML = imagesList.map((imgUrl) => {
-            const safeUrl = (imgUrl || '').replace(/'/g, "\\'");
+            const safeUrl = String(imgUrl || '').replace(/'/g, "\\'");
             return `
             <div onclick="swapLandingMainImage('${safeUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
                 <img src="${imgUrl}" class="w-full h-full object-contain" loading="lazy">
@@ -48,14 +71,15 @@ activeLandingCoupon = null;
             `;
         }).join('');
     }
-currentLandingQty = 1;
+
+    currentLandingQty = 1;
     const qtyEl = document.getElementById('landing-qty-val');
     if (qtyEl) qtyEl.innerText = '1';
+    
     populateWilayas();
     handleWilayaChange();
-    renderRelatedProducts(currentLandingProduct); // 🌟 رسم المنتجات المشابهة في الأسفل
+    renderRelatedProducts(currentLandingProduct);
 
-    // 🌟 فتح الصفحة بدون مسح رابط المنتج المخصص
     safeCall('showPage', 'landing', false);
     if (updateUrl) {
         window.history.pushState({ page: 'landing', productId: currentLandingProduct.id }, '', `#product=${currentLandingProduct.id}`);
@@ -372,44 +396,73 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
     }
 export function renderLandingDynamicOptions(p) {
     const container = document.getElementById('landing-options-container');
-    if (!container) return;
+    if (!container || !p) return;
     let html = '';
     
-    // 🌟 النظام الجديد: المتغيرات الديناميكية (أذواق/ألوان بصور منفصلة)
-    if (p.variants && p.variants.length > 0) {
-        const inStockVariants = p.variants.filter(v => v.inStock !== false); // إخفاء المنتهي ذكياً
-        
-        if (inStockVariants.length > 0) {
-            html += `<div class="space-y-2 pt-2">
-                <label class="block text-xs font-bold text-gray-300">اختر النوع / الذوق المتوفر *</label>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    ${inStockVariants.map((v, idx) => {
-                        const safeId = v.id || idx;
-                        const safeName = (v.name || '').replace(/'/g, "\\'");
-                        const safeImg = (v.image || '').replace(/'/g, "\\'");
-                        return `
-                        <label class="relative flex flex-col items-center justify-center bg-black/60 border border-gray-800 rounded-xl p-2 cursor-pointer hover:border-[#D4AF37] transition variant-label group">
-                            <input type="radio" name="product_dynamic_variant" value="${safeName}" class="hidden variant-radio" onchange="selectLandingVariant('${safeName}', '${safeImg}')">
-                            ${v.image ? `<img src="${v.image}" class="w-10 h-10 object-cover rounded-full mb-1 border border-gray-700 group-hover:border-[#D4AF37]">` : ''}
-                            <span class="text-[11px] text-white font-bold text-center leading-tight mt-1">${v.name}</span>
-                            <div class="absolute inset-0 border-2 border-transparent rounded-xl peer-checked:border-[#D4AF37] pointer-events-none variant-outline hidden"></div>
-                        </label>
-                    `}).join('')}
-                </div>
-            </div>`;
-        }
+    // 🌟 1. النظام الجديد: المتغيرات الديناميكية (أذواق/ألوان بصور منفصلة)
+    const validVariants = Array.isArray(p.variants) 
+        ? p.variants.filter(v => v && typeof v === 'object' && v.inStock !== false && String(v.name || '').trim() !== '')
+        : [];
+
+    if (validVariants.length > 0) {
+        // تحديد الخيار الأول افتراضياً لضمان عدم نسيان الزبون للاختيار
+        const firstVar = validVariants[0];
+        currentSelectedVariant = { name: String(firstVar.name).trim(), image: firstVar.image || '' };
+
+        html += `<div class="space-y-2 pt-2">
+            <label class="block text-xs font-bold text-gray-300">اختر النوع / الذوق المتوفر *</label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                ${validVariants.map((v, idx) => {
+                    const cleanName = String(v.name || '').trim();
+                    const cleanImg = String(v.image || '').trim();
+                    const safeName = cleanName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeImg = cleanImg.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const isFirst = idx === 0;
+                    return `
+                    <label class="relative flex flex-col items-center justify-center bg-black/60 border border-gray-800 rounded-xl p-2 cursor-pointer hover:border-[#D4AF37] transition variant-label group">
+                        <input type="radio" name="product_dynamic_variant" value="${safeName}" ${isFirst ? 'checked' : ''} class="hidden variant-radio" onchange="selectLandingVariant('${safeName}', '${safeImg}')">
+                        ${cleanImg ? `<img src="${cleanImg}" class="w-10 h-10 object-cover rounded-full mb-1 border border-gray-700 group-hover:border-[#D4AF37]">` : ''}
+                        <span class="text-[11px] text-white font-bold text-center leading-tight mt-1">${cleanName}</span>
+                        <div class="absolute inset-0 border-2 border-[#D4AF37] rounded-xl pointer-events-none variant-outline ${isFirst ? '' : 'hidden'}"></div>
+                    </label>
+                `}).join('')}
+            </div>
+        </div>`;
     } 
-    // نظام الألوان القديم (للتوافق مع المنتجات القديمة التي لم تقم بتحديثها بعد)
-    else if (p.colors && p.colors.trim().length > 0) {
-        const colorsArr = p.colors.split(/[,،]/).map(c => c.trim()).filter(Boolean);
-        html += `<div class="space-y-1.5 pt-1"><label class="block text-xs font-bold text-gray-300">اختر اللون المتوفر *</label><div class="flex flex-wrap gap-2">
+    // 🌟 2. نظام الألوان القديم (محمي ضد Array و String و Null للمنتجات القديمة)
+    else if (p.colors) {
+        const colorsArr = Array.isArray(p.colors) 
+            ? p.colors.map(c => String(c || '').trim()).filter(Boolean)
+            : String(p.colors || '').split(/[,،]/).map(c => c.trim()).filter(Boolean);
+
+        if (colorsArr.length > 0) {
+            html += `<div class="space-y-1.5 pt-1"><label class="block text-xs font-bold text-gray-300">اختر اللون المتوفر *</label><div class="flex flex-wrap gap-2">
                 ${colorsArr.map((col, idx) => `
                     <label class="border border-gray-800 bg-black/60 px-3 py-1.5 rounded-xl text-xs text-white cursor-pointer hover:border-[#D4AF37] flex items-center gap-2">
-                        <input type="radio" name="selected_product_color" value="${col}" ${idx === 0 ? 'checked' : ''} class="accent-[#D4AF37]">
+                        <input type="radio" name="selected_product_color" value="${col.replace(/"/g, '&quot;')}" ${idx === 0 ? 'checked' : ''} class="accent-[#D4AF37]">
                         <span>${col}</span>
                     </label>
                 `).join('')}
             </div></div>`;
+        }
+    }
+
+    // 🌟 3. نظام الأرقام/الدرجات القديم (إن وجد في بعض منتجات التجميل القديمة)
+    if (p.numbers) {
+        const numsArr = Array.isArray(p.numbers)
+            ? p.numbers.map(n => String(n || '').trim()).filter(Boolean)
+            : String(p.numbers || '').split(/[,،]/).map(n => n.trim()).filter(Boolean);
+
+        if (numsArr.length > 0) {
+            html += `<div class="space-y-1.5 pt-2"><label class="block text-xs font-bold text-gray-300">اختر الرقم / الدرجة *</label><div class="flex flex-wrap gap-2">
+                ${numsArr.map((num, idx) => `
+                    <label class="border border-gray-800 bg-black/60 px-3 py-1.5 rounded-xl text-xs text-white cursor-pointer hover:border-[#D4AF37] flex items-center gap-2">
+                        <input type="radio" name="selected_product_number" value="${num.replace(/"/g, '&quot;')}" ${idx === 0 ? 'checked' : ''} class="accent-[#D4AF37]">
+                        <span>${num}</span>
+                    </label>
+                `).join('')}
+            </div></div>`;
+        }
     }
 
     container.innerHTML = html;
@@ -419,12 +472,10 @@ export function renderLandingDynamicOptions(p) {
 export function selectLandingVariant(name, imgUrl) {
     currentSelectedVariant = { name, image: imgUrl };
     
-    // تغيير الصورة إذا كانت موجودة
     if (imgUrl) {
         swapLandingMainImage(imgUrl);
     }
     
-    // تحديث الشكل الجمالي (تلوين الحواف الذهبية)
     document.querySelectorAll('.variant-outline').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.variant-radio:checked').forEach(radio => {
         const outline = radio.parentElement.querySelector('.variant-outline');
@@ -451,6 +502,7 @@ export function closeLightbox() {
         lightboxModal.classList.remove('flex');
     }
 }
+
 // 🌟 1. دالة مشاركة ونسخ الرابط المباشر للمنتج (لإعلانات فيسبوك وواتساب)
 export function shareCurrentProduct() {
     if (!currentLandingProduct) return;
@@ -478,11 +530,11 @@ export function renderRelatedProducts(currentProd) {
     const grid = document.getElementById('related-products-grid');
     if (!section || !grid || !state.products) return;
 
-    // جلب حتى 4 منتجات متوفرة من نفس الفئة (أو الأكثر مبيعاً إن لم يوجد في نفس الفئة)
+    const currentCat = (currentProd.category || '').trim();
     let related = state.products.filter(p => 
         p.id !== currentProd.id && 
         p.inStock !== false && 
-        p.category === currentProd.category
+        (p.category || '').trim() === currentCat
     ).slice(0, 4);
 
     if (related.length < 4) {
@@ -503,17 +555,17 @@ export function renderRelatedProducts(currentProd) {
     grid.innerHTML = related.map(window.renderSingleProductCard).join('');
 }
 
-// 🌟 3. دالة فحص الرابط عند فتح المتجر لأول مرة (إذا جاء الزبون من رابط منتج في فيسبوك)
-export function checkInitialProductDeepLink() {
+// 🌟 3. دالة فحص الرابط عند فتح المتجر لأول مرة (تعمل حتى لو لم يكن المنتج ضمن أول 30 منتجاً!)
+export async function checkInitialProductDeepLink() {
     const hash = window.location.hash || '';
     if (hash.startsWith('#product=')) {
         const prodId = decodeURIComponent(hash.replace('#product=', '').trim());
-        const targetProd = state.products.find(p => p.id === prodId);
-        if (targetProd) {
-            openLandingPage(prodId, false);
+        if (prodId) {
+            await openLandingPage(prodId, false);
         }
     }
 }
+
 // Window Binding
 window.openLandingPage = openLandingPage;
 window.swapLandingMainImage = swapLandingMainImage;
