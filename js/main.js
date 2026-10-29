@@ -3,15 +3,15 @@
 // استيراد كافة وحدات المشروع بإصدار موحد لكسر الكاش في الهواتف فوراً
 import './store/state.js';
 import './utils/helpers.js';
-import './services/database.js?v=9';
-import './app.js?v=9';
-import './ui.js?v=9';
-import './landing.js?v=9';
-import './gift-builder.js?v=9';
-import './admin.js?v=9';
-import './admin-custom.js?v=9';
-import './custom-builder.js?v=9';
-import './beauty-advisor.js?v=9';
+import './services/database.js?v=10';
+import './app.js?v=10';
+import './ui.js?v=10';
+import './landing.js?v=10';
+import './gift-builder.js?v=10';
+import './admin.js?v=10';
+import './admin-custom.js?v=10';
+import './custom-builder.js?v=10';
+import './beauty-advisor.js?v=10';
 
 // تشغيل الوظائف الأساسية فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
