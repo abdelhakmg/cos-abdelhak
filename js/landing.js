@@ -52,8 +52,22 @@ export async function openLandingPage(productId, updateUrl = true) {
 
     renderLandingDynamicOptions(currentLandingProduct);
 
+    // 🔒 قفل عرض صفحة الهبوط لمنع تحرك الشاشة يميناً ويساراً على الهاتف نهائياً
+    const landingPageSec = document.getElementById('page-landing');
+    if (landingPageSec) {
+        landingPageSec.style.overflowX = 'hidden';
+        landingPageSec.style.maxWidth = '100vw';
+    }
+
     const thumbsContainer = document.getElementById('landing-thumbnails-list');
     if (thumbsContainer) {
+        // جعل الحاوية تلتف تلقائياً (flex-wrap) ولا تتجاوز عرض شاشة الهاتف أبداً
+        thumbsContainer.className = 'flex flex-wrap items-center justify-center gap-2 max-w-full overflow-hidden py-2';
+        if (thumbsContainer.parentElement) {
+            thumbsContainer.parentElement.style.minWidth = '0';
+            thumbsContainer.parentElement.style.maxWidth = '100%';
+        }
+
         // جمع الصورة الرئيسية + مصفوفة الصور القديمة + صور الأذواق بدون تكرار
         const rawImages = [
             mainImg,
@@ -65,7 +79,7 @@ export async function openLandingPage(productId, updateUrl = true) {
         thumbsContainer.innerHTML = imagesList.map((imgUrl) => {
             const safeUrl = String(imgUrl || '').replace(/'/g, "\\'");
             return `
-            <div onclick="swapLandingMainImage('${safeUrl}')" class="w-16 h-16 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
+            <div onclick="swapLandingMainImage('${safeUrl}')" class="w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-xl border-2 border-gray-800 hover:border-[#D4AF37] p-1 cursor-pointer bg-black overflow-hidden shadow-sm">
                 <img src="${imgUrl}" class="w-full h-full object-contain" loading="lazy">
             </div>
             `;
