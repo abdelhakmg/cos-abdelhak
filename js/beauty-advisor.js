@@ -177,9 +177,9 @@ async function generateSmartRoutine() {
     const headerTitle = document.getElementById('advisor-header-title');
     if (headerTitle) headerTitle.innerText = "النتيجة والتوصيات";
 
-    container.innerHTML = `<div class="flex flex-col items-center justify-center py-12 space-y-4"><i class="fa-solid fa-spinner fa-spin text-5xl text-[#D4AF37]"></i><p class="text-white font-bold text-sm">جاري تحليل إجاباتك وفلترة المنتجات بدقة...</p></div>`;
+    container.innerHTML = `<div class="flex flex-col items-center justify-center py-12 space-y-4"><i class="fa-solid fa-spinner fa-spin text-5xl text-[#D4AF37]"></i><p class="text-white font-bold text-sm">جاري مطابقة روتينك مع المنتجات بدقة...</p></div>`;
     
-    // جلب كافة المنتجات للتأكد من شمولية البحث
+    // جلب كافة المنتجات لضمان الشمولية
     if (typeof window.db !== 'undefined' && state.products.length <= 35) {
         try {
             const snap = await window.db.collection('products').get();
@@ -207,46 +207,73 @@ async function generateSmartRoutine() {
         const availableProducts = state.products.filter(p => p.inStock !== false);
         let finalRoutine = [];
 
-        // 🌸 1. فلترة منتجات البشرة بدقة صارمة (منع ظهور الشامبو ومنتجات الشعر نهائياً)
+        // تنظيف مدخلات الزبونة
+        const userSkinType = normalizeAr(userAnswers.skinType);     // مثل: دهنية
+        const userSkinConcern = normalizeAr(userAnswers.skinConcern); // مثل: حب الشباب
+        const userHairType = normalizeAr(userAnswers.hairType);
+        const userHairConcern = normalizeAr(userAnswers.hairConcern);
+
         if (userAnswers.journey === 'skin' || userAnswers.journey === 'both') {
-            const skinProds = availableProducts.filter(p => {
+            finalRoutine = availableProducts.filter(p => {
                 const cat = normalizeAr(p.category || '');
                 const nameDesc = normalizeAr(`${p.name || ''} ${p.desc || ''}`);
-                const attrStr = normalizeAr(JSON.stringify(p.attributes || {}));
+                const attrs = p.attributes || {};
 
-                // استبعاد قاطع لأي منتج شعر
-                if (cat.includes('شعر') || nameDesc.includes('شامبو') || nameDesc.includes('بلسم للشعر') || nameDesc.includes('سيروم شعر')) {
+                // استبعاد قاطع لأي منتج يخص الشعر
+                if (cat.includes('شعر') || nameDesc.includes('شامبو') || nameDesc.includes('بلسم')) {
                     return false;
                 }
 
-                // يجب أن ينتمي المنتج لقسم البشرة/الوجه أو يحتوي على خصائصها
-                const isSkinCat = cat.includes('بشره') || cat.includes('وجه') || cat.includes('جسم') || cat.includes('مكياج') || cat.includes('عناية');
-                const matchesSkinType = attrStr.includes(normalizeAr(userAnswers.skinType)) || nameDesc.includes(normalizeAr(userAnswers.skinType));
-                const matchesConcern = attrStr.includes(normalizeAr(userAnswers.skinConcern)) || nameDesc.includes(normalizeAr(userAnswers.skinConcern));
+                // استخراج قيم الفلاتر الديناميكية التي وضعها المدير في لوحة التحكم
+                let attrTypeValues = [];
+                let attrConcernValues = [];
 
-                // شرط القبول: إما أن يكون في قسم البشرة ويطابق المشكلة أو النوع بدقة
-                return isSkinCat && (matchesSkinType || matchesConcern || nameDesc.includes('غسول') || nameDesc.includes('هلام') || nameDesc.includes('مرطب') || nameDesc.includes('مقشر'));
+                Object.keys(attrs).forEach(attrName => {
+                    const normAttrName = normalizeAr(attrName);
+                    if (normAttrName.includes('نوع البشرة') || normAttrName.includes('نوع العناية')) {
+                        attrTypeValues = attrTypeValues.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    }
+                    if (normAttrName.includes('مشاكل البشرة') || normAttrName.includes('مشكلة')) {
+                        attrConcernValues = attrConcernValues.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    }
+                });
+
+                // المطابقة الدقيقة مع الفلاتر الديناميكية أو اسم المنتج ووصفه
+                const matchType = userSkinType === '' || attrTypeValues.includes(userSkinType) || nameDesc.includes(userSkinType);
+                const matchConcern = userSkinConcern === '' || attrConcernValues.includes(userSkinConcern) || nameDesc.includes(userSkinConcern);
+
+                // المنتج يعتبر مطابقاً إذا توافق مع نوع البشرة أو المشكلة في الفلاتر
+                return (matchType || matchConcern) && (cat.includes('بشره') || cat.includes('وجه') || cat.includes('عناية') || attrTypeValues.length > 0 || attrConcernValues.length > 0);
             });
-            finalRoutine = [...finalRoutine, ...skinProds];
         }
 
-        // 💇‍♀️ 2. فلترة منتجات الشعر بدقة صارمة (منع ظهور كريمات البشرة وغسول الوجه)
         if (userAnswers.journey === 'hair' || userAnswers.journey === 'both') {
             const hairProds = availableProducts.filter(p => {
                 const cat = normalizeAr(p.category || '');
                 const nameDesc = normalizeAr(`${p.name || ''} ${p.desc || ''}`);
-                const attrStr = normalizeAr(JSON.stringify(p.attributes || {}));
+                const attrs = p.attributes || {};
 
-                // استبعاد قاطع لأي منتج بشرة/وجه
-                if (cat.includes('بشره') || cat.includes('وجه') || nameDesc.includes('غسول للوجه') || nameDesc.includes('هلام تنظيف للوجه')) {
+                if (cat.includes('بشره') || cat.includes('وجه') || nameDesc.includes('غسول للوجه')) {
                     return false;
                 }
 
-                const isHairCat = cat.includes('شعر') || nameDesc.includes('شامبو') || nameDesc.includes('بلسم') || nameDesc.includes('ماسك للشعر');
-                const matchesHairType = attrStr.includes(normalizeAr(userAnswers.hairType)) || nameDesc.includes(normalizeAr(userAnswers.hairType));
-                const matchesHairConcern = attrStr.includes(normalizeAr(userAnswers.hairConcern)) || nameDesc.includes(normalizeAr(userAnswers.hairConcern));
+                let attrHairType = [];
+                let attrHairConcern = [];
 
-                return isHairCat || matchesHairType || matchesHairConcern;
+                Object.keys(attrs).forEach(attrName => {
+                    const normAttrName = normalizeAr(attrName);
+                    if (normAttrName.includes('نوع الشعر')) {
+                        attrHairType = attrHairType.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    }
+                    if (normAttrName.includes('مشاكل الشعر')) {
+                        attrHairConcern = attrHairConcern.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    }
+                });
+
+                const matchHairType = userHairType === '' || attrHairType.includes(userHairType) || nameDesc.includes(userHairType);
+                const matchHairConcern = userHairConcern === '' || attrHairConcern.includes(userHairConcern) || nameDesc.includes(userHairConcern);
+
+                return (matchHairType || matchHairConcern) && (cat.includes('شعر') || nameDesc.includes('شامبو') || attrHairType.length > 0);
             });
             finalRoutine = [...finalRoutine, ...hairProds];
         }
@@ -272,7 +299,7 @@ async function generateSmartRoutine() {
             <div class="animate-fade-in space-y-6 text-right max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar pb-24">
                 <div class="text-center mb-6">
                     <h3 class="text-xl font-black text-white mb-2">المنتجات المناسبة لكِ ✨</h3>
-                    <p class="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-full border border-[#D4AF37]/30">اخترنا لك الأفضل لحالتك بدقة (${finalRoutine.length} منتجات):</p>
+                    <p class="text-[#D4AF37] text-xs font-bold bg-[#D4AF37]/10 inline-block px-3 py-1 rounded-full border border-[#D4AF37]/30">تم العثور على (${finalRoutine.length}) منتجات مطابقة لروتينك:</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
