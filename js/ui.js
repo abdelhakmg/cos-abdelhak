@@ -397,10 +397,12 @@ export function applyFilters(preserveCount = false) {
             selectedFilters[attrName].push(cb.value);
         });
 
+        // 🌟 جعل الفلترة مرنة ومنطقية: المنتج يظهر إذا تطابق مع أي خيار تم تحديده
         filtered = filtered.filter(p => {
             if (!p.attributes) return false;
             return Object.keys(selectedFilters).every(attrName => {
                 const productAttrValues = p.attributes[attrName] || [];
+                // استخدام .some بين الخيارات حتى لو حدد الزبون/المدير أكثر من خيار
                 return selectedFilters[attrName].some(val => productAttrValues.includes(val));
             });
         });
