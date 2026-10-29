@@ -333,32 +333,40 @@ export function handleSaveProduct(e) {
             customAttributes[attrName].push(cb.value);
         });
 
-        // 🌟 جمع بيانات المتغيرات (الخيارات) من الواجهة
-        const variantsToSave = window.currentProductVariants.map(v => ({
-            id: v.id,
-            name: document.getElementById(`var-name-${v.id}`).value.trim(),
-            image: document.getElementById(`var-img-${v.id}`).value.trim(),
-            inStock: document.getElementById(`var-stock-${v.id}`).checked
-        })).filter(v => v.name !== '');
+        // 🌟 جمع بيانات المتغيرات (الخيارات) من الواجهة بأمان
+        const variantsToSave = (window.currentProductVariants || []).map(v => {
+            const nameEl = document.getElementById(`var-name-${v.id}`);
+            const imgEl = document.getElementById(`var-img-${v.id}`);
+            const stockEl = document.getElementById(`var-stock-${v.id}`);
+            return {
+                id: v.id,
+                name: nameEl ? nameEl.value.trim() : (v.name || '').trim(),
+                image: imgEl ? imgEl.value.trim() : (v.image || '').trim(),
+                inStock: stockEl ? stockEl.checked : (v.inStock !== false)
+            };
+        }).filter(v => v.name !== '');
+
+        let mainImageVal = document.getElementById('prod-img-main').value.trim();
+        if (!mainImageVal && variantsToSave.length > 0 && variantsToSave[0].image) {
+            mainImageVal = variantsToSave[0].image;
+        }
 
         const productData = {
             name: document.getElementById('prod-name').value.trim(),
             price: parseFloat(document.getElementById('prod-price').value) || 0,
             oldPrice: document.getElementById('prod-old-price').value ? parseFloat(document.getElementById('prod-old-price').value) : null,
-            category: document.getElementById('prod-category-select').value,
-            brand: document.getElementById('prod-brand-select').value,
+            category: (document.getElementById('prod-category-select').value || '').trim(),
+            brand: (document.getElementById('prod-brand-select').value || '').trim(),
             inStock: document.getElementById('prod-in-stock').value === 'true',
             attributes: customAttributes,
             desc: document.getElementById('prod-desc')?.value.trim() || '',
-            image: document.getElementById('prod-img-main').value.trim(),
-            variants: variantsToSave, // 🌟 حفظ المصفوفة الجديدة الذكية
+            image: mainImageVal,
+            images: mainImageVal ? [mainImageVal] : [],
+            variants: variantsToSave,
+            colors: '',
+            numbers: '',
             updatedAt: new Date()
         };
-
-        // مسح الحقول القديمة حتى لا تتسبب في أخطاء (للتوافق)
-        productData.colors = '';
-        productData.numbers = '';
-        productData.images = [];
 
         if (editId) {
             window.db.collection("products").doc(editId).update(productData).then(() => {
@@ -392,8 +400,8 @@ export function editProduct(id) {
     document.getElementById('prod-name').value = p.name || '';
     document.getElementById('prod-price').value = p.price || '';
     document.getElementById('prod-old-price').value = p.oldPrice || '';
-    document.getElementById('prod-category-select').value = p.category || '';
-    document.getElementById('prod-brand-select').value = p.brand || '';
+    document.getElementById('prod-category-select').value = (p.category || '').trim();
+    document.getElementById('prod-brand-select').value = (p.brand || '').trim();
     document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
 
     renderCategorySpecificAdminFields();
@@ -408,15 +416,16 @@ export function editProduct(id) {
     }
 
     document.getElementById('prod-desc').value = p.desc || '';
-    // دعم المنتجات القديمة التي كان لها images مصفوفة
-    document.getElementById('prod-img-main').value = p.image || (p.images && p.images[0]) || '';
+    document.getElementById('prod-img-main').value = p.image || (Array.isArray(p.images) && p.images[0]) || '';
     
-    // 🌟 استرجاع الخيارات الديناميكية أو بناء مصفوفة فارغة
-    window.currentProductVariants = p.variants ? JSON.parse(JSON.stringify(p.variants)) : [];
+    // 🌟 استرجاع الخيارات الديناميكية بأمان
+    window.currentProductVariants = Array.isArray(p.variants) ? JSON.parse(JSON.stringify(p.variants)) : [];
     
-    // تحويل الألوان القديمة إلى النظام الجديد تلقائياً ليسهل على المدير تعديلها!
-    if (!p.variants && p.colors) {
-        const oldColors = p.colors.split(/[,،]/).map(c => c.trim()).filter(Boolean);
+    // تحويل الألوان القديمة (سواء كانت نصاً أو مصفوفة) إلى النظام الجديد تلقائياً عند التعديل
+    if (window.currentProductVariants.length === 0 && p.colors) {
+        const oldColors = Array.isArray(p.colors)
+            ? p.colors.map(c => String(c || '').trim()).filter(Boolean)
+            : String(p.colors || '').split(/[,،]/).map(c => c.trim()).filter(Boolean);
         oldColors.forEach((c, i) => {
             window.currentProductVariants.push({ id: 'v_old_' + i, name: c, image: '', inStock: true });
         });
@@ -428,7 +437,6 @@ export function editProduct(id) {
     document.getElementById('cancel-edit-btn').classList.remove('hidden');
     window.scrollTo({ top: document.getElementById('product-edit-form').offsetTop - 100, behavior: 'smooth' });
 }
-
 export function resetProductForm() {
     const form = document.getElementById('product-edit-form');
     if (form) form.reset();
@@ -544,40 +552,45 @@ export function toggleProductStock(productId, currentStockStatus) {
     });
 }
 /// 🌟 دالة إنشاء وتحديث فهرس البحث الموحد (متوافقة مع قواعد حماية Firebase)
+// 🌟 دالة إنشاء وتحديث فهرس البحث الموحد (شاملة للأذواق وموحدة الصور)
 export async function updateSearchIndex() {
     try {
-        // التأكد من جلب كافة المنتجات قبل بناء الفهرس حتى لا يتم حفظ 30 منتجاً فقط
         const snapshot = await window.db.collection('products').get();
         const allProducts = [];
         snapshot.forEach(doc => allProducts.push({ id: doc.id, ...doc.data() }));
         state.products = allProducts;
 
-        const lightweightIndex = allProducts.map(p => ({
-            id: p.id,
-            name: p.name || '',
-            category: p.category || '',
-            brand: p.brand || '',
-            price: p.price || 0,
-            oldPrice: p.oldPrice || null,
-            inStock: p.inStock !== false,
-            image: (p.images && p.images.length > 0) ? p.images[0] : (p.image || ''),
-            images: (p.images && p.images.length > 0) ? [p.images[0]] : [],
-            keywords: `${p.name || ''} ${p.desc || ''} ${p.category || ''} ${p.brand || ''}`.toLowerCase()
-        }));
+        const lightweightIndex = allProducts.map(p => {
+            const mainImg = p.image || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.variants) && p.variants[0]?.image) || '';
+            const variantsNames = Array.isArray(p.variants) ? p.variants.map(v => v?.name || '').join(' ') : '';
+            return {
+                id: p.id,
+                name: (p.name || '').trim(),
+                category: (p.category || '').trim(),
+                brand: (p.brand || '').trim(),
+                price: Number(p.price) || 0,
+                oldPrice: p.oldPrice ? Number(p.oldPrice) : null,
+                inStock: p.inStock !== false,
+                image: mainImg,
+                images: mainImg ? [mainImg] : [],
+                keywords: `${p.name || ''} ${p.desc || ''} ${p.category || ''} ${p.brand || ''} ${variantsNames}`.toLowerCase()
+            };
+        });
 
-        // 🔒 الحفظ داخل settings/search_index المسموح به في قواعد الحماية
         await window.db.collection('settings').doc('search_index').set({
             items: lightweightIndex,
             lastUpdated: new Date()
         });
         
         window.totalStoreProductsCount = lightweightIndex.length;
+        window.localSearchIndex = lightweightIndex;
         renderAdminProductsTable();
         console.log('✅ تم تحديث فهرس البحث الذكي بنجاح لكافة المنتجات:', lightweightIndex.length);
     } catch (error) {
         console.error('❌ خطأ في تحديث الفهرس:', error);
     }
 }
+window.updateSearchIndex = updateSearchIndex;
 // =====================================
 // 4. إدارة الأقسام والماركات
 // =====================================
