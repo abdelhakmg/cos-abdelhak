@@ -1036,7 +1036,7 @@ export function renderAdminProductsTable() {
     }
     
     tbody.innerHTML = filteredProducts.map(p => {
-        const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/100');
+        const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || (Array.isArray(p.variants) && p.variants[0]?.image) || 'https://via.placeholder.com/100');
         const isStock = p.inStock !== false;
         return `
             <tr class="border-b hover:bg-gray-50 transition">
@@ -1044,7 +1044,18 @@ export function renderAdminProductsTable() {
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
                 <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.brand || '-'}</td>
-                <td class="p-3 font-black text-xs text-[#B8860B]">${p.price ? p.price.toLocaleString() : 0} دج</td>
+                <td class="p-3">
+                    <div class="flex items-center gap-1">
+                        <input type="number" id="quick-price-${p.id}" value="${p.price || 0}" 
+                            onkeydown="if(event.key === 'Enter') { event.preventDefault(); quickUpdateProductPrice('${p.id}', this); }"
+                            class="w-20 border border-gray-300 rounded-lg px-2 py-1 text-xs font-black text-[#B8860B] outline-none focus:border-[#D4AF37] bg-white text-center shadow-inner" />
+                        <button type="button" onclick="quickUpdateProductPrice('${p.id}', document.getElementById('quick-price-${p.id}'))" 
+                            title="حفظ السعر الجديد فوراً"
+                            class="bg-amber-100 hover:bg-[#D4AF37] text-[#B8860B] hover:text-black px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer shadow-sm">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </div>
+                </td>
                 <td class="p-3 text-xs text-center">
                     <button type="button" onclick="toggleProductStock('${p.id}', ${isStock})" class="px-3 py-1.5 rounded-full text-[10px] font-bold shadow-sm transition-all duration-300 w-24 text-center cursor-pointer ${isStock ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-700 border border-red-300'}">
                         ${isStock ? 'متوفر 🟢' : 'نفد 🔴'}
@@ -1058,6 +1069,59 @@ export function renderAdminProductsTable() {
         `;
     }).join('');
 }
+
+// 🌟 دالة التحديث السريع للسعر من الخارج مباشرة مع تحديث الفهرس الشامل تلقائياً
+export function quickUpdateProductPrice(productId, inputEl) {
+    if (!inputEl) return;
+    const newPrice = parseFloat(inputEl.value);
+    if (isNaN(newPrice) || newPrice < 0) {
+        showCustomAlert('تنبيه', 'يرجى إدخال سعر صحيح!', false);
+        return;
+    }
+
+    inputEl.disabled = true;
+    inputEl.classList.add('opacity-50');
+
+    window.db.collection("products").doc(productId).update({
+        price: newPrice,
+        updatedAt: new Date()
+    }).then(() => {
+        // تحديث السعر محلياً في الذاكرة
+        const productIndex = state.products.findIndex(p => p.id === productId);
+        if (productIndex !== -1) {
+            state.products[productIndex].price = newPrice;
+        }
+
+        // تحديث السعر في فهرس البحث الموحد بصمت دون إعادة تحميل كل المنتجات
+        if (window.localSearchIndex && window.localSearchIndex.length > 0) {
+            const idx = window.localSearchIndex.findIndex(p => p.id === productId);
+            if (idx !== -1) {
+                window.localSearchIndex[idx].price = newPrice;
+                window.db.collection('settings').doc('search_index').set({
+                    items: window.localSearchIndex,
+                    lastUpdated: new Date()
+                }).catch(() => {});
+            }
+        }
+
+        inputEl.disabled = false;
+        inputEl.classList.remove('opacity-50');
+        // وميض أخضر سريع لتأكيد الحفظ البصري بدون إزعاج النوافذ المنبثقة عند تعديل عشرات المنتجات
+        inputEl.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+        setTimeout(() => {
+            inputEl.classList.remove('border-green-500', 'bg-green-50', 'text-green-700');
+        }, 1200);
+
+        safeCall('renderProducts');
+        safeCall('applyFilters', true);
+    }).catch(error => {
+        console.error("Error updating price:", error);
+        inputEl.disabled = false;
+        inputEl.classList.remove('opacity-50');
+        showCustomAlert('خطأ', 'تعذر تحديث السعر.', false);
+    });
+}
+window.quickUpdateProductPrice = quickUpdateProductPrice;
 export function renderBannerTextsList() {
     const container = document.getElementById('banner-texts-list');
     if (!container) return;
