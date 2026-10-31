@@ -725,20 +725,39 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
 
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                         <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
-    <div>
-        <h3 class="font-bold text-gray-800"><i class="fa-solid fa-table-list text-[#B8860B]"></i> المنتجات المعروضة حالياً</h3>
-        <!-- هذا هو كود العداد تمت إضافته تحته مباشرة -->
-        <div id="admin-products-counter" class="font-bold text-sm text-[#B8860B] mt-1"></div>
-    </div>
-    <div class="relative w-full sm:w-64">
-        <input type="text" id="admin-prod-search" oninput="renderAdminProductsTable()" placeholder="ابحث بالاسم أو القسم..." class="w-full border border-gray-300 p-2 pr-8 rounded-lg text-xs outline-none focus:border-[#B8860B]">
-        <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-2.5 text-gray-400 text-xs"></i>
-    </div>
-</div>
+                            <div>
+                                <h3 class="font-bold text-gray-800"><i class="fa-solid fa-table-list text-[#B8860B]"></i> المنتجات المعروضة حالياً</h3>
+                                <div id="admin-products-counter" class="font-bold text-sm text-[#B8860B] mt-1"></div>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto justify-end">
+                                <!-- حاوية أزرار الحذف الجماعي للمنتجات -->
+                                <div id="bulk-prod-actions-container" class="hidden gap-2">
+                                    <button onclick="deleteSelectedProducts()" class="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition">
+                                        <i class="fa-solid fa-trash-can"></i> حذف (<span id="bulk-prod-delete-count">0</span>)
+                                    </button>
+                                </div>
+
+                                <!-- فلترة حسب الماركة -->
+                                <select id="admin-prod-brand-filter" onchange="renderAdminProductsTable()" class="border border-gray-300 p-2.5 rounded-xl text-xs font-bold outline-none bg-white cursor-pointer w-full sm:w-auto">
+                                    <option value="الجميع">جميع الماركات 🌐</option>
+                                </select>
+
+                                <!-- البحث -->
+                                <div class="relative w-full sm:w-64">
+                                    <input type="text" id="admin-prod-search" oninput="renderAdminProductsTable()" placeholder="ابحث بالاسم أو القسم..." class="w-full border border-gray-300 p-2.5 pr-8 rounded-lg text-xs outline-none focus:border-[#B8860B]">
+                                    <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-3 text-gray-400 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-right text-sm">
                                 <thead class="bg-gray-100 border-b text-gray-700">
                                     <tr>
+                                        <!-- خانة التحديد للكل -->
+                                        <th class="p-4 text-center w-10">
+                                            <input type="checkbox" id="select-all-products" onchange="toggleAllProducts(this)" class="accent-red-600 w-4 h-4 cursor-pointer">
+                                        </th>
                                         <th class="p-4 font-bold">الصورة</th>
                                         <th class="p-4 font-bold">اسم المنتج</th>
                                         <th class="p-4 font-bold">القسم</th>
@@ -752,7 +771,6 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             </table>
                         </div>
                     </div>
-                </div>
 
                 <!-- 🎁 قسم إدارة صانع الهدايا (تم إزالة كلاس hidden المتعارض) -->
                 <div id="admin-tab-gift" class="tab-content space-y-6 text-gray-900">
