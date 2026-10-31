@@ -156,18 +156,27 @@ export function populateAdminDropdowns() {
     }
 
     const brandSelect = document.getElementById('prod-brand-select');
+    const brandList = state.brands.length > 0 ? state.brands : ["عام"];
+    
     if (brandSelect) {
         const currentBrand = brandSelect.value;
-        const brandList = state.brands.length > 0 ? state.brands : ["عام"];
         brandSelect.innerHTML = '<option value="">-- اختر العلامة التجارية (الماركة) --</option>' + 
             brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
         if (currentBrand) brandSelect.value = currentBrand;
     }
 
+    // 🌟 جديد: قائمة الفلترة للماركات في جدول المنتجات
+    const adminBrandFilter = document.getElementById('admin-prod-brand-filter');
+    if (adminBrandFilter) {
+        const currentFilter = adminBrandFilter.value;
+        adminBrandFilter.innerHTML = '<option value="الجميع">جميع الماركات 🌐</option>' + 
+            brandList.map(b => `<option value="${typeof b === 'object' ? b.name : b}">${typeof b === 'object' ? b.name : b}</option>`).join('');
+        if (currentFilter) adminBrandFilter.value = currentFilter;
+    }
+
     populateFilterCategories();
     renderCategorySpecificAdminFields();
 }
-
 // =====================================
 // 2. المحرك الذكي: ربط الأقسام بصانع الفلاتر
 // =====================================
@@ -1006,32 +1015,44 @@ export function deleteSelectedOrders() {
 export function renderAdminProductsTable() {
     const tbody = document.getElementById('admin-products-tbody');
     const searchInput = document.getElementById('admin-prod-search');
-    const counterElement = document.getElementById('admin-products-counter'); // العداد الجديد
+    const counterElement = document.getElementById('admin-products-counter');
+    const brandFilter = document.getElementById('admin-prod-brand-filter'); // 🌟 جديد
     
     if (!tbody) return;
 
-    // تحديث العداد
     if (counterElement && state.products) {
         counterElement.innerText = `إجمالي المنتجات: ${state.products.length}`;
     }
 
-    // إضافة شريط التمرير للجدول
     const tableContainer = tbody.closest('table').parentElement;
     if (tableContainer) {
         tableContainer.classList.add('max-h-[600px]', 'overflow-y-auto', 'block', 'w-full');
     }
 
     let filteredProducts = state.products || [];
+    
+    // 🌟 الفلترة حسب الماركة
+    if (brandFilter && brandFilter.value !== 'الجميع') {
+        filteredProducts = filteredProducts.filter(p => (p.brand || '').trim() === brandFilter.value);
+    }
+
+    // 🌟 الفلترة بالبحث
     if (searchInput && searchInput.value.trim() !== '') {
         const term = searchInput.value.trim().toLowerCase();
         filteredProducts = filteredProducts.filter(p => 
             (p.name && p.name.toLowerCase().includes(term)) || 
-            (p.category && p.category.toLowerCase().includes(term))
+            (p.category && p.category.toLowerCase().includes(term)) ||
+            (p.brand && p.brand.toLowerCase().includes(term))
         );
     }
 
+    // 🌟 إعادة ضبط التحديد الجماعي عند كل تحديث للجدول
+    const selectAllCb = document.getElementById('select-all-products');
+    if (selectAllCb) selectAllCb.checked = false;
+    checkBulkProductDeleteStatus();
+
     if (filteredProducts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">لا توجد منتجات مطابقة للبحث</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-gray-400">لا توجد منتجات مطابقة للبحث أو الفلترة</td></tr>';
         return;
     }
     
@@ -1040,6 +1061,10 @@ export function renderAdminProductsTable() {
         const isStock = p.inStock !== false;
         return `
             <tr class="border-b hover:bg-gray-50 transition">
+                <!-- 🌟 خانة الاختيار للحذف الجماعي -->
+                <td class="p-3 text-center">
+                    <input type="checkbox" value="${p.id}" class="prod-cb accent-red-600 w-4 h-4 cursor-pointer" onchange="checkBulkProductDeleteStatus()">
+                </td>
                 <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black" loading="lazy"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
@@ -1062,12 +1087,64 @@ export function renderAdminProductsTable() {
                     </button>
                 </td>
                 <td class="p-3 flex items-center justify-center gap-2">
-                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg">تعديل</button>
-                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg">حذف</button>
+                    <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">تعديل</button>
+                    <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">حذف</button>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+// ==========================================
+// 🌟 دوال الحذف والتحديد الجماعي للمنتجات 🌟
+// ==========================================
+export function toggleAllProducts(source) {
+    const checkboxes = document.querySelectorAll('.prod-cb');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+    checkBulkProductDeleteStatus();
+}
+
+export function checkBulkProductDeleteStatus() {
+    const checkedBoxes = document.querySelectorAll('.prod-cb:checked');
+    const bulkContainer = document.getElementById('bulk-prod-actions-container');
+    const bulkCount = document.getElementById('bulk-prod-delete-count');
+    
+    if (bulkContainer && bulkCount) {
+        if (checkedBoxes.length > 0) {
+            bulkContainer.classList.remove('hidden');
+            bulkContainer.classList.add('flex');
+            bulkCount.innerText = checkedBoxes.length;
+        } else {
+            bulkContainer.classList.add('hidden');
+            bulkContainer.classList.remove('flex');
+        }
+    }
+}
+
+export function deleteSelectedProducts() {
+    const checkedBoxes = document.querySelectorAll('.prod-cb:checked');
+    if (checkedBoxes.length === 0) return;
+    
+    if (confirm(`تحذير ⚠️: هل أنت متأكد من رغبتك في حذف ${checkedBoxes.length} منتج نهائياً؟ (لا يمكن التراجع عن هذا الإجراء)`)) {
+        const batch = window.db.batch();
+        const idsToDelete = [];
+        
+        checkedBoxes.forEach(cb => {
+            const prodRef = window.db.collection('products').doc(cb.value);
+            batch.delete(prodRef);
+            idsToDelete.push(cb.value);
+        });
+        
+        batch.commit().then(() => {
+            // تحديث حالة المنتجات المحلية وإزالة المحذوف منها
+            state.products = state.products.filter(p => !idsToDelete.includes(p.id));
+            renderAdminProductsTable(); 
+            updateSearchIndex(); // 🌟 تحديث الفهرس الشامل
+            showCustomAlert('تم الحذف بنجاح 🎉', `تم حذف ${checkedBoxes.length} منتج نهائياً.`, true);
+        }).catch(err => {
+            showCustomAlert('خطأ', 'حدث خطأ أثناء الحذف الجماعي: ' + err.message, false);
+        });
+    }
 }
 
 // 🌟 دالة التحديث السريع للسعر من الخارج مباشرة مع تحديث الفهرس الشامل تلقائياً
@@ -1826,3 +1903,6 @@ window.addAdminVariant = addAdminVariant;
 window.removeAdminVariant = removeAdminVariant;
 window.handleVariantImageUpload = handleVariantImageUpload;
 window.updateVariantData = updateVariantData;
+window.toggleAllProducts = toggleAllProducts;
+window.checkBulkProductDeleteStatus = checkBulkProductDeleteStatus;
+window.deleteSelectedProducts = deleteSelectedProducts;
