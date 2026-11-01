@@ -1,6 +1,41 @@
 import { state, INITIAL_WILAYAS_58 } from '../store/state.js';
 import { safeCall } from '../utils/helpers.js';
 
+// 🌟 دالة ذكية جداً لتحويل أي صيغة تاريخ (سواء قديمة نصية أو جديدة ISO) إلى رقم زمني دقيق للترتيب
+function parseProductDate(createdAt) {
+    if (!createdAt) return 0;
+    if (typeof createdAt.toMillis === 'function') return createdAt.toMillis();
+    if (typeof createdAt.toDate === 'function') return createdAt.toDate().getTime();
+    if (typeof createdAt === 'number') return createdAt;
+
+    if (typeof createdAt === 'string') {
+        // إذا كان التاريخ بالصيغة القياسية الجديدة ISO
+        if (createdAt.includes('T') || !isNaN(Date.parse(createdAt))) {
+            const t = new Date(createdAt).getTime();
+            if (!isNaN(t)) return t;
+        }
+        // معالجة التنسيق الفرنسي القديم (مثال: 1 novembre 2026) لضمان عدم تلف المنتجات القديمة
+        const monthsMap = { 'janvier': 0, 'février': 1, 'mars': 2, 'avril': 3, 'mai': 4, 'juin': 5, 'juillet': 6, 'août': 7, 'septembre': 8, 'octobre': 9, 'novembre': 10, 'décembre': 11 };
+        let cleanStr = createdAt.toLowerCase();
+        for (let m in monthsMap) {
+            if (cleanStr.includes(m)) {
+                cleanStr = cleanStr.replace(m, monthsMap[m]);
+                break;
+            }
+        }
+        const parts = cleanStr.match(/\d+/g);
+        if (parts && parts.length >= 3) {
+            // [day, month, year, hour, min, sec]
+            const d = parseInt(parts[0]) || 1;
+            const m = parseInt(parts[1]) || 0;
+            const y = parseInt(parts[2]) || 2026;
+            const h = parts[3] ? parseInt(parts[3]) : 0;
+            const min = parts[4] ? parseInt(parts[4]) : 0;
+            return new Date(y, m, d, h, min).getTime();
+        }
+    }
+    return 0;
+}
 // 🌟 متغيرات المزامنة الأساسية (التي تسببت في الخطأ عند حذفها)
 let ordersUnsubscribe = null;
 let analyticsUnsubscribe = null;
@@ -54,12 +89,8 @@ export async function loadAllProductsForAdmin() {
         const allProds = [];
         snapshot.forEach(doc => allProds.push({ id: doc.id, ...doc.data() }));
 
-        // ترتيب الأحدث أولاً محلياً
-        allProds.sort((a, b) => {
-            const tA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-            const tB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-            return tB - tA;
-        });
+        // 🌟 ترتيب الأحدث أولاً باستخدام الدالة الذكية الآمنة
+        allProds.sort((a, b) => parseProductDate(b.createdAt) - parseProductDate(a.createdAt));
 
         state.products = allProds;
         safeCall('renderAdminProductsTable');
@@ -180,6 +211,7 @@ export async function loadProducts(isLoadMore = false, category = 'جميع ال
                 state.products[index] = newP;
             }
         });
+        state.products.sort((a, b) => parseProductDate(b.createdAt) - parseProductDate(a.createdAt));
 
         safeCall('renderDynamicSidebarFilters');
         safeCall('renderBrandsFilterSidebar');
