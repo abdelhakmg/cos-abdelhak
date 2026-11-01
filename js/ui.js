@@ -449,10 +449,23 @@ export function applyFilters(preserveCount = false) {
         });
     }
 
-    const sortVal = document.getElementById('sort-select')?.value || 'best';
-    if (sortVal === 'low') filtered.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
-    else if (sortVal === 'high') filtered.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-    else filtered.sort((a, b) => (Number(b.salesCount) || 0) - (Number(a.salesCount) || 0));
+    const sortVal = document.getElementById('sort-select')?.value || 'newest';
+    const getDate = window.parseProductDate || (() => 0);
+
+    if (sortVal === 'low') {
+        filtered.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    } else if (sortVal === 'high') {
+        filtered.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    } else if (sortVal === 'name') {
+        filtered.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+    } else if (sortVal === 'brand') {
+        filtered.sort((a, b) => (a.brand || '').localeCompare(b.brand || '', 'ar'));
+    } else if (sortVal === 'best') {
+        filtered.sort((a, b) => (Number(b.salesCount) || 0) - (Number(a.salesCount) || 0));
+    } else {
+        // الترتيب الافتراضي: الأحدث إضافة يظهر في الصدارة فوراً
+        filtered.sort((a, b) => getDate(b.createdAt) - getDate(a.createdAt));
+    }
 
     window.currentFilteredCatalog = filtered;
     renderCatalogProducts(false, preserveCount);
