@@ -36,6 +36,7 @@ function parseProductDate(createdAt) {
     }
     return 0;
 }
+window.parseProductDate = parseProductDate;
 // 🌟 متغيرات المزامنة الأساسية (التي تسببت في الخطأ عند حذفها)
 let ordersUnsubscribe = null;
 let analyticsUnsubscribe = null;
@@ -248,13 +249,28 @@ export function initFirebaseSync() {
     if (isSyncInitialized) return;
     isSyncInitialized = true;
 
-    window.db.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-        console.warn("Firestore persistence warning:", err.code);
-    });
-
+    // 🌟 تم إيقاف enablePersistence لمنع تعليق المتصفح في وضع الأوفلاين لـ 10 دقائق
     loadHomeBestSellers();
     loadProducts(false, 'جميع المنتجات');
     loadSearchIndex();
+
+    // 🌟 جلب شامل وسريع في الخلفية لضمان ظهور أحدث المنتجات المضافة فوراً للزوار
+    window.db.collection("products").get().then(snap => {
+        const all = [];
+        snap.forEach(doc => all.push({ id: doc.id, ...doc.data() }));
+        if (all.length > 0) {
+            all.sort((a, b) => parseProductDate(b.createdAt) - parseProductDate(a.createdAt));
+            state.products = all;
+            window.totalStoreProductsCount = all.length;
+            safeCall('renderDynamicSidebarFilters');
+            safeCall('renderBrandsFilterSidebar');
+            safeCall('applyFilters', false);
+            if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+                safeCall('renderAdminProductsTable');
+                safeCall('populateAdminDropdowns');
+            }
+        }
+    }).catch(err => console.warn("Background products sync:", err));
 
     // 🌟 تحسين الولايات: الاعتماد على المصفوفة المحلية لتوفير 58 قراءة لكل زائر!
     state.WILAYAS = [...INITIAL_WILAYAS_58].sort((a, b) => parseInt(a.code) - parseInt(b.code));
