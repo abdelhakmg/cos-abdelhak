@@ -1045,6 +1045,27 @@ export function renderAdminProductsTable() {
             (p.brand && p.brand.toLowerCase().includes(term))
         );
     }
+    // 🌟 ترتيب المنتجات في لوحة التحكم حسب اختيار المدير
+    const sortSelect = document.getElementById('admin-prod-sort');
+    const sortVal = sortSelect ? sortSelect.value : 'newest';
+    const getDate = window.parseProductDate || (() => 0);
+
+    filteredProducts = [...filteredProducts]; // نسخة آمنة للترتيب
+    if (sortVal === 'oldest') {
+        filteredProducts.sort((a, b) => getDate(a.createdAt) - getDate(b.createdAt));
+    } else if (sortVal === 'name') {
+        filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+    } else if (sortVal === 'brand') {
+        filteredProducts.sort((a, b) => (a.brand || '').localeCompare(b.brand || '', 'ar'));
+    } else if (sortVal === 'best') {
+        filteredProducts.sort((a, b) => (Number(b.salesCount) || 0) - (Number(a.salesCount) || 0));
+    } else if (sortVal === 'price_low') {
+        filteredProducts.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    } else if (sortVal === 'price_high') {
+        filteredProducts.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    } else {
+        filteredProducts.sort((a, b) => getDate(b.createdAt) - getDate(a.createdAt));
+    }
 
     // 🌟 إعادة ضبط التحديد الجماعي عند كل تحديث للجدول
     const selectAllCb = document.getElementById('select-all-products');
