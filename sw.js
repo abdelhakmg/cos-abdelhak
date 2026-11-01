@@ -1,6 +1,6 @@
 // --- ملف sw.js (الإصدار الذكي v5 مع كسر كاش البرمجة وحفظ كاش الصور) ---
 
-const CACHE_NAME = 'cosmetic-abdelhak-v5'; // تم الترقية إلى v5 لإجبار الهواتف على التحديث
+const CACHE_NAME = 'cosmetic-abdelhak-v6'; // تم الترقية إلى v5 لإجبار الهواتف على التحديث
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
