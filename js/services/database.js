@@ -339,9 +339,14 @@ export function initFirebaseSync() {
     initVisitorTracking();
 
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
-        initAdminOrdersSync();
-        initAdminAnalyticsSync();
         loadAllProductsForAdmin();
+        // 🌟 ننتظر تأكيد جلسة المدير من Firebase Auth أولاً لتجنب خطأ Insufficient Permissions
+        window.firebase.auth().onAuthStateChanged((user) => {
+            if (user && user.email === 'mohamed.pato@gmail.com') {
+                initAdminOrdersSync();
+                initAdminAnalyticsSync();
+            }
+        });
     }
 }
 
