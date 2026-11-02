@@ -503,7 +503,36 @@ export function applyFilters(preserveCount = false) {
 
     window.currentFilteredCatalog = filtered;
     renderCatalogProducts(false, preserveCount);
-}
+
+    // 🌟 ملء شريط عروض الصاعقة من المنتجات المفلترة (أو العشوائية مؤقتاً)
+    const flashContainer = document.getElementById('flash-sale-products');
+    if (flashContainer && filtered && filtered.length > 0) {
+        // نأخذ 6 منتجات عشوائية لملء شريط العروض
+        const flashProducts = [...filtered].sort(() => 0.5 - Math.random()).slice(0, 6);
+        
+        flashContainer.innerHTML = flashProducts.map(p => {
+            const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
+            const safeName = (p.name || 'منتج').replace(/'/g, "\\'");
+            const priceNum = Number(p.price) || 0;
+            const oldPrice = Math.round(priceNum * 1.25); 
+            
+            return `
+            <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
+                <span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">-25%</span>
+                <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${safeName}</h4>
+                    <div class="flex flex-col text-right mt-1">
+                        <span class="text-[#D4AF37] font-black text-[13px]">${priceNum} دج</span>
+                        <span class="text-gray-500 text-[10px] line-through">${oldPrice} دج</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+} // نهاية دالة applyFilters
 export function renderCatalogProducts(isLoadMoreLocal = false, preserveCount = false) {
     const grid = document.getElementById('catalog-products');
     const loadMoreBtn = document.getElementById('load-more-catalog-btn');
