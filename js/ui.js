@@ -22,10 +22,10 @@ export function renderSingleProductCard(p) {
             </button>
 
             <div class="cursor-pointer" onclick="${inStock ? `safeCall('openLandingPage', '${p.id}')` : ''}">
-                <!-- 🌟 تم إصلاح ظهور الصورة وطبقة نفدت الكمية -->
-                <div class="h-36 sm:h-48 bg-black rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden relative border border-gray-800">
-                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-500">
-                    ${!inStock ? '<div class="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center z-10"><span class="bg-red-600 text-white font-black px-4 py-1.5 rounded-lg text-xs transform -rotate-12 shadow-lg border border-red-400">نفدت الكمية</span></div>' : ''}
+                <!-- 🌟 خلفية بيضاء نظيفة تندمج مع صور المنتجات -->
+                <div class="h-36 sm:h-48 bg-white rounded-xl p-2 mb-3 flex items-center justify-center overflow-hidden relative border border-gray-200">
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-500 drop-shadow-md">
+                    ${!inStock ? '<div class="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10"><span class="bg-red-600 text-white font-black px-4 py-1.5 rounded-lg text-xs transform -rotate-12 shadow-lg border border-red-400">نفدت الكمية</span></div>' : ''}
                 </div>
 
                 <div class="flex items-center gap-1.5 mb-1">
@@ -124,11 +124,14 @@ export function updateAppHeaderInfo() {
         homeCatGrid.innerHTML = state.categories.map(c => {
             const safeName = (c.name || '').replace(/'/g, "\\'");
             return `
-            <div onclick="safeCall('filterCategory', '${safeName}')" class="swiper-slide bg-[#121212] border border-[#D4AF37]/30 rounded-2xl p-4 text-center cursor-pointer hover:border-[#D4AF37] transition flex flex-col items-center justify-center space-y-2 shadow-lg group">
-                <div class="w-14 h-14 rounded-2xl p-0.5 gold-gradient overflow-hidden shadow-md group-hover:scale-105 transition">
-                    <img src="${c.image}" class="w-full h-full object-cover rounded-xl bg-black" loading="lazy">
+            <div onclick="safeCall('filterCategory', '${safeName}')" class="swiper-slide flex flex-col items-center justify-center gap-2 cursor-pointer group pb-2">
+                <!-- 🌟 حلقة الستوري الدائرية (ستايل إنستغرام الذهبي المدمج) -->
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[3px] bg-gradient-to-tr from-yellow-400 via-[#D4AF37] to-red-500 shadow-lg group-hover:scale-105 transition-transform duration-300">
+                    <div class="w-full h-full rounded-full border-2 border-black overflow-hidden bg-white flex items-center justify-center">
+                        <img src="${c.image}" class="w-full h-full object-cover" loading="lazy">
+                    </div>
                 </div>
-                <h3 class="text-white font-bold text-sm tracking-wide group-hover:text-[#D4AF37]">${c.name}</h3>
+                <h3 class="text-gray-300 font-bold text-xs sm:text-sm tracking-wide group-hover:text-[#D4AF37] transition-colors line-clamp-1 text-center">${c.name}</h3>
             </div>
             `;
         }).join('');
