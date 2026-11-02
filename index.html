@@ -47,7 +47,22 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
 <!-- End Meta Pixel Code -->
 </head>
 <body class="text-gray-900 antialiased min-h-screen flex flex-col bg-[#0f0f0f] font-['Cairo'] selection:bg-[#D4AF37] selection:text-black">
-
+<div id="pwa-install-banner" class="hidden bg-gradient-to-r from-yellow-500 via-[#D4AF37] to-yellow-600 text-black px-4 py-2.5 flex items-center justify-between shadow-lg relative z-50">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-black rounded-lg p-1 flex items-center justify-center shadow-md">
+                <img src="logo.png" class="w-full h-full object-contain">
+            </div>
+            <div class="flex flex-col">
+                <span class="font-black text-xs sm:text-sm">تطبيق كوسمتيك عبد الحق</span>
+                <span class="text-[10px] font-bold opacity-90">تجربة تسوق أسرع، وعروض حصرية!</span>
+            </div>
+        </div>
+        <button id="pwa-install-btn" class="bg-black text-[#D4AF37] text-xs font-black px-4 py-2 rounded-full shadow-xl hover:scale-105 transition flex items-center gap-1">
+            تثبيت <i class="fa-solid fa-download"></i>
+        </button>
+    </div>
+    <!-- نهاية بانر التطبيق -->
+    
     <!-- 🌟 شاشة الافتتاح الفاخرة (Luxury Splash Screen) 🌟 -->
     <div id="luxury-splash-screen" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center text-center p-6 transition-opacity duration-700 ease-in-out">
         <div class="relative mb-8 animate-pulse">
@@ -200,20 +215,48 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             </button>
                         </div>
                     </div>
-
+                
                     <!-- حاوية Swiper -->
                     <div class="swiper categories-swiper w-full overflow-hidden !pb-6 !pt-2">
                         <div class="swiper-wrapper" id="home-category-cards"></div>
                     </div>
                 </div>
             </section>
+            <!-- 🌟 البانر الوردي الإعلاني العريض -->
+    <div class="max-w-7xl mx-auto px-4 mt-2 mb-8">
+        <div onclick="safeCall('filterCategory', 'مكياج')" class="w-full h-32 sm:h-48 md:h-56 rounded-3xl bg-gradient-to-r from-pink-500 to-rose-400 cursor-pointer overflow-hidden relative shadow-[0_10px_20px_rgba(236,72,153,0.2)] group border border-pink-400/30">
+            <!-- سيتم التحكم بصورة البانر من لوحة التحكم لاحقاً -->
+            <img src="https://via.placeholder.com/800x300/ff6b81/ffffff?text=إعلان+مكياج+أو+عروض" id="promo-banner-pink" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition duration-700">
+        </div>
+    </div>
 
+    <!-- 🌟 قسم عروض لفترة محدودة (Flash Sale) -->
+    <div class="max-w-7xl mx-auto px-4 mb-10">
+        <div class="bg-gradient-to-l from-red-950 via-[#1a0505] to-black border border-red-800/50 rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-5 gap-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-yellow-400 text-2xl animate-pulse drop-shadow-[0_0_10px_rgba(250,204,21,0.6)]"></i>
+                    <h2 class="text-white font-black text-lg sm:text-xl">عروض الصاعقة لفترة محدودة ⚡</h2>
+                </div>
+                <!-- العداد التنازلي الحي -->
+                <div class="flex items-center gap-1.5 text-white font-bold text-sm" dir="ltr" id="flash-countdown">
+                    <div class="bg-red-600/90 border border-red-400/50 px-2.5 py-1.5 rounded-lg shadow-inner min-w-[36px] text-center"><span id="flash-h">12</span></div><span class="text-red-500 animate-pulse">:</span>
+                    <div class="bg-red-600/90 border border-red-400/50 px-2.5 py-1.5 rounded-lg shadow-inner min-w-[36px] text-center"><span id="flash-m">45</span></div><span class="text-red-500 animate-pulse">:</span>
+                    <div class="bg-red-600/90 border border-red-400/50 px-2.5 py-1.5 rounded-lg shadow-inner min-w-[36px] text-center"><span id="flash-s">30</span></div>
+                </div>
+            </div>
+            <!-- شبكة منتجات العروض (سحب أفقي) -->
+            <div id="flash-sale-products" class="grid grid-flow-col auto-cols-[45%] sm:auto-cols-[30%] md:auto-cols-[22%] lg:auto-cols-[18%] gap-3 overflow-x-auto snap-x snap-mandatory custom-scrollbar pb-3">
+                <div class="text-gray-500 text-xs py-8 text-center col-span-full">سيتم سحب العروض هنا قريباً...</div>
+            </div>
+        </div>
+    </div>
             <section class="py-10 max-w-7xl mx-auto px-4">
                 <div class="text-center mb-8">
                     <h2 class="text-2xl font-black text-white">🔥 الأكثر مبيعاً</h2>
                     <div class="w-20 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
                 </div>
-                <div id="home-products" class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 justify-center"></div>
+                <div id="home-products" class="grid grid-flow-col auto-cols-[46%] sm:auto-cols-[auto] sm:grid-flow-row sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 overflow-x-auto snap-x snap-mandatory custom-scrollbar pb-4 pt-2 px-1">
                 <div class="flex justify-center mt-8 pb-4">
     <button id="load-more-home-btn" onclick="loadMoreProducts()" style="display: none;" class="bg-transparent border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold py-3 px-8 rounded-full transition shadow-lg items-center gap-2 cursor-pointer">
         عرض المزيد من المنتجات <i class="fa-solid fa-angle-down"></i>
@@ -1454,7 +1497,43 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             </form>
         </div>
     </div>
+    <!-- 🌟 بانرات فاصلة مزدوجة (خدمات تهمك) -->
+    <div class="max-w-7xl mx-auto px-4 mb-12">
+        <h2 class="text-right text-[#D4AF37] font-black text-lg mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-gem text-sm"></i> خدمات استثنائية لك
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- 1. بانر صمم هديتك -->
+            <div onclick="safeCall('showPage', 'gift-builder')" class="cursor-pointer bg-gradient-to-r from-[#121212] to-[#1a1a1a] border border-[#D4AF37]/20 rounded-3xl p-5 sm:p-6 flex items-center justify-between hover:border-[#D4AF37]/60 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all group overflow-hidden relative">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
+                <div class="relative z-10 w-2/3 text-right">
+                    <span class="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-md mb-2 inline-block animate-pulse shadow-md">متوفر الآن 🔥</span>
+                    <h3 class="text-[#D4AF37] font-black text-lg sm:text-xl mb-1">صانع الهدايا VIP</h3>
+                    <p class="text-gray-400 text-xs mb-3 leading-relaxed">اختر منتجاتك وسنقوم بتغليفها بلمسة سحرية فاخرة تليق بأحبابك.</p>
+                    <button class="bg-[#D4AF37] text-black text-[11px] sm:text-xs font-bold px-4 py-2 rounded-xl group-hover:scale-105 transition shadow-lg">صمم هديتك الآن <i class="fa-solid fa-arrow-left mr-1"></i></button>
+                </div>
+                <div class="w-1/3 relative z-10 flex justify-end">
+                    <i class="fa-solid fa-gift text-6xl sm:text-7xl text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] group-hover:-rotate-12 transition duration-500"></i>
+                </div>
+            </div>
 
+            <!-- 2. بانر صمم منتجك (الورشة) -->
+            <div onclick="safeCall('showPage', 'custom-builder')" class="cursor-pointer bg-gradient-to-r from-[#121212] to-[#1a1a1a] border border-[#D4AF37]/20 rounded-3xl p-5 sm:p-6 flex items-center justify-between hover:border-[#D4AF37]/60 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all group overflow-hidden relative">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
+                <div class="relative z-10 w-2/3 text-right">
+                    <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-md mb-2 inline-block shadow-md">خدمة حصرية ✨</span>
+                    <h3 class="text-[#D4AF37] font-black text-lg sm:text-xl mb-1">ورشة التخصيص</h3>
+                    <p class="text-gray-400 text-xs mb-3 leading-relaxed">حفر أسماء، طباعة صور، ولمساتك الشخصية المحفورة على المنتجات.</p>
+                    <button class="bg-[#D4AF37] text-black text-[11px] sm:text-xs font-bold px-4 py-2 rounded-xl group-hover:scale-105 transition shadow-lg">اصنع منتجك <i class="fa-solid fa-arrow-left mr-1"></i></button>
+                </div>
+                <div class="w-1/3 relative z-10 flex justify-end">
+                    <i class="fa-solid fa-wand-magic-sparkles text-6xl sm:text-7xl text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] group-hover:-rotate-12 transition duration-500"></i>
+                </div>
+            </div>
+
+        </div>
+    </div>
     <!-- ================= بداية الفوتر الجديد (الاحترافي) ================= -->
     <footer id="main-footer" class="bg-black border-t-2 border-[#D4AF37] pt-8 pb-4 font-cairo">
 
@@ -1667,5 +1746,26 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             });
         }
     </script>
+    <script>
+    // تشغيل العداد التنازلي لعروض الصاعقة
+    setInterval(() => {
+        const h = document.getElementById('flash-h');
+        const m = document.getElementById('flash-m');
+        const s = document.getElementById('flash-s');
+        if(!s) return;
+        let sec = parseInt(s.innerText);
+        let min = parseInt(m.innerText);
+        let hr = parseInt(h.innerText);
+        
+        sec--;
+        if(sec < 0) { sec = 59; min--; }
+        if(min < 0) { min = 59; hr--; }
+        if(hr < 0) { hr = 23; }
+        
+        s.innerText = sec.toString().padStart(2, '0');
+        m.innerText = min.toString().padStart(2, '0');
+        h.innerText = hr.toString().padStart(2, '0');
+    }, 1000);
+</script>
 </body>
 </html>
