@@ -1036,6 +1036,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             </button>
                         </div>
                     </div>
+                    <button id="tab-btn-marketing" onclick="safeCall('switchAdminTab', 'marketing')" class="admin-tab-btn flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 hover:text-white rounded-xl transition font-bold text-xs cursor-pointer">
+    <i class="fa-solid fa-bullhorn text-[#D4AF37]"></i> <span>الواجهة والتسويق</span>
+</button>
 <!-- 🎟️ إدارة أكواد الخصم والكوبونات (عام أو لمنتج مخصص) -->
                     <div class="bg-white border border-[#D4AF37]/40 rounded-2xl p-6 shadow-sm space-y-5">
                         <div class="border-b border-gray-200 pb-3 flex justify-between items-center">
@@ -1147,6 +1150,50 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         </div>
                     </div>
                 </div>
+                <!-- 🌟 تبويب الواجهة والتسويق الجديد -->
+<div id="admin-tab-marketing" class="tab-content hidden space-y-6 text-gray-900">
+    <div class="bg-white border border-[#D4AF37]/35 rounded-2xl p-6 shadow-sm space-y-6">
+        <h3 class="text-lg font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37]"></i> تخصيص واجهة المتجر والبانرات الإعلانية
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 1. البانر الرئيسي العريض -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-gray-700">رابط البانر العريض (أسفل الأقسام)</label>
+                <input type="text" id="admin-input-banner-main" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs focus:border-[#D4AF37] outline-none" placeholder="https://...">
+                <img id="admin-preview-banner-main" src="https://via.placeholder.com/800x300/ff6b81/ffffff?text=معاينة+البانر" class="w-full h-24 object-cover rounded-xl border mt-1">
+            </div>
+
+            <!-- 2. بانر صمم هديتك -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-gray-700">رابط بوستر "صمم هديتك"</label>
+                <input type="text" id="admin-input-banner-gift" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs focus:border-[#D4AF37] outline-none" placeholder="https://...">
+                <img id="admin-preview-banner-gift" src="https://via.placeholder.com/400x600/D4AF37/000000?text=معاينة+الهدايا" class="w-20 h-28 object-cover rounded-xl border mt-1">
+            </div>
+
+            <!-- 3. بانر ورشة التخصيص -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-gray-700">رابط بوستر "ورشة التخصيص"</label>
+                <input type="text" id="admin-input-banner-workshop" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs focus:border-[#D4AF37] outline-none" placeholder="https://...">
+                <img id="admin-preview-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=معاينة+الورشة" class="w-20 h-28 object-cover rounded-xl border mt-1">
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم عروض الصاعقة -->
+    <div class="bg-white border border-red-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <h3 class="text-lg font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-bolt text-red-600"></i> إدارة منتجات عروض الصاعقة
+        </h3>
+        <p class="text-xs text-gray-500">اكتب أرقام الـ IDs مفصولة بفاصلة، أو اترك الحقل فارغاً لتظهر عشوائياً.</p>
+        <input type="text" id="admin-input-flash-ids" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-xs font-mono outline-none" placeholder="prod1, prod2, prod3...">
+    </div>
+
+    <button onclick="safeCall('saveUiSettings')" class="w-full bg-[#D4AF37] text-black font-black text-sm py-3 rounded-xl hover:bg-yellow-500 transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+        <i class="fa-solid fa-floppy-disk"></i> حفظ ونشر التعديلات
+    </button>
+</div>
                <!-- التبويب 5: التوصيل والإعدادات -->
                 <div id="admin-tab-shipping_settings" class="tab-content space-y-6 text-gray-900">
                     
