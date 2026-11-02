@@ -1544,20 +1544,20 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             </form>
         </div>
     </div>
-   <!-- 🌟 بانرات خدمات تهمك (نافذة منبثقة فوق الصفحة الرئيسية) -->
+   <!-- 🌟 بانرات خدمات تهمك (توجيه مباشر لفتح نوافذ/صفحات التخصيص) -->
     <div class="max-w-7xl mx-auto px-4 mb-12">
         <h2 class="text-right text-[#D4AF37] font-black text-lg mb-4 flex items-center gap-2">
             <i class="fa-solid fa-gem text-sm"></i> خدمات تهمك
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             
-            <!-- 1. بانر صمم هديتك -->
-            <div onclick="if(window.openGiftModal) { window.openGiftModal(); } else { safeCall('showPage', 'gift-builder'); }" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
+            <!-- 1. بانر صمم هديتك (يفتح واجهة صانع الهدايا) -->
+            <div onclick="safeCall('showPage', 'gift-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
                 <img id="promo-banner-gift" src="https://via.placeholder.com/400x600/D4AF37/000000?text=صمم+هديتك" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="صمم هديتك">
             </div>
 
-            <!-- 2. بانر ورشة التخصيص -->
-            <div onclick="if(window.openCustomModal) { window.openCustomModal(); } else { safeCall('showPage', 'custom-builder'); }" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
+            <!-- 2. بانر ورشة التخصيص (يفتح واجهة ورشة التخصيص) -->
+            <div onclick="safeCall('showPage', 'custom-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
                 <img id="promo-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=ورشة+التخصيص" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="ورشة التخصيص">
             </div>
 
