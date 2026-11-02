@@ -91,15 +91,16 @@ export function renderProducts() {
             const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
             const safeName = (p.name || '').replace(/'/g, "\\'");
             return `
-            <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center" onclick="safeCall('openLandingPage', '${p.id}')">
+            <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
                 <span class="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">-25%</span>
-                <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden">
-                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300">
+                <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
                 </div>
                 <div>
-                    <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-yellow-400">${p.name}</h4>
-                    <div class="flex items-center justify-between mt-auto">
-                        <span class="text-yellow-400 font-black text-xs">${formatPrice(p.price)}</span>
+                    <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
+                    <div class="flex flex-col text-right mt-1">
+                        <span class="text-[#D4AF37] font-black text-[13px]">${formatPrice(p.price)}</span>
+                        <span class="text-gray-500 text-[9px] line-through">${formatPrice((p.price * 1.25).toFixed(0))}</span>
                     </div>
                 </div>
             </div>`;
