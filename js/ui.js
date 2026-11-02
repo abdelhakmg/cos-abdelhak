@@ -63,7 +63,7 @@ export function renderProducts() {
     // 1. رسم قسم "الأكثر مبيعاً"
     const grid = document.getElementById('home-products');
     let bestSellers = [...state.products].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, 8);
-    
+
     if (grid) {
         const skeletonHtml = Array(4).fill(0).map(() => `
             <div class="bg-[#121212] rounded-2xl border border-gray-800 p-3 space-y-3 animate-pulse snap-center">
@@ -75,37 +75,38 @@ export function renderProducts() {
             </div>
         `).join('');
 
-        // أضفنا كلاس snap-center داخل دالة البطاقة ليعمل السحب بسلاسة
         grid.innerHTML = bestSellers.length === 0 ? skeletonHtml : bestSellers.map(p => {
             let cardHtml = renderSingleProductCard(p);
             return cardHtml.replace('class="bg-[#121212]', 'class="bg-[#121212] snap-center shrink-0 w-44 sm:w-auto');
         }).join('');
     }
 
-    // 2. 🌟 رسم قسم "عروض الصاعقة (Flash Sale)" هنا فقط!
-    const flashContainer = document.getElementById('flash-sale-products');
-    if (flashContainer && state.products.length > 0) {
-        // مؤقتاً: نأخذ 6 منتجات عشوائية لملء شريط العروض
-        const flashProducts = [...state.products].sort(() => 0.5 - Math.random()).slice(0, 6);
-        flashContainer.innerHTML = flashProducts.map(p => {
-            const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
-            const safeName = (p.name || '').replace(/'/g, "\\'");
-            return `
-            <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
-                <span class="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">-25%</span>
-                <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
-                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
-                </div>
-                <div>
-                    <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
-                    <div class="flex flex-col text-right mt-1">
-                        <span class="text-[#D4AF37] font-black text-[13px]">${formatPrice(p.price)}</span>
-                        <span class="text-gray-500 text-[9px] line-through">${formatPrice((p.price * 1.25).toFixed(0))}</span>
+    // 2. 🌟 رسم قسم "عروض الصاعقة" (تأخير بسيط لضمان توفر المنتجات وعناصر الصفحة)
+    setTimeout(() => {
+        const flashContainer = document.getElementById('flash-sale-products');
+        if (flashContainer && state.products.length > 0) {
+            // نأخذ 6 منتجات عشوائية لملء شريط العروض مؤقتاً
+            const flashProducts = [...state.products].sort(() => 0.5 - Math.random()).slice(0, 6);
+            flashContainer.innerHTML = flashProducts.map(p => {
+                const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
+                const safeName = (p.name || '').replace(/'/g, "\\'");
+                return `
+                <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
+                    <span class="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">-25%</span>
+                    <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
+                        <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
                     </div>
-                </div>
-            </div>`;
-        }).join('');
-    }
+                    <div>
+                        <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
+                        <div class="flex flex-col text-right mt-1">
+                            <span class="text-[#D4AF37] font-black text-[13px]">${formatPrice(p.price)}</span>
+                            <span class="text-gray-500 text-[9px] line-through">${formatPrice((p.price * 1.25).toFixed(0))}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }, 500);
 }
 
 // ==========================================
