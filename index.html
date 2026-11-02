@@ -1497,39 +1497,23 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             </form>
         </div>
     </div>
-    <!-- 🌟 بانرات فاصلة مزدوجة (خدمات تهمك) -->
+    <!-- 🌟 بانرات خدمات تهمك (صور طولية قابلة للتخصيص من الإدارة) -->
     <div class="max-w-7xl mx-auto px-4 mb-12">
         <h2 class="text-right text-[#D4AF37] font-black text-lg mb-4 flex items-center gap-2">
-            <i class="fa-solid fa-gem text-sm"></i> خدمات استثنائية لك
+            <i class="fa-solid fa-gem text-sm"></i> خدمات تهمك
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             
-            <!-- 1. بانر صمم هديتك -->
-            <div onclick="safeCall('showPage', 'gift-builder')" class="cursor-pointer bg-gradient-to-r from-[#121212] to-[#1a1a1a] border border-[#D4AF37]/20 rounded-3xl p-5 sm:p-6 flex items-center justify-between hover:border-[#D4AF37]/60 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all group overflow-hidden relative">
-                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
-                <div class="relative z-10 w-2/3 text-right">
-                    <span class="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-md mb-2 inline-block animate-pulse shadow-md">متوفر الآن 🔥</span>
-                    <h3 class="text-[#D4AF37] font-black text-lg sm:text-xl mb-1">صانع الهدايا VIP</h3>
-                    <p class="text-gray-400 text-xs mb-3 leading-relaxed">اختر منتجاتك وسنقوم بتغليفها بلمسة سحرية فاخرة تليق بأحبابك.</p>
-                    <button class="bg-[#D4AF37] text-black text-[11px] sm:text-xs font-bold px-4 py-2 rounded-xl group-hover:scale-105 transition shadow-lg">صمم هديتك الآن <i class="fa-solid fa-arrow-left mr-1"></i></button>
-                </div>
-                <div class="w-1/3 relative z-10 flex justify-end">
-                    <i class="fa-solid fa-gift text-6xl sm:text-7xl text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] group-hover:-rotate-12 transition duration-500"></i>
-                </div>
+            <!-- 1. بانر صمم هديتك (صورة بوستر) -->
+            <div onclick="safeCall('showPage', 'gift-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
+                <!-- سيتم جلب الصورة من فايرباس لاحقاً -->
+                <img id="promo-banner-gift" src="https://via.placeholder.com/400x600/D4AF37/000000?text=إعلان+صمم+هديتك" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="صمم هديتك">
             </div>
 
-            <!-- 2. بانر صمم منتجك (الورشة) -->
-            <div onclick="safeCall('showPage', 'custom-builder')" class="cursor-pointer bg-gradient-to-r from-[#121212] to-[#1a1a1a] border border-[#D4AF37]/20 rounded-3xl p-5 sm:p-6 flex items-center justify-between hover:border-[#D4AF37]/60 hover:shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all group overflow-hidden relative">
-                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
-                <div class="relative z-10 w-2/3 text-right">
-                    <span class="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-md mb-2 inline-block shadow-md">خدمة حصرية ✨</span>
-                    <h3 class="text-[#D4AF37] font-black text-lg sm:text-xl mb-1">ورشة التخصيص</h3>
-                    <p class="text-gray-400 text-xs mb-3 leading-relaxed">حفر أسماء، طباعة صور، ولمساتك الشخصية المحفورة على المنتجات.</p>
-                    <button class="bg-[#D4AF37] text-black text-[11px] sm:text-xs font-bold px-4 py-2 rounded-xl group-hover:scale-105 transition shadow-lg">اصنع منتجك <i class="fa-solid fa-arrow-left mr-1"></i></button>
-                </div>
-                <div class="w-1/3 relative z-10 flex justify-end">
-                    <i class="fa-solid fa-wand-magic-sparkles text-6xl sm:text-7xl text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] group-hover:-rotate-12 transition duration-500"></i>
-                </div>
+            <!-- 2. بانر ورشة التخصيص (صورة بوستر) -->
+            <div onclick="safeCall('showPage', 'custom-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
+                <!-- سيتم جلب الصورة من فايرباس لاحقاً -->
+                <img id="promo-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=إعلان+ورشة+التخصيص" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="ورشة التخصيص">
             </div>
 
         </div>
