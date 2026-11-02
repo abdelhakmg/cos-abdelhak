@@ -39,7 +39,28 @@ document.addEventListener('DOMContentLoaded', () => {
             window.showPage('admin');
         }
     }
+// 🌟 نظام التثبيت الذكي للتطبيق (PWA Install Prompt)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const pwaBanner = document.getElementById('pwa-install-banner');
+    // إظهار البانر فقط إذا لم يتم تثبيت التطبيق مسبقاً
+    if (pwaBanner && !window.matchMedia('(display-mode: standalone)').matches) {
+        pwaBanner.classList.remove('hidden');
+    }
+});
 
+document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('pwa-install-banner').classList.add('hidden');
+        }
+        deferredPrompt = null;
+    }
+});
     // 5. إغلاق قائمة نتائج البحث تلقائياً عند النقر خارجها
     document.addEventListener('click', (e) => {
         const desktopSearch = document.getElementById('live-search-input');
