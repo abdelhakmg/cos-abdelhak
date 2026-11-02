@@ -60,21 +60,51 @@ export function renderSingleProductCard(p) {
     `;
 }
 export function renderProducts() {
+    // 1. رسم قسم "الأكثر مبيعاً"
     const grid = document.getElementById('home-products');
-    if (!grid) return;
     let bestSellers = [...state.products].sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0)).slice(0, 8);
     
-    const skeletonHtml = Array(4).fill(0).map(() => `
-        <div class="bg-[#121212] rounded-2xl border border-gray-800 p-3 space-y-3 animate-pulse">
-            <div class="h-36 sm:h-48 bg-gray-800/60 rounded-xl"></div>
-            <div class="h-3 bg-gray-800 rounded w-1/3"></div>
-            <div class="h-4 bg-gray-800 rounded w-3/4"></div>
-            <div class="h-5 bg-[#D4AF37]/20 rounded w-1/2"></div>
-            <div class="h-9 bg-gray-800 rounded-xl w-full"></div>
-        </div>
-    `).join('');
+    if (grid) {
+        const skeletonHtml = Array(4).fill(0).map(() => `
+            <div class="bg-[#121212] rounded-2xl border border-gray-800 p-3 space-y-3 animate-pulse snap-center">
+                <div class="h-36 sm:h-48 bg-gray-800/60 rounded-xl"></div>
+                <div class="h-3 bg-gray-800 rounded w-1/3"></div>
+                <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                <div class="h-5 bg-[#D4AF37]/20 rounded w-1/2"></div>
+                <div class="h-9 bg-gray-800 rounded-xl w-full"></div>
+            </div>
+        `).join('');
 
-    grid.innerHTML = bestSellers.length === 0 ? skeletonHtml : bestSellers.map(renderSingleProductCard).join('');
+        // أضفنا كلاس snap-center داخل دالة البطاقة ليعمل السحب بسلاسة
+        grid.innerHTML = bestSellers.length === 0 ? skeletonHtml : bestSellers.map(p => {
+            let cardHtml = renderSingleProductCard(p);
+            return cardHtml.replace('class="bg-[#121212]', 'class="bg-[#121212] snap-center shrink-0 w-44 sm:w-auto');
+        }).join('');
+    }
+
+    // 2. 🌟 رسم قسم "عروض الصاعقة (Flash Sale)" هنا فقط!
+    const flashContainer = document.getElementById('flash-sale-products');
+    if (flashContainer && state.products.length > 0) {
+        // مؤقتاً: نأخذ 6 منتجات عشوائية لملء شريط العروض
+        const flashProducts = [...state.products].sort(() => 0.5 - Math.random()).slice(0, 6);
+        flashContainer.innerHTML = flashProducts.map(p => {
+            const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
+            const safeName = (p.name || '').replace(/'/g, "\\'");
+            return `
+            <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center" onclick="safeCall('openLandingPage', '${p.id}')">
+                <span class="absolute top-2 right-2 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">-25%</span>
+                <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden">
+                    <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300">
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-yellow-400">${p.name}</h4>
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-yellow-400 font-black text-xs">${formatPrice(p.price)}</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
 }
 
 // ==========================================
