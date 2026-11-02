@@ -1612,11 +1612,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
       }
       window.db = firebase.firestore();
       
-      // 🌟 الحل الجذري لإصلاح خطأ 404 و WebChannel وتجاوز حظر Third-party cookies
+      // 🌟 تفعيل الطريقة المستقرة Long Polling لتجاوز حظر الشبكة والانقطاعات في الجزائر دون تعارض
       window.db.settings({
-        experimentalForceLongPolling: true,
-        useFetchStreams: false,
-        merge: true
+        experimentalForceLongPolling: true
       });
       
       window.firebase = firebase;
