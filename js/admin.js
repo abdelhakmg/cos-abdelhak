@@ -132,7 +132,9 @@ export function switchAdminTab(tabName) {
     if (tabName === 'gift') {
         loadGiftAdminData();
     }
-
+    if (tabName === 'marketing') {
+        loadUiAdminData();
+    }
     if (tabName === 'custom_services') {
         safeCall('loadCustomAdminData');
     }
@@ -1856,6 +1858,71 @@ export function deleteCoupon(idx) {
     }
 }
 // =====================================
+// 10. إعدادات الواجهة والتسويق (البانرات وعروض الصاعقة)
+// =====================================
+export async function saveUiSettings() {
+    const btn = document.querySelector('button[onclick="saveUiSettings()"]');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+
+    const uiSettings = {
+        bannerMain: document.getElementById('admin-input-banner-main')?.value.trim() || '',
+        bannerGift: document.getElementById('admin-input-banner-gift')?.value.trim() || '',
+        bannerWorkshop: document.getElementById('admin-input-banner-workshop')?.value.trim() || '',
+        flashIds: document.getElementById('admin-input-flash-ids')?.value.trim() || ''
+    };
+
+    try {
+        await window.db.collection("settings").doc("ui_config").set(uiSettings, { merge: true });
+        
+        // تحديث حالة التطبيق المحلية (State)
+        if (!state.uiConfig) state.uiConfig = {};
+        state.uiConfig = { ...state.uiConfig, ...uiSettings };
+
+        // تحديث معاينة الصور في لوحة التحكم فوراً
+        document.getElementById('admin-preview-banner-main').src = uiSettings.bannerMain || 'https://via.placeholder.com/800x300/ff6b81/ffffff?text=لا+توجد+صورة';
+        document.getElementById('admin-preview-banner-gift').src = uiSettings.bannerGift || 'https://via.placeholder.com/400x600/D4AF37/000000?text=لا+توجد+صورة';
+        document.getElementById('admin-preview-banner-workshop').src = uiSettings.bannerWorkshop || 'https://via.placeholder.com/400x600/121212/D4AF37?text=لا+توجد+صورة';
+
+        showCustomAlert("تم الحفظ 🎉", "تم تحديث واجهة المتجر بنجاح! سيراها الزبائن الآن.", true);
+    } catch (error) {
+        showCustomAlert("خطأ", "حدث خطأ أثناء الحفظ: " + error.message, false);
+    } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ ونشر التعديلات';
+    }
+}
+
+export async function loadUiAdminData() {
+    try {
+        const doc = await window.db.collection('settings').doc('ui_config').get();
+        if (doc.exists) {
+            const data = doc.data();
+            if (!state.uiConfig) state.uiConfig = {};
+            state.uiConfig = { ...state.uiConfig, ...data };
+            
+            const mainInput = document.getElementById('admin-input-banner-main');
+            const giftInput = document.getElementById('admin-input-banner-gift');
+            const workInput = document.getElementById('admin-input-banner-workshop');
+            const flashInput = document.getElementById('admin-input-flash-ids');
+
+            if (mainInput) {
+                mainInput.value = data.bannerMain || '';
+                document.getElementById('admin-preview-banner-main').src = data.bannerMain || 'https://via.placeholder.com/800x300/ff6b81/ffffff?text=لا+توجد+صورة';
+            }
+            if (giftInput) {
+                giftInput.value = data.bannerGift || '';
+                document.getElementById('admin-preview-banner-gift').src = data.bannerGift || 'https://via.placeholder.com/400x600/D4AF37/000000?text=لا+توجد+صورة';
+            }
+            if (workInput) {
+                workInput.value = data.bannerWorkshop || '';
+                document.getElementById('admin-preview-banner-workshop').src = data.bannerWorkshop || 'https://via.placeholder.com/400x600/121212/D4AF37?text=لا+توجد+صورة';
+            }
+            if (flashInput) flashInput.value = data.flashIds || '';
+        }
+    } catch (error) {
+        console.error("خطأ في جلب بيانات الواجهة:", error);
+    }
+}
+// =====================================
 // 9. التصدير للـ Window
 // =====================================
 window.handleImageUpload = handleImageUploadWrapper;
@@ -1927,3 +1994,5 @@ window.updateVariantData = updateVariantData;
 window.toggleAllProducts = toggleAllProducts;
 window.checkBulkProductDeleteStatus = checkBulkProductDeleteStatus;
 window.deleteSelectedProducts = deleteSelectedProducts;
+window.saveUiSettings = saveUiSettings;
+window.loadUiAdminData = loadUiAdminData;
