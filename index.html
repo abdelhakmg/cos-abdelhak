@@ -257,16 +257,40 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     <div class="w-20 h-1 gold-gradient mx-auto mt-2 rounded-full"></div>
                 </div>
                 <div id="home-products" class="grid grid-flow-col auto-cols-[46%] sm:auto-cols-[auto] sm:grid-flow-row sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 overflow-x-auto snap-x snap-mandatory custom-scrollbar pb-4 pt-2 px-1">
-                <div class="flex justify-center mt-8 pb-4">
-    <button id="load-more-home-btn" onclick="loadMoreProducts()" style="display: none;" class="bg-transparent border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold py-3 px-8 rounded-full transition shadow-lg items-center gap-2 cursor-pointer">
-        عرض المزيد من المنتجات <i class="fa-solid fa-angle-down"></i>
-    </button>
-</div>
-            </section>
-        </div>
+                        <!-- المنتجات تظهر هنا -->
+                    </div> <!-- ⚠️ تم تصحيح وإضافة وسم الإغلاق الناقص هنا ⚠️ -->
 
-        <!-- 2. CATALOG PAGE -->
-        <div id="page-catalog" class="page-sec">
+                    <div class="flex justify-center mt-8 pb-4">
+                        <button id="load-more-home-btn" onclick="loadMoreProducts()" style="display: none;" class="bg-transparent border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold py-3 px-8 rounded-full transition shadow-lg items-center gap-2 cursor-pointer">
+                            عرض المزيد من المنتجات <i class="fa-solid fa-angle-down"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 🌟 بانرات خدمات تهمك (تم نقلها هنا لتظهر في الرئيسية فقط) 🌟 -->
+                <div class="max-w-7xl mx-auto px-4 mb-12">
+                    <h2 class="text-right text-[#D4AF37] font-black text-lg mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-gem text-sm"></i> خدمات تهمك
+                    </h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                        
+                        <!-- 1. بانر صمم هديتك -->
+                        <div onclick="safeCall('openGiftBuilder') || safeCall('showGiftModal') || safeCall('showPage', 'gift-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
+                            <img id="promo-banner-gift" src="https://via.placeholder.com/400x600/D4AF37/000000?text=صمم+هديتك" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="صمم هديتك">
+                        </div>
+
+                        <!-- 2. بانر ورشة التخصيص -->
+                        <div onclick="safeCall('openCustomBuilder') || safeCall('showCustomModal') || safeCall('showPage', 'custom-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
+                            <img id="promo-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=ورشة+التخصيص" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="ورشة التخصيص">
+                        </div>
+
+                    </div>
+                </div>
+
+            </div> <!-- نهاية الصفحة الرئيسية (page-home) -->
+
+            <!-- 2. CATALOG PAGE -->
+            <div id="page-catalog" class="page-sec">
             <div class="max-w-7xl mx-auto px-4 py-6">
                 <div class="flex justify-between items-center text-xs text-gray-400 mb-6">
                     <div id="catalog-breadcrumb" class="flex items-center gap-2">
