@@ -393,7 +393,7 @@ export async function uploadBaridiMobReceipt(event) {
     btn.disabled = true;
     
     try {
-        currentBaridiMobReceipt = await window.compressAndUploadImage(file, 'receipts', 800);
+        currentBaridiMobReceipt = await window.compressAndUploadImage(file, 'customer_uploads', 800);
         btn.innerHTML = '<i class="fa-solid fa-check"></i> تأكيد الطلب';
         btn.className = "w-full py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer";
         btn.disabled = false;
