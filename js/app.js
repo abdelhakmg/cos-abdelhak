@@ -192,7 +192,26 @@ export function renderCart() {
     if (!cartList) return;
 
     if (state.cart.length === 0) {
-        cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p>';
+        cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p
+        // 🌟 منطق إظهار/إخفاء طرق الدفع بناءً على نوع المنتجات
+    const hasCustomItem = state.cart.some(item => String(item.id).startsWith('custom_') || String(item.id).startsWith('gift_'));
+    const codOption = document.getElementById('payment-cod');
+    const inStoreOption = document.getElementById('payment-instore');
+    if (hasCustomItem) {
+        if (codOption) codOption.style.display = 'none';
+        if (inStoreOption) inStoreOption.style.display = 'flex';
+        if (document.querySelector('input[name="cart_payment_method"]:checked')?.value === 'cod') {
+            const inStoreRadio = document.querySelector('input[value="in_store"]');
+            if (inStoreRadio) inStoreRadio.checked = true;
+        }
+    } else {
+        if (codOption) codOption.style.display = 'flex';
+        if (inStoreOption) inStoreOption.style.display = 'none';
+        if (document.querySelector('input[name="cart_payment_method"]:checked')?.value === 'in_store') {
+            const codRadio = document.querySelector('input[value="cod"]');
+            if(codRadio) codRadio.checked = true;
+        }
+    }    
         updateCartCalculations();
         return;
     }
@@ -338,60 +357,80 @@ export function updateCartCalculations() {
 }
 
 export function submitCartCheckout() {
-    if (state.cart.length === 0) {
-        showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
-        return;
-    }
-
-    const lastOrderTime = localStorage.getItem('last_order_timestamp');
-    if (lastOrderTime && (Date.now() - parseInt(lastOrderTime)) < 60000) {
-        showCustomAlert('تم استلام طلبك مسبقاً ⏳', 'لقد قمت بإرسال طلب منذ لحظات. يرجى الانتظار دقيقة قبل إرسال طلب آخر.', false);
-        return;
-    }
+    if (state.cart.length === 0) return showCustomAlert('السلة فارغة!', 'يرجى إضافة منتجات للسلة أولاً.', false);
 
     const name = document.getElementById('cart-cust-name')?.value.trim();
     const rawPhone = document.getElementById('cart-cust-phone')?.value.trim();
     const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
     const baladiya = document.getElementById('cart-cust-baladiya')?.value.trim() || '';
-    const address = document.getElementById('cart-cust-address')?.value.trim() || document.getElementById('cart-cust-commune')?.value.trim() || '';
 
-    if (!name || !wilayaCode || !baladiya) {
-        showCustomAlert('تنبيه هام!', state.storeSettings.msgWarning || 'يرجى ملء المعلومات الأساسية (الاسم، الولاية، والبلدية)!', false);
-        return;
+    if (!name || !wilayaCode || !baladiya) return showCustomAlert('تنبيه هام!', 'يرجى ملء المعلومات الأساسية!', false);
+    if (!isValidDzPhone(rawPhone)) return showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري صحيح.', false);
+
+    const paymentMethod = document.querySelector('input[name="cart_payment_method"]:checked')?.value || 'cod';
+
+    if (paymentMethod === 'baridimob') {
+        const modal = document.getElementById('baridimob-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        return; // نتوقف هنا لكي يرفع الزبون الوصل أولاً
     }
 
-    if (!isValidDzPhone(rawPhone)) {
-        showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري صحيح مكون من 10 أرقام (يبدأ بـ 05 أو 06 أو 07).', false);
-        return;
-    }
+    finalizeOrderSubmit(paymentMethod, paymentMethod === 'in_store' ? 'pending' : 'cod_pending', null);
+}
 
-    const localWilaya = state.storeSettings?.localWilaya;
-    const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
-    const minNational = Number(state.storeSettings?.minOrderNational) || 0;
+// 🌟 دوال بريدي موب
+let currentBaridiMobReceipt = null;
+
+export async function uploadBaridiMobReceipt(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const btn = document.getElementById('baridi-submit-btn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الوصل...';
+    btn.className = "w-full py-3 bg-gray-800 text-white font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-wait";
+    btn.disabled = true;
+    
+    try {
+        currentBaridiMobReceipt = await window.compressAndUploadImage(file, 'receipts', 800);
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> تأكيد الطلب';
+        btn.className = "w-full py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:opacity-90 transition flex items-center justify-center gap-2 cursor-pointer";
+        btn.disabled = false;
+    } catch (error) {
+        btn.innerHTML = '❌ فشل الرفع، أعد المحاولة';
+        btn.className = "w-full py-3.5 bg-red-600 text-white font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2";
+    }
+}
+
+export function closeBaridiMobModal() {
+    document.getElementById('baridimob-modal').classList.add('hidden');
+    document.getElementById('baridimob-modal').classList.remove('flex');
+}
+
+export function confirmBaridiMobCheckout() {
+    if (!currentBaridiMobReceipt) return showCustomAlert('تنبيه', 'يرجى إرفاق صورة وصل الدفع أولاً!', false);
+    closeBaridiMobModal();
+    finalizeOrderSubmit('baridimob', 'paid_pending_check', currentBaridiMobReceipt);
+}
+
+export function finalizeOrderSubmit(paymentMethod, paymentStatus, receiptUrl) {
+    const name = document.getElementById('cart-cust-name')?.value.trim();
+    const rawPhone = document.getElementById('cart-cust-phone')?.value.trim();
+    const wilayaCode = document.getElementById('cart-cust-wilaya')?.value;
+    const baladiya = document.getElementById('cart-cust-baladiya')?.value.trim() || '';
+    const address = document.getElementById('cart-cust-address')?.value.trim() || '';
     
     const subtotal = state.cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
-    const requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
-
-    if (subtotal < requiredMin) {
-        showCustomAlert(
-            'لم تصل للحد الأدنى ⚠️', 
-            `الحد الأدنى للطلب لولايتك هو ${formatPrice(requiredMin)}. مجموع سلتك الحالي هو ${formatPrice(subtotal)}. يرجى إضافة المزيد من المنتجات!`, 
-            false
-        );
-        return;
-    }
-
-    const wilaya = state.WILAYAS.find(w => w.code === wilayaCode);
     const shipType = document.querySelector('input[name="cart_shipping_type"]:checked')?.value || 'home';
     let shipCost = calculateShippingCost(wilayaCode, state.WILAYAS, shipType);
+    const discount = getCartDiscountAmount();
+    const finalSubtotal = Math.max(0, subtotal - discount);
 
-    // 🌟 تضمين الكمية (x2, x3...) في تفاصيل الطلب المرسل للإدارة
     const itemsNames = state.cart.map(item => {
         const qty = Number(item.qty) || 1;
-        const qtyLabel = qty > 1 ? ` (x${qty})` : '';
-        return item.customDetails ? `\n${item.name}${qtyLabel} ${item.customDetails}\n` : `${item.name}${qtyLabel}`;
+        return item.customDetails ? `\n${item.name} (x${qty}) ${item.customDetails}\n` : `${item.name} (x${qty})`;
     }).join(' + ');
-    const shippingTypeText = shipType === 'office' ? 'استلام من المكتب' : 'توصيل للمنزل';
 
     let attachedImages = [];
     state.cart.forEach(item => {
@@ -399,66 +438,45 @@ export function submitCartCheckout() {
         if (item.attachedImage2) attachedImages.push(item.attachedImage2);
         if (item.attachedImage3) attachedImages.push(item.attachedImage3);
     });
-const discount = getCartDiscountAmount();
-    const finalSubtotal = Math.max(0, subtotal - discount);
-    const couponNote = (discount > 0 && activeCartCoupon) ? ` | كوبون: ${activeCartCoupon.code} (-${discount} دج)` : '';
+
     const newOrder = {
         customer: name,
         phone: rawPhone.replace(/\s+/g, ''),
-        wilaya: wilaya ? wilaya.name : wilayaCode,
-        commune: `البلدية: ${baladiya}${address ? ' | العنوان: ' + address : ''} (${shippingTypeText})`,
-        product: `طلبية سلة: (${itemsNames})${couponNote}`,
+        wilaya: state.WILAYAS.find(w => w.code === wilayaCode)?.name || wilayaCode,
+        commune: `البلدية: ${baladiya}${address ? ' | العنوان: ' + address : ''} (${shipType === 'office' ? 'من المكتب' : 'للمنزل'})`,
+        product: `طلبية سلة: (${itemsNames})`,
         total: finalSubtotal + shipCost,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
         createdAt: new Date(),
+        paymentMethod: paymentMethod, 
+        paymentStatus: paymentStatus, 
+        baridimobReceipt: receiptUrl || null, 
         attachedImage1: attachedImages[0] || null,
         attachedImage2: attachedImages[1] || null,
         attachedImage3: attachedImages[2] || null
     };
 
-    const checkoutBtn = document.querySelector('button[onclick="submitCartCheckout()"]');
-    const originalBtnText = checkoutBtn ? checkoutBtn.innerHTML : '';
-    if (checkoutBtn) {
-        checkoutBtn.disabled = true;
-        checkoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تسجيل طلبك...';
-    }
+    const checkoutBtn = document.getElementById('final-checkout-btn');
+    if (checkoutBtn) checkoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
 
-    const purchasedItems = [...state.cart];
-
-    // إرسال الطلب إلى Vercel API بدلاً من Firestore مباشرة
     fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            ...newOrder,
-            purchasedItems: purchasedItems // لتحديث المبيعات في السيرفر
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+        body: JSON.stringify({ ...newOrder, purchasedItems: [...state.cart] })
+    }).then(res => res.json()).then(data => {
         if (data.error) throw new Error(data.error);
-
-        localStorage.setItem('last_order_timestamp', Date.now().toString());
-
-        if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
-
-        state.cart = [];
-        saveCartToLocal();
-        updateBadges();
-        renderCart();
-
+        state.cart = []; saveCartToLocal(); updateBadges(); renderCart();
         ['cart-cust-name', 'cart-cust-phone', 'cart-cust-wilaya', 'cart-cust-baladiya', 'cart-cust-address'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
+            const el = document.getElementById(id); if (el) el.value = '';
         });
-
-        showCustomAlert('تم استلام الطلب الكامل! 🎉', state.storeSettings.msgSuccess || 'تم تسجيل طلبك بنجاح', true);
+        showCustomAlert('تم استلام الطلب! 🎉', 'تم تسجيل طلبك بنجاح وسنتصل بك قريباً.', true);
         showPage('home');
-    })
-    .catch(err => {
-        if (checkoutBtn) { checkoutBtn.disabled = false; checkoutBtn.innerHTML = originalBtnText; }
-        showCustomAlert('خطأ', 'حدث خطأ: ' + err.message, false);
+        if (checkoutBtn) checkoutBtn.innerHTML = 'تأكيد طلب كافة السلة 🛍️';
+        currentBaridiMobReceipt = null;
+    }).catch(err => {
+        showCustomAlert('خطأ', err.message, false);
+        if (checkoutBtn) checkoutBtn.innerHTML = 'تأكيد طلب كافة السلة 🛍️';
     });
 }
 // 🌟 حساب إجمالي عدد القطع في شارة السلة العلوية
@@ -605,9 +623,13 @@ window.populateCartWilayas = populateCartWilayas;
 window.handleCartWilayaChange = handleCartWilayaChange;
 window.updateCartCalculations = updateCartCalculations;
 window.submitCartCheckout = submitCartCheckout;
+window.uploadBaridiMobReceipt = uploadBaridiMobReceipt;
+window.closeBaridiMobModal = closeBaridiMobModal;
+window.confirmBaridiMobCheckout = confirmBaridiMobCheckout;
 window.updateBadges = updateBadges;
 window.searchOrderTracking = searchOrderTracking;
 window.initRealOrdersTicker = initRealOrdersTicker;
 window.updateStoreFooterLinks = updateStoreFooterLinks;
 window.updateCartItemQty = updateCartItemQty;
 window.applyCartCoupon = applyCartCoupon;
+
