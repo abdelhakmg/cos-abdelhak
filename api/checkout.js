@@ -81,6 +81,9 @@ module.exports = async (req, res) => {
             status: 'جديد',
             date: new Date().toLocaleDateString('ar-DZ'),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            paymentMethod: orderData.paymentMethod || 'cod',
+            paymentStatus: orderData.paymentStatus || 'pending',
+            baridimobReceipt: orderData.baridimobReceipt || null,
             attachedImage1: orderData.attachedImage1 || null,
             attachedImage2: orderData.attachedImage2 || null,
             attachedImage3: orderData.attachedImage3 || null
