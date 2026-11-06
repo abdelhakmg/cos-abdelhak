@@ -932,6 +932,16 @@ export function renderAdminDashboard() {
                             ` : ''}
                             
                             <div class="font-black text-sm text-[#B8860B] mt-2 inline-block px-3 py-1 rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10">${o.total ? o.total.toLocaleString() : 0} دج</div>
+                            <!-- 🌟 عرض وصل بريدي موب بشكل بارز جداً 🌟 -->
+                            ${o.baridimobReceipt ? `
+                            <div class="mt-3 p-3 bg-blue-50/80 border border-blue-200 rounded-xl flex items-center justify-between shadow-sm">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-black text-blue-800"><i class="fa-solid fa-file-invoice-dollar"></i> وصل الدفع المرفق</span>
+                                    <span class="text-[9px] text-blue-600 font-bold mt-1">اضغط على الصورة للتأكد من المبلغ</span>
+                                </div>
+                                <img src="${o.baridimobReceipt}" onclick="openImageModal(this.src)" class="w-16 h-16 object-cover rounded-lg border-2 border-blue-500 cursor-zoom-in hover:opacity-80 transition shadow-md bg-white">
+                            </div>
+                            ` : ''}
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-xs font-bold p-2 rounded-lg border outline-none cursor-pointer ${statusBadgeClass} shadow-sm w-28 text-center appearance-none">
