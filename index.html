@@ -556,11 +556,32 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         <div class="flex justify-between text-xs"><span class="text-gray-400">مجموع المنتجات</span><span id="subtotal" class="font-bold">0 دج</span></div>
                         <div id="cart-discount-row" class="flex justify-between text-xs text-emerald-400 hidden"><span>قيمة الخصم 🎟️</span><span id="cart-discount-amount" class="font-bold">- 0 دج</span></div>
                         <div class="flex justify-between text-xs"><span class="text-gray-400">تكلفة التوصيل</span><span id="cart-shipping-cost" class="font-bold text-[#D4AF37]">0 دج</span></div>
-                        <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-lg"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
+                        <div class="border-t border-gray-800 pt-3 flex justify-between font-black text-lg mb-4"><span>المجموع الكلي</span><span id="total" class="gold-text">0 دج</span></div>
                         
-                        <button onclick="submitCartCheckout()" class="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition mt-2">
-                            تأكيد طلب كافة السلة (الدفع عند الاستلام) 🛍️
-                        </button>
+<!-- 🌟 خيارات الدفع 🌟 -->
+<div id="payment-methods-container" class="bg-gray-900/50 p-4 rounded-xl border border-[#D4AF37]/30 mb-4">
+    <label class="block text-xs font-bold text-[#D4AF37] mb-3">اختر طريقة الدفع:</label>
+    <div class="flex flex-col gap-2">
+        <label id="payment-cod" class="flex items-center gap-3 cursor-pointer bg-black p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+            <input type="radio" name="cart_payment_method" value="cod" class="accent-[#D4AF37] w-4 h-4" checked>
+            <span class="text-sm text-white font-bold"><i class="fa-solid fa-handshake text-gray-400 ml-1"></i> الدفع عند الاستلام (يد بيد)</span>
+        </label>
+        
+        <label id="payment-instore" class="hidden items-center gap-3 cursor-pointer bg-black p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+            <input type="radio" name="cart_payment_method" value="in_store" class="accent-[#D4AF37] w-4 h-4">
+            <span class="text-sm text-white font-bold"><i class="fa-solid fa-shop text-[#D4AF37] ml-1"></i> الدفع داخل المحل</span>
+        </label>
+        
+        <label id="payment-baridi" class="flex items-center gap-3 cursor-pointer bg-black p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+            <input type="radio" name="cart_payment_method" value="baridimob" class="accent-[#D4AF37] w-4 h-4">
+            <span class="text-sm text-white font-bold"><i class="fa-solid fa-credit-card text-blue-500 ml-1"></i> الدفع عبر بريدي موب</span>
+        </label>
+    </div>
+</div>
+
+<button id="final-checkout-btn" onclick="submitCartCheckout()" class="w-full py-3.5 gold-gradient text-black font-extrabold rounded-xl shadow-lg hover:opacity-90 transition mt-2">
+    تأكيد طلب كافة السلة 🛍️
+</button>
                     </div>
                 </div>
             </div>
@@ -1382,6 +1403,28 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md">دخول</button>
                 <button onclick="document.getElementById('admin-auth-modal').style.display='none'; document.getElementById('admin-auth-modal').classList.add('hidden');" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
             </div>
+        </div>
+    </div
+        <!-- 💳 نافذة بريدي موب المنبثقة -->
+    <div id="baridimob-modal" class="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="bg-[#121212] border border-[#D4AF37]/50 rounded-3xl w-full max-w-md p-6 text-right relative shadow-2xl">
+            <button onclick="closeBaridiMobModal()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-black text-[#D4AF37] mb-4 text-center">الدفع عبر بريدي موب 💳</h3>
+            
+            <div class="bg-black border border-gray-800 rounded-xl p-3 mb-4 text-center">
+                <p class="text-xs text-gray-400 mb-2">يرجى تحويل المبلغ الإجمالي إلى الحساب التالي:</p>
+                <!-- ⚠️ ضع رابط صورتك التي تحتوي على ريب وسيسيبي هنا ⚠️ -->
+                <img src="https://via.placeholder.com/400x150/D4AF37/000000?text=RIP+and+CCP+Image" class="w-full h-32 object-cover rounded-lg border border-gray-700 mt-2" alt="معلومات الحساب">
+            </div>
+            
+            <div class="bg-gray-900 p-4 rounded-xl mb-5 border border-gray-800">
+                <label class="block text-xs font-bold text-gray-300 mb-2">يرجى إرفاق صورة وصل الدفع لتأكيد الطلب:</label>
+                <input type="file" accept="image/*" onchange="uploadBaridiMobReceipt(event)" class="w-full border border-gray-700 p-2 rounded-xl text-sm bg-black text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#D4AF37] file:text-black cursor-pointer hover:file:bg-[#D4AF37]/90">
+            </div>
+            
+            <button id="baridi-submit-btn" onclick="confirmBaridiMobCheckout()" class="w-full py-3.5 bg-gray-800 text-gray-500 font-black rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-not-allowed" disabled>
+                <i class="fa-solid fa-check"></i> تأكيد الطلب وإرساله
+            </button>
         </div>
     </div>
 <!-- 👩‍⚕️ نافذة مستشارة الجمال (Beauty Advisor Modal) -->
