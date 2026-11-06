@@ -28,15 +28,26 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'سلة المشتريات فارغة أو البيانات مفقودة.' });
         }
 
-        // 🔒 [تصحيح أمني - الخطوة 3]: جدار حماية ضد الطلبات الوهمية (Spam)
-        // التحقق مما إذا كان نفس رقم الهاتف قد أرسل طلباً خلال الدقيقتين الماضيتين
-        const twoMinutesAgo = admin.firestore.Timestamp.fromDate(new Date(Date.now() - 120000));
-        const recentOrders = await db.collection('orders')
-            .where('phone', '==', orderData.phone.replace(/\s+/g, ''))
-            .where('createdAt', '>', twoMinutesAgo)
-            .get();
+        // 🔒 [الحل الجذري للخطأ 500]: جدار حماية ضد الطلبات الوهمية بدون الحاجة لفهرس مركب
+        const cleanPhone = orderData.phone.replace(/\s+/g, '');
+        const recentOrders = await db.collection('orders').where('phone', '==', cleanPhone).get();
+        
+        let isSpam = false;
+        const twoMinutesAgo = Date.now() - 120000;
 
         if (!recentOrders.empty) {
+            recentOrders.forEach(doc => {
+                const data = doc.data();
+                if (data.createdAt) {
+                    const orderTime = data.createdAt.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt).getTime();
+                    if (orderTime > twoMinutesAgo) {
+                        isSpam = true;
+                    }
+                }
+            });
+        }
+
+        if (isSpam) {
             return res.status(429).json({ error: 'لقد قمت بإرسال طلب للتو! يرجى الانتظار قليلاً قبل المحاولة مرة أخرى.' });
         }
 
@@ -70,7 +81,7 @@ module.exports = async (req, res) => {
             finalTotal = calculatedProductsTotal; 
         }
 
-       // 2. معالجة وتأمين البيانات قبل حفظها
+        // 2. معالجة وتأمين البيانات قبل حفظها (مع تفادي أي قيم مفقودة ترفضها Firebase)
         const secureOrder = {
             customer: orderData.customer || 'غير محدد',
             phone: orderData.phone || 'غير محدد',
@@ -82,7 +93,7 @@ module.exports = async (req, res) => {
             date: new Date().toLocaleDateString('ar-DZ'),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             
-            // 🌟 الحقول الجديدة لطرق الدفع (محمية من الأخطاء)
+            // 🌟 الحقول الجديدة لطرق الدفع 
             paymentMethod: orderData.paymentMethod || 'cod',
             paymentStatus: orderData.paymentStatus || 'pending',
             baridimobReceipt: orderData.baridimobReceipt || null,
