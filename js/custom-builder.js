@@ -720,11 +720,19 @@ export function submitCustomOrder() {
         attachedImage3: customOrderData.uploadedImage3 || null
     };
     
-    // إرسال الطلب المخصص إلى Vercel API
+   // إرسال الطلب المخصص إلى Vercel API مع تجاوز جدار حماية السلة
     fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOrder)
+        body: JSON.stringify({
+            ...newOrder,
+            purchasedItems: [{
+                id: customOrderData.selectedProductId || 'custom_direct_order',
+                name: `[طلب مخصص مباشر] ${customOrderData.selectedProduct}`,
+                price: grandTotal,
+                qty: 1
+            }]
+        })
     })
     .then(response => response.json())
     .then(data => {
