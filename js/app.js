@@ -193,7 +193,7 @@ export function renderCart() {
 
     if (state.cart.length === 0) {
         cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p';
-        // 🌟 منطق إظهار/إخفاء طرق الدفع بناءً على نوع المنتجات
+      // 🌟 منطق إظهار/إخفاء طرق الدفع بناءً على نوع المنتجات
     const hasCustomItem = state.cart.some(item => String(item.id).startsWith('custom_') || String(item.id).startsWith('gift_'));
     const codOption = document.getElementById('payment-cod');
     const inStoreOption = document.getElementById('payment-instore');
