@@ -444,6 +444,27 @@ case 3:
                             <span class="text-lg font-black text-white">المبلغ النهائي للطلبية:</span>
                             <span class="text-2xl font-black text-[#D4AF37]">${grandTotal.toLocaleString()} دج</span>
                         </div>
+                    </div>
+
+                    <!-- 🌟 خيارات الدفع المباشر للهدية 🌟 -->
+                    <div class="mt-4 p-4 bg-black rounded-2xl border border-[#D4AF37]/50 shadow-[0_0_15px_rgba(212,175,55,0.1)] text-right">
+                        <label class="block text-xs font-bold text-[#D4AF37] mb-3">اختر طريقة الدفع للهدية:</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+                                <input type="radio" name="gift_payment_method" value="in_store" class="accent-[#D4AF37] w-4 h-4" checked onchange="document.getElementById('gift-baridi-upload').classList.add('hidden')">
+                                <span class="text-sm text-white font-bold"><i class="fa-solid fa-shop text-[#D4AF37] ml-1"></i> الدفع داخل المحل</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+                                <input type="radio" name="gift_payment_method" value="baridimob" class="accent-[#D4AF37] w-4 h-4" onchange="document.getElementById('gift-baridi-upload').classList.remove('hidden')">
+                                <span class="text-sm text-white font-bold"><i class="fa-solid fa-credit-card text-blue-500 ml-1"></i> الدفع عبر بريدي موب</span>
+                            </label>
+                        </div>
+                        <!-- رفع وصل بريدي موب (مخفي افتراضياً) -->
+                        <div id="gift-baridi-upload" class="hidden mt-3 p-3 bg-black border border-gray-700 rounded-xl">
+                            <p class="text-xs text-gray-400 mb-2">أرفق صورة وصل الدفع هنا لتأكيد هديتك:</p>
+                            <input type="file" accept="image/*" id="gift-receipt-file" class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#D4AF37] file:font-bold file:text-black cursor-pointer">
+                        </div>
+                    </div>
             `;
             
             if (minOrderAmount > 0 && currentTotal < minOrderAmount) {
@@ -645,7 +666,28 @@ export function getGiftOrderFullDesc() {
 - المُرسل: ${giftData.senderName} (${giftData.senderPhone})`;
 }
 
-export function submitGiftOrder() {
+export async function submitGiftOrder() {
+    const paymentMethod = document.querySelector('input[name="gift_payment_method"]:checked')?.value || 'in_store';
+    let receiptUrl = null;
+    const btn = document.querySelector('button[onclick="submitGiftOrder()"]');
+    const originalBtnHtml = btn ? btn.innerHTML : 'أرسل الهدية الآن';
+
+    if (paymentMethod === 'baridimob') {
+        const fileInput = document.getElementById('gift-receipt-file');
+        if (!fileInput || !fileInput.files[0]) {
+            return showCustomAlert('تنبيه', 'يرجى إرفاق صورة وصل بريدي موب لتأكيد الهدية!', false);
+        }
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الوصل...'; btn.disabled = true; }
+        try {
+            receiptUrl = await window.compressAndUploadImage(fileInput.files[0], 'customer_uploads', 800);
+        } catch (e) {
+            if (btn) { btn.innerHTML = originalBtnHtml; btn.disabled = false; }
+            return showCustomAlert('خطأ', 'تعذر رفع صورة الوصل، أعد المحاولة.', false);
+        }
+    }
+
+    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...'; btn.disabled = true; }
+
     const wilayaObj = state.WILAYAS.find(w => w.code === giftData.wilaya);
     const shipCost = calculateShippingCost(giftData.wilaya, state.WILAYAS, giftData.shippingType);
     const prodTotal = giftData.selectedProducts.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -662,39 +704,37 @@ export function submitGiftOrder() {
         total: grandTotal,
         status: 'جديد',
         date: new Date().toLocaleDateString('ar-DZ'),
-        createdAt: new Date()
+        createdAt: new Date(),
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentMethod === 'in_store' ? 'pending' : 'paid_pending_check',
+        baridimobReceipt: receiptUrl
     };
 
-    // 🔒 [تصحيح أمني]: تجميع كافة عناصر الهدية (المنتجات + العلبة + التغليف)
     let allGiftItems = [...giftData.selectedProducts];
-    
     if (giftData.selectedBox) {
-        // العلبة موجودة في قاعدة البيانات، الخادم سيجلب سعرها الحقيقي لمنع التلاعب
         allGiftItems.push({ id: giftData.selectedBox.id, qty: 1 });
     }
-    
     if (giftData.selectedWrapping && giftData.selectedWrapping.price > 0) {
-        // التغليف يتم تمريره كعنصر هدية إضافي
         allGiftItems.push({ id: 'gift_wrap_' + Date.now(), price: giftData.selectedWrapping.price, qty: 1 });
     }
 
-    // إرسال طلب الهدية إلى Vercel API
     fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             ...newOrder,
-            purchasedItems: allGiftItems // إرسال المصفوفة الشاملة لتسعير دقيق في الخادم
+            purchasedItems: allGiftItems 
         })
     })
     .then(response => response.json())
     .then(data => {
+        if (btn) { btn.innerHTML = originalBtnHtml; btn.disabled = false; }
         if (data.error) throw new Error(data.error);
-
         closeGiftBuilder();
         showCustomAlert('تم استلام طلب الهدية بنجاح! 🎉', 'سنتصل بك (بالمُرسل) قريباً لتأكيد الطلب.', true);
     })
     .catch(err => {
+        if (btn) { btn.innerHTML = originalBtnHtml; btn.disabled = false; }
         showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
     });
 }
