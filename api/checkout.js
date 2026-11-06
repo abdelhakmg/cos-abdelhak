@@ -70,20 +70,24 @@ module.exports = async (req, res) => {
             finalTotal = calculatedProductsTotal; 
         }
 
-        // 2. معالجة وتأمين البيانات قبل حفظها
+       // 2. معالجة وتأمين البيانات قبل حفظها
         const secureOrder = {
-            customer: orderData.customer,
-            phone: orderData.phone,
-            wilaya: orderData.wilaya,
-            commune: orderData.commune,
-            product: orderData.product,
+            customer: orderData.customer || 'غير محدد',
+            phone: orderData.phone || 'غير محدد',
+            wilaya: orderData.wilaya || 'غير محدد',
+            commune: orderData.commune || '',
+            product: orderData.product || '',
             total: finalTotal,
             status: 'جديد',
             date: new Date().toLocaleDateString('ar-DZ'),
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            
+            // 🌟 الحقول الجديدة لطرق الدفع (محمية من الأخطاء)
             paymentMethod: orderData.paymentMethod || 'cod',
             paymentStatus: orderData.paymentStatus || 'pending',
             baridimobReceipt: orderData.baridimobReceipt || null,
+            
+            // 🌟 الصور المرفقة
             attachedImage1: orderData.attachedImage1 || null,
             attachedImage2: orderData.attachedImage2 || null,
             attachedImage3: orderData.attachedImage3 || null
