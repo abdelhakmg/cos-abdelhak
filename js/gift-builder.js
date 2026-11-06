@@ -459,7 +459,7 @@ case 3:
                                     <span class="text-sm text-white font-bold"><i class="fa-solid fa-shop text-[#D4AF37] ml-1"></i> الدفع داخل المحل</span>
                                 </label>
                                 <div id="gift-instore-info" class="mt-2 p-3 bg-orange-900/20 border border-orange-500/30 rounded-xl text-[11px] text-orange-200 font-bold leading-relaxed">
-                                    ⚠️ <b>توضيح هام:</b> نظراً لأن هذه الهدية ستُجهز وتُغلف <u>خصيصاً لك</u>، نرجو منك التفضل بزيارة محلنا لدفع المبلغ. (لن يتم البدء في تجهيز وتغليف طلبك إلا بعد تأكيد الدفع).
+                                    ⚠️ <b>توضيح هام:</b> نظراً لأن هذه الهدية ستُجهز وتُغلف <u>خصيصاً لك</u>، نرجو منك التفضل بزيارة محلنا لدفع المبلغ. (بعد اكمال وتجهيز طلبك).
                                 </div>
                             </div>
 
