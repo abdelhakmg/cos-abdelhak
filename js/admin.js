@@ -903,6 +903,16 @@ export function renderAdminDashboard() {
                         <td class="p-4">
                             <div class="font-bold text-gray-900">${o.customer}</div>
                             <div class="text-xs text-gray-500 font-mono mt-1">${o.phone}</div>
+                            
+                            <!-- 🌟 عرض نوع الدفع وحالته -->
+                            ${o.paymentMethod === 'in_store' ? 
+                                `<div class="mt-2 p-1.5 rounded-lg text-center font-bold text-[10px] transition ${o.paymentStatus === 'paid' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-orange-100 text-orange-700 border border-orange-300 cursor-pointer hover:bg-orange-200 shadow-sm'}" 
+                                ${o.paymentStatus !== 'paid' ? `onclick="markOrderAsPaidInStore('${o.id}')" title="اضغط لتأكيد استلام المال في المحل"` : ''}>
+                                    ${o.paymentStatus === 'paid' ? '<i class="fa-solid fa-check-double"></i> تم الدفع في المحل' : '<i class="fa-solid fa-clock"></i> معلق - سيدفع في المحل'}
+                                </div>` 
+                            : ''}
+                            ${o.paymentMethod === 'baridimob' ? `<div class="mt-2 p-1.5 rounded-lg text-center font-bold text-[10px] bg-blue-100 text-blue-700 border border-blue-300"><i class="fa-solid fa-credit-card"></i> الدفع: بريدي موب</div>` : ''}
+                            ${(!o.paymentMethod || o.paymentMethod === 'cod') ? `<div class="mt-2 p-1.5 rounded-lg text-center font-bold text-[10px] bg-gray-100 text-gray-700 border border-gray-300"><i class="fa-solid fa-handshake"></i> الدفع: يد بيد</div>` : ''}
                         </td>
                         <td class="p-4">
                             <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
@@ -917,6 +927,7 @@ export function renderAdminDashboard() {
                                 ${o.attachedImage1 ? `<img src="${o.attachedImage1}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
                                 ${o.attachedImage2 ? `<img src="${o.attachedImage2}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
                                 ${o.attachedImage3 ? `<img src="${o.attachedImage3}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-lg border border-gray-300 cursor-zoom-in hover:opacity-80 transition shadow-sm" title="اضغط للتكبير">` : ''}
+                                ${o.baridimobReceipt ? `<img src="${o.baridimobReceipt}" onclick="openImageModal(this.src)" class="w-14 h-14 object-cover rounded-xl border-2 border-blue-500 cursor-zoom-in hover:opacity-80 transition shadow-md" title="وصل بريدي موب (اضغط للتأكد)">` : ''}
                             </div>
                             ` : ''}
                             
@@ -1922,6 +1933,17 @@ export async function loadUiAdminData() {
         console.error("خطأ في جلب بيانات الواجهة:", error);
     }
 }
+export function markOrderAsPaidInStore(orderId) {
+    if (confirm('هل أنت متأكد أن الزبون قد دفع مبلغ الطلب داخل المحل؟')) {
+        window.db.collection("orders").doc(orderId).update({ paymentStatus: 'paid' }).then(() => {
+            const orderIndex = state.orders.findIndex(o => o.id === orderId);
+            if (orderIndex !== -1) state.orders[orderIndex].paymentStatus = 'paid';
+            safeCall('renderAdminDashboard');
+            showCustomAlert('تم التأكيد', 'تم تحويل حالة الدفع إلى (تم الدفع داخل المحل) باللون الأخضر.', true);
+        });
+    }
+}
+window.markOrderAsPaidInStore = markOrderAsPaidInStore;
 // =====================================
 // 9. التصدير للـ Window
 // =====================================
