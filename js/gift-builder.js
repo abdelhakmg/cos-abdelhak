@@ -475,7 +475,7 @@ case 3:
                                         💳 <b>الدفع المسبق مطلوب:</b> لضمان تجهيز هديتك وإرسالها للمستلم في أبهى حلة، يرجى تحويل المبلغ الإجمالي للحساب أدناه وإرفاق الوصل لنبدأ بالعمل فوراً.
                                     </div>
                                     <!-- ⚠️ ضع رابط صورة الـ RIP والـ CCP الخاصة بك هنا 👇 -->
-                                    <img src="https://firebasestorage.googleapis.com/v0/b/cos-abdelhak.firebasestorage.app/o/Carte%20de%20paiement%20RIP%20et%20CCP%20%C3%A9l%C3%A9gante.png?alt=media&token=2005f500-c73a-45a5-aaff-b6147260d08f" class="w-full h-28 object-cover rounded-lg border border-gray-700 mb-3" alt="معلومات الحساب">
+                                    <img src="https://firebasestorage.googleapis.com/v0/b/cos-abdelhak.firebasestorage.app/o/Carte%20de%20paiement%20BaridiMob%20et%20CCP.png?alt=media&token=6daffd63-124c-46af-b230-39e5f991ea90" class="w-full h-28 object-cover rounded-lg border border-gray-700 mb-3" alt="معلومات الحساب">
                                     
                                     <label class="block text-[10px] font-bold text-gray-400 mb-1">أرفق صورة وصل الدفع هنا:</label>
                                     <input type="file" accept="image/*" id="gift-receipt-file" class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#D4AF37] file:font-bold file:text-black cursor-pointer hover:file:bg-yellow-500">
