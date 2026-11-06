@@ -256,22 +256,40 @@ export function renderCustomStep() {
                     </div>
 
                     <!-- 🌟 خيارات الدفع المباشر للورشة 🌟 -->
+                    <!-- 🌟 خيارات الدفع المباشر للورشة مع التوضيحات 🌟 -->
                     <div class="mt-4 p-4 bg-black rounded-2xl border border-[#D4AF37]/50 shadow-[0_0_15px_rgba(212,175,55,0.1)] text-right">
-                        <label class="block text-xs font-bold text-[#D4AF37] mb-3">اختر طريقة الدفع (الطلب المباشر):</label>
-                        <div class="flex flex-col gap-2">
-                            <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
-                                <input type="radio" name="custom_payment_method" value="in_store" class="accent-[#D4AF37] w-4 h-4" checked onchange="document.getElementById('custom-baridi-upload').classList.add('hidden')">
-                                <span class="text-sm text-white font-bold"><i class="fa-solid fa-shop text-[#D4AF37] ml-1"></i> الدفع داخل المحل</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
-                                <input type="radio" name="custom_payment_method" value="baridimob" class="accent-[#D4AF37] w-4 h-4" onchange="document.getElementById('custom-baridi-upload').classList.remove('hidden')">
-                                <span class="text-sm text-white font-bold"><i class="fa-solid fa-credit-card text-blue-500 ml-1"></i> الدفع عبر بريدي موب</span>
-                            </label>
-                        </div>
-                        <!-- رفع وصل بريدي موب (مخفي افتراضياً) -->
-                        <div id="custom-baridi-upload" class="hidden mt-3 p-3 bg-black border border-gray-700 rounded-xl">
-                            <p class="text-xs text-gray-400 mb-2">أرفق صورة وصل الدفع هنا لتأكيد طلبك:</p>
-                            <input type="file" accept="image/*" id="custom-receipt-file" class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#D4AF37] file:font-bold file:text-black cursor-pointer">
+                        <label class="block text-xs font-bold text-[#D4AF37] mb-3">اختر طريقة الدفع (لتأكيد الطلب المخصص):</label>
+                        
+                        <div class="flex flex-col gap-3">
+                            <!-- خيار المحل -->
+                            <div>
+                                <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+                                    <input type="radio" name="custom_payment_method" value="in_store" class="accent-[#D4AF37] w-4 h-4" checked onchange="document.getElementById('custom-baridi-upload').classList.add('hidden'); document.getElementById('custom-instore-info').classList.remove('hidden');">
+                                    <span class="text-sm text-white font-bold"><i class="fa-solid fa-shop text-[#D4AF37] ml-1"></i> الدفع داخل المحل</span>
+                                </label>
+                                <div id="custom-instore-info" class="mt-2 p-3 bg-orange-900/20 border border-orange-500/30 rounded-xl text-[11px] text-orange-200 font-bold leading-relaxed">
+                                    ⚠️ <b>توضيح هام:</b> نظراً لأن هذا المنتج سيُصمم <u>خصيصاً لك</u>، نرجو منك التفضل بزيارة محلنا لدفع المبلغ. (لن يتم البدء في تصميم طلبك إلا بعد تأكيد الدفع في المحل).
+                                </div>
+                            </div>
+
+                            <!-- خيار بريدي موب -->
+                            <div>
+                                <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+                                    <input type="radio" name="custom_payment_method" value="baridimob" class="accent-[#D4AF37] w-4 h-4" onchange="document.getElementById('custom-baridi-upload').classList.remove('hidden'); document.getElementById('custom-instore-info').classList.add('hidden');">
+                                    <span class="text-sm text-white font-bold"><i class="fa-solid fa-credit-card text-blue-500 ml-1"></i> الدفع عبر بريدي موب</span>
+                                </label>
+                                
+                                <div id="custom-baridi-upload" class="hidden mt-2 p-4 bg-blue-900/10 border border-blue-500/30 rounded-xl">
+                                    <div class="text-[11px] text-blue-200 font-bold leading-relaxed mb-3">
+                                        💳 <b>الدفع المسبق مطلوب:</b> لأن هذا الطلب مخصص لك وحدك، يرجى تحويل المبلغ الإجمالي للحساب أدناه، وإرفاق الوصل لنبدأ بتجهيزه فوراً دون عناء تنقلك للمحل.
+                                    </div>
+                                    <!-- ⚠️ ضع رابط صورة الـ RIP والـ CCP الخاصة بك هنا 👇 -->
+                                    <img src="https://firebasestorage.googleapis.com/v0/b/cos-abdelhak.firebasestorage.app/o/Carte%20de%20paiement%20RIP%20et%20CCP%20%C3%A9l%C3%A9gante.png?alt=media&token=2005f500-c73a-45a5-aaff-b6147260d08f" class="w-full h-28 object-cover rounded-lg border border-gray-700 mb-3" alt="معلومات الحساب">
+                                    
+                                    <label class="block text-[10px] font-bold text-gray-400 mb-1">أرفق صورة وصل الدفع هنا:</label>
+                                    <input type="file" accept="image/*" id="custom-receipt-file" class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#D4AF37] file:font-bold file:text-black cursor-pointer hover:file:bg-yellow-500">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
