@@ -255,6 +255,26 @@ export function renderCustomStep() {
                         </div>
                     </div>
 
+                    <!-- 🌟 خيارات الدفع المباشر للورشة 🌟 -->
+                    <div class="mt-4 p-4 bg-black rounded-2xl border border-[#D4AF37]/50 shadow-[0_0_15px_rgba(212,175,55,0.1)] text-right">
+                        <label class="block text-xs font-bold text-[#D4AF37] mb-3">اختر طريقة الدفع (الطلب المباشر):</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+                                <input type="radio" name="custom_payment_method" value="in_store" class="accent-[#D4AF37] w-4 h-4" checked onchange="document.getElementById('custom-baridi-upload').classList.add('hidden')">
+                                <span class="text-sm text-white font-bold"><i class="fa-solid fa-shop text-[#D4AF37] ml-1"></i> الدفع داخل المحل</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer bg-gray-900 p-3 rounded-lg border border-gray-800 hover:border-[#D4AF37] transition">
+                                <input type="radio" name="custom_payment_method" value="baridimob" class="accent-[#D4AF37] w-4 h-4" onchange="document.getElementById('custom-baridi-upload').classList.remove('hidden')">
+                                <span class="text-sm text-white font-bold"><i class="fa-solid fa-credit-card text-blue-500 ml-1"></i> الدفع عبر بريدي موب</span>
+                            </label>
+                        </div>
+                        <!-- رفع وصل بريدي موب (مخفي افتراضياً) -->
+                        <div id="custom-baridi-upload" class="hidden mt-3 p-3 bg-black border border-gray-700 rounded-xl">
+                            <p class="text-xs text-gray-400 mb-2">أرفق صورة وصل الدفع هنا لتأكيد طلبك:</p>
+                            <input type="file" accept="image/*" id="custom-receipt-file" class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#D4AF37] file:font-bold file:text-black cursor-pointer">
+                        </div>
+                    </div>
+
                     <div class="flex flex-col sm:flex-row gap-3 pt-4 mt-2 border-t border-gray-800 relative z-10">
                         <button type="button" onclick="submitCustomOrder()" class="flex-1 py-3.5 gold-gradient text-black font-black rounded-xl shadow-lg hover:scale-105 transition flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-bolt"></i> اطلب الآن (مباشرة)
@@ -701,7 +721,28 @@ ${customOrderData.color ? '- اللون: ' + customOrderData.color + '\n' : ''}$
 ${uploadedCount > 0 ? `- 📸 الزبون أرفق ${uploadedCount} صور(ة) للتصميم.` : ''}`;
 }
 
-export function submitCustomOrder() {
+export async function submitCustomOrder() {
+    const paymentMethod = document.querySelector('input[name="custom_payment_method"]:checked')?.value || 'in_store';
+    let receiptUrl = null;
+    const btn = document.querySelector('button[onclick="submitCustomOrder()"]');
+    const originalBtnHtml = btn ? btn.innerHTML : 'اطلب الآن (مباشرة)';
+
+    if (paymentMethod === 'baridimob') {
+        const fileInput = document.getElementById('custom-receipt-file');
+        if (!fileInput || !fileInput.files[0]) {
+            return showCustomAlert('تنبيه', 'يرجى إرفاق صورة وصل بريدي موب لتأكيد الطلب المباشر!', false);
+        }
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الوصل...'; btn.disabled = true; }
+        try {
+            receiptUrl = await window.compressAndUploadImage(fileInput.files[0], 'customer_uploads', 800);
+        } catch (e) {
+            if (btn) { btn.innerHTML = originalBtnHtml; btn.disabled = false; }
+            return showCustomAlert('خطأ', 'تعذر رفع صورة الوصل، أعد المحاولة.', false);
+        }
+    }
+
+    if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...'; btn.disabled = true; }
+
     const shipCost = calculateShippingCost(customOrderData.wilaya, state.WILAYAS, customOrderData.shippingType);
     const grandTotal = (Number(customOrderData.basePrice) || 0) + (Number(customOrderData.addonsPrice) || 0) + shipCost;
     
@@ -717,18 +758,21 @@ export function submitCustomOrder() {
         createdAt: new Date(),
         attachedImage1: customOrderData.uploadedImage1 || null,
         attachedImage2: customOrderData.uploadedImage2 || null,
-        attachedImage3: customOrderData.uploadedImage3 || null
+        attachedImage3: customOrderData.uploadedImage3 || null,
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentMethod === 'in_store' ? 'pending' : 'paid_pending_check',
+        baridimobReceipt: receiptUrl
     };
     
-   // إرسال الطلب المخصص إلى Vercel API مع تجاوز جدار حماية السلة
+    // إرسال الطلب مع تجاوز جدار السلة
     fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             ...newOrder,
             purchasedItems: [{
-                id: customOrderData.selectedProductId || 'custom_direct_order',
-                name: `[طلب مخصص مباشر] ${customOrderData.selectedProduct}`,
+                id: customOrderData.selectedProductId || 'custom_direct',
+                name: `[مخصص] ${customOrderData.selectedProduct}`,
                 price: grandTotal,
                 qty: 1
             }]
@@ -736,15 +780,16 @@ export function submitCustomOrder() {
     })
     .then(response => response.json())
     .then(data => {
+        if (btn) { btn.innerHTML = originalBtnHtml; btn.disabled = false; }
         if (data.error) throw new Error(data.error);
-        
         closeCustomBuilder();
-        showCustomAlert('تم استلام طلبك المخصص! 🎉', 'سنقوم بمراجعة التفاصيل والصور ونتصل بك قريباً.', true);
+        showCustomAlert('تم استلام طلبك المخصص! 🎉', 'سنقوم بمراجعة التفاصيل ونتصل بك قريباً لتأكيده.', true);
     })
     .catch(err => {
+        if (btn) { btn.innerHTML = originalBtnHtml; btn.disabled = false; }
         showCustomAlert('خطأ', 'تعذر إرسال الطلب: ' + err.message, false);
     });
-    }
+}
 // 🌟 تصحيح حرج: حفظ الصور المرفقة وصورة المنتج وتعبئة بيانات السلة تلقائياً
 export function addCustomToCart() {
     const cartItem = {
