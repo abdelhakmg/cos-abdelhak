@@ -197,21 +197,33 @@ export function renderCart() {
     const hasCustomItem = state.cart.some(item => String(item.id).startsWith('custom_') || String(item.id).startsWith('gift_'));
     const codOption = document.getElementById('payment-cod');
     const inStoreOption = document.getElementById('payment-instore');
+    const baridiMsg = document.getElementById('baridi-custom-msg');
     if (hasCustomItem) {
         if (codOption) codOption.style.display = 'none';
         if (inStoreOption) inStoreOption.style.display = 'flex';
+        if (baridiMsg) baridiMsg.style.display = 'block'; // إظهار رسالة الإقناع في بريدي موب
+        
         if (document.querySelector('input[name="cart_payment_method"]:checked')?.value === 'cod') {
             const inStoreRadio = document.querySelector('input[value="in_store"]');
-            if (inStoreRadio) inStoreRadio.checked = true;
+            if (inStoreRadio) {
+                inStoreRadio.checked = true;
+                const instoreInfo = document.getElementById('cart-instore-info');
+                if (instoreInfo) instoreInfo.classList.remove('hidden');
+            }
         }
     } else {
         if (codOption) codOption.style.display = 'flex';
         if (inStoreOption) inStoreOption.style.display = 'none';
+        if (baridiMsg) baridiMsg.style.display = 'none'; // إخفاء الرسالة لأنها سلة عادية
+        
+        const instoreInfo = document.getElementById('cart-instore-info');
+        if (instoreInfo) instoreInfo.classList.add('hidden');
+
         if (document.querySelector('input[name="cart_payment_method"]:checked')?.value === 'in_store') {
             const codRadio = document.querySelector('input[value="cod"]');
             if(codRadio) codRadio.checked = true;
         }
-    }    
+    }
         updateCartCalculations();
         return;
     }
