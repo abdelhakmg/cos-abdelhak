@@ -1321,14 +1321,20 @@ export function handleSaveSettings(e) {
         facebook: getValOrKeep('set-facebook', s.facebook),
         instagram: getValOrKeep('set-instagram', s.instagram),
         whatsappNum: getValOrKeep('set-whatsapp-num', s.whatsappNum),
-        telegram: getValOrKeep('set-telegram', s.telegram), // 👈 تمت إضافة الفاصلة هنا!
+        telegram: getValOrKeep('set-telegram', s.telegram),
         gpsLink: getValOrKeep('set-gps-link', s.gpsLink)
     };
     
     window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
         state.storeSettings = { ...state.storeSettings, ...settings };
         
-        // تحديث زر الخريطة فوراً بعد الحفظ
+        // 🌟 تحديث الهوية البصرية في الواجهة فوراً
+        const headerLogo = document.getElementById('header-logo-img');
+        const headerName = document.getElementById('header-store-name');
+        if (headerLogo && settings.logoUrl) headerLogo.src = settings.logoUrl;
+        if (headerName && settings.name) headerName.innerText = settings.name;
+
+        // تحديث زر الخريطة فوراً
         const gpsBtn = document.getElementById('link-gps');
         if (gpsBtn) {
             gpsBtn.href = settings.gpsLink || '#';
@@ -1336,7 +1342,7 @@ export function handleSaveSettings(e) {
         }
 
         safeCall('updateStoreFooterLinks');
-        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر وروابط التواصل بأمان!', true); 
+        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر والهوية البصرية بأمان!', true); 
     }).catch(err => {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     });
