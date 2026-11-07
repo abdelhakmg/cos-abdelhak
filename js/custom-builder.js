@@ -284,7 +284,7 @@ export function renderCustomStep() {
                                         💳 <b>الدفع المسبق مطلوب:</b> لأن هذا الطلب مخصص لك وحدك، يرجى تحويل المبلغ الإجمالي للحساب أدناه، وإرفاق الوصل لنبدأ بتجهيزه فوراً دون عناء تنقلك للمحل.
                                     </div>
                                     <!-- ⚠️ ضع رابط صورة الـ RIP والـ CCP الخاصة بك هنا 👇 -->
-                                    <img src="https://firebasestorage.googleapis.com/v0/b/cos-abdelhak.firebasestorage.app/o/%D8%AA%D9%86%D8%B2%D9%8A%D9%84.png?alt=media&token=32badda4-d399-4254-b2a1-da8ebb15ed16" class="w-full h-28 object-cover rounded-lg border border-gray-700 mb-3" alt="معلومات الحساب">
+                                    <img src="https://firebasestorage.googleapis.com/v0/b/cos-abdelhak.firebasestorage.app/o/%D8%AA%D9%86%D8%B2%D9%8A%D9%84.png?alt=media&token=32badda4-d399-4254-b2a1-da8ebb15ed16" class="w-full h-auto object-contain rounded-lg border border-gray-700 mb-3" alt="معلومات الحساب">
                                     
                                     <label class="block text-[10px] font-bold text-gray-400 mb-1">أرفق صورة وصل الدفع هنا:</label>
                                     <input type="file" accept="image/*" id="custom-receipt-file" class="w-full text-xs text-gray-400 file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#D4AF37] file:font-bold file:text-black cursor-pointer hover:file:bg-yellow-500">
