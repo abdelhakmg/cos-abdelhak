@@ -416,7 +416,10 @@ export function handleSaveProduct(e) {
             numbers: '',
             updatedAt: new Date()
         };
-
+          // 🌟 تحديد عرض صاعقة حقيقي (مثلاً بمدة 12 ساعة من لحظة الإضافة/التحديث)
+            isFlashSale: true, // يمكنك جعلها اختيارية عبر Checkbox لاحقاً إذا أردت
+            flashExpiresAt: Date.now() + (24 * 60 * 60 * 1000), // 12 ساعة بالميللي ثانية 
+                
         if (editId) {
             window.db.collection("products").doc(editId).update(productData).then(() => {
                 const index = state.products.findIndex(p => p.id === editId);
