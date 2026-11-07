@@ -19,38 +19,57 @@ export function initLuxurySplashScreen() {
     const titleEl = document.getElementById('splash-title-display');
     const subEl = document.getElementById('splash-subtitle-display');
 
-    // 🌟 عرض نصوص لوحة التحكم فوراً في اللحظة 0 لمنع ظهور شاشتين
     const cachedTitle = localStorage.getItem('cosSplashTitle');
     const cachedSub = localStorage.getItem('cosSplashSubtitle');
-    if (titleEl && cachedTitle) titleEl.innerText = cachedTitle;
-    if (subEl && cachedSub) subEl.innerText = cachedSub;
 
-    splash.style.display = 'flex';
-    splash.style.opacity = '1';
-    splash.style.transition = 'opacity 0.7s ease-in-out';
+    const runSingleSplash = () => {
+        splash.style.display = 'flex';
+        splash.style.opacity = '1';
+        splash.style.transition = 'opacity 0.7s ease-in-out';
 
-    // 🌟 مزامنة أي تعديل جديد قادم من لوحة التحكم (دون المساس بالشعار المربع نهائياً)
-    const dataCheckInterval = setInterval(() => {
-        if (state.uiConfig) {
-            if (state.uiConfig.splashTitle) {
-                if (titleEl) titleEl.innerText = state.uiConfig.splashTitle;
-                localStorage.setItem('cosSplashTitle', state.uiConfig.splashTitle);
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 700);
+        }, 3000);
+    };
+
+    // 1. إذا كانت النصوص محفوظة في الذاكرة، نضعها فوراً في اللحظة 0 مع الشعار كشاشة واحدة
+    if (cachedTitle !== null || cachedSub !== null) {
+        if (titleEl && cachedTitle) titleEl.innerText = cachedTitle;
+        if (subEl && cachedSub) subEl.innerText = cachedSub;
+        runSingleSplash();
+        return;
+    }
+
+    // 2. في أول زيارة فقط (قبل تخزين النص محلياً): ننتظر وصول النص من state.storeSettings لكي يظهر مع الشعار دفعة واحدة دون قفزة
+    Array.from(splash.children).forEach(el => el.style.opacity = '0');
+
+    let attempts = 0;
+    const waitInterval = setInterval(() => {
+        attempts++;
+        if (state.storeSettings && (state.storeSettings.splashTitle || state.storeSettings.splashSubtitle)) {
+            clearInterval(waitInterval);
+            if (titleEl && state.storeSettings.splashTitle) {
+                titleEl.innerText = state.storeSettings.splashTitle;
+                localStorage.setItem('cosSplashTitle', state.storeSettings.splashTitle);
             }
-            if (state.uiConfig.splashSubtitle) {
-                if (subEl) subEl.innerText = state.uiConfig.splashSubtitle;
-                localStorage.setItem('cosSplashSubtitle', state.uiConfig.splashSubtitle);
+            if (subEl && state.storeSettings.splashSubtitle) {
+                subEl.innerText = state.storeSettings.splashSubtitle;
+                localStorage.setItem('cosSplashSubtitle', state.storeSettings.splashSubtitle);
             }
-            clearInterval(dataCheckInterval);
+            Array.from(splash.children).forEach(el => {
+                el.style.transition = 'opacity 0.3s ease-in-out';
+                el.style.opacity = '1';
+            });
+            runSingleSplash();
+        } else if (attempts >= 20) {
+            clearInterval(waitInterval);
+            Array.from(splash.children).forEach(el => el.style.opacity = '1');
+            runSingleSplash();
         }
     }, 100);
-
-    setTimeout(() => {
-        clearInterval(dataCheckInterval);
-        splash.style.opacity = '0';
-        setTimeout(() => {
-            splash.style.display = 'none';
-        }, 700);
-    }, 3000);
 }
 // الدخول السري للوحة التحكم (3 نقرات على الشعار)
 export function handleLogoClick(event) {
