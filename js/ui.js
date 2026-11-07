@@ -698,15 +698,26 @@ export function startBannerTicker() {
 // ==========================================
 // 6. التحكم الديناميكي بشاشة الافتتاح (Admin)
 // ==========================================
+// ==========================================
+// 6. التحكم الديناميكي بشاشة الافتتاح (Admin)
+// ==========================================
 export function saveSplashSettings() {
     const title = document.getElementById('admin-splash-title')?.value.trim() || '';
     const subtitle = document.getElementById('admin-splash-subtitle')?.value.trim() || '';
     
+    // حفظ فوري في ذاكرة المتصفح لتظهر في اللحظة 0 عند فتح الموقع
+    localStorage.setItem('cosSplashTitle', title);
+    localStorage.setItem('cosSplashSubtitle', subtitle);
+
     if (typeof window.db !== 'undefined') {
         window.db.collection('settings').doc('main').set({
             splashTitle: title,
             splashSubtitle: subtitle
         }, { merge: true }).then(() => {
+            if (state.storeSettings) {
+                state.storeSettings.splashTitle = title;
+                state.storeSettings.splashSubtitle = subtitle;
+            }
             showCustomAlert('تم الحفظ بنجاح 👑', 'تم تغيير نصوص شاشة البداية بنجاح وسيراها جميع الزوار فوراً.', true);
         }).catch(err => console.error("Error saving splash settings:", err));
     }
@@ -717,15 +728,21 @@ export function updateSplashScreenText() {
     
     const titleEl = document.getElementById('splash-title-display');
     const subEl = document.getElementById('splash-subtitle-display');
-    if (titleEl && state.storeSettings.splashTitle) titleEl.innerText = state.storeSettings.splashTitle;
-    if (subEl && state.storeSettings.splashSubtitle) subEl.innerText = state.storeSettings.splashSubtitle;
+
+    if (state.storeSettings.splashTitle !== undefined) {
+        if (titleEl) titleEl.innerText = state.storeSettings.splashTitle;
+        localStorage.setItem('cosSplashTitle', state.storeSettings.splashTitle);
+    }
+    if (state.storeSettings.splashSubtitle !== undefined) {
+        if (subEl) subEl.innerText = state.storeSettings.splashSubtitle;
+        localStorage.setItem('cosSplashSubtitle', state.storeSettings.splashSubtitle);
+    }
 
     const adminTitleInput = document.getElementById('admin-splash-title');
     const adminSubInput = document.getElementById('admin-splash-subtitle');
     if (adminTitleInput && state.storeSettings.splashTitle) adminTitleInput.value = state.storeSettings.splashTitle;
     if (adminSubInput && state.storeSettings.splashSubtitle) adminSubInput.value = state.storeSettings.splashSubtitle;
 }
-
 // ==========================================
 // 7. ربط كافة الدوال بالواجهة (Window Bindings) 
 // ==========================================
