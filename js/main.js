@@ -3,7 +3,7 @@
 // استيراد كافة وحدات المشروع بإصدار موحد لكسر الكاش في الهواتف فوراً
 import './store/state.js';
 import './utils/helpers.js';
-import './services/database.js?v=18';
+import './services/database.js?v=19';
 import './app.js?v=17';
 import './ui.js?v=17';
 import './landing.js?v=17';
