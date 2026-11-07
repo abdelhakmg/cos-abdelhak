@@ -116,17 +116,31 @@ export function switchAdminTab(tabName) {
         renderAdminHeroSlidesList();
         renderAdminCouponsList();
         
-        // 🌟 تعبئة كافة خانات الهوية البصرية والتواصل الاجتماعي بالبيانات المحفوظة
-        if (document.getElementById('set-store-name')) document.getElementById('set-store-name').value = s.name || '';
-        if (document.getElementById('set-store-slogan')) document.getElementById('set-store-slogan').value = s.slogan || '';
-        if (document.getElementById('set-logo-url')) document.getElementById('set-logo-url').value = s.logoUrl || '';
-        if (document.getElementById('set-phone')) document.getElementById('set-phone').value = s.phone || '';
-        if (document.getElementById('set-email')) document.getElementById('set-email').value = s.email || '';
-        if (document.getElementById('set-facebook')) document.getElementById('set-facebook').value = s.facebook || '';
-        if (document.getElementById('set-instagram')) document.getElementById('set-instagram').value = s.instagram || '';
-        if (document.getElementById('set-whatsapp-num')) document.getElementById('set-whatsapp-num').value = s.whatsappNum || '';
-        if (document.getElementById('set-telegram')) document.getElementById('set-telegram').value = s.telegram || '';
-        if (document.getElementById('set-gps-link')) document.getElementById('set-gps-link').value = s.gpsLink || '';
+        // 🌟 تعبئة الروابط والشعار فقط
+        setTimeout(() => {
+            const s = state.storeSettings || {};
+            
+            // الهوية البصرية (اللوجو فقط)
+            const logoEl = document.getElementById('set-logo-url');
+            if (logoEl) logoEl.value = s.logoUrl || '';
+
+            // أرقام وروابط التواصل
+            const phoneEl = document.getElementById('set-phone');
+            const emailEl = document.getElementById('set-email');
+            const fbEl = document.getElementById('set-facebook');
+            const igEl = document.getElementById('set-instagram');
+            const waEl = document.getElementById('set-whatsapp-num');
+            const tgEl = document.getElementById('set-telegram');
+            const gpsEl = document.getElementById('set-gps-link');
+
+            if (phoneEl) phoneEl.value = s.phone || '';
+            if (emailEl) emailEl.value = s.email || '';
+            if (fbEl) fbEl.value = s.facebook || '';
+            if (igEl) igEl.value = s.instagram || '';
+            if (waEl) waEl.value = s.whatsappNum || '';
+            if (tgEl) tgEl.value = s.telegram || '';
+            if (gpsEl) gpsEl.value = s.gpsLink || '';
+        }, 300);
     }
 
     if (tabName === 'gift') {
@@ -1311,9 +1325,7 @@ export function handleSaveSettings(e) {
     };
 
     const settings = {
-        name: getValOrKeep('set-store-name', s.name),
-        slogan: getValOrKeep('set-store-slogan', s.slogan),
-        logoUrl: getValOrKeep('set-logo-url', s.logoUrl),
+        logoUrl: getValOrKeep('set-logo-url', s.logoUrl), // الشعار فقط
         msgSuccess: getValOrKeep('set-msg-success', s.msgSuccess),
         msgWarning: getValOrKeep('set-msg-warning', s.msgWarning),
         phone: getValOrKeep('set-phone', s.phone),
@@ -1328,11 +1340,9 @@ export function handleSaveSettings(e) {
     window.db.collection("settings").doc("main").set(settings, { merge: true }).then(() => { 
         state.storeSettings = { ...state.storeSettings, ...settings };
         
-        // 🌟 تحديث الهوية البصرية في الواجهة فوراً
+        // 🌟 تحديث الشعار في الواجهة فوراً
         const headerLogo = document.getElementById('header-logo-img');
-        const headerName = document.getElementById('header-store-name');
         if (headerLogo && settings.logoUrl) headerLogo.src = settings.logoUrl;
-        if (headerName && settings.name) headerName.innerText = settings.name;
 
         // تحديث زر الخريطة فوراً
         const gpsBtn = document.getElementById('link-gps');
@@ -1342,7 +1352,7 @@ export function handleSaveSettings(e) {
         }
 
         safeCall('updateStoreFooterLinks');
-        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر والهوية البصرية بأمان!', true); 
+        showCustomAlert('تم بنجاح 🎉', 'تم حفظ إعدادات المتجر والشعار بأمان!', true); 
     }).catch(err => {
         showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false);
     });
