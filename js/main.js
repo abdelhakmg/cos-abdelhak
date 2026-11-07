@@ -3,12 +3,12 @@
 // استيراد كافة وحدات المشروع بإصدار موحد لكسر الكاش في الهواتف فوراً
 import './store/state.js';
 import './utils/helpers.js';
-import './services/database.js?v=17';
+import './services/database.js?v=18';
 import './app.js?v=17';
 import './ui.js?v=17';
 import './landing.js?v=17';
 import './gift-builder.js?v=17';
-import './admin.js?v=17';
+import './admin.js?v=18';
 import './admin-custom.js?v=17';
 import './custom-builder.js?v=17';
 import './beauty-advisor.js?v=17';
