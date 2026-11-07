@@ -16,18 +16,20 @@ export function initLuxurySplashScreen() {
         return;
     }
 
-    // 🌟 فحص مستمر وسريع للبيانات لمدة ثانية ونصف قبل إظهار الشاشة
-    let checkCount = 0;
+    // إظهار الشاشة فوراً عند فتح الموقع لتجنب أي تأخير
+    splash.style.display = 'flex';
+    splash.style.opacity = '1';
+    splash.style.transition = 'opacity 0.7s ease-in-out';
+
+    // 🌟 فحص مستمر وسريع للبيانات لملء النصوص أثناء عرض الشاشة
     const dataCheckInterval = setInterval(() => {
-        checkCount++;
-        
-        // جلب الشعار من storeSettings
+        // جلب الشعار
         if (state.storeSettings && state.storeSettings.logoUrl) {
             const splashLogo = document.querySelector('#luxury-splash-screen img');
             if (splashLogo) splashLogo.src = state.storeSettings.logoUrl;
         }
 
-        // جلب النصوص من uiConfig
+        // جلب النصوص وإيقاف الفحص
         if (state.uiConfig) {
             const titleEl = document.getElementById('splash-title-display');
             const subEl = document.getElementById('splash-subtitle-display');
@@ -36,32 +38,16 @@ export function initLuxurySplashScreen() {
             if (subEl && state.uiConfig.splashSubtitle) subEl.innerText = state.uiConfig.splashSubtitle;
             
             clearInterval(dataCheckInterval);
-            showSplashNow(splash);
-            return;
         }
-
-        // إذا تأخرت البيانات أكثر من 1.5 ثانية (15 محاولة)، اعرض الشاشة بالبيانات الافتراضية
-        if (checkCount >= 15) {
-            clearInterval(dataCheckInterval);
-            showSplashNow(splash);
-        }
-    }, 100);
-}
-
-function showSplashNow(splash) {
-    splash.style.display = 'flex';
-    // إجبار المتصفح على قراءة الـ flex قبل بدء الـ opacity لضمان نعومة الحركة
-    setTimeout(() => {
-        splash.style.opacity = '1';
-        splash.style.transition = 'opacity 0.7s ease-in-out';
     }, 50);
 
+    // إخفاء الشاشة وإزالتها بعد 3 ثوانٍ سواء وصلت البيانات أم لم تصل
     setTimeout(() => {
+        clearInterval(dataCheckInterval);
         splash.style.opacity = '0';
         setTimeout(() => {
             splash.style.display = 'none';
-            // 🌟 إزالة الشاشة تماماً من الـ DOM لتخفيف الحمل على المتصفح
-            splash.remove();
+            splash.remove(); // تنظيف الـ DOM
         }, 700);
     }, 3000);
 }
