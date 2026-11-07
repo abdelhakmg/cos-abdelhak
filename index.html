@@ -112,11 +112,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 </button>
             </div>
 
-            <!-- 2. الوسط: الشعار الكبير (يتم جلبه من لوحة التحكم) -->
-            <div class="flex items-center justify-center cursor-pointer select-none h-16 w-full" id="logo-trigger" onclick="handleLogoClick(event)">
-                <img id="header-logo-img" src="logo.png" class="h-full max-h-16 w-auto max-w-[200px] object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)] transition-transform hover:scale-105" alt="شعار المتجر" loading="lazy">
-                <!-- إخفاء النص لترك التركيز على اللوغو فقط كما طلبت -->
-                <span id="header-store-name" class="hidden"></span>
+            <!-- 2. الوسط: الشعار الفاخر (في المنتصف تماماً) -->
+            <div class="flex flex-1 items-center justify-center cursor-pointer select-none h-16" id="logo-trigger" onclick="handleLogoClick(event)">
+                <img id="header-logo-img" src="logo.png" class="h-full w-auto max-w-[180px] sm:max-w-[220px] object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-transform hover:scale-105" alt="كوسمتيك عبد الحق" loading="lazy">
             </div>
 
             <!-- 3. اليسار: السلة والمفضلة (تظهر في الحاسوب فقط لأنها في الهاتف بالأسفل) -->
@@ -1178,14 +1176,17 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         </div>
 
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-    <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-store text-[#B8860B]"></i> هوية المتجر المرئية</h3>
-    <div class="space-y-4">
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">اسم المتجر</label><input type="text" id="set-store-name" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">المقولة / الشعار</label><input type="text" id="set-store-slogan" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <div><label class="block text-xs font-bold mb-1 text-gray-600">رابط اللوجو (URL)</label><input type="url" id="set-logo-url" class="w-full border p-3 rounded-xl text-sm bg-gray-50"></div>
-        <button type="button" onclick="handleSaveSettings(event)" class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-md hover:opacity-90 transition mt-2 cursor-pointer">حفظ الهوية البصرية</button>
-    </div>
-</div>
+                            <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-store text-[#B8860B]"></i> هوية المتجر (الشعار)</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 text-gray-600">رابط الشعار (اللوجو) الخاص بالمتجر *</label>
+                                    <input type="url" id="set-logo-url" placeholder="انسخ رابط صورتك وضعه هنا..." class="w-full border p-3 rounded-xl text-sm bg-gray-50 focus:border-[#D4AF37] outline-none">
+                                </div>
+                                <button type="button" onclick="handleSaveSettings(event)" class="w-full gold-gradient text-black font-extrabold py-3.5 rounded-xl shadow-md hover:opacity-90 transition mt-2 cursor-pointer">
+                                    حفظ الشعار وتحديثه
+                                </button>
+                            </div>
+                        </div>
 
                         <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4 lg:col-span-2">
                             <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-solid fa-hashtag text-[#B8860B]"></i> أرقام وروابط التواصل</h3>
