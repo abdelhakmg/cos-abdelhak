@@ -1954,9 +1954,39 @@ export async function loadUiAdminData() {
                 document.getElementById('admin-preview-banner-workshop').src = data.bannerWorkshop || 'https://via.placeholder.com/400x600/121212/D4AF37?text=لا+توجد+صورة';
             }
             if (flashInput) flashInput.value = data.flashIds || '';
+            if (document.getElementById('admin-splash-title')) document.getElementById('admin-splash-title').value = data.splashTitle || '';
+            if (document.getElementById('admin-splash-subtitle')) document.getElementById('admin-splash-subtitle').value = data.splashSubtitle || '';
         }
     } catch (error) {
         console.error("خطأ في جلب بيانات الواجهة:", error);
+    }
+}
+export async function saveSplashSettings() {
+    const titleInput = document.getElementById('admin-splash-title');
+    const subtitleInput = document.getElementById('admin-splash-subtitle');
+    const btn = document.querySelector('button[onclick="safeCall(\'saveSplashSettings\')"]');
+    
+    if (!titleInput || !subtitleInput) return;
+
+    const originalText = btn ? btn.innerHTML : 'حفظ نصوص شاشة البداية 👑';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+
+    const splashData = {
+        splashTitle: titleInput.value.trim(),
+        splashSubtitle: subtitleInput.value.trim()
+    };
+
+    try {
+        await window.db.collection("settings").doc("ui_config").set(splashData, { merge: true });
+        
+        if (!state.uiConfig) state.uiConfig = {};
+        state.uiConfig = { ...state.uiConfig, ...splashData };
+
+        showCustomAlert("تم الحفظ 🎉", "تم تحديث نصوص شاشة الافتتاح الفاخرة بنجاح!", true);
+    } catch (error) {
+        showCustomAlert("خطأ", "حدث خطأ أثناء الحفظ: " + error.message, false);
+    } finally {
+        if (btn) btn.innerHTML = originalText;
     }
 }
 export function markOrderAsPaidInStore(orderId) {
@@ -2044,3 +2074,4 @@ window.checkBulkProductDeleteStatus = checkBulkProductDeleteStatus;
 window.deleteSelectedProducts = deleteSelectedProducts;
 window.saveUiSettings = saveUiSettings;
 window.loadUiAdminData = loadUiAdminData;
+window.saveSplashSettings = saveSplashSettings;
