@@ -1982,6 +1982,10 @@ export async function saveSplashSettings() {
         if (!state.uiConfig) state.uiConfig = {};
         state.uiConfig = { ...state.uiConfig, ...splashData };
 
+        // حفظ فوري في الذاكرة لكي يظهر منذ اللحظة الأولى
+        localStorage.setItem('cosSplashTitle', splashData.splashTitle);
+        localStorage.setItem('cosSplashSubtitle', splashData.splashSubtitle);
+
         showCustomAlert("تم الحفظ 🎉", "تم تحديث نصوص شاشة الافتتاح الفاخرة بنجاح!", true);
     } catch (error) {
         showCustomAlert("خطأ", "حدث خطأ أثناء الحفظ: " + error.message, false);
