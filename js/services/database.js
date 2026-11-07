@@ -340,11 +340,15 @@ export function initFirebaseSync() {
 
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
         loadAllProductsForAdmin();
-        // 🌟 ننتظر تأكيد جلسة المدير من Firebase Auth أولاً لتجنب خطأ Insufficient Permissions
         window.firebase.auth().onAuthStateChanged((user) => {
-            if (user && user.email === 'mohamed.pato@gmail.com') {
+            if (!user) return;
+            if (user.email === 'mohamed.pato@gmail.com') {
                 initAdminOrdersSync();
                 initAdminAnalyticsSync();
+            } else {
+                const perms = JSON.parse(localStorage.getItem('cosAdminPerms') || '[]');
+                if (perms.includes('orders_list')) initAdminOrdersSync();
+                if (perms.includes('visitors_stats')) initAdminAnalyticsSync();
             }
         });
     }
