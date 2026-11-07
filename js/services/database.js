@@ -358,6 +358,13 @@ export function initFirebaseSync() {
 export function initAdminOrdersSync(limitCount = 200) {
     if (typeof window.db === 'undefined') return;
     
+    // 🌟 التحقق الذكي: إذا كان المستخدم مشرفاً فرعياً وليس لديه صلاحية الطلبات، نتوقف فوراً ولا ننفذ الاستعلام
+    const role = localStorage.getItem('cosAdminRole');
+    const perms = JSON.parse(localStorage.getItem('cosAdminPerms') || '[]');
+    if (role === 'sub' && !perms.includes('orders_list')) {
+        return;
+    }
+
     if (ordersUnsubscribe) {
         ordersUnsubscribe();
     }
@@ -371,7 +378,12 @@ export function initAdminOrdersSync(limitCount = 200) {
                 state.orders.push({ id: doc.id, ...doc.data() });
             });
             safeCall('renderAdminDashboard');
-        }, (error) => console.error("Error fetching orders:", error));
+        }, (error) => {
+            // نتجاهل خطأ الصلاحيات بصمت إذا لم تكن مخصصة له، أو نطبعها إن كانت تخص المدير
+            if (!error.message.includes('insufficient permissions')) {
+                console.error("Error fetching orders:", error);
+            }
+        });
 }
 
 // ==========================================
