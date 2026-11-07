@@ -13,46 +13,67 @@ export function checkAdminPassword() {
     const emailInput = document.getElementById('admin-email-input');
     const passInput = document.getElementById('admin-pass-input');
     if (!emailInput || !passInput) return;
-    const email = emailInput.value.trim();
+    let loginId = emailInput.value.trim().toLowerCase();
     const password = passInput.value.trim();
 
-    if (!email || !password) {
-        showCustomAlert('تنبيه', 'يرجى إدخال البريد الإلكتروني وكلمة المرور!', false);
+    if (!loginId || !password) {
+        showCustomAlert('تنبيه', 'يرجى إدخال اسم المستخدم وكلمة المرور!', false);
         return;
     }
+
+    // 🌟 تحويل الاسم البسيط إلى صيغة بريد داخلي تلقائياً إذا لم يكن يحتوي على @
+    const email = loginId.includes('@') ? loginId : `${loginId}@cos-abdelhak.local`;
 
     if (typeof window.firebase !== 'undefined') {
         window.firebase.auth().setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
             .then(() => window.firebase.auth().signInWithEmailAndPassword(email, password))
-            .then((userCredential) => {
+            .then(async (userCredential) => {
                 const user = userCredential.user;
-                if (user.email !== "mohamed.pato@gmail.com") {
-                    window.firebase.auth().signOut();
-                    showCustomAlert('غير مخول', 'عذراً، هذا الحساب ليس له صلاحيات إدارية!', false);
-                    return;
+                
+                if (user.email === "mohamed.pato@gmail.com") {
+                    localStorage.setItem('cosAdminLoggedIn', 'true');
+                    localStorage.setItem('cosAdminRole', 'super');
+                    localStorage.removeItem('cosAdminPerms');
+                    safeCall('initAdminOrdersSync');
+                    safeCall('initAdminAnalyticsSync');
+                } else {
+                    const doc = await window.db.collection('sub_admins').doc(user.uid).get();
+                    if (!doc.exists) {
+                        await window.firebase.auth().signOut();
+                        showCustomAlert('غير مخول', 'عذراً، هذا الحساب تم إيقافه أو ليس له صلاحيات إدارية!', false);
+                        return;
+                    }
+                    const subData = doc.data();
+                    const perms = subData.permissions || [];
+                    localStorage.setItem('cosAdminLoggedIn', 'true');
+                    localStorage.setItem('cosAdminRole', 'sub');
+                    localStorage.setItem('cosAdminPerms', JSON.stringify(perms));
+                    
+                    if (perms.includes('orders_list')) safeCall('initAdminOrdersSync');
+                    if (perms.includes('visitors_stats')) safeCall('initAdminAnalyticsSync');
                 }
+
                 const authModal = document.getElementById('admin-auth-modal');
                 if (authModal) {
                     authModal.style.display = 'none';
                     authModal.classList.add('hidden');
                 }
-                localStorage.setItem('cosAdminLoggedIn', 'true');
                 emailInput.value = ''; 
                 passInput.value = '';
                 
-                // 🌟 تشغيل مزامنة الطلبيات فور تسجيل دخول المدير
-                safeCall('initAdminOrdersSync');
-                safeCall('initAdminAnalyticsSync');
+                applyAdminPermissionsUI();
                 safeCall('loadAllProductsForAdmin');
                 safeCall('showPage', 'admin');
                 showCustomAlert('أهلاً بك', 'تم تسجيل الدخول للوحة التحكم بنجاح 🟢', true);
             })
-            .catch(() => showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة البريد الإلكتروني وكلمة المرور.', false));
+            .catch(() => showCustomAlert('خطأ في الدخول', 'فشل المصادقة: تأكد من صحة اسم المستخدم وكلمة المرور.', false));
     }
 }
 
 export function adminSignOut() {
     localStorage.removeItem('cosAdminLoggedIn');
+    localStorage.removeItem('cosAdminRole');
+    localStorage.removeItem('cosAdminPerms');
     if (typeof window.firebase !== 'undefined') {
         window.firebase.auth().signOut().then(() => {
             showCustomAlert('تم تسجيل الخروج', 'تم تأمين وإنهاء الجلسة بنجاح.', true);
@@ -151,6 +172,9 @@ export function switchAdminTab(tabName) {
     }
     if (tabName === 'custom_services') {
         safeCall('loadCustomAdminData');
+    }
+    if (tabName === 'sub_admins') {
+        renderSubAdminsList();
     }
 }
 
@@ -2046,3 +2070,179 @@ window.checkBulkProductDeleteStatus = checkBulkProductDeleteStatus;
 window.deleteSelectedProducts = deleteSelectedProducts;
 window.saveUiSettings = saveUiSettings;
 window.loadUiAdminData = loadUiAdminData;
+
+// =====================================
+// 11. إدارة المشرفين الفرعيين والصلاحيات (Sub-Admins)
+// =====================================
+export function applyAdminPermissionsUI() {
+    const role = localStorage.getItem('cosAdminRole') || 'super';
+    const perms = JSON.parse(localStorage.getItem('cosAdminPerms') || '[]');
+    const isSuper = (role === 'super');
+
+    const setElVisible = (id, show) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (show) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+    };
+
+    // 1. التحكم في أزرار التبويبات العلوية
+    setElVisible('tab-btn-analytics', isSuper || perms.includes('orders_list') || perms.includes('visitors_stats') || perms.includes('sales_stats'));
+    setElVisible('tab-btn-products', isSuper || perms.includes('products'));
+    setElVisible('tab-btn-categories_attributes', isSuper || perms.includes('categories_attributes'));
+    setElVisible('tab-btn-marketing_ui', isSuper || perms.includes('marketing_ui'));
+    setElVisible('tab-btn-marketing', isSuper || perms.includes('marketing_ui'));
+    setElVisible('tab-btn-shipping_settings', isSuper || perms.includes('shipping_settings'));
+    setElVisible('tab-btn-gift', isSuper || perms.includes('gift'));
+    setElVisible('tab-btn-custom_services', isSuper || perms.includes('custom_services'));
+    setElVisible('tab-btn-sub_admins', isSuper); // تبويب المشرفين يظهر للمدير الأساسي فقط
+
+    // 2. التحكم الدقيق داخل التبويب الأول (فصل الزوار والمبيعات عن جدول الطلبات)
+    setElVisible('admin-visitors-radar-box', isSuper || perms.includes('visitors_stats'));
+    setElVisible('admin-sales-stats-box', isSuper || perms.includes('sales_stats'));
+    
+    const ordersLogTable = document.getElementById('admin-orders-log');
+    if (ordersLogTable) {
+        const ordersSectionBox = ordersLogTable.closest('.bg-white');
+        if (ordersSectionBox) {
+            if (isSuper || perms.includes('orders_list')) ordersSectionBox.classList.remove('hidden');
+            else ordersSectionBox.classList.add('hidden');
+        }
+    }
+
+    // 3. فتح أول تبويب مسموح للمشرف تلقائياً
+    const tabOrder = [
+        { name: 'analytics', allowed: isSuper || perms.includes('orders_list') || perms.includes('visitors_stats') || perms.includes('sales_stats') },
+        { name: 'products', allowed: isSuper || perms.includes('products') },
+        { name: 'categories_attributes', allowed: isSuper || perms.includes('categories_attributes') },
+        { name: 'gift', allowed: isSuper || perms.includes('gift') },
+        { name: 'custom_services', allowed: isSuper || perms.includes('custom_services') },
+        { name: 'marketing_ui', allowed: isSuper || perms.includes('marketing_ui') },
+        { name: 'shipping_settings', allowed: isSuper || perms.includes('shipping_settings') }
+    ];
+    const firstAllowed = tabOrder.find(t => t.allowed);
+    if (firstAllowed) {
+        switchAdminTab(firstAllowed.name);
+    }
+}
+
+export async function handleSaveSubAdmin(e) {
+    if (e) e.preventDefault();
+    const userInp = document.getElementById('sub-admin-username');
+    const passInp = document.getElementById('sub-admin-password');
+    const btn = document.getElementById('save-sub-admin-btn');
+
+    if (!userInp || !passInp) return;
+    let rawUsername = userInp.value.trim().toLowerCase();
+    const password = passInp.value.trim();
+
+    if (!rawUsername || password.length < 6) {
+        showCustomAlert('تنبيه', 'يرجى إدخال اسم مستخدم وكلمة مرور من 6 أحرف/أرقام على الأقل.', false);
+        return;
+    }
+
+    const perms = Array.from(document.querySelectorAll('.sub-admin-perm-cb:checked')).map(cb => cb.value);
+    if (perms.length === 0) {
+        showCustomAlert('تنبيه', 'يرجى تحديد صلاحية واحدة على الأقل لهذا المشرف!', false);
+        return;
+    }
+
+    const email = rawUsername.includes('@') ? rawUsername : `${rawUsername}@cos-abdelhak.local`;
+    const originalBtnText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
+    btn.disabled = true;
+
+    // 🌟 استخدام تطبيق Firebase ثانوي مؤقت لإنشاء حساب المشرف دون تسجيل خروج المدير الأساسي!
+    let secondaryApp = null;
+    try {
+        const config = window.firebase.app().options;
+        secondaryApp = window.firebase.initializeApp(config, 'SecondaryApp_' + Date.now());
+        const userCred = await secondaryApp.auth().createUserWithEmailAndPassword(email, password);
+        const newUid = userCred.user.uid;
+        await secondaryApp.auth().signOut();
+
+        await window.db.collection('sub_admins').doc(newUid).set({
+            uid: newUid,
+            username: rawUsername,
+            email: email,
+            passwordHint: password,
+            permissions: perms,
+            createdAt: new Date()
+        });
+
+        userInp.value = '';
+        passInp.value = '';
+        renderSubAdminsList();
+        showCustomAlert('تم بنجاح 🎉', `تم إنشاء حساب المشرف (${rawUsername}) وتفعيل صلاحياته!`, true);
+    } catch (err) {
+        let msg = err.message;
+        if (err.code === 'auth/email-already-in-use') msg = 'اسم المستخدم هذا موجود مسبقاً! اختر اسماً آخر.';
+        showCustomAlert('خطأ', msg, false);
+    } finally {
+        if (secondaryApp) secondaryApp.delete().catch(() => {});
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+    }
+}
+
+export async function renderSubAdminsList() {
+    const container = document.getElementById('sub-admins-list-container');
+    if (!container || typeof window.db === 'undefined') return;
+
+    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">جاري التحميل... ⏳</p>';
+    try {
+        const snap = await window.db.collection('sub_admins').get();
+        if (snap.empty) {
+            container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">لا يوجد مشرفون مضافون حالياً.</p>';
+            return;
+        }
+
+        const permNames = {
+            orders_list: '📋 جدول الطلبات',
+            products: '🛍️ المنتجات',
+            visitors_stats: '👁️ الزوار',
+            sales_stats: '💰 المبيعات',
+            categories_attributes: '⚙️ الأقسام',
+            gift: '🎁 الهدايا',
+            custom_services: '🎨 الورشة',
+            marketing_ui: '📢 التسويق والواجهة',
+            shipping_settings: '🚚 التوصيل والإعدادات'
+        };
+
+        let html = '';
+        snap.forEach(doc => {
+            const d = doc.data();
+            const badges = (d.permissions || []).map(p => `<span class="bg-gray-100 text-gray-800 border border-gray-200 px-2 py-0.5 rounded-md text-[10px] font-bold">${permNames[p] || p}</span>`).join(' ');
+            html += `
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-sm text-gray-900"><i class="fa-solid fa-user-check text-emerald-600 ml-1"></i> ${d.username}</span>
+                            <span class="text-[11px] bg-amber-50 text-[#B8860B] border border-amber-200 px-2 py-0.5 rounded font-mono font-bold">كلمة السر: ${d.passwordHint || '***'}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1 pt-1">${badges}</div>
+                    </div>
+                    <button type="button" onclick="deleteSubAdmin('${doc.id}', '${d.username}')" class="bg-red-100 hover:bg-red-600 text-red-600 hover:text-white text-xs font-bold px-3.5 py-2 rounded-xl transition cursor-pointer shrink-0">
+                        <i class="fa-solid fa-trash-can"></i> سحب الصلاحية وحذف
+                    </button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    } catch (err) {
+        container.innerHTML = '<p class="text-xs text-red-500 text-center py-4">تعذر جلب قائمة المشرفين.</p>';
+    }
+}
+
+export function deleteSubAdmin(uid, username) {
+    if (!confirm(`هل أنت متأكد من حذف المشرف (${username}) وإيقاف دخوله للوحة التحكم فوراً؟`)) return;
+    window.db.collection('sub_admins').doc(uid).delete().then(() => {
+        renderSubAdminsList();
+        showCustomAlert('تم الحذف', `تم إلغاء صلاحيات المشرف (${username}) بنجاح.`, true);
+    });
+}
+
+window.applyAdminPermissionsUI = applyAdminPermissionsUI;
+window.handleSaveSubAdmin = handleSaveSubAdmin;
+window.renderSubAdminsList = renderSubAdminsList;
+window.deleteSubAdmin = deleteSubAdmin;
