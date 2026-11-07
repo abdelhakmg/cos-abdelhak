@@ -91,30 +91,37 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
     </div>
 
     <!-- Main Header Navigation -->
-    <!-- Main Header Navigation -->
     <header class="bg-black/95 backdrop-blur-md text-white sticky top-8 z-40 border-b border-[#D4AF37]/30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 h-20 grid grid-cols-3 items-center">
             
-            <!-- 1. اليمين: زر القائمة الجانبية وزر تتبع الطلبات -->
+            <!-- 1. اليمين: القائمة الجانبية وزر التتبع (للهاتف والحاسوب) + أزرار الورشة (للحاسوب فقط) -->
             <div class="flex items-center gap-2 justify-start">
-                <button onclick="toggleMobileMenu()" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition shadow-sm cursor-pointer">
+                <button onclick="toggleMobileMenu()" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition shadow-sm cursor-pointer lg:hidden">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
-                <button onclick="showPage('tracking')" class="p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition shadow-sm cursor-pointer" title="تتبع طلبي">
+                <button onclick="showPage('tracking')" class="hidden md:block p-2 rounded-xl bg-[#121212] border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#1e1e1e] transition shadow-sm cursor-pointer" title="تتبع طلبي">
                     <i class="fa-solid fa-truck-fast text-xl"></i>
+                </button>
+                
+                <!-- 🌟 استرجاع أزرار الورشة والهدايا (تظهر في الحاسوب فقط) -->
+                <button onclick="openGiftBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> أطلب هديتك
+                </button>
+                <button onclick="openCustomBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                    <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
                 </button>
             </div>
 
             <!-- 2. الوسط: الشعار الكبير (يتم جلبه من لوحة التحكم) -->
-            <div class="flex items-center justify-center cursor-pointer select-none h-16" id="logo-trigger" onclick="handleLogoClick(event)">
-                <img id="header-logo-img" src="logo.png" class="h-full max-w-[150px] sm:max-w-[200px] object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)] transition-transform hover:scale-105" alt="شعار المتجر" loading="lazy">
+            <div class="flex items-center justify-center cursor-pointer select-none h-16 w-full" id="logo-trigger" onclick="handleLogoClick(event)">
+                <img id="header-logo-img" src="logo.png" class="h-full max-h-16 w-auto max-w-[200px] object-contain drop-shadow-[0_0_10px_rgba(212,175,55,0.3)] transition-transform hover:scale-105" alt="شعار المتجر" loading="lazy">
                 <!-- إخفاء النص لترك التركيز على اللوغو فقط كما طلبت -->
                 <span id="header-store-name" class="hidden"></span>
             </div>
 
-            <!-- 3. اليسار: أزرار الشاشات الكبيرة فقط (مخفية في الهاتف) للتوازن -->
+            <!-- 3. اليسار: السلة والمفضلة (تظهر في الحاسوب فقط لأنها في الهاتف بالأسفل) -->
             <div class="flex items-center gap-2 justify-end">
-                <div class="hidden md:flex flex-1 max-w-sm relative search-container ml-4">
+                <div class="hidden lg:flex flex-1 max-w-[250px] relative search-container ml-4">
                     <input type="text" id="customer-search-input" onfocus="window.loadSearchIndex()" oninput="window.performAdvancedSearch(this.value)" placeholder="ابحث عن منتج، ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
                     <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
                     <div id="search-results-dropdown" class="absolute top-11 left-0 right-0 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-80 overflow-y-auto"></div>
@@ -133,7 +140,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
         
         <!-- شريط البحث للهاتف -->
         <div class="px-4 pb-3 md:hidden relative search-container">
-            <input type="text" id="customer-search-input-mobile" onfocus="window.loadSearchIndex()" oninput="window.performAdvancedSearch(this.value)" placeholder="ابحث عن منتج، بشرة دهنية، شعر..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2.5 px-4 pr-9 outline-none">
+            <input type="text" id="customer-search-input-mobile" onfocus="window.loadSearchIndex()" oninput="window.performAdvancedSearch(this.value)" placeholder="ابحث عن منتج، بشرة دهنية..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-xl py-2.5 px-4 pr-9 outline-none">
             <i class="fa-solid fa-magnifying-glass absolute right-7 top-3 text-[#D4AF37] text-xs"></i>
             <div id="mobile-search-dropdown" class="absolute top-11 left-4 right-4 bg-[#121212] border border-[#D4AF37]/40 rounded-2xl shadow-2xl overflow-hidden hidden z-50 max-h-60 overflow-y-auto"></div>
         </div>
