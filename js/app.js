@@ -644,4 +644,22 @@ window.initRealOrdersTicker = initRealOrdersTicker;
 window.updateStoreFooterLinks = updateStoreFooterLinks;
 window.updateCartItemQty = updateCartItemQty;
 window.applyCartCoupon = applyCartCoupon;
-
+// 🌟 استرجاع هوية المتجر (اللوغو والاسم) تلقائياً عند تحميل الصفحة 🌟
+document.addEventListener('DOMContentLoaded', () => {
+    // التأكد من استرجاع الهوية بعد تحميل state.storeSettings بفترة قصيرة
+    setTimeout(() => {
+        const s = state.storeSettings;
+        if (s) {
+            const headerLogo = document.getElementById('header-logo-img');
+            const headerName = document.getElementById('header-store-name');
+            
+            if (headerLogo && s.logoUrl) {
+                headerLogo.src = s.logoUrl;
+            }
+            if (headerName && s.name) {
+                headerName.innerText = s.name;
+                document.getElementById('site-title').innerText = `${s.name} | المتجر الفاخر`;
+            }
+        }
+    }, 1500); // تأخير بسيط لضمان تحميل البيانات من Firestore أولاً
+});
