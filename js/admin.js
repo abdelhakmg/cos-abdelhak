@@ -417,6 +417,8 @@ export function handleSaveProduct(e) {
             isFlashSale: true,
             flashExpiresAt: Date.now() + (24 * 60 * 60 * 1000),
             updatedAt: new Date()
+           isFlashSale: document.getElementById('prod-is-flash')?.checked || false,
+         flashExpiresAt: document.getElementById('prod-is-flash')?.checked ? (Date.now() + (24 * 60 * 60 * 1000)) : null,
         };
         
         if (editId) {
@@ -454,6 +456,7 @@ export function editProduct(id) {
     document.getElementById('prod-category-select').value = (p.category || '').trim();
     document.getElementById('prod-brand-select').value = (p.brand || '').trim();
     document.getElementById('prod-in-stock').value = p.inStock !== false ? 'true' : 'false';
+    document.getElementById('prod-is-flash').checked = !!p.isFlashSale;
 
     renderCategorySpecificAdminFields();
 
@@ -495,7 +498,7 @@ export function resetProductForm() {
     document.getElementById('product-form-title').innerText = 'إضافة / تعديل منتج';
     document.getElementById('cancel-edit-btn').classList.add('hidden');
     document.getElementById('prod-img-main').classList.remove('border-green-500', 'bg-green-50');
-    
+    if(document.getElementById('prod-is-flash')) document.getElementById('prod-is-flash').checked = false;
     window.currentProductVariants = [];
     renderAdminVariants();
     renderCategorySpecificAdminFields();
