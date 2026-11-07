@@ -16,16 +16,55 @@ export function initLuxurySplashScreen() {
         return;
     }
 
+    // 🌟 فحص مستمر وسريع للبيانات لمدة ثانية ونصف قبل إظهار الشاشة
+    let checkCount = 0;
+    const dataCheckInterval = setInterval(() => {
+        checkCount++;
+        
+        // جلب الشعار من storeSettings
+        if (state.storeSettings && state.storeSettings.logoUrl) {
+            const splashLogo = document.querySelector('#luxury-splash-screen img');
+            if (splashLogo) splashLogo.src = state.storeSettings.logoUrl;
+        }
+
+        // جلب النصوص من uiConfig
+        if (state.uiConfig) {
+            const titleEl = document.getElementById('splash-title-display');
+            const subEl = document.getElementById('splash-subtitle-display');
+            
+            if (titleEl && state.uiConfig.splashTitle) titleEl.innerText = state.uiConfig.splashTitle;
+            if (subEl && state.uiConfig.splashSubtitle) subEl.innerText = state.uiConfig.splashSubtitle;
+            
+            clearInterval(dataCheckInterval);
+            showSplashNow(splash);
+            return;
+        }
+
+        // إذا تأخرت البيانات أكثر من 1.5 ثانية (15 محاولة)، اعرض الشاشة بالبيانات الافتراضية
+        if (checkCount >= 15) {
+            clearInterval(dataCheckInterval);
+            showSplashNow(splash);
+        }
+    }, 100);
+}
+
+function showSplashNow(splash) {
     splash.style.display = 'flex';
-    splash.style.opacity = '1';
-    splash.style.transition = 'opacity 0.7s ease-in-out';
+    // إجبار المتصفح على قراءة الـ flex قبل بدء الـ opacity لضمان نعومة الحركة
+    setTimeout(() => {
+        splash.style.opacity = '1';
+        splash.style.transition = 'opacity 0.7s ease-in-out';
+    }, 50);
 
     setTimeout(() => {
         splash.style.opacity = '0';
-        setTimeout(() => splash.style.display = 'none', 700);
+        setTimeout(() => {
+            splash.style.display = 'none';
+            // 🌟 إزالة الشاشة تماماً من الـ DOM لتخفيف الحمل على المتصفح
+            splash.remove();
+        }, 700);
     }, 3000);
 }
-
 // الدخول السري للوحة التحكم (3 نقرات على الشعار)
 export function handleLogoClick(event) {
     if (event) event.preventDefault();
