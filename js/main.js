@@ -39,60 +39,60 @@ async function loadAndApplyUiConfig() {
             if (workshopBanner && data.bannerWorkshop) {
                 workshopBanner.src = data.bannerWorkshop;
             }
+        }
 
-            // 4. تطبيق منتجات عروض الصاعقة المخصصة من الإدارة إن وجدت
-           // 4. تطبيق عروض الصاعقة الحقيقية (بناءً على وقت انتهاء حقيقي لكل منتج)
-            const flashContainer = document.getElementById('flash-sale-products');
-            if (flashContainer && state.products) {
-                const now = Date.now();
-                const activeFlashProducts = state.products.filter(p => p.isFlashSale && p.flashExpiresAt && p.flashExpiresAt > now);
+        // 4. تطبيق عروض الصاعقة الحقيقية (بناءً على وقت انتهاء حقيقي لكل منتج)
+        const flashContainer = document.getElementById('flash-sale-products');
+        if (flashContainer && state.products) {
+            const now = Date.now();
+            const activeFlashProducts = state.products.filter(p => p.isFlashSale && p.flashExpiresAt && p.flashExpiresAt > now);
 
-                if (activeFlashProducts.length > 0) {
-                    flashContainer.innerHTML = activeFlashProducts.map(p => {
-                        const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
-                        const priceNum = Number(p.price) || 0;
-                        const oldPrice = p.oldPrice ? p.oldPrice : Math.round(priceNum * 1.25);
-                        
-                        return `
-                        <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
-                            <span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">صاعقة ⚡</span>
-                            <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
-                                <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
+            if (activeFlashProducts.length > 0) {
+                flashContainer.innerHTML = activeFlashProducts.map(p => {
+                    const displayImg = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'https://via.placeholder.com/300');
+                    const priceNum = Number(p.price) || 0;
+                    const oldPrice = p.oldPrice ? p.oldPrice : Math.round(priceNum * 1.25);
+                    
+                    return `
+                    <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
+                        <span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">صاعقة ⚡</span>
+                        <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
+                            <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
+                        </div>
+                        <div>
+                            <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
+                            <div class="flex flex-col text-right mt-1">
+                                <span class="text-[#D4AF37] font-black text-[13px]">${priceNum} دج</span>
+                                <span class="text-gray-500 text-[10px] line-through">${oldPrice} دج</span>
                             </div>
-                            <div>
-                                <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
-                                <div class="flex flex-col text-right mt-1">
-                                    <span class="text-[#D4AF37] font-black text-[13px]">${priceNum} دج</span>
-                                    <span class="text-gray-500 text-[10px] line-through">${oldPrice} دج</span>
-                                </div>
-                                <div class="mt-2 text-[9px] text-red-400 font-mono font-bold text-center bg-red-950/40 p-1 rounded border border-red-900/30" data-expires="${p.flashExpiresAt}">
-                                    ينتهي قريباً...
-                                </div>
+                            <div class="mt-2 text-[9px] text-red-400 font-mono font-bold text-center bg-red-950/40 p-1 rounded border border-red-900/30" data-expires="${p.flashExpiresAt}">
+                                ينتهي قريباً...
                             </div>
-                        </div>`;
-                    }).join('');
+                        </div>
+                    </div>`;
+                }).join('');
 
-                    if (window.flashTimerInterval) clearInterval(window.flashTimerInterval);
-                    window.flashTimerInterval = setInterval(() => {
-                        const timers = document.querySelectorAll('[data-expires]');
-                        timers.forEach(el => {
-                            const expiresAt = parseInt(el.getAttribute('data-expires'));
-                            const diff = expiresAt - Date.now();
-                            if (diff <= 0) {
-                                el.innerText = "انتهى العرض ❌";
-                                el.closest('.snap-center')?.remove();
-                            } else {
-                                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                                el.innerText = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                            }
-                        });
-                    }, 1000);
-                } else {
-                    flashContainer.innerHTML = '<div class="text-gray-500 text-xs py-4 text-center col-span-full">لا توجد عروض صاعقة نشطة حالياً.</div>';
-                }
+                if (window.flashTimerInterval) clearInterval(window.flashTimerInterval);
+                window.flashTimerInterval = setInterval(() => {
+                    const timers = document.querySelectorAll('[data-expires]');
+                    timers.forEach(el => {
+                        const expiresAt = parseInt(el.getAttribute('data-expires'));
+                        const diff = expiresAt - Date.now();
+                        if (diff <= 0) {
+                            el.innerText = "انتهى العرض ❌";
+                            el.closest('.snap-center')?.remove();
+                        } else {
+                            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                            el.innerText = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        }
+                    });
+                }, 1000);
+            } else {
+                flashContainer.innerHTML = '<div class="text-gray-500 text-xs py-4 text-center col-span-full">لا توجد عروض صاعقة نشطة حالياً.</div>';
             }
+        }
     } catch (e) {
         console.error("Error loading UI config:", e);
     }
