@@ -1961,38 +1961,6 @@ export async function loadUiAdminData() {
         console.error("خطأ في جلب بيانات الواجهة:", error);
     }
 }
-export async function saveSplashSettings() {
-    const titleInput = document.getElementById('admin-splash-title');
-    const subtitleInput = document.getElementById('admin-splash-subtitle');
-    const btn = document.querySelector('button[onclick="safeCall(\'saveSplashSettings\')"]');
-    
-    if (!titleInput || !subtitleInput) return;
-
-    const originalText = btn ? btn.innerHTML : 'حفظ نصوص شاشة البداية 👑';
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
-
-    const splashData = {
-        splashTitle: titleInput.value.trim(),
-        splashSubtitle: subtitleInput.value.trim()
-    };
-
-    try {
-        await window.db.collection("settings").doc("ui_config").set(splashData, { merge: true });
-        
-        if (!state.uiConfig) state.uiConfig = {};
-        state.uiConfig = { ...state.uiConfig, ...splashData };
-
-        // حفظ فوري في الذاكرة لكي يظهر منذ اللحظة الأولى
-        localStorage.setItem('cosSplashTitle', splashData.splashTitle);
-        localStorage.setItem('cosSplashSubtitle', splashData.splashSubtitle);
-
-        showCustomAlert("تم الحفظ 🎉", "تم تحديث نصوص شاشة الافتتاح الفاخرة بنجاح!", true);
-    } catch (error) {
-        showCustomAlert("خطأ", "حدث خطأ أثناء الحفظ: " + error.message, false);
-    } finally {
-        if (btn) btn.innerHTML = originalText;
-    }
-}
 export function markOrderAsPaidInStore(orderId) {
     if (confirm('هل أنت متأكد أن الزبون قد دفع مبلغ الطلب داخل المحل؟')) {
         window.db.collection("orders").doc(orderId).update({ paymentStatus: 'paid' }).then(() => {
@@ -2078,4 +2046,3 @@ window.checkBulkProductDeleteStatus = checkBulkProductDeleteStatus;
 window.deleteSelectedProducts = deleteSelectedProducts;
 window.saveUiSettings = saveUiSettings;
 window.loadUiAdminData = loadUiAdminData;
-window.saveSplashSettings = saveSplashSettings;
