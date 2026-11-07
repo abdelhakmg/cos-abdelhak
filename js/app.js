@@ -16,38 +16,39 @@ export function initLuxurySplashScreen() {
         return;
     }
 
-    // إظهار الشاشة فوراً عند فتح الموقع لتجنب أي تأخير
+    const titleEl = document.getElementById('splash-title-display');
+    const subEl = document.getElementById('splash-subtitle-display');
+
+    // 🌟 عرض نصوص لوحة التحكم فوراً في اللحظة 0 لمنع ظهور شاشتين
+    const cachedTitle = localStorage.getItem('cosSplashTitle');
+    const cachedSub = localStorage.getItem('cosSplashSubtitle');
+    if (titleEl && cachedTitle) titleEl.innerText = cachedTitle;
+    if (subEl && cachedSub) subEl.innerText = cachedSub;
+
     splash.style.display = 'flex';
     splash.style.opacity = '1';
     splash.style.transition = 'opacity 0.7s ease-in-out';
 
-    // 🌟 فحص مستمر وسريع للبيانات لملء النصوص أثناء عرض الشاشة
+    // 🌟 مزامنة أي تعديل جديد قادم من لوحة التحكم (دون المساس بالشعار المربع نهائياً)
     const dataCheckInterval = setInterval(() => {
-        // جلب الشعار
-        if (state.storeSettings && state.storeSettings.logoUrl) {
-            const splashLogo = document.querySelector('#luxury-splash-screen img');
-            if (splashLogo) splashLogo.src = state.storeSettings.logoUrl;
-        }
-
-        // جلب النصوص وإيقاف الفحص
         if (state.uiConfig) {
-            const titleEl = document.getElementById('splash-title-display');
-            const subEl = document.getElementById('splash-subtitle-display');
-            
-            if (titleEl && state.uiConfig.splashTitle) titleEl.innerText = state.uiConfig.splashTitle;
-            if (subEl && state.uiConfig.splashSubtitle) subEl.innerText = state.uiConfig.splashSubtitle;
-            
+            if (state.uiConfig.splashTitle) {
+                if (titleEl) titleEl.innerText = state.uiConfig.splashTitle;
+                localStorage.setItem('cosSplashTitle', state.uiConfig.splashTitle);
+            }
+            if (state.uiConfig.splashSubtitle) {
+                if (subEl) subEl.innerText = state.uiConfig.splashSubtitle;
+                localStorage.setItem('cosSplashSubtitle', state.uiConfig.splashSubtitle);
+            }
             clearInterval(dataCheckInterval);
         }
-    }, 50);
+    }, 100);
 
-    // إخفاء الشاشة وإزالتها بعد 3 ثوانٍ سواء وصلت البيانات أم لم تصل
     setTimeout(() => {
         clearInterval(dataCheckInterval);
         splash.style.opacity = '0';
         setTimeout(() => {
             splash.style.display = 'none';
-            splash.remove(); // تنظيف الـ DOM
         }, 700);
     }, 3000);
 }
