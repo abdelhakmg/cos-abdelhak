@@ -73,16 +73,39 @@ async function loadAndApplyUiConfig() {
                 }).join('');
 
                 if (window.flashTimerInterval) clearInterval(window.flashTimerInterval);
+                const maxExpiresAt = Math.max(...activeFlashProducts.map(p => Number(p.flashExpiresAt) || 0));
+
                 window.flashTimerInterval = setInterval(() => {
+                    const nowMs = Date.now();
+
+                    // 1. تحديث العداد الأحمر الرئيسي في ترويسة القسم بوقت حقيقي
+                    const mainDiff = maxExpiresAt - nowMs;
+                    const hEl = document.getElementById('flash-h');
+                    const mEl = document.getElementById('flash-m');
+                    const sEl = document.getElementById('flash-s');
+                    if (hEl && mEl && sEl) {
+                        if (mainDiff > 0) {
+                            const mh = Math.floor(mainDiff / (1000 * 60 * 60));
+                            const mm = Math.floor((mainDiff % (1000 * 60 * 60)) / (1000 * 60));
+                            const ms = Math.floor((mainDiff % (1000 * 60)) / 1000);
+                            hEl.innerText = mh.toString().padStart(2, '0');
+                            mEl.innerText = mm.toString().padStart(2, '0');
+                            sEl.innerText = ms.toString().padStart(2, '0');
+                        } else {
+                            hEl.innerText = '00'; mEl.innerText = '00'; sEl.innerText = '00';
+                        }
+                    }
+
+                    // 2. تحديث عداد كل منتج وحذفه فور انتهاء وقته
                     const timers = document.querySelectorAll('[data-expires]');
                     timers.forEach(el => {
                         const expiresAt = parseInt(el.getAttribute('data-expires'));
-                        const diff = expiresAt - Date.now();
+                        const diff = expiresAt - nowMs;
                         if (diff <= 0) {
                             el.innerText = "انتهى العرض ❌";
                             el.closest('.snap-center')?.remove();
                         } else {
-                            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                            const hours = Math.floor(diff / (1000 * 60 * 60));
                             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                             el.innerText = `⏳ ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
