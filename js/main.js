@@ -42,8 +42,11 @@ async function loadAndApplyUiConfig() {
         }
 
         // 4. تطبيق عروض الصاعقة الحقيقية (بناءً على وقت انتهاء حقيقي لكل منتج)
-        const flashContainer = document.getElementById('flash-sale-products');
-        if (flashContainer && state.products) {
+        // 4. تطبيق عروض الصاعقة الحقيقية مع أزرار السلة والطلب والمؤقت الحقيقي
+        window.renderRealFlashSales = function() {
+            const flashContainer = document.getElementById('flash-sale-products');
+            if (!flashContainer || !state.products) return;
+
             const now = Date.now();
             const activeFlashProducts = state.products.filter(p => p.isFlashSale && p.flashExpiresAt && p.flashExpiresAt > now);
 
@@ -54,19 +57,35 @@ async function loadAndApplyUiConfig() {
                     const oldPrice = p.oldPrice ? p.oldPrice : Math.round(priceNum * 1.25);
                     
                     return `
-                    <div class="bg-[#121212] rounded-2xl p-2 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-red-500 transition-colors group snap-center min-w-[140px]" onclick="safeCall('openLandingPage', '${p.id}')">
-                        <span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">صاعقة ⚡</span>
-                        <div class="h-24 bg-white rounded-xl p-1 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
+                    <div class="bg-[#121212] rounded-2xl p-2.5 border border-red-900/50 flex flex-col justify-between h-full relative cursor-pointer hover:border-[#D4AF37] transition-all group snap-center min-w-[155px]" onclick="safeCall('openLandingPage', '${p.id}')">
+                        <span class="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded z-10 shadow-md">⚡ عرض خاص</span>
+                        
+                        <div class="h-28 bg-white rounded-xl p-1.5 mb-2 flex items-center justify-center overflow-hidden border border-gray-200">
                             <img src="${displayImg}" loading="lazy" class="max-h-full object-contain group-hover:scale-110 transition duration-300 drop-shadow-sm">
                         </div>
-                        <div>
-                            <h4 class="text-white font-bold text-[10px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
-                            <div class="flex flex-col text-right mt-1">
-                                <span class="text-[#D4AF37] font-black text-[13px]">${priceNum} دج</span>
-                                <span class="text-gray-500 text-[10px] line-through">${oldPrice} دج</span>
+                        
+                        <div class="flex flex-col flex-1 justify-between">
+                            <div>
+                                <h4 class="text-white font-bold text-[11px] line-clamp-2 leading-tight mb-1 group-hover:text-[#D4AF37] text-right">${p.name || 'منتج'}</h4>
+                                <div class="flex items-center justify-between mt-1">
+                                    <span class="text-[#D4AF37] font-black text-sm">${priceNum} دج</span>
+                                    <span class="text-gray-500 text-[10px] line-through">${oldPrice} دج</span>
+                                </div>
                             </div>
-                            <div class="mt-2 text-[9px] text-red-400 font-mono font-bold text-center bg-red-950/40 p-1 rounded border border-red-900/30" data-expires="${p.flashExpiresAt}">
-                                ينتهي قريباً...
+
+                            <!-- المؤقت التنازلي للمنتج -->
+                            <div class="my-1.5 text-[9px] text-red-400 font-mono font-bold text-center bg-red-950/40 py-1 px-1.5 rounded border border-red-900/30" data-expires="${p.flashExpiresAt}">
+                                ⏳ جاري الحساب...
+                            </div>
+
+                            <!-- 🌟 أزرار اطلب الآن + أضف للسلة 🌟 -->
+                            <div class="mt-1 flex gap-1.5 pt-1 border-t border-gray-800/80">
+                                <button type="button" onclick="event.stopPropagation(); safeCall('openLandingPage', '${p.id}');" class="flex-1 py-1.5 gold-gradient text-black font-extrabold text-[10px] rounded-lg shadow hover:opacity-90 transition cursor-pointer flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-bolt"></i> اطلب
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); safeCall('addToCart', '${p.id}');" class="w-8 h-7 flex items-center justify-center bg-black border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold rounded-lg transition cursor-pointer" title="أضف للسلة">
+                                    <i class="fa-solid fa-cart-plus text-xs"></i>
+                                </button>
                             </div>
                         </div>
                     </div>`;
@@ -77,28 +96,21 @@ async function loadAndApplyUiConfig() {
 
                 window.flashTimerInterval = setInterval(() => {
                     const nowMs = Date.now();
-
-                    // 1. تحديث العداد الأحمر الرئيسي في ترويسة القسم بوقت حقيقي
                     const mainDiff = maxExpiresAt - nowMs;
                     const hEl = document.getElementById('flash-h');
                     const mEl = document.getElementById('flash-m');
                     const sEl = document.getElementById('flash-s');
                     if (hEl && mEl && sEl) {
                         if (mainDiff > 0) {
-                            const mh = Math.floor(mainDiff / (1000 * 60 * 60));
-                            const mm = Math.floor((mainDiff % (1000 * 60 * 60)) / (1000 * 60));
-                            const ms = Math.floor((mainDiff % (1000 * 60)) / 1000);
-                            hEl.innerText = mh.toString().padStart(2, '0');
-                            mEl.innerText = mm.toString().padStart(2, '0');
-                            sEl.innerText = ms.toString().padStart(2, '0');
+                            hEl.innerText = Math.floor(mainDiff / (1000 * 60 * 60)).toString().padStart(2, '0');
+                            mEl.innerText = Math.floor((mainDiff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                            sEl.innerText = Math.floor((mainDiff % (1000 * 60)) / 1000).toString().padStart(2, '0');
                         } else {
                             hEl.innerText = '00'; mEl.innerText = '00'; sEl.innerText = '00';
                         }
                     }
 
-                    // 2. تحديث عداد كل منتج وحذفه فور انتهاء وقته
-                    const timers = document.querySelectorAll('[data-expires]');
-                    timers.forEach(el => {
+                    document.querySelectorAll('[data-expires]').forEach(el => {
                         const expiresAt = parseInt(el.getAttribute('data-expires'));
                         const diff = expiresAt - nowMs;
                         if (diff <= 0) {
@@ -113,9 +125,11 @@ async function loadAndApplyUiConfig() {
                     });
                 }, 1000);
             } else {
-                flashContainer.innerHTML = '<div class="text-gray-500 text-xs py-4 text-center col-span-full">لا توجد عروض صاعقة نشطة حالياً.</div>';
+                flashContainer.innerHTML = '<div class="text-gray-500 text-xs py-4 text-center col-span-full">لا توجد عروض نشطة حالياً.</div>';
             }
-        }
+        };
+
+        window.renderRealFlashSales();
     } catch (e) {
         console.error("Error loading UI config:", e);
     }
