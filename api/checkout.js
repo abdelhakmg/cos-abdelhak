@@ -15,23 +15,22 @@ const db = admin.firestore();
 
 module.exports = async (req, res) => {
     // 🌟 دعم طلبات التتبع عبر GET أو POST
-    if (req.method === 'GET') {
+   if (req.method === 'GET') {
         try {
             const phoneQuery = (req.query.phone || '').trim().replace(/\s+/g, '');
             if (!phoneQuery) {
                 return res.status(400).json({ error: 'رقم الهاتف مطلوب.' });
             }
 
+            // 🌟 استعلام بسيط بدون orderBy لتجنب أخطاء الفهارس المركبة في Firebase
             const snapshot = await db.collection('orders')
                 .where('phone', '==', phoneQuery)
-                .orderBy('createdAt', 'desc')
-                .limit(10)
                 .get();
 
             const orders = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
-                orders.find || orders.push({
+                orders.push({
                     id: doc.id,
                     customer: data.customer,
                     phone: data.phone,
@@ -40,9 +39,12 @@ module.exports = async (req, res) => {
                     product: data.product,
                     total: data.total,
                     status: data.status,
-                    createdAt: data.createdAt ? data.createdAt.toDate() : null
+                    createdAt: data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)) : null
                 });
             });
+
+            // 🌟 ترتيب الطلبات محلياً من الأحدث إلى الأقدم
+            orders.sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
 
             return res.status(200).json({ success: true, orders });
         } catch (error) {
