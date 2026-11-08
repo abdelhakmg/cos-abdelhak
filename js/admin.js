@@ -414,11 +414,9 @@ export function handleSaveProduct(e) {
             variants: variantsToSave,
             colors: '',
             numbers: '',
-            isFlashSale: true,
-            flashExpiresAt: Date.now() + (24 * 60 * 60 * 1000),
+            isFlashSale: document.getElementById('prod-is-flash')?.checked || false,
+            flashExpiresAt: document.getElementById('prod-is-flash')?.checked ? (Date.now() + (24 * 60 * 60 * 1000)) : null,
             updatedAt: new Date()
-           isFlashSale: document.getElementById('prod-is-flash')?.checked || false,
-         flashExpiresAt: document.getElementById('prod-is-flash')?.checked ? (Date.now() + (24 * 60 * 60 * 1000)) : null,
         };
         
         if (editId) {
