@@ -14,6 +14,43 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 module.exports = async (req, res) => {
+    // 🌟 دعم طلبات التتبع عبر GET أو POST
+    if (req.method === 'GET') {
+        try {
+            const phoneQuery = (req.query.phone || '').trim().replace(/\s+/g, '');
+            if (!phoneQuery) {
+                return res.status(400).json({ error: 'رقم الهاتف مطلوب.' });
+            }
+
+            const snapshot = await db.collection('orders')
+                .where('phone', '==', phoneQuery)
+                .orderBy('createdAt', 'desc')
+                .limit(10)
+                .get();
+
+            const orders = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                orders.find || orders.push({
+                    id: doc.id,
+                    customer: data.customer,
+                    phone: data.phone,
+                    wilaya: data.wilaya,
+                    commune: data.commune,
+                    product: data.product,
+                    total: data.total,
+                    status: data.status,
+                    createdAt: data.createdAt ? data.createdAt.toDate() : null
+                });
+            });
+
+            return res.status(200).json({ success: true, orders });
+        } catch (error) {
+            console.error("Tracking API Error:", error);
+            return res.status(500).json({ error: 'حدث خطأ أثناء البحث عن الطلب.' });
+        }
+    }
+
     if (req.method !== 'POST') return res.status(405).json({ error: 'طريقة غير مسموحة' });
 
     try {
