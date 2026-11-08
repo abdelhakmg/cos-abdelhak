@@ -548,7 +548,7 @@ export function updateBadges() {
 // ==========================================
 // 📦 تتبع الطلبات وإشعارات المبيعات والفوتر
 // ==========================================
-export function searchOrderTracking() {
+export async function searchOrderTracking() {
     const input = document.getElementById('track-phone-input');
     const container = document.getElementById('tracking-results-container');
     if (!input || !container) return;
@@ -565,32 +565,41 @@ export function searchOrderTracking() {
     container.classList.remove('hidden');
     container.innerHTML = '<p class="text-center text-gray-400 py-6 text-xs">جاري البحث عن الطلبيات... ⏳</p>';
 
-    if (typeof window.firebase !== 'undefined') {
-        const trackOrderFn = window.firebase.functions().httpsCallable('trackOrder');
-        trackOrderFn({ phone: phone }).then((result) => {
-            const orders = result.data.orders;
-            
-            if (!orders || orders.length === 0) {
-                container.innerHTML = `<div class="bg-black/50 border border-gray-800 rounded-2xl p-6 text-center space-y-2"><i class="fa-solid fa-box-open text-3xl text-gray-600"></i><p class="text-sm font-bold text-gray-300">لم نجد أي طلب مسجل برقم الهاتف هذا (${phone})</p></div>`;
-                return;
-            }
-            
-            let html = '<h3 class="font-bold text-sm text-[#D4AF37] mb-3">📋 الطلبات المسجلة برقمك:</h3>';
-            orders.forEach((o) => {
-                html += `<div class="bg-black/60 border border-gray-800 rounded-2xl p-5 mt-2 text-right shadow-md">
-                    <p class="text-[#D4AF37] font-bold">${o.status || 'جديد'}</p>
-                    <h4 class="font-bold text-sm text-white whitespace-pre-line mt-1">${o.product}</h4>
-                    <p class="text-xs text-gray-400 mt-2">المبلغ الإجمالي: ${formatPrice(o.total)}</p>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }).catch((error) => {
-            console.error("Tracking error:", error);
-            container.innerHTML = '<p class="text-center text-red-500 text-xs py-4">حدث خطأ أثناء البحث. يرجى المحاولة لاحقاً.</p>';
+    try {
+        const response = await fetch(`/api/checkout?phone=${encodeURIComponent(phone)}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'فشل البحث');
+        }
+
+        const orders = data.orders;
+        
+        if (!orders || orders.length === 0) {
+            container.innerHTML = `<div class="bg-black/50 border border-gray-800 rounded-2xl p-6 text-center space-y-2"><i class="fa-solid fa-box-open text-3xl text-gray-600"></i><p class="text-sm font-bold text-gray-300">لم نجد أي طلب مسجل برقم الهاتف هذا (${phone})</p></div>`;
+            return;
+        }
+        
+        let html = '<h3 class="font-bold text-sm text-[#D4AF37] mb-3">📋 الطلبات المسجلة برقمك:</h3>';
+        orders.forEach((o) => {
+            html += `<div class="bg-black/60 border border-gray-800 rounded-2xl p-5 mt-2 text-right shadow-md space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-black px-3 py-1 rounded-full border border-[#D4AF37]/40">${o.status || 'جديد'}</span>
+                    <span class="text-xs text-gray-400 font-mono">رقم الطلب: #${o.id.substring(0,6).toUpperCase()}</span>
+                </div>
+                <h4 class="font-bold text-xs sm:text-sm text-white whitespace-pre-line mt-1 leading-relaxed">${o.product}</h4>
+                <div class="flex justify-between items-center pt-2 border-t border-gray-800 text-xs">
+                    <span class="text-gray-400">الولاية: ${o.wilaya}</span>
+                    <span class="text-[#D4AF37] font-black">${formatPrice(o.total)}</span>
+                </div>
+            </div>`;
         });
+        container.innerHTML = html;
+    } catch (error) {
+        console.error("Tracking error:", error);
+        container.innerHTML = '<p class="text-center text-red-500 text-xs py-4">حدث خطأ أثناء البحث. يرجى المحاولة لاحقاً.</p>';
     }
 }
-
 let currentOrderTickerIndex = 0;
 export function initRealOrdersTicker() {
     const toast = document.getElementById('social-proof-toast');
