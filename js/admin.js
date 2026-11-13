@@ -2123,6 +2123,12 @@ export function applyAdminPermissionsUI() {
         { name: 'marketing_ui', allowed: isSuper || perms.includes('marketing_ui') },
         { name: 'shipping_settings', allowed: isSuper || perms.includes('shipping_settings') }
     ];
+    // إخفاء كافة محتويات التبويبات أولاً لمنع بقاء التبويب الأول مفتوحاً بالخطأ
+    document.querySelectorAll('.tab-content').forEach(t => {
+        t.classList.remove('active');
+        t.classList.add('hidden');
+    });
+
     const firstAllowed = tabOrder.find(t => t.allowed);
     if (firstAllowed) {
         switchAdminTab(firstAllowed.name);
