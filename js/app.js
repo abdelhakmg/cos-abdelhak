@@ -239,17 +239,16 @@ export function renderCart() {
     const cartList = document.getElementById('cart-list');
     if (!cartList) return;
 
-    if (state.cart.length === 0) {
-        cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p';
-      // 🌟 منطق إظهار/إخفاء طرق الدفع بناءً على نوع المنتجات
+    // 🌟 منطق إظهار/إخفاء طرق الدفع بناءً على نوع المنتجات في السلة (يعمل دائماً)
     const hasCustomItem = state.cart.some(item => String(item.id).startsWith('custom_') || String(item.id).startsWith('gift_'));
     const codOption = document.getElementById('payment-cod');
     const inStoreOption = document.getElementById('payment-instore');
     const baridiMsg = document.getElementById('baridi-custom-msg');
+
     if (hasCustomItem) {
         if (codOption) codOption.style.display = 'none';
         if (inStoreOption) inStoreOption.style.display = 'flex';
-        if (baridiMsg) baridiMsg.style.display = 'block'; // إظهار رسالة الإقناع في بريدي موب
+        if (baridiMsg) baridiMsg.style.display = 'block';
         
         if (document.querySelector('input[name="cart_payment_method"]:checked')?.value === 'cod') {
             const inStoreRadio = document.querySelector('input[value="in_store"]');
@@ -262,16 +261,19 @@ export function renderCart() {
     } else {
         if (codOption) codOption.style.display = 'flex';
         if (inStoreOption) inStoreOption.style.display = 'none';
-        if (baridiMsg) baridiMsg.style.display = 'none'; // إخفاء الرسالة لأنها سلة عادية
+        if (baridiMsg) baridiMsg.style.display = 'none';
         
         const instoreInfo = document.getElementById('cart-instore-info');
         if (instoreInfo) instoreInfo.classList.add('hidden');
 
         if (document.querySelector('input[name="cart_payment_method"]:checked')?.value === 'in_store') {
             const codRadio = document.querySelector('input[value="cod"]');
-            if(codRadio) codRadio.checked = true;
+            if (codRadio) codRadio.checked = true;
         }
     }
+
+    if (state.cart.length === 0) {
+        cartList.innerHTML = '<p class="text-center text-gray-400 py-8">سلة التسوق فارغة حالياً.</p>';
         updateCartCalculations();
         return;
     }
