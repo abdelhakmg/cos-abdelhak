@@ -339,20 +339,35 @@ export function initFirebaseSync() {
     initVisitorTracking();
 
     if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
+        safeCall('applyAdminPermissionsUI');
         loadAllProductsForAdmin();
-        window.firebase.auth().onAuthStateChanged((user) => {
+        window.firebase.auth().onAuthStateChanged(async (user) => {
             if (!user) return;
             if (user.email === 'mohamed.pato@gmail.com') {
+                localStorage.setItem('cosAdminRole', 'super');
+                localStorage.removeItem('cosAdminPerms');
+                safeCall('applyAdminPermissionsUI');
                 initAdminOrdersSync();
                 initAdminAnalyticsSync();
             } else {
-                const perms = JSON.parse(localStorage.getItem('cosAdminPerms') || '[]');
-                if (perms.includes('orders_list')) initAdminOrdersSync();
-                if (perms.includes('visitors_stats')) initAdminAnalyticsSync();
+                try {
+                    const doc = await window.db.collection('sub_admins').doc(user.uid).get();
+                    if (!doc.exists) {
+                        safeCall('adminSignOut');
+                        return;
+                    }
+                    const perms = doc.data().permissions || [];
+                    localStorage.setItem('cosAdminRole', 'sub');
+                    localStorage.setItem('cosAdminPerms', JSON.stringify(perms));
+                    safeCall('applyAdminPermissionsUI');
+                    if (perms.includes('orders_list')) initAdminOrdersSync();
+                    if (perms.includes('visitors_stats')) initAdminAnalyticsSync();
+                } catch (err) {
+                    console.error("Sub-admin refresh sync error:", err);
+                }
             }
         });
     }
-}
 
 // 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط (يجب أن تبقى!)
 export function initAdminOrdersSync(limitCount = 200) {
