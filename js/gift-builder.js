@@ -1,6 +1,6 @@
 // --- ملف js/gift-builder.js ---
 
-import { state } from './store/state.js';
+import { state, saveCartToLocal } from './store/state.js';
 import { showCustomAlert, calculateShippingCost, safeCall, isValidDzPhone } from './utils/helpers.js';
 
 let currentGiftStep = 1;
@@ -513,7 +513,7 @@ case 3:
 }
 
 export function previewGiftProduct(productId) {
-    const prod = state.products.find(p => p.id === productId);
+    const prod = (window.giftProductsPool || []).find(p => p.id === productId) || state.products.find(p => p.id === productId);
     if (!prod) return;
 
     const images = (prod.images && prod.images.length > 0) ? prod.images : (prod.image ? [prod.image] : []);
@@ -608,7 +608,10 @@ export async function setActiveGiftCategory(cat) {
     renderGiftStep(); 
 }
 export function setGiftRecipient(r) { giftData.recipient = r; nextGiftStep(); }
-export function selectGiftBox(boxId) { giftData.selectedBox = state.products.find(p => p.id === boxId); nextGiftStep(); }
+export function selectGiftBox(boxId) { 
+    giftData.selectedBox = (window.giftProductsPool || []).find(p => p.id === boxId) || state.products.find(p => p.id === boxId); 
+    nextGiftStep(); 
+}
 export function selectWrapping(id, name, price, image) { giftData.selectedWrapping = { id, name, price, image }; renderGiftStep(); }
 
 export function setGiftShippingType(type) {
@@ -622,7 +625,7 @@ export function setGiftShippingType(type) {
 }
 
 export function updateGiftProductQty(prodId, delta) {
-    const prod = state.products.find(p => p.id === prodId);
+    const prod = (window.giftProductsPool || []).find(p => p.id === prodId) || state.products.find(p => p.id === prodId);
     if (!prod) return;
     const existing = giftData.selectedProducts.find(item => item.id === prodId);
     if (delta > 0) {
@@ -765,18 +768,40 @@ export function addGiftToCart() {
         id: 'gift_' + Date.now(),
         name: `[هدية VIP] للمستلم: ${giftData.receiverName || giftData.recipient}`,
         price: prodTotal + boxPrice + wrapPrice,
+        qty: 1,
         image: giftData.selectedBox?.image || giftData.selectedWrapping?.image || 'https://via.placeholder.com/100',
         customDetails: getGiftOrderFullDesc()
     };
     
     state.cart.push(cartItem);
-    
-    if (typeof saveCartToLocal === 'function') saveCartToLocal();
-    if (typeof updateBadges === 'function') updateBadges();
+    saveCartToLocal();
+    safeCall('updateBadges');
     
     closeGiftBuilder();
+    safeCall('showPage', 'cart');
+
+    setTimeout(() => {
+        if (giftData.receiverName && document.getElementById('cart-cust-name')) {
+            document.getElementById('cart-cust-name').value = giftData.receiverName;
+        }
+        if ((giftData.receiverPhone || giftData.senderPhone) && document.getElementById('cart-cust-phone')) {
+            document.getElementById('cart-cust-phone').value = giftData.receiverPhone || giftData.senderPhone;
+        }
+        if (giftData.wilaya && document.getElementById('cart-cust-wilaya')) {
+            document.getElementById('cart-cust-wilaya').value = giftData.wilaya;
+        }
+        if (giftData.baladiya && document.getElementById('cart-cust-baladiya')) {
+            document.getElementById('cart-cust-baladiya').value = giftData.baladiya;
+        }
+        if (giftData.commune && document.getElementById('cart-cust-address')) {
+            document.getElementById('cart-cust-address').value = giftData.commune;
+        }
+        const shipRadio = document.querySelector(`input[name="cart_shipping_type"][value="${giftData.shippingType}"]`);
+        if (shipRadio) shipRadio.checked = true;
+        safeCall('updateCartCalculations');
+    }, 100);
+
     showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة الهدية للسلة بنجاح!', true);
-    if (typeof showPage === 'function') showPage('cart');
 }
 
 // Window Bindings
