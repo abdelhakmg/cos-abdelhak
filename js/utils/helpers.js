@@ -70,11 +70,14 @@ export function formatPrice(price) {
 export function safeCall(fnName, ...args) {
     if (typeof window[fnName] === 'function') {
         try {
-            window[fnName](...args);
+            const res = window[fnName](...args);
+            return res !== undefined ? res : true;
         } catch (e) {
             console.warn(`Error executing ${fnName}:`, e);
+            return false;
         }
     }
+    return false;
 }
 export async function compressAndUploadImage(file, folderName, maxWidth = 1200) {
     return new Promise((resolve, reject) => {
