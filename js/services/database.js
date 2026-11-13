@@ -367,7 +367,6 @@ export function initFirebaseSync() {
                 }
             }
         });
-    }
 
 // 🌟 دالة محمية من التكرار لجلب آخر 200 طلبية للمسؤول فقط (يجب أن تبقى!)
 export function initAdminOrdersSync(limitCount = 200) {
