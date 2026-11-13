@@ -1,6 +1,6 @@
 // --- ملف sw.js (الإصدار الذكي v5 مع كسر كاش البرمجة وحفظ كاش الصور) ---
 
-const CACHE_NAME = 'cosmetic-abdelhak-v8'; // تم الترقية إلى v5 لإجبار الهواتف على التحديث
+const CACHE_NAME = 'cosmetic-abdelhak-v9'; // ترقية الكاش لتطبيق التحديثات الجراحية فوراً
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -40,8 +40,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const reqUrl = event.request.url;
 
-    // تجاهل الطلبات غير GET
-    if (event.request.method !== 'GET' || !reqUrl.startsWith('http')) {
+    // تجاهل الطلبات غير GET وطلبات الـ API الخاصة بالطلبات والتتبع
+    if (event.request.method !== 'GET' || !reqUrl.startsWith('http') || reqUrl.includes('/api/')) {
         return;
     }
 
