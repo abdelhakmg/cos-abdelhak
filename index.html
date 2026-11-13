@@ -103,11 +103,12 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     <i class="fa-solid fa-truck-fast text-xl"></i>
                 </button>
                 
-                <!-- 🌟 استرجاع أزرار الورشة والهدايا (تظهر في الحاسوب فقط) -->
-                <button onclick="openGiftBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                <!-- 🌟 قائمة تصفح الأقسام + أزرار الورشة والهدايا (للحاسوب) -->
+                <nav id="header-nav" class="hidden lg:flex items-center gap-4 text-xs mr-2"></nav>
+                <button onclick="openGiftBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> أطلب هديتك
                 </button>
-                <button onclick="openCustomBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+                <button onclick="openCustomBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
                 </button>
             </div>
@@ -265,21 +266,21 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     </div>
                 </section>
 
-                <!-- 🌟 بانرات خدمات تهمك (تم نقلها هنا لتظهر في الرئيسية فقط) 🌟 -->
-                <div class="max-w-7xl mx-auto px-4 mb-12">
+                <!-- 🌟 بانرات خدمات تهمك (تفتح النوافذ مباشرة وتظهر كاملة بدون قص) 🌟 -->
+                <div class="max-w-5xl mx-auto px-4 mb-16">
                     <h2 class="text-right text-[#D4AF37] font-black text-lg mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-gem text-sm"></i> خدمات تهمك
                     </h2>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                    <div class="grid grid-cols-2 gap-3 sm:gap-6">
                         
                         <!-- 1. بانر صمم هديتك -->
-                        <div onclick="safeCall('openGiftBuilder') || safeCall('showGiftModal') || safeCall('showPage', 'gift-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
-                            <img id="promo-banner-gift" src="https://via.placeholder.com/400x600/D4AF37/000000?text=صمم+هديتك" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="صمم هديتك">
+                        <div onclick="openGiftBuilder()" class="cursor-pointer rounded-2xl overflow-hidden bg-[#121212] shadow-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-[1.01] transition-all border border-[#D4AF37]/30 group">
+                            <img id="promo-banner-gift" src="https://via.placeholder.com/400x600/D4AF37/000000?text=صمم+هديتك" class="w-full h-auto object-contain block group-hover:opacity-95 transition-opacity" loading="lazy" alt="صمم هديتك">
                         </div>
 
                         <!-- 2. بانر ورشة التخصيص -->
-                        <div onclick="safeCall('openCustomBuilder') || safeCall('showCustomModal') || safeCall('showPage', 'custom-builder')" class="cursor-pointer rounded-2xl overflow-hidden shadow-lg hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:scale-[1.02] transition-all border border-gray-800/50 group">
-                            <img id="promo-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=ورشة+التخصيص" class="w-full h-full object-cover aspect-[3/4] group-hover:opacity-90 transition-opacity" loading="lazy" alt="ورشة التخصيص">
+                        <div onclick="openCustomBuilder()" class="cursor-pointer rounded-2xl overflow-hidden bg-[#121212] shadow-lg hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-[1.01] transition-all border border-[#D4AF37]/30 group">
+                            <img id="promo-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=ورشة+التخصيص" class="w-full h-auto object-contain block group-hover:opacity-95 transition-opacity" loading="lazy" alt="ورشة التخصيص">
                         </div>
 
                     </div>
@@ -1705,7 +1706,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
         </div>
     </div>
     <!-- ================= بداية الفوتر الجديد (الاحترافي) ================= -->
-    <footer id="main-footer" class="bg-black border-t-2 border-[#D4AF37] pt-8 pb-4 font-cairo">
+    <footer id="main-footer" class="bg-black border-t-2 border-[#D4AF37] pt-8 pb-24 md:pb-6 font-cairo">
 
         <!-- 1. شريط الضمانات (Trust Bar) -->
         <div class="container mx-auto px-4 mb-8">
