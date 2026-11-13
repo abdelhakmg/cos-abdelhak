@@ -636,11 +636,11 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     </button>
                     <button onclick="switchAdminTab('custom_services')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-custom_services">
                         <i class="fa-solid fa-pen-ruler text-[#D4AF37] ml-1"></i> الورشة والتخصيص
-                    </button>         
-                </div>
-                <button onclick="switchAdminTab('sub_admins')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-sub_admins">
+                    </button>
+                    <button onclick="switchAdminTab('sub_admins')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-sub_admins">
                         <i class="fa-solid fa-user-shield text-[#D4AF37] ml-1"></i> المشرفين والصلاحيات
                     </button>
+                </div>
 
                 <!-- التبويب 1: المبيعات والطلبات (تم إصلاح الجدول المكرر والوسم الزائد) -->
                 <!-- التبويب 1: المبيعات والطلبات -->
@@ -1140,31 +1140,18 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
                         <h3 class="font-bold text-lg border-b pb-3 text-gray-800"><i class="fa-regular fa-images text-[#B8860B]"></i> صور المنزلقة الإعلانية (الصفحة الرئيسية)</h3>
                         <form onsubmit="handleSaveHeroSlide(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير (اختياري)" class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-    <input type="text" id="hero-desc-input" placeholder="وصف قصير (اختياري)" class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
-    
-    <div class="md:col-span-2 flex flex-col space-y-2">
-        <label class="block text-xs font-bold text-gray-600">صورة الإعلان (اختر من الهاتف/الحاسوب أو ضع رابط) *</label>
-        <div class="flex flex-col sm:flex-row gap-3">
-            <input type="file" id="hero-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'hero-img-input')">
-            <button type="button" onclick="document.getElementById('hero-file-input').click()" class="bg-gray-800 text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition flex items-center justify-center gap-2 whitespace-nowrap shadow-sm cursor-pointer">
-                <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة
-            </button>
-            <input type="text" id="hero-img-input" placeholder="أو ضع رابط الصورة هنا (URL)..." required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50 outline-none focus:border-[#D4AF37]">
-            <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md whitespace-nowrap cursor-pointer">إضافة الإعلان</button>
-        </div>
-    </div>
-</form>
+                            <input type="text" id="hero-title-input" placeholder="العنوان الرئيسي الكبير (اختياري)" class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
+                            <input type="text" id="hero-desc-input" placeholder="وصف قصير (اختياري)" class="border p-3 rounded-xl text-sm bg-gray-50 outline-none focus:border-[#D4AF37]">
                             
                             <div class="md:col-span-2 flex flex-col space-y-2">
                                 <label class="block text-xs font-bold text-gray-600">صورة الإعلان (اختر من الهاتف/الحاسوب أو ضع رابط) *</label>
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <input type="file" id="hero-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'hero-img-input')">
-                                    <button type="button" onclick="document.getElementById('hero-file-input').click()" class="bg-gray-800 text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition flex items-center justify-center gap-2 whitespace-nowrap shadow-sm">
+                                    <button type="button" onclick="document.getElementById('hero-file-input').click()" class="bg-gray-800 text-white font-bold px-5 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition flex items-center justify-center gap-2 whitespace-nowrap shadow-sm cursor-pointer">
                                         <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة
                                     </button>
-                                    <input type="url" id="hero-img-input" placeholder="أو ضع رابط الصورة هنا (URL)..." required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50 outline-none focus:border-[#D4AF37]">
-                                    <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md whitespace-nowrap">إضافة الإعلان</button>
+                                    <input type="text" id="hero-img-input" placeholder="أو ضع رابط الصورة هنا (URL)..." required class="border p-3 rounded-xl text-sm flex-1 bg-gray-50 outline-none focus:border-[#D4AF37]">
+                                    <button type="submit" class="bg-black text-white font-bold px-8 py-3 rounded-xl text-sm hover:bg-[#D4AF37] hover:text-black transition shadow-md whitespace-nowrap cursor-pointer">إضافة الإعلان</button>
                                 </div>
                             </div>
                         </form>
@@ -1497,12 +1484,13 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
             <input type="text" id="admin-email-input" placeholder="اسم المستخدم أو البريد الإلكتروني..." class="w-full border p-3.5 rounded-xl text-center outline-none text-sm bg-gray-50">
             <input type="password" id="admin-pass-input" placeholder="كلمة المرور..." onkeydown="if(event.key==='Enter') checkAdminPassword()" class="w-full border p-3.5 rounded-xl text-center outline-none text-sm bg-gray-50">
             <div class="flex gap-3 pt-2">
+                <div class="flex gap-3 pt-2">
                 <button onclick="checkAdminPassword()" class="flex-1 gold-gradient text-black font-bold py-3 rounded-xl shadow-md">دخول</button>
                 <button onclick="document.getElementById('admin-auth-modal').style.display='none'; document.getElementById('admin-auth-modal').classList.add('hidden');" class="flex-1 bg-gray-200 text-gray-700 font-bold py-3 rounded-xl">إلغاء</button>
             </div>
         </div>
-    </div
-        <!-- 💳 نافذة بريدي موب المنبثقة -->
+    </div>
+    <!-- 💳 نافذة بريدي موب المنبثقة -->
     <div id="baridimob-modal" class="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
         <div class="bg-[#121212] border border-[#D4AF37]/50 rounded-3xl w-full max-w-md p-6 text-right relative shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar">
             <button onclick="closeBaridiMobModal()" class="absolute top-4 left-4 text-gray-400 hover:text-red-500 w-8 h-8 rounded-full flex items-center justify-center transition bg-black shadow-sm"><i class="fa-solid fa-xmark text-xl"></i></button>
