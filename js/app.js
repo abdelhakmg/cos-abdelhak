@@ -102,7 +102,10 @@ export function showPage(pageId, addToHistory = true) {
     if (targetPage) targetPage.classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    if (pageId === 'admin') safeCall('renderAdminDashboard');
+    if (pageId === 'admin') {
+        safeCall('applyAdminPermissionsUI');
+        safeCall('renderAdminDashboard');
+    }
     if (pageId === 'cart') {
         populateCartWilayas();
         renderCart();
