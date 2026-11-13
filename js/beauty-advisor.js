@@ -195,7 +195,6 @@ async function generateSmartRoutine() {
     }
 
     setTimeout(() => {
-       setTimeout(() => {
         // 1. دالة تنظيف النص العربي وتوحيد الحروف
         const normalizeAr = (text) => {
             return String(text || '')
@@ -276,8 +275,7 @@ async function generateSmartRoutine() {
 
                 if (!solvesConcern) return false;
 
-                // 🌟 شرط التوافق مع نوع البشرة:
-                // إذا كان المنتج محدداً لنوع بشرة معين (مثلاً جافة فقط)، لا نعرضه للبشرة الدهنية إلا إذا كان مناسباً لها أو لجميع أنواع البشرة
+                // 🌟 شرط التوافق مع نوع البشرة
                 const fitsSkinType = userSkinType === '' ||
                     attrTypeValues.length === 0 ||
                     attrTypeValues.some(val => isAttrMatch(userSkinType, val) || val.includes('جميع') || val.includes('كل'));
@@ -319,7 +317,7 @@ async function generateSmartRoutine() {
                 const isHairCategory = cat.includes('شعر') || nameDesc.includes('شامبو') || attrHairType.length > 0 || attrHairConcern.length > 0;
                 if (!isHairCategory) return false;
 
-                // 🌟 شرط أساسي: يجب أن يعالج المنتج مشكلة الشعر المختارة (مثلاً: القشرة فقط)!
+                // 🌟 شرط أساسي: يجب أن يعالج المنتج مشكلة الشعر المختارة!
                 const solvesHairConcern = userHairConcern === '' ||
                     attrHairConcern.some(val => isAttrMatch(userHairConcern, val)) ||
                     allProductAttrs.some(val => isAttrMatch(userHairConcern, val)) ||
@@ -327,8 +325,7 @@ async function generateSmartRoutine() {
 
                 if (!solvesHairConcern) return false;
 
-                // 🌟 شرط التوافق مع نوع الشعر:
-                // يقبل المنتج إذا كان يطابق نوع الشعر المختار (مثلاً دهني) أو لم يُقيد بنوع شعر مختلف
+                // 🌟 شرط التوافق مع نوع الشعر
                 const fitsHairType = userHairType === '' ||
                     attrHairType.length === 0 ||
                     attrHairType.some(val => isAttrMatch(userHairType, val) || val.includes('جميع') || val.includes('كل'));
@@ -341,8 +338,7 @@ async function generateSmartRoutine() {
         // إزالة التكرار
         finalRoutine = Array.from(new Set(finalRoutine.map(a => a.id)))
             .map(id => finalRoutine.find(a => a.id === id));
-        // ... (باقي الكود الخاص بعرض النتيجة يبقى كما هو تماماً) ...
-        
+
         if (finalRoutine.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-10 space-y-4 animate-fade-in">
