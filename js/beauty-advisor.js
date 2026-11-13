@@ -195,122 +195,152 @@ async function generateSmartRoutine() {
     }
 
     setTimeout(() => {
-        // 1. تحديث دالة التنظيف لتزيل المسافات المزدوجة
+       setTimeout(() => {
+        // 1. دالة تنظيف النص العربي وتوحيد الحروف
         const normalizeAr = (text) => {
             return String(text || '')
                 .toLowerCase()
                 .replace(/[أإآ]/g, 'ا')
                 .replace(/ة/g, 'ه')
                 .replace(/ى/g, 'ي')
-                .replace(/\s+/g, ' ') // تحويل المسافات المتعددة لمسافة واحدة
+                .replace(/\s+/g, ' ')
                 .trim();
         };
 
-        // 2. دالة ذكية جديدة للمطابقة المرنة (تتجاهل "ال" التعريف والاختلافات البسيطة)
-        const isFlexibleMatch = (userValue, itemValue) => {
-            if (!userValue) return true;
-            if (!itemValue) return false;
-            
-            // إزالة "ال" التعريف من بداية الكلمات لتسهيل المطابقة (مثل: الدهنية -> دهنية)
-            const cleanUser = userValue.replace(/^ال/, '').replace(/\sال/g, ' ');
-            const cleanItem = itemValue.replace(/^ال/, '').replace(/\sال/g, ' ');
-            
-            // التحقق مما إذا كانت الكلمة موجودة جزئياً في الأخرى
-            return cleanItem.includes(cleanUser) || cleanUser.includes(cleanItem);
+        // 2. إزالة "ال" التعريف من الكلمات للمقارنة الدقيقة
+        const stripAl = (str) => normalizeAr(str).replace(/^ال/, '').replace(/\sال/g, ' ').trim();
+
+        // مطابقة قيمة الفلتر مع خاصية المنتج (Checkbox)
+        const isAttrMatch = (userVal, attrVal) => {
+            if (!userVal) return true;
+            if (!attrVal) return false;
+            const u = stripAl(userVal);
+            const a = stripAl(attrVal);
+            return a === u || a.includes(u) || u.includes(a);
+        };
+
+        // مطابقة مع الاسم أو الوصف فقط إذا لم تكن فلاتر المنتج معبأة (باتجاه واحد آمن)
+        const isTextMatch = (userVal, fullText) => {
+            if (!userVal) return true;
+            if (!fullText) return false;
+            const u = stripAl(userVal);
+            const t = stripAl(fullText);
+            return t.includes(u);
         };
 
         const availableProducts = state.products.filter(p => p.inStock !== false);
         let finalRoutine = [];
 
-        // تنظيف مدخلات الزبونة
         const userSkinType = normalizeAr(userAnswers.skinType);     
         const userSkinConcern = normalizeAr(userAnswers.skinConcern); 
         const userHairType = normalizeAr(userAnswers.hairType);
         const userHairConcern = normalizeAr(userAnswers.hairConcern);
 
-        // --- فلترة البشرة ---
+        // --- أولاً: فلترة البشرة الصارمة ---
         if (userAnswers.journey === 'skin' || userAnswers.journey === 'both') {
             const skinProds = availableProducts.filter(p => {
                 const cat = normalizeAr(p.category || '');
                 const nameDesc = normalizeAr(`${p.name || ''} ${p.desc || ''}`);
                 const attrs = p.attributes || {};
 
-                // استبعاد قاطع لأي منتج يخص الشعر
-                if (cat.includes('شعر') || nameDesc.includes('شامبو') || nameDesc.includes('بلسم') || cat.includes('hair')) {
+                // استبعاد قاطع لمنتجات الشعر أو المكياج أو العطور
+                if (cat.includes('شعر') || cat.includes('عطور') || cat.includes('مكياج') || nameDesc.includes('شامبو')) {
                     return false;
                 }
 
                 let attrTypeValues = [];
                 let attrConcernValues = [];
+                let allProductAttrs = [];
 
                 Object.keys(attrs).forEach(attrName => {
                     const normAttrName = normalizeAr(attrName);
-                    if (normAttrName.includes('نوع البشره') || normAttrName.includes('نوع العنايه')) {
-                        attrTypeValues = attrTypeValues.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    const vals = (attrs[attrName] || []).map(v => normalizeAr(v));
+                    allProductAttrs = allProductAttrs.concat(vals);
+
+                    if (normAttrName.includes('نوع البشره') || normAttrName.includes('بشره')) {
+                        attrTypeValues = attrTypeValues.concat(vals);
                     }
-                    if (normAttrName.includes('مشاكل البشره') || normAttrName.includes('مشكله')) {
-                        attrConcernValues = attrConcernValues.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    if (normAttrName.includes('مشاكل') || normAttrName.includes('مشكله') || normAttrName.includes('هدف') || normAttrName.includes('علاج')) {
+                        attrConcernValues = attrConcernValues.concat(vals);
                     }
                 });
 
-                // استخدام المطابقة الذكية بدلاً من المطابقة الحرفية الصارمة
-                const matchType = userSkinType === '' || 
-                                  attrTypeValues.some(val => isFlexibleMatch(userSkinType, val)) || 
-                                  isFlexibleMatch(userSkinType, nameDesc);
+                const isSkinCategory = cat.includes('بشره') || cat.includes('وجه') || cat.includes('عنايه') || attrTypeValues.length > 0 || attrConcernValues.length > 0;
+                if (!isSkinCategory) return false;
 
-                const matchConcern = userSkinConcern === '' || 
-                                     attrConcernValues.some(val => isFlexibleMatch(userSkinConcern, val)) || 
-                                     isFlexibleMatch(userSkinConcern, nameDesc);
+                // 🌟 شرط أساسي: يجب أن يعالج المنتج المشكلة المختارة!
+                const solvesConcern = userSkinConcern === '' ||
+                    attrConcernValues.some(val => isAttrMatch(userSkinConcern, val)) ||
+                    allProductAttrs.some(val => isAttrMatch(userSkinConcern, val)) ||
+                    (attrConcernValues.length === 0 && isTextMatch(userSkinConcern, nameDesc));
 
-                // المنتج مطابق إذا توافق مع الفلاتر أو الوصف
-                return (matchType || matchConcern) && 
-                       (cat.includes('بشره') || cat.includes('وجه') || cat.includes('عنايه') || attrTypeValues.length > 0 || attrConcernValues.length > 0);
+                if (!solvesConcern) return false;
+
+                // 🌟 شرط التوافق مع نوع البشرة:
+                // إذا كان المنتج محدداً لنوع بشرة معين (مثلاً جافة فقط)، لا نعرضه للبشرة الدهنية إلا إذا كان مناسباً لها أو لجميع أنواع البشرة
+                const fitsSkinType = userSkinType === '' ||
+                    attrTypeValues.length === 0 ||
+                    attrTypeValues.some(val => isAttrMatch(userSkinType, val) || val.includes('جميع') || val.includes('كل'));
+
+                return solvesConcern && fitsSkinType;
             });
             finalRoutine = [...finalRoutine, ...skinProds];
         }
 
-        // --- فلترة الشعر ---
+        // --- ثانياً: فلترة الشعر الصارمة ---
         if (userAnswers.journey === 'hair' || userAnswers.journey === 'both') {
             const hairProds = availableProducts.filter(p => {
                 const cat = normalizeAr(p.category || '');
                 const nameDesc = normalizeAr(`${p.name || ''} ${p.desc || ''}`);
                 const attrs = p.attributes || {};
 
-                if (cat.includes('بشره') || cat.includes('وجه') || nameDesc.includes('غسول للوجه') || cat.includes('skin')) {
+                // استبعاد قاطع لمنتجات البشرة أو المكياج أو العطور
+                if (cat.includes('بشره') || cat.includes('وجه') || cat.includes('مكياج') || cat.includes('عطور') || nameDesc.includes('غسول للوجه')) {
                     return false;
                 }
 
                 let attrHairType = [];
                 let attrHairConcern = [];
+                let allProductAttrs = [];
 
                 Object.keys(attrs).forEach(attrName => {
                     const normAttrName = normalizeAr(attrName);
+                    const vals = (attrs[attrName] || []).map(v => normalizeAr(v));
+                    allProductAttrs = allProductAttrs.concat(vals);
+
                     if (normAttrName.includes('نوع الشعر')) {
-                        attrHairType = attrHairType.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                        attrHairType = attrHairType.concat(vals);
                     }
-                    if (normAttrName.includes('مشاكل الشعر')) {
-                        attrHairConcern = attrHairConcern.concat((attrs[attrName] || []).map(v => normalizeAr(v)));
+                    if (normAttrName.includes('مشاكل') || normAttrName.includes('مشكله') || normAttrName.includes('علاج')) {
+                        attrHairConcern = attrHairConcern.concat(vals);
                     }
                 });
 
-                const matchHairType = userHairType === '' || 
-                                      attrHairType.some(val => isFlexibleMatch(userHairType, val)) || 
-                                      isFlexibleMatch(userHairType, nameDesc);
-                                      
-                const matchHairConcern = userHairConcern === '' || 
-                                         attrHairConcern.some(val => isFlexibleMatch(userHairConcern, val)) || 
-                                         isFlexibleMatch(userHairConcern, nameDesc);
+                const isHairCategory = cat.includes('شعر') || nameDesc.includes('شامبو') || attrHairType.length > 0 || attrHairConcern.length > 0;
+                if (!isHairCategory) return false;
 
-                return (matchHairType || matchHairConcern) && 
-                       (cat.includes('شعر') || nameDesc.includes('شامبو') || attrHairType.length > 0 || attrHairConcern.length > 0);
+                // 🌟 شرط أساسي: يجب أن يعالج المنتج مشكلة الشعر المختارة (مثلاً: القشرة فقط)!
+                const solvesHairConcern = userHairConcern === '' ||
+                    attrHairConcern.some(val => isAttrMatch(userHairConcern, val)) ||
+                    allProductAttrs.some(val => isAttrMatch(userHairConcern, val)) ||
+                    (attrHairConcern.length === 0 && isTextMatch(userHairConcern, nameDesc));
+
+                if (!solvesHairConcern) return false;
+
+                // 🌟 شرط التوافق مع نوع الشعر:
+                // يقبل المنتج إذا كان يطابق نوع الشعر المختار (مثلاً دهني) أو لم يُقيد بنوع شعر مختلف
+                const fitsHairType = userHairType === '' ||
+                    attrHairType.length === 0 ||
+                    attrHairType.some(val => isAttrMatch(userHairType, val) || val.includes('جميع') || val.includes('كل'));
+
+                return solvesHairConcern && fitsHairType;
             });
             finalRoutine = [...finalRoutine, ...hairProds];
         }
 
-        // إزالة التكرار (في حال اختارت الزبونة بشرة وشعر معاً وكان هناك منتج مشترك إن وجد)
+        // إزالة التكرار
         finalRoutine = Array.from(new Set(finalRoutine.map(a => a.id)))
             .map(id => finalRoutine.find(a => a.id === id));
-
         // ... (باقي الكود الخاص بعرض النتيجة يبقى كما هو تماماً) ...
         
         if (finalRoutine.length === 0) {
