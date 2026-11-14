@@ -173,9 +173,29 @@ window.addEventListener('popstate', (event) => {
     }
 });
 
-// تسجيل الصفحة الرئيسية كأول محطة عند فتح الموقع (إلا إذا كان الرابط يوجه لمنتج معين)
+// 🌟 الحفاظ على الصفحة الحالية أو المنتج المفتوح عند تحديث الصفحة (Refresh)
 document.addEventListener('DOMContentLoaded', () => {
-    if (!window.history.state && !window.location.hash.startsWith('#product=')) {
+    const hash = window.location.hash || '';
+
+    if (hash.startsWith('#product=')) {
+        // إخفاء الرئيسية مؤقتاً وفحص المنتج فور جاهزية الاتصال
+        document.querySelectorAll('.page-sec').forEach(el => el.classList.remove('active'));
+        const landingEl = document.getElementById('page-landing');
+        if (landingEl) landingEl.classList.add('active');
+        setTimeout(() => safeCall('checkInitialProductDeepLink'), 150);
+        return;
+    }
+
+    const targetPage = hash.replace('#', '').trim();
+    const validPages = ['home', 'catalog', 'cart', 'wishlist', 'tracking', 'admin'];
+
+    if (targetPage && validPages.includes(targetPage)) {
+        if (targetPage === 'admin' && localStorage.getItem('cosAdminLoggedIn') !== 'true') {
+            showPage('home', false);
+        } else {
+            showPage(targetPage, false);
+        }
+    } else {
         window.history.replaceState({ page: 'home' }, '', '#home');
     }
 });
