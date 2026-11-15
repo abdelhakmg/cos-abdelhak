@@ -115,13 +115,12 @@ export async function openGiftBuilder() {
         }
     } catch (error) {
         console.error("Error fetching gift products:", error);
-        if (!window.giftProductsPool) window.giftProductsPool = state.products;
-        giftData = { recipient: '', selectedBox: null, selectedProducts: [], selectedWrapping: null, giftMessage: '', messageType: 'printed', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' };
+        if (!window.giftProductsPool) window.giftProductsPool = state.products; 
     }
 
     currentGiftStep = 1;
     activeProductCategory = 'الكل';
-    giftData = { recipient: '', selectedBox: null, selectedProducts: [], selectedWrapping: null, giftMessage: '', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' };
+    giftData = { recipient: '', selectedBox: null, selectedProducts: [], selectedWrapping: null, giftMessage: '', messageType: 'printed', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' };
     renderGiftStep();
 }
 export function closeGiftBuilder() {
