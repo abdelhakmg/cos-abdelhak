@@ -352,10 +352,11 @@ export function initFirebaseSync() {
             } else {
                 try {
                     const doc = await window.db.collection('sub_admins').doc(user.uid).get();
-                    if (!doc.exists) {
+                    if (!doc.exists && !doc.metadata.fromCache) {
                         safeCall('adminSignOut');
                         return;
                     }
+                    if (!doc.exists) return;
                     const perms = doc.data().permissions || [];
                     localStorage.setItem('cosAdminRole', 'sub');
                     localStorage.setItem('cosAdminPerms', JSON.stringify(perms));
