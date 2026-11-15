@@ -13,6 +13,7 @@ let giftData = {
     selectedProducts: [],
     selectedWrapping: null,
     giftMessage: '',
+    messageType: 'printed',
     senderName: '',
     senderPhone: '',
     receiverName: '',
@@ -114,7 +115,8 @@ export async function openGiftBuilder() {
         }
     } catch (error) {
         console.error("Error fetching gift products:", error);
-        if (!window.giftProductsPool) window.giftProductsPool = state.products; 
+        if (!window.giftProductsPool) window.giftProductsPool = state.products;
+        giftData = { recipient: '', selectedBox: null, selectedProducts: [], selectedWrapping: null, giftMessage: '', messageType: 'printed', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' };
     }
 
     currentGiftStep = 1;
@@ -346,9 +348,31 @@ case 3:
                         </div>
                     </div>
 
-                    <div class="space-y-2 pt-4 border-t border-gray-800">
-                        <label class="block text-sm font-bold text-[#D4AF37]">رسالة بطاقة الإهداء (تُطبع داخل الهدية):</label>
-                        <textarea id="g-gift-message" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
+                    <div class="space-y-3 pt-4 border-t border-gray-800">
+                        <label class="block text-sm font-bold text-[#D4AF37]">نوع بطاقة الإهداء المرفقة 💌:</label>
+                        
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <button type="button" onclick="setGiftMessageType('printed')" class="p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition cursor-pointer ${giftData.messageType !== 'digital_qr' ? 'border-[#D4AF37] bg-[#D4AF37]/15 text-[#D4AF37] shadow-md' : 'border-gray-800 bg-black/60 text-gray-400 hover:border-gray-600'}">
+                                <i class="fa-solid fa-envelope-open-text text-lg"></i>
+                                <span>بطاقة ورقية مطبوعة</span>
+                                <span class="text-[9px] text-gray-400 font-normal">تُطبع وتوضع داخل العلبة</span>
+                            </button>
+
+                            <button type="button" onclick="setGiftMessageType('digital_qr')" class="p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition cursor-pointer relative overflow-hidden ${giftData.messageType === 'digital_qr' ? 'border-[#D4AF37] bg-[#D4AF37]/15 text-[#D4AF37] shadow-md' : 'border-gray-800 bg-black/60 text-gray-400 hover:border-gray-600'}">
+                                <span class="absolute top-1 left-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">جديد ✨</span>
+                                <i class="fa-solid fa-qrcode text-lg"></i>
+                                <span>بطاقة رقمية (QR Code)</span>
+                                <span class="text-[9px] text-gray-400 font-normal">يمسحها بهاتفه فتظهر مفاجأة!</span>
+                            </button>
+                        </div>
+
+                        ${giftData.messageType === 'digital_qr' ? `
+                            <div class="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-xl p-2.5 text-[11px] text-gray-200 leading-relaxed">
+                                ✨ <b>ميزة ملكية:</b> سنطبع رمز <b>QR Code</b> فاخر على الهدية؛ عندما يمسحه المستلم بكاميرا هاتفه ستفتح له شاشة احتفالية متساقطة بالذهب والورود مع رسالتك!
+                            </div>
+                        ` : ''}
+
+                        <textarea id="g-gift-message" oninput="giftData.giftMessage=this.value" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
                     </div>
                 </div>
             `;
@@ -676,15 +700,35 @@ export function prevGiftStep() {
     if (currentGiftStep > 1) { currentGiftStep--; renderGiftStep(); }
 }
 
+export function setGiftMessageType(type) {
+    giftData.messageType = type;
+    renderGiftStep();
+}
+window.setGiftMessageType = setGiftMessageType;
+
 export function getGiftOrderFullDesc() {
     const itemsSummary = giftData.selectedProducts.map(i => `${i.name} (x${i.qty})`).join(' + ');
+    const isDigital = giftData.messageType === 'digital_qr';
+    let qrTag = '';
+
+    if (isDigital) {
+        const payload = {
+            to: giftData.receiverName || giftData.recipient || 'أغلى الناس',
+            from: giftData.senderName || 'شخص يحبك',
+            msg: giftData.giftMessage || 'أتمنى لك سعادة لا تنتهي ويوماً جميلاً كقلبك ✨'
+        };
+        const encoded = btoa(encodeURIComponent(JSON.stringify(payload)));
+        qrTag = `\n[GIFT_QR:${encoded}]`;
+    }
+
     return `🎁 طلب هدية VIP:
-- المستلم: ${giftData.recipient}
+- المستلم: ${giftData.recipient} (${giftData.receiverName || ''})
 - العلبة: ${giftData.selectedBox ? giftData.selectedBox.name : 'بدون'}
 - المنتجات: ${itemsSummary}
 - التغليف: ${giftData.selectedWrapping ? giftData.selectedWrapping.name : 'بدون'}
+- نوع البطاقة: ${isDigital ? '📱 بطاقة رقمية (QR Code يُطبع مع الوصل)' : '📄 بطاقة ورقية مطبوعة'}
 - الرسالة: "${giftData.giftMessage || 'بدون رسالة'}"
-- المُرسل: ${giftData.senderName} (${giftData.senderPhone})`;
+- المُرسل: ${giftData.senderName} (${giftData.senderPhone})${qrTag}`;
 }
 
 export async function submitGiftOrder() {
