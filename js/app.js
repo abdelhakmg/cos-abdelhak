@@ -151,10 +151,10 @@ window.addEventListener('popstate', (event) => {
         }
     });
 
-    // إذا تم إغلاق نافذة للتو، نمنع تغيير الصفحة ونبقى في مكاننا
-    if (overlayClosed) {
-        const currentPage = document.querySelector('.page-sec.active')?.id.replace('page-', '') || 'home';
-        window.history.pushState({ page: currentPage }, '', '#' + currentPage);
+    // إذا تم إغلاق نافذة للتو، أو كان المشرف يعمل داخل لوحة التحكم، نمنع خروجه المفاجئ للصفحة الرئيسية
+    const activePageId = document.querySelector('.page-sec.active')?.id.replace('page-', '') || 'home';
+    if (overlayClosed || (activePageId === 'admin' && localStorage.getItem('cosAdminLoggedIn') === 'true')) {
+        window.history.pushState({ page: activePageId }, '', '#' + activePageId);
         return;
     }
 
