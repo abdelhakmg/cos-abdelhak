@@ -8,6 +8,7 @@ export const state = {
     orders: [],
     brands: [],
     coupons: [],
+    customersReputation: {},
     WILAYAS: [],
     categoryFilters: {}, 
     availableSkinTypes: [],
