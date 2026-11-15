@@ -224,8 +224,8 @@ export function checkDigitalGiftCardLink() {
 }
 window.checkDigitalGiftCardLink = checkDigitalGiftCardLink;
 // 🌟 الحفاظ على الصفحة الحالية أو المنتج المفتوح عند تحديث الصفحة (Refresh)
-if (checkDigitalGiftCardLink()) return;
 document.addEventListener('DOMContentLoaded', () => {
+    if (checkDigitalGiftCardLink()) return;
     const hash = window.location.hash || '';
 
     if (hash.startsWith('#product=')) {
