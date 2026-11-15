@@ -193,58 +193,114 @@ export function changeLandingQty(delta) {
     checkSmartOrderButton();
 }
 
+// 🌟 حفظ واسترجاع معلومات الزبون تلقائياً لعدم إتعابه في إعادة الكتابة بين المنتج والسلة
+export function saveCustomerDraftInfo() {
+    const info = {
+        name: document.getElementById('cust-name')?.value || '',
+        phone: document.getElementById('cust-phone')?.value || '',
+        wilaya: document.getElementById('cust-wilaya')?.value || '',
+        baladiya: document.getElementById('cust-baladiya')?.value || '',
+        address: document.getElementById('cust-address')?.value || '',
+        shipType: document.querySelector('input[name="shipping_type"]:checked')?.value || 'home'
+    };
+    try { localStorage.setItem('lb_cust_draft', JSON.stringify(info)); } catch (e) {}
+    return info;
+}
+
+export function restoreSavedCustomerInfo() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('lb_cust_draft') || 'null');
+        if (!saved) return;
+        const fields = [
+            ['cust-name', 'cart-cust-name', saved.name],
+            ['cust-phone', 'cart-cust-phone', saved.phone],
+            ['cust-wilaya', 'cart-cust-wilaya', saved.wilaya],
+            ['cust-baladiya', 'cart-cust-baladiya', saved.baladiya],
+            ['cust-address', 'cart-cust-address', saved.address]
+        ];
+        fields.forEach(([landId, cartId, val]) => {
+            if (val) {
+                const el1 = document.getElementById(landId);
+                if (el1 && !el1.value) el1.value = val;
+                const el2 = document.getElementById(cartId);
+                if (el2 && !el2.value) el2.value = val;
+            }
+        });
+        // ربط الحفظ الفوري عند أي كتابة في حقول صفحة الهبوط
+        ['cust-name', 'cust-phone', 'cust-wilaya', 'cust-baladiya', 'cust-address'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && !el.dataset.boundDraft) {
+                el.dataset.boundDraft = '1';
+                el.addEventListener('input', saveCustomerDraftInfo);
+                el.addEventListener('change', saveCustomerDraftInfo);
+            }
+        });
+    } catch (e) {}
+}
+
 export function checkSmartOrderButton() {
     if (!currentLandingProduct) return;
     const wilayaCode = document.getElementById('cust-wilaya')?.value;
     const orderBtn = document.getElementById('main-submit-order-btn');
+    const hintEl = document.getElementById('landing-min-order-hint');
     
     if (!orderBtn) return;
     
-    // 1. التحقق من توفر الكمية أولاً
     if (currentLandingProduct.inStock === false) {
         orderBtn.innerHTML = `<i class="fa-solid fa-ban"></i> نفدت الكمية مؤقتاً`;
         orderBtn.removeAttribute('onclick');
-        orderBtn.className = 'w-full py-4 bg-gray-800 text-gray-400 border border-gray-700 font-extrabold text-lg rounded-2xl cursor-not-allowed flex items-center justify-center gap-2';
-        return;
-    }
-
-    // 2. إذا لم يحدد الولاية بعد، نتركه للوضع الطبيعي
-    if (!wilayaCode) {
-        orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
-        orderBtn.setAttribute('onclick', 'submitLandingOrder()');
-        orderBtn.className = 'w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition';
+        orderBtn.className = 'flex-1 py-4 bg-gray-800 text-gray-400 border border-gray-700 font-extrabold text-sm sm:text-base rounded-2xl cursor-not-allowed flex items-center justify-center gap-2';
+        if (hintEl) hintEl.classList.add('hidden');
         return;
     }
 
     const localWilaya = state.storeSettings?.localWilaya;
     const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
     const minNational = Number(state.storeSettings?.minOrderNational) || 0;
-
-    let requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
-    // 🌟 ضرب سعر المنتج في الكمية المختارة لمعرفة إن كان قد وصل للحد الأدنى!
     let currentSubtotal = (Number(currentLandingProduct.price) || 0) * currentLandingQty;
 
+    // إذا لم يحدد الولاية بعد، نتحقق إن كان السعر أقل حتى من الحد الأدنى المحلي لننبهه مبكراً قبل أن يكتب!
+    const baselineMin = wilayaCode ? ((wilayaCode === localWilaya) ? minLocal : minNational) : Math.min(minLocal || minNational, minNational || minLocal);
+
+    if (baselineMin > 0 && currentSubtotal < baselineMin) {
+        if (hintEl) {
+            hintEl.innerHTML = `💡 <b>ملاحظة:</b> الحد الأدنى للطلب هو <b>${formatPrice(baselineMin)}</b> — يمكنك زيادة الكمية من الأعلى أو ضغط <b>"أضف للسلة"</b> لجمع أكثر من منتج (معلوماتك ستُحفظ تلقائياً).`;
+            hintEl.classList.remove('hidden');
+        }
+    } else if (hintEl) {
+        hintEl.classList.add('hidden');
+    }
+
+    if (!wilayaCode) {
+        orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
+        orderBtn.setAttribute('onclick', 'submitLandingOrder()');
+        orderBtn.className = 'flex-1 py-4 gold-gradient text-black font-extrabold text-sm sm:text-base rounded-2xl shadow-xl hover:opacity-90 transition cursor-pointer';
+        return;
+    }
+
+    let requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
+
     if (currentSubtotal < requiredMin) {
-        orderBtn.innerHTML = `أضف إلى السلة لتصل للحد الأدنى (${formatPrice(requiredMin)}) 🛒`;
+        orderBtn.innerHTML = `أضف للسلة لإكمال الحد الأدنى (${formatPrice(requiredMin)}) 🛒`;
         orderBtn.setAttribute('onclick', 'addToCartFromLanding()');
-        orderBtn.className = 'w-full py-4 bg-[#121212] text-[#D4AF37] border border-[#D4AF37]/50 font-extrabold text-lg rounded-2xl transition hover:bg-[#1a1a1a]';
+        orderBtn.className = 'flex-1 py-4 bg-[#121212] text-[#D4AF37] border border-[#D4AF37]/60 font-extrabold text-sm sm:text-base rounded-2xl transition hover:bg-[#1a1a1a] cursor-pointer';
     } else {
         orderBtn.innerHTML = `تأكيد الطلب الآن (الدفع عند الاستلام) 🚚`;
         orderBtn.setAttribute('onclick', 'submitLandingOrder()');
-        orderBtn.className = 'w-full py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition';
+        orderBtn.className = 'flex-1 py-4 gold-gradient text-black font-extrabold text-sm sm:text-base rounded-2xl shadow-xl hover:opacity-90 transition cursor-pointer';
     }
 }
 
-export function addToCartFromLanding() {
+export function quickAddToCartFromLanding(goToCart = false) {
     if (!currentLandingProduct) return;
-    
-    // دعم النظام القديم والجديد
+    saveCustomerDraftInfo();
+
     let finalOption = '';
     let finalImage = null;
 
     if (currentSelectedVariant) {
         finalOption = currentSelectedVariant.name;
-        finalImage = currentSelectedVariant.image; // تمرير صورة الذوق المختار!
+        finalImage = currentSelectedVariant.image;
     } else {
         finalOption = document.querySelector('input[name="selected_product_color"]:checked')?.value || '';
     }
@@ -253,10 +309,19 @@ export function addToCartFromLanding() {
     
     if (typeof window.addToCart === 'function') {
         window.addToCart(currentLandingProduct.id, finalOption, selectedNum, currentLandingQty, finalImage);
-        showCustomAlert('تمت الإضافة للسلة 🛒', 'تمت إضافة المنتج للسلة. يرجى إضافة المزيد من المنتجات لتتمكن من الوصول للحد الأدنى وإتمام الطلب.', true);
-        safeCall('showPage', 'cart');
+        if (goToCart) {
+            safeCall('showPage', 'cart');
+            setTimeout(restoreSavedCustomerInfo, 100);
+        }
     }
 }
+
+export function addToCartFromLanding() {
+    quickAddToCartFromLanding(true);
+    showCustomAlert('تمت الإضافة وحفظ بياناتك! 🛒', 'تم نقل المنتج ومعلوماتك إلى السلة تلقائياً، أضف منتجاً آخر لإكمال الحد الأدنى للطلب.', true);
+}
+window.quickAddToCartFromLanding = quickAddToCartFromLanding;
+window.restoreSavedCustomerInfo = restoreSavedCustomerInfo;
 
 export function calculateLandingTotal() {
     if (!currentLandingProduct) return;
@@ -479,7 +544,20 @@ export function renderLandingDynamicOptions(p) {
         }
     }
 
+    // 🌟 زر إضافة مباشرة للسلة في أعلى صفحة المنتج (بدون الحاجة للنزول للاستمارة)
+    html += `
+        <div class="pt-4 mt-3 border-t border-gray-800/80 flex gap-2.5">
+            <button type="button" onclick="quickAddToCartFromLanding(false)" class="flex-1 py-3 bg-[#141414] hover:bg-[#D4AF37] text-[#D4AF37] hover:text-black border border-[#D4AF37] font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-md cursor-pointer">
+                <i class="fa-solid fa-cart-plus"></i> أضف إلى السلة وتابع التسوق
+            </button>
+            <button type="button" onclick="document.getElementById('cust-name')?.scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('cust-name')?.focus();" class="px-4 py-3 gold-gradient text-black font-black text-xs sm:text-sm rounded-xl transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer">
+                <i class="fa-solid fa-bolt"></i> اطلب الآن
+            </button>
+        </div>
+    `;
+
     container.innerHTML = html;
+    restoreSavedCustomerInfo();
 }
 
 // 🌟 دالة تفاعل الزبون: تبرز الاختيار وتغير الصورة الرئيسية فوراً
