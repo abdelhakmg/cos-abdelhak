@@ -1571,7 +1571,7 @@ export function printOrder(id) {
                     <div class="paid-badge">🎁 طرد هدية VIP — خالص الدفع (0 دج عند الاستلام) ✅</div>
                 </div>
 
-                <div class="cut-line">✂️ قص من هنا: ضع البطاقة بالأسفل مع الهدية، والورقة الثالثة لك لتجهيز العلبة ✂️</div>
+                <div class="cut-line"> </div>
 
                 <!-- 2. بطاقة الإهداء الفاخرة للمستلم (بدون أسعار، وتخفي الرسالة إذا كانت QR) -->
                 <div class="gift-card">
@@ -1591,7 +1591,7 @@ export function printOrder(id) {
                     `}
                 </div>
 
-                <div class="cut-line">✂️ قص من هنا: ورقة التحضير الداخلية للورشة (تبقى في المحل ولا ترسل للمستلم!) ✂️</div>
+                <div class="cut-line"> </div>
 
                 <!-- 3. ورقة التحضير الداخلية لصاحب المحل فقط -->
                 <div class="box" style="font-size: 11px; background: #fcfcfc;">
