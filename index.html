@@ -1899,12 +1899,13 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                       if ((data.permissions || []).includes('visitors_stats') && typeof window.initAdminAnalyticsSync === 'function') {
                           window.initAdminAnalyticsSync();
                       }
-                  } else {
+                  } else if (!doc.metadata.fromCache) {
+                      // لا نخرج المشرف إلا إذا كانت الإجابة قادمة من السيرفر الفعلي وليس من كاش فارغ أثناء ضعف الإنترنت
                       localStorage.removeItem('cosAdminLoggedIn');
                       window.firebase.auth().signOut();
                   }
               } catch (e) {
-                  console.error('Sub-admin verification error:', e);
+                  console.warn('Network busy during sub-admin check, keeping session active.');
               }
           }
       });
@@ -1930,10 +1931,10 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 });
             });
 
-            // 🌟 الحارس الذكي: يعيد تحميل الصفحة لمرة واحدة فقط فور تفعيل التحديث الجديد
+            // 🌟 الحارس الذكي: يمنع إعادة التحميل المفاجئة إذا كان المدير أو المشرف يعمل داخل لوحة التحكم
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) {
+                if (!refreshing && localStorage.getItem('cosAdminLoggedIn') !== 'true') {
                     refreshing = true;
                     window.location.reload();
                 }
