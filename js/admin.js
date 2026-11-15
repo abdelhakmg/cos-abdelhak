@@ -1713,14 +1713,33 @@ export function printOrder(id) {
 
 // 2. طباعة الطلبيات المحددة (زر الطباعة المتعددة)
 export function printSelectedOrders() {
-    const checkedBoxes = document.querySelectorAll('.order-checkbox:checked, input[name="selected_orders"]:checked');
-    let selectedIds = Array.from(checkedBoxes).map(cb => cb.value || cb.dataset.id).filter(Boolean);
+    const idSet = new Set();
 
-    // دعم إضافي إذا كنت تخزن الطلبات المحددة في مصفوفة عامة
-    if (selectedIds.length === 0 && Array.isArray(window.selectedOrderIds) && window.selectedOrderIds.length > 0) {
-        selectedIds = window.selectedOrderIds;
-    }
+    // 1. فحص أي متغيرات تحديد موجودة في الملف (Set أو Array)
+    try {
+        if (typeof selectedOrders !== 'undefined' && selectedOrders) {
+            selectedOrders.forEach(id => idSet.add(id));
+        }
+    } catch (e) {}
+    try {
+        if (typeof selectedOrderIds !== 'undefined' && selectedOrderIds) {
+            selectedOrderIds.forEach(id => idSet.add(id));
+        }
+    } catch (e) {}
 
+    // 2. قراءة جميع مربعات التحديد المؤشر عليها داخل جدول الطلبيات مباشرة
+    const checkedInputs = document.querySelectorAll('#admin-orders-list input[type="checkbox"]:checked, tbody input[type="checkbox"]:checked, .order-checkbox:checked');
+    checkedInputs.forEach(cb => {
+        if (cb.value && cb.value !== 'on') idSet.add(cb.value);
+        if (cb.dataset && cb.dataset.id) idSet.add(cb.dataset.id);
+        
+        // استخراج الـ ID من حدث onchange أو onclick إذا لم يكن هناك value مباشرة
+        const handlerAttr = cb.getAttribute('onchange') || cb.getAttribute('onclick') || '';
+        const match = handlerAttr.match(/['"]([^'"]+)['"]/);
+        if (match && match[1]) idSet.add(match[1]);
+    });
+
+    const selectedIds = Array.from(idSet);
     const ordersToPrint = state.orders.filter(o => selectedIds.includes(o.id));
     renderOrdersPrintView(ordersToPrint);
 }
