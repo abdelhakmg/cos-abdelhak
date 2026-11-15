@@ -386,6 +386,14 @@ export function initAdminOrdersSync(limitCount = 200) {
         ordersUnsubscribe();
     }
 
+    // 🌟 جلب سجل سمعة الزبائن الدائم (VIP / مرتجع) لمرة واحدة بهدوء
+    window.db.collection("settings").doc("customers_reputation").get().then(doc => {
+        if (doc.exists) {
+            state.customersReputation = doc.data() || {};
+            safeCall('renderAdminDashboard');
+        }
+    }).catch(() => {});
+
     ordersUnsubscribe = window.db.collection("orders")
         .orderBy("createdAt", "desc")
         .limit(limitCount)
