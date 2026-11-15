@@ -472,9 +472,18 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         <div class="flex justify-between text-sm"><span>تكلفة التوصيل:</span><span id="sum-ship-price" class="font-bold text-[#D4AF37]">0 دج</span></div>
                         <div class="border-t border-gray-800 pt-3 flex justify-between text-lg font-black"><span>المجموع الإجمالي:</span><span id="sum-total-price" class="gold-text">0 دج</span></div>
                     </div>
-                    <button id="main-submit-order-btn" onclick="submitLandingOrder()" class="w-full mt-4 py-4 gold-gradient text-black font-extrabold text-lg rounded-2xl shadow-xl hover:opacity-90 transition">
-                        تأكيد الطلب الآن (الدفع عند الاستلام) 🚚
-                    </button>
+                    <!-- تنبيه ذكي يظهر تلقائياً إذا كان سعر المنتج أقل من الحد الأدنى -->
+<div id="landing-min-order-hint" class="hidden mb-3 p-3 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/40 text-center text-xs text-[#D4AF37] font-bold"></div>
+
+<div class="flex gap-2.5">
+    <button type="button" id="main-submit-order-btn" onclick="submitLandingOrder()" class="flex-1 py-4 gold-gradient text-black font-extrabold text-sm sm:text-base rounded-2xl shadow-xl hover:opacity-90 transition cursor-pointer">
+        تأكيد الطلب الآن (الدفع عند الاستلام) 🚚
+    </button>
+    <button type="button" onclick="quickAddToCartFromLanding(false)" class="px-5 py-4 bg-[#141414] hover:bg-[#D4AF37] text-[#D4AF37] hover:text-black border border-[#D4AF37]/60 font-extrabold text-sm rounded-2xl transition flex items-center justify-center gap-2 shrink-0 shadow-lg cursor-pointer" title="أضف إلى السلة وتابع التسوق">
+        <i class="fa-solid fa-cart-plus text-lg"></i>
+        <span>أضف للسلة</span>
+    </button>
+</div>
                 </div>
                 <!-- 🌟 قسم منتجات مشابهة قد تعجبك (Cross-Selling) 🌟 -->
                 <div id="related-products-section" class="mt-10 pt-8 border-t border-[#D4AF37]/20 hidden">
