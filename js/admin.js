@@ -1511,18 +1511,30 @@ export function updateAdminPasswordSecure() {
 // ==========================================
 // 6. نظام طباعة وصولات الإرسال (Bon de Livraison)
 // ==========================================
-export function printOrder(id) {
-    const order = state.orders.find(o => o.id === id);
-    if (!order) return;
+// 🌟 المولد الذكي لبطاقة الطباعة (يفرق تلقائياً بين طلبية النصف ورقة 2-in-1 وطلبية الربع ورقة 4-in-1)
+function isSpecialOrPrepaidOrder(order) {
+    const prod = order.product || '';
+    return prod.includes('طلب هدية VIP') || 
+           prod.includes('[طلب مخصص') || 
+           prod.includes('[هدية VIP]') || 
+           prod.includes('[مخصص]') || 
+           order.paymentMethod === 'baridimob' || 
+           order.paymentMethod === 'in_store';
+}
 
-    const isGiftOrder = (order.product || '').includes('طلب هدية VIP');
-    const qrMatch = (order.product || '').match(/\[GIFT_QR:([^\]]+)\]/);
-    const cleanProductText = (order.product || '').replace(/\[GIFT_QR:[^\]]+\]/g, '').trim();
+function buildOrderPrintCardHtml(order) {
+    const prodText = order.product || '';
+    const isGift = prodText.includes('طلب هدية VIP') || prodText.includes('[هدية VIP]');
+    const isSpecial = isSpecialOrPrepaidOrder(order);
+    const qrMatch = prodText.match(/\[GIFT_QR:([^\]]+)\]/);
+    const cleanProductText = prodText.replace(/\[GIFT_QR:[^\]]+\]/g, '').trim();
+    const shortId = (order.id || '').slice(-6).toUpperCase();
+    const logoHtml = state.storeSettings?.logoUrl ? `<img src="${state.storeSettings.logoUrl}" class="print-logo">` : '';
+    const storeName = state.storeSettings?.name || 'COSMETIQUE ABDELHAK';
+    const cleanCommune = (order.commune || '').replace(/^البلدية:\s*/, '');
 
-    let printHtml = '';
-
-    if (isGiftOrder) {
-        // استخراج بيانات الهدية بذكاء لفصلها عن المستلم
+    // 1. تصميم النصف صفحة (2 في ورقة A4 واحدة) للهدايا والورشة والدفع المسبق
+    if (isSpecial) {
         const senderMatch = cleanProductText.match(/المُرسل:\s*([^\n(]+)/);
         const msgMatch = cleanProductText.match(/الرسالة:\s*"([^"]+)"/);
         const senderName = senderMatch ? senderMatch[1].trim() : 'شخص يعزك كثيراً';
@@ -1531,199 +1543,193 @@ export function printOrder(id) {
         let qrImgSrc = '';
         if (qrMatch) {
             const giftUrl = `${window.location.origin}/#giftcard=${qrMatch[1]}`;
-            qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(giftUrl)}`;
+            qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(giftUrl)}`;
         }
 
-        printHtml = `
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title> </title>
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap');
-                @page { size: A4; margin: 8mm; }
-                body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; color: #000; background: #fff; }
-                .grid-wrap { display: flex; flex-direction: column; gap: 12px; max-width: 140mm; margin: 0 auto; }
-                .box { border: 2px solid #000; border-radius: 12px; padding: 14px; page-break-inside: avoid; }
-                .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 10px; }
-                .header img { height: 42px; object-fit: contain; }
-                .header h2 { margin: 2px 0; font-size: 16px; font-weight: 900; }
-                .row { display: flex; justify-content: space-between; font-size: 13px; margin: 5px 0; border-bottom: 1px dotted #ccc; padding-bottom: 3px; }
-                .paid-badge { border: 2px solid #000; background: #f3f3f3; text-align: center; font-weight: 900; font-size: 15px; padding: 8px; border-radius: 8px; margin-top: 10px; }
-                .cut-line { text-align: center; font-size: 11px; font-weight: bold; color: #555; margin: 4px 0; border-top: 2px dashed #000; padding-top: 4px; }
-                .gift-card { border: 3px double #000; border-radius: 16px; padding: 18px; text-align: center; background: #fff; }
-            </style>
-        </head>
-        <body>
-            <div class="grid-wrap">
-                <!-- 1. ملصق التوصيل الخارجي (يلصق على الطرد من الخارج بدون أسعار ولا تفاصيل تحرق المفاجأة) -->
-                <div class="box">
-                    <div class="header">
-                        ${state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}">` : ''}
-                        <h2>${state.storeSettings.name || 'COSMETIQUE ABDELHAK'}</h2>
-                        <div style="font-size:11px; font-weight:bold;">ملصق توصيل هدية خاصة 🎁 | طلب #${order.id.slice(-6).toUpperCase()}</div>
+        const paymentBadge = isGift 
+            ? `🎁 طرد هدية VIP — خالص الدفع (0 دج عند الاستلام) ✅`
+            : (order.paymentMethod === 'baridimob' 
+                ? `💳 مدفوع عبر بريدي موب — الباقي عند الاستلام: 0 دج ✅` 
+                : `🏪 طلب مخصص (ورشة) — المبلغ: ${(order.total || 0).toLocaleString()} دج`);
+
+        return `
+        <div class="half-sheet-card">
+            <div class="half-grid">
+                <!-- القسم الأيمن: ملصق التوصيل الخارجي + بطاقة الإهداء -->
+                <div class="shipping-side">
+                    <div class="card-head">
+                        ${logoHtml}
+                        <div>
+                            <div class="store-title">${storeName}</div>
+                            <div class="order-meta">وصل #${shortId} | ${order.date || ''}</div>
+                        </div>
                     </div>
-                    <div class="row"><strong>المستلم:</strong> <span>${order.customer}</span></div>
-                    <div class="row"><strong>هاتف المستلم:</strong> <span dir="ltr" style="font-weight:900; font-size:15px;">${order.phone}</span></div>
-                    <div class="row"><strong>الولاية:</strong> <span>${order.wilaya}</span></div>
-                    <div class="row"><strong>العنوان:</strong> <span>${(order.commune || '').replace(/^البلدية:\s*/, '')}</span></div>
-                    <div class="paid-badge">🎁 طرد هدية VIP — خالص الدفع (0 دج عند الاستلام) ✅</div>
+                    <div class="info-line"><strong>المستلم:</strong> <span>${order.customer}</span></div>
+                    <div class="info-line"><strong>الهاتف:</strong> <span dir="ltr" class="phone-num">${order.phone}</span></div>
+                    <div class="info-line"><strong>الولاية:</strong> <span>${order.wilaya}</span></div>
+                    <div class="info-line"><strong>العنوان:</strong> <span>${cleanCommune}</span></div>
+                    <div class="paid-stamp">${paymentBadge}</div>
+
+                    ${isGift ? `
+                        <div class="gift-mini-card">
+                            <div class="gift-mini-head">✨ بطاقة إهداء إلى: <b>${order.customer}</b> (من: ${senderName}) ✨</div>
+                            ${qrImgSrc ? `
+                                <div class="qr-row">
+                                    <img src="${qrImgSrc}" class="qr-img">
+                                    <div class="qr-txt">📱 <b>رسالة سرية لك!</b><br>افتح كاميرا هاتفك وامسح الرمز لفتح إهدائك الخاص 🎉</div>
+                                </div>
+                            ` : `
+                                <div class="printed-msg">"${giftMessage || 'أتمنى لك سعادة لا تنتهي ويوماً جميلاً كقلبك ✨'}"</div>
+                            `}
+                        </div>
+                    ` : ''}
                 </div>
 
-                <div class="cut-line"> </div>
-
-                <!-- 2. بطاقة الإهداء الفاخرة للمستلم (بدون أسعار، وتخفي الرسالة إذا كانت QR) -->
-                <div class="gift-card">
-                    <div style="font-size:12px; font-weight:bold; letter-spacing:1px;">✨ إهداء خاص من متجر ${state.storeSettings.name || 'كوسمتيك عبد الحق'} ✨</div>
-                    <h3 style="margin: 8px 0 4px; font-size: 18px; font-weight: 900;">إلى: ${order.customer} ❤️</h3>
-                    <div style="font-size: 12px; margin-bottom: 12px;">مُقدمة بكل حب من: <strong>${senderName}</strong></div>
-                    
-                    ${qrImgSrc ? `
-                        <div style="margin: 10px auto; padding: 10px; border: 1.5px solid #000; border-radius: 12px; display: inline-block;">
-                            <img src="${qrImgSrc}" style="width: 125px; height: 125px; display: block; margin: 0 auto;">
-                        </div>
-                        <p style="margin: 6px 0 0; font-size: 12px; font-weight: 900;">📱 افتح كاميرا هاتفك وامسح الرمز لفتح رسالتك السرية!</p>
-                    ` : `
-                        <div style="font-family: 'Amiri', serif; font-size: 17px; line-height: 1.8; padding: 14px; border: 1px solid #888; border-radius: 10px; margin: 8px 0; background: #fafafa;">
-                            "${giftMessage || 'أتمنى لك سعادة لا تنتهي ويوماً جميلاً كقلبك ✨'}"
-                        </div>
-                    `}
-                </div>
-
-                <div class="cut-line"> </div>
-
-                <!-- 3. ورقة التحضير الداخلية لصاحب المحل فقط -->
-                <div class="box" style="font-size: 11px; background: #fcfcfc;">
-                    <strong>🛠️ تفاصيل تجهيز العلبة للورشة (تبقى في المحل) — المبلغ: ${(order.total || 0).toLocaleString()} دج:</strong>
-                    <div style="white-space: pre-line; margin-top: 5px;">${cleanProductText}</div>
+                <!-- القسم الأيسر: ورقة التحضير الداخلية للمحل (تُقص وتبقى في الورشة) -->
+                <div class="workshop-side">
+                    <div class="workshop-head">✂️ قسيمة تحضير داخلية للمحل (#${shortId}) — الإجمالي: ${(order.total || 0).toLocaleString()} دج</div>
+                    <div class="workshop-body">${cleanProductText}</div>
                 </div>
             </div>
-            <script>window.onload = () => { setTimeout(() => { window.print(); window.close(); }, 350); };<\/script>
-        </body>
-        </html>`;
-    } else {
-        // الوصل العادي compact للطلبيات غير الهدايا
-        printHtml = `
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title> </title>
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-                @page { size: A4; margin: 10mm; }
-                body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; color: #000; }
-                .bon { max-width: 125mm; margin: 0 auto; border: 2px solid #000; border-radius: 12px; padding: 16px; }
-                .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 12px; }
-                .header img { height: 48px; object-fit: contain; }
-                .row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 13px; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
-                .total { border: 2px solid #000; padding: 10px; text-align: center; font-size: 17px; font-weight: 900; border-radius: 8px; margin-top: 12px; background: #f9f9f9; }
-            </style>
-        </head>
-        <body>
-            <div class="bon">
-                <div class="header">
-                    ${state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}">` : ''}
-                    <h2 style="margin:4px 0; font-size:18px;">${state.storeSettings.name || 'COSMETIQUE ABDELHAK'}</h2>
-                    <div style="font-size:12px; font-weight:bold;">وصل إرسال - Bon de Livraison #${order.id.slice(-6).toUpperCase()}</div>
-                </div>
-                <div class="row"><strong>التاريخ:</strong> <span>${order.date || ''}</span></div>
-                <div class="row"><strong>المرسل إليه:</strong> <span>${order.customer}</span></div>
-                <div class="row"><strong>الهاتف:</strong> <span dir="ltr" style="font-weight:900;">${order.phone}</span></div>
-                <div class="row"><strong>الولاية:</strong> <span>${order.wilaya}</span></div>
-                <div class="row"><strong>العنوان:</strong> <span>${(order.commune || '').replace(/^البلدية:\s*/, '')}</span></div>
-                <div style="margin-top:10px; font-size:13px; white-space:pre-line;"><strong>المنتج المطلوب:</strong><br>${cleanProductText}</div>
-                <div class="total">المبلغ المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
-            </div>
-            <script>window.onload = () => { setTimeout(() => { window.print(); window.close(); }, 300); };<\/script>
-        </body>
-        </html>`;
+        </div>`;
     }
 
-    const printWindow = window.open('', '_blank', 'width=800,height=900');
-    printWindow.document.write(printHtml);
-    printWindow.document.close();
+    // 2. تصميم الربع صفحة (4 في ورقة A4 واحدة) للطلبيات العادية من السلة/الهبوط
+    return `
+    <div class="quarter-sheet-card">
+        <div>
+            <div class="card-head">
+                ${logoHtml}
+                <div>
+                    <div class="store-title">${storeName}</div>
+                    <div class="order-meta">وصل إرسال #${shortId} | ${order.date || ''}</div>
+                </div>
+            </div>
+            <div class="info-line"><strong>الزبون:</strong> <span>${order.customer}</span></div>
+            <div class="info-line"><strong>الهاتف:</strong> <span dir="ltr" class="phone-num">${order.phone}</span></div>
+            <div class="info-line"><strong>العنوان:</strong> <span>${order.wilaya} - ${cleanCommune}</span></div>
+            <div class="prod-box">
+                <strong>المنتجات المطلوبة:</strong>
+                <div class="prod-list">${cleanProductText}</div>
+            </div>
+        </div>
+        <div class="cod-total">المبلغ المطلوب: ${(order.total || 0).toLocaleString()} دج</div>
+    </div>`;
 }
-export function printSelectedOrders() {
-    const checkedBoxes = document.querySelectorAll('.order-cb:checked');
-    if (checkedBoxes.length === 0) return;
 
-    const selectedOrders = Array.from(checkedBoxes).map(cb => state.orders.find(o => o.id === cb.value)).filter(Boolean);
-    const storeName = state.storeSettings.name || 'كوسمتيك عبد الحق';
-    const storeLogo = state.storeSettings.logoUrl ? `<img src="${state.storeSettings.logoUrl}" style="max-height: 45px; margin-bottom: 5px;">` : `<div style="font-size:20px; margin-bottom:5px;">👑</div>`;
+// 🌟 دالة فتح نافذة الطباعة الموحدة (سواء لطلب واحد أو عدة طلبات)
+export function renderOrdersPrintView(ordersList) {
+    if (!ordersList || ordersList.length === 0) {
+        if (typeof showCustomAlert === 'function') showCustomAlert('تنبيه ⚠️', 'يرجى تحديد طلبية واحدة على الأقل للطباعة!', false);
+        return;
+    }
+
+    // فصل الطلبيات: الخاصة/المدفوعة (2 في الصفحة) والعادية (4 في الصفحة) لترتيب الورق باحترافية
+    const specialOrders = ordersList.filter(o => isSpecialOrPrepaidOrder(o));
+    const standardOrders = ordersList.filter(o => !isSpecialOrPrepaidOrder(o));
 
     let pagesHtml = '';
-    for (let i = 0; i < selectedOrders.length; i += 4) {
-        const chunk = selectedOrders.slice(i, i + 4);
-        pagesHtml += `<div class="page">`;
-        chunk.forEach(order => {
-            const shortId = order.id.substring(0, 6).toUpperCase();
-            let dateStr = 'غير معروف';
-            if (order.createdAt) {
-                const d = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
-                dateStr = d.toLocaleDateString('ar-DZ') + ' ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
-            }
-            pagesHtml += `
-                <div class="receipt-box">
-                    <div class="header">
-                        ${storeLogo}
-                        <h2>${storeName}</h2>
-                        <p style="margin:2px 0 0; font-size:12px; font-weight:bold;">وصل إرسال - Bon de Livraison</p>
-                    </div>
-                    <div class="info-group"><strong>رقم الطلب:</strong> #${shortId}</div>
-                    <div class="info-group"><strong>التاريخ:</strong> ${dateStr}</div>
-                    <hr style="border:0; border-top:1px dashed #ccc; margin: 8px 0;">
-                    <div class="info-group"><strong>المرسل إليه:</strong> ${order.customer}</div>
-                    <div class="info-group"><strong>الهاتف:</strong> <span dir="ltr" style="font-weight:bold; font-size:15px;">${order.phone}</span></div>
-                    <div class="info-group"><strong>الولاية:</strong> ${order.wilaya || 'غير محدد'}</div>
-                    <div class="info-group"><strong>البلدية:</strong> ${order.commune || 'غير محدد'}</div>
-                    <hr style="border:0; border-top:1px dashed #ccc; margin: 8px 0;">
-                    <div class="info-group" style="font-size:12px; max-height: 45px; overflow: hidden;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
-                    <div class="total">المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
-                    <div class="footer">شكراً لتسوقكم معنا!</div>
-                </div>
-            `;
-        });
-        pagesHtml += `</div>`;
+
+    // تجميع الطلبيات الخاصة: كل طلبيتين (2) في صفحة A4 واحدة على الطول
+    for (let i = 0; i < specialOrders.length; i += 2) {
+        const chunk = specialOrders.slice(i, i + 2);
+        pagesHtml += `<div class="a4-page layout-2">${chunk.map(buildOrderPrintCardHtml).join('')}</div>`;
     }
 
-    const printWindow = window.open('', '_blank', 'width=800,height=800');
-    printWindow.document.write(`
-        <html dir="rtl" lang="ar">
-        <head>
-            <title>طباعة وصولات جماعية</title>
-            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-            <style>
-                body { font-family: 'Cairo', sans-serif; margin: 0; padding: 0; background: #525659; display: flex; flex-direction: column; align-items: center; }
-                .page { width: 210mm; height: 297mm; background: #fff; display: grid; grid-template-columns: 105mm 105mm; grid-template-rows: 148.5mm 148.5mm; page-break-after: always; box-shadow: 0 0 10px rgba(0,0,0,0.5); margin: 20px auto; box-sizing: border-box; }
-                .receipt-box { width: 105mm; height: 148.5mm; padding: 15px; box-sizing: border-box; border: 1px dashed #aaa; position: relative; overflow: hidden; }
-                .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
-                .header h2 { margin: 0; font-size: 18px; font-weight: 900; }
-                .info-group { margin-bottom: 5px; font-size: 13px; line-height: 1.4; }
-                .info-group strong { display: inline-block; width: 75px; color: #333; }
-                .total { font-size: 17px; font-weight: 900; text-align: center; border-top: 2px solid #000; padding-top: 8px; margin-top: 10px; }
-                .footer { text-align: center; font-size: 11px; color: #555; position: absolute; bottom: 15px; width: calc(100% - 30px); left: 15px; border-top: 1px dashed #ccc; padding-top: 5px; }
-                @media print {
-                    @page { size: A4; margin: 0; }
-                    body { margin: 0; background: #fff; box-shadow: none; display: block; }
-                    .page { margin: 0; box-shadow: none; border: none; }
-                    .receipt-box { border: 1px solid #ccc; }
-                }
-            </style>
-        </head>
-        <body>
-            ${pagesHtml}
-            <script>
-                window.onload = function() {
-                    setTimeout(() => { window.print(); window.close(); }, 500);
-                }
-            </script>
-        </body>
-        </html>
-    `);
+    // تجميع الطلبيات العادية: كل 4 طلبيات في صفحة A4 واحدة (شبكة 2×2)
+    for (let i = 0; i < standardOrders.length; i += 4) {
+        const chunk = standardOrders.slice(i, i + 4);
+        pagesHtml += `<div class="a4-page layout-4">${chunk.map(buildOrderPrintCardHtml).join('')}</div>`;
+    }
+
+    const fullHtml = `
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <title> </title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap');
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            @page { size: A4 portrait; margin: 7mm; }
+            body { font-family: 'Cairo', sans-serif; color: #000; background: #fff; }
+            
+            .a4-page { width: 100%; height: 281mm; page-break-after: always; overflow: hidden; }
+            .a4-page:last-child { page-break-after: auto; }
+
+            /* تخطيط 2 في 1 (نصف صفحة علوي ونصف سفلي) */
+            .layout-2 { display: flex; flex-direction: column; gap: 6mm; }
+            .half-sheet-card { height: 137mm; border: 2px solid #000; border-radius: 10px; padding: 8px; overflow: hidden; }
+            .half-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 8px; height: 100%; }
+            .shipping-side { display: flex; flex-direction: column; justify-content: space-between; padding-left: 6px; }
+            .workshop-side { border-right: 2px dashed #000; padding-right: 8px; display: flex; flex-direction: column; overflow: hidden; }
+            .workshop-head { font-size: 10.5px; font-weight: 900; background: #eee; padding: 4px 6px; border-radius: 6px; margin-bottom: 4px; text-align: center; border: 1px solid #000; }
+            .workshop-body { font-size: 10.5px; line-height: 1.38; white-space: pre-line; overflow: hidden; }
+
+            /* تخطيط 4 في 1 (شبكة 2×2 بدون قص للمعلومات) */
+            .layout-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 137mm 137mm; gap: 5mm; }
+            .quarter-sheet-card { height: 137mm; border: 2px solid #000; border-radius: 10px; padding: 9px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+
+            /* عناصر مشتركة */
+            .card-head { display: flex; align-items: center; gap: 8px; border-bottom: 1.5px dashed #000; padding-bottom: 5px; margin-bottom: 5px; }
+            .print-logo { height: 32px; width: auto; object-fit: contain; }
+            .store-title { font-size: 13px; font-weight: 900; line-height: 1.1; }
+            .order-meta { font-size: 10px; font-weight: 700; color: #333; }
+            .info-line { display: flex; justify-content: space-between; font-size: 11.5px; padding: 2px 0; border-bottom: 1px dotted #ccc; }
+            .phone-num { font-weight: 900; font-size: 13px; }
+            .paid-stamp { border: 1.5px solid #000; background: #f2f2f2; text-align: center; font-weight: 900; font-size: 11px; padding: 4px; border-radius: 6px; margin: 4px 0; }
+
+            /* بطاقة الهدية المدمجة في النصف صفحة */
+            .gift-mini-card { border: 2px double #000; border-radius: 8px; padding: 6px; text-align: center; background: #fafafa; margin-top: auto; }
+            .gift-mini-head { font-size: 10.5px; margin-bottom: 4px; }
+            .qr-row { display: flex; align-items: center; justify-content: center; gap: 8px; text-align: right; }
+            .qr-img { width: 72px; height: 72px; border: 1px solid #000; padding: 2px; background: #fff; border-radius: 6px; flex-shrink: 0; }
+            .qr-txt { font-size: 10px; line-height: 1.35; }
+            .printed-msg { font-family: 'Amiri', serif; font-size: 13px; line-height: 1.4; padding: 4px; border: 1px dashed #777; border-radius: 6px; background: #fff; }
+
+            /* صندوق المنتجات للطلبيات الـ 4 في 1 */
+            .prod-box { margin-top: 5px; font-size: 11px; flex: 1; overflow: hidden; }
+            .prod-list { white-space: pre-line; line-height: 1.32; font-size: 10.5px; margin-top: 2px; }
+            .cod-total { border: 2px solid #000; background: #f4f4f4; text-align: center; font-size: 13.5px; font-weight: 900; padding: 5px; border-radius: 7px; margin-top: 4px; }
+        </style>
+    </head>
+    <body>
+        ${pagesHtml}
+        <script>window.onload = () => { setTimeout(() => { window.print(); window.close(); }, 400); };<\/script>
+    </body>
+    </html>`;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=900');
+    printWindow.document.write(fullHtml);
     printWindow.document.close();
 }
+
+// 1. طباعة طلبية واحدة (بضغطة زر الطابعة بجانب الطلب)
+export function printOrder(id) {
+    const order = state.orders.find(o => o.id === id);
+    if (!order) return;
+    renderOrdersPrintView([order]);
+}
+
+// 2. طباعة الطلبيات المحددة (زر الطباعة المتعددة)
+export function printSelectedOrders() {
+    const checkedBoxes = document.querySelectorAll('.order-checkbox:checked, input[name="selected_orders"]:checked');
+    let selectedIds = Array.from(checkedBoxes).map(cb => cb.value || cb.dataset.id).filter(Boolean);
+
+    // دعم إضافي إذا كنت تخزن الطلبات المحددة في مصفوفة عامة
+    if (selectedIds.length === 0 && Array.isArray(window.selectedOrderIds) && window.selectedOrderIds.length > 0) {
+        selectedIds = window.selectedOrderIds;
+    }
+
+    const ordersToPrint = state.orders.filter(o => selectedIds.includes(o.id));
+    renderOrdersPrintView(ordersToPrint);
+}
+
+// ربط شامل بجميع أسماء دوال الطباعة المحتملة في الواجهة
+window.printOrder = printOrder;
+window.printSelectedOrders = printSelectedOrders;
+window.printMultipleOrders = printSelectedOrders;
+window.printBatchOrders = printSelectedOrders;
 
 // ==========================================
 // 7. إدارة قسم صانع الهدايا (VIP Gift)
