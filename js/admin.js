@@ -942,7 +942,21 @@ export function renderAdminDashboard() {
                             <div class="text-[10px] text-gray-500 font-bold flex items-center gap-1"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-gray-900">${o.customer}</div>
+                            <div class="font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
+                                <span>${o.customer}</span>
+                                ${(() => {
+                                    const cleanP = (o.phone || '').replace(/\s+/g, '');
+                                    const rep = (state.customersReputation && state.customersReputation[cleanP]) || null;
+                                    if (!rep) return `<span class="bg-gray-100 text-gray-600 text-[9px] font-black px-2 py-0.5 rounded-full border border-gray-200">🆕 زبون جديد</span>`;
+                                    if (rep.ok > 0 && (!rep.cancel || rep.ok >= rep.cancel)) {
+                                        return `<span class="bg-amber-100 text-[#B8860B] text-[9px] font-black px-2 py-0.5 rounded-full border border-[#D4AF37]/50 shadow-sm" title="اشترى واستلم ${rep.ok} مرات سابقاً">👑 VIP (${rep.ok})</span>`;
+                                    }
+                                    if (rep.cancel > 0) {
+                                        return `<span class="bg-red-100 text-red-700 text-[9px] font-black px-2 py-0.5 rounded-full border border-red-300 animate-pulse" title="ألغى أو رفض استلام ${rep.cancel} طلبات سابقاً">⚠️ حذر: ملغى سابق (${rep.cancel})</span>`;
+                                    }
+                                    return '';
+                                })()}
+                            </div>
                             <div class="text-xs text-gray-500 font-mono mt-1">${o.phone}</div>
                             
                             <!-- 🌟 عرض نوع الدفع وحالته -->
@@ -1335,8 +1349,32 @@ export function confirmDeleteOrder() {
     }
 }
 
-export function updateOrderStatus(id, newStatus) { 
-    window.db.collection("orders").doc(id).update({ status: newStatus }); 
+export async function updateOrderStatus(id, newStatus) { 
+    const order = state.orders.find(o => o.id === id);
+    const oldStatus = order ? (order.status || 'جديد') : 'جديد';
+
+    await window.db.collection("orders").doc(id).update({ status: newStatus });
+
+    // 🌟 تحديث سجل السمعة الدائم للزبون (يبقى محفوظاً حتى بعد حذف الـ 200 طلبية)
+    if (order && order.phone && oldStatus !== newStatus) {
+        const cleanPhone = order.phone.replace(/\s+/g, '');
+        if (!state.customersReputation) state.customersReputation = {};
+        const currentRep = state.customersReputation[cleanPhone] || { ok: 0, cancel: 0 };
+
+        // إلغاء أثر الحالة القديمة إن كانت مسجلة، وإضافة الحالة الجديدة
+        if (oldStatus === 'مكتملاً') currentRep.ok = Math.max(0, (currentRep.ok || 0) - 1);
+        if (oldStatus === 'ملغى') currentRep.cancel = Math.max(0, (currentRep.cancel || 0) - 1);
+
+        if (newStatus === 'مكتملاً') currentRep.ok = (currentRep.ok || 0) + 1;
+        if (newStatus === 'ملغى') currentRep.cancel = (currentRep.cancel || 0) + 1;
+
+        state.customersReputation[cleanPhone] = currentRep;
+        window.db.collection("settings").doc("customers_reputation").set({
+            [cleanPhone]: currentRep
+        }, { merge: true }).then(() => {
+            renderAdminDashboard();
+        }).catch(err => console.warn("Reputation update notice:", err));
+    }
 }
 
 // 🌟 تصحيح حرج: الحفاظ على الإعدادات المحفوظة مسبقاً وعدم مسحها إذا كانت الحقول غير معروضة أو فارغة
@@ -1525,8 +1563,22 @@ export function printOrder(id) {
                 <div class="info-group"><strong>البلدية:</strong> ${order.commune || 'غير محدد'}</div>
                 
                 <hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
-                <div class="info-group" style="font-size:14px; white-space: pre-line;"><strong>المنتج المطلوب:</strong><br>${order.product}</div>
+                <div class="info-group" style="font-size:14px; white-space: pre-line;"><strong>المنتج المطلوب:</strong><br>${(order.product || '').replace(/\[GIFT_QR:[^\]]+\]/g, '')}</div>
                 
+                ${(() => {
+                    const qrMatch = (order.product || '').match(/\[GIFT_QR:([^\]]+)\]/);
+                    if (!qrMatch) return '';
+                    const giftUrl = `${window.location.origin}/#giftcard=${qrMatch[1]}`;
+                    const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(giftUrl)}`;
+                    return `
+                        <div style="border: 2px solid #000; border-radius: 12px; padding: 10px; margin-top: 12px; text-align: center; background: #fafafa;">
+                            <p style="margin: 0 0 6px; font-size: 13px; font-weight: 900;">🎁 بطاقة إهداء رقمية خاصة بك!</p>
+                            <img src="${qrImgSrc}" style="width: 115px; height: 115px; margin: 0 auto; display: block; border: 1px solid #ddd; padding: 4px; background: #fff; border-radius: 8px;">
+                            <p style="margin: 6px 0 0; font-size: 11px; font-weight: bold; color: #333;">امسح الرمز بكاميرا هاتفك لفتح رسالتك السرية ✨</p>
+                        </div>
+                    `;
+                })()}
+
                 <div class="total">المبلغ المطلوب: ${order.total ? order.total.toLocaleString() : 0} دج</div>
                 <div class="footer">شكراً لتسوقكم معنا! - Merci pour votre confiance</div>
             </div>
