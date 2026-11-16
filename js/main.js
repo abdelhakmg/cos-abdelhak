@@ -3,15 +3,15 @@
 // استيراد كافة وحدات المشروع بإصدار موحد لكسر الكاش في الهواتف فوراً
 import './store/state.js';
 import './utils/helpers.js';
-import './services/database.js?v=24';
-import './app.js?v=24';
-import './ui.js?v=24';
-import './landing.js?v=24';
-import './gift-builder.js?v=24';
-import './admin.js?v=24';
-import './admin-custom.js?v=24';
-import './custom-builder.js?v=24';
-import './beauty-advisor.js?v=24';
+import './services/database.js?v=25';
+import './app.js?v=25';
+import './ui.js?v=25';
+import './landing.js?v=25';
+import './gift-builder.js?v=25';
+import './admin.js?v=25';
+import './admin-custom.js?v=25';
+import './custom-builder.js?v=25';
+import './beauty-advisor.js?v=25';
 import { state } from './store/state.js';
 
 // 🌟 دالة جلب وتطبيق إعدادات الواجهة والتسويق (البانرات وعروض الصاعقة المخصصة)
