@@ -383,12 +383,12 @@ export function handleSaveProduct(e) {
         });
 
         // 🌟 جمع بيانات المتغيرات (الخيارات) من الواجهة بأمان
-        const variantsToSave = (window.currentProductVariants || []).map(v => {
+        const variantsToSave = (window.currentProductVariants || []).map((v, idx) => {
             const nameEl = document.getElementById(`var-name-${v.id}`);
             const imgEl = document.getElementById(`var-img-${v.id}`);
             const stockEl = document.getElementById(`var-stock-${v.id}`);
             return {
-                id: v.id,
+                id: v.id || `var_${Date.now()}_${idx}`,
                 name: nameEl ? nameEl.value.trim() : (v.name || '').trim(),
                 image: imgEl ? imgEl.value.trim() : (v.image || '').trim(),
                 inStock: stockEl ? stockEl.checked : (v.inStock !== false)
