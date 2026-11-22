@@ -246,18 +246,23 @@ function renderDigitalView() {
         return;
     }
 
-    // المستوى 2: الخدمات داخل القسم
+    // المستوى 2: الخدمات داخل القسم (مع بانر القسم المخصص)
     if (digitalState.view === 'services' && digitalState.selectedCategory) {
         backBtn.classList.remove('hidden');
         backBtn.classList.add('flex');
         crumb.innerText = `الأقسام / ${digitalState.selectedCategory.name}`;
 
+        const catBannerHtml = digitalState.selectedCategory.bannerImage ? `
+            <div class="w-full h-32 sm:h-44 rounded-2xl overflow-hidden border border-[#D4AF37]/40 shadow-lg mb-4">
+                <img src="${digitalState.selectedCategory.bannerImage}" class="w-full h-full object-cover" alt="${digitalState.selectedCategory.name}">
+            </div>` : '';
+
         const srvs = digitalState.services.filter(s => s.categoryId === digitalState.selectedCategory.id);
         if (srvs.length === 0) {
-            body.innerHTML = `<div class="py-16 text-center text-gray-500 text-xs font-bold">لا توجد خدمات مضافة في هذا القسم حالياً.</div>`;
+            body.innerHTML = catBannerHtml + `<div class="py-16 text-center text-gray-500 text-xs font-bold">لا توجد خدمات مضافة في هذا القسم حالياً.</div>`;
             return;
         }
-        body.innerHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">${srvs.map(renderServiceCard).join('')}</div>`;
+        body.innerHTML = catBannerHtml + `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">${srvs.map(renderServiceCard).join('')}</div>`;
         return;
     }
 
