@@ -90,6 +90,11 @@ export async function loadDigitalAdminData() {
                                 <input type="url" id="dig-cat-img" placeholder="رابط صورة القسم *" required class="flex-1 border p-2.5 rounded-xl text-xs bg-white outline-none">
                             </div>
                             <div class="flex gap-2">
+                                <input type="file" id="dig-cat-banner-file" accept="image/*" class="hidden" onchange="uploadDigitalAdminImg(event, 'dig-cat-banner')">
+                                <button type="button" onclick="document.getElementById('dig-cat-banner-file').click()" class="bg-gray-800 text-[#D4AF37] font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap cursor-pointer"><i class="fa-regular fa-image"></i> بانر القسم</button>
+                                <input type="url" id="dig-cat-banner" placeholder="رابط بانر إعلاني خاص بهذا القسم (اختياري)" class="flex-1 border p-2.5 rounded-xl text-xs bg-white outline-none">
+                            </div>
+                            <div class="flex gap-2">
                                 <input type="number" id="dig-cat-order" placeholder="الترتيب (مثال: 1)" value="1" class="w-28 border p-2.5 rounded-xl text-xs bg-white outline-none">
                                 <button type="submit" class="flex-1 bg-black text-white font-bold py-2.5 rounded-xl text-xs hover:bg-[#D4AF37] hover:text-black transition cursor-pointer">حفظ القسم</button>
                             </div>
@@ -455,10 +460,9 @@ export async function saveDigitalCategory(e) {
     e.preventDefault();
     const name = document.getElementById('dig-cat-name').value.trim();
     const image = document.getElementById('dig-cat-img').value.trim();
+    const bannerImage = document.getElementById('dig-cat-banner')?.value.trim() || '';
     const order = parseInt(document.getElementById('dig-cat-order').value) || 1;
-    await window.db.collection('digital_categories').add({ name, image, order, isActive: true, createdAt: new Date() });
-    e.target.reset();
-    await fetchDigitalAdminCatalog();
+    await window.db.collection('digital_categories').add({ name, image, bannerImage, order, isActive: true, createdAt: new Date() });
     showCustomAlert('تم الحفظ', 'تمت إضافة القسم بنجاح!', true);
 }
 
