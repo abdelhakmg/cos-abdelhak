@@ -173,6 +173,9 @@ export function switchAdminTab(tabName) {
     if (tabName === 'custom_services') {
         safeCall('loadCustomAdminData');
     }
+    if (tabName === 'digital_services') {
+        safeCall('loadDigitalAdminData');
+    }
     if (tabName === 'sub_admins') {
         renderSubAdminsList();
     }
@@ -2227,6 +2230,7 @@ export function applyAdminPermissionsUI() {
     setElVisible('tab-btn-shipping_settings', isSuper || perms.includes('shipping_settings'));
     setElVisible('tab-btn-gift', isSuper || perms.includes('gift'));
     setElVisible('tab-btn-custom_services', isSuper || perms.includes('custom_services'));
+    setElVisible('tab-btn-digital_services', isSuper || perms.includes('digital_orders'));
     setElVisible('tab-btn-sub_admins', isSuper); // تبويب المشرفين يظهر للمدير الأساسي فقط
 
     // 2. التحكم الدقيق داخل التبويب الأول (فصل الزوار والمبيعات عن جدول الطلبات)
@@ -2249,6 +2253,7 @@ export function applyAdminPermissionsUI() {
         { name: 'categories_attributes', allowed: isSuper || perms.includes('categories_attributes') },
         { name: 'gift', allowed: isSuper || perms.includes('gift') },
         { name: 'custom_services', allowed: isSuper || perms.includes('custom_services') },
+        { name: 'digital_services', allowed: isSuper || perms.includes('digital_orders') },
         { name: 'marketing_ui', allowed: isSuper || perms.includes('marketing_ui') },
         { name: 'shipping_settings', allowed: isSuper || perms.includes('shipping_settings') }
     ];
@@ -2343,6 +2348,7 @@ export async function renderSubAdminsList() {
             categories_attributes: '⚙️ الأقسام',
             gift: '🎁 الهدايا',
             custom_services: '🎨 الورشة',
+            digital_orders: '⚡ طلبات الشحن',
             marketing_ui: '📢 التسويق والواجهة',
             shipping_settings: '🚚 التوصيل والإعدادات'
         };
