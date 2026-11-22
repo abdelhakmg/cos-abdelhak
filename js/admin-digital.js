@@ -10,6 +10,7 @@ const admDigState = {
     settings: { isActive: true, bannerImage: '', baridiImage: '' },
     activeSubTab: 'orders',
     editingPkgId: '',
+    editingCatId: '',
     pkgFields: []
 };
 
@@ -412,7 +413,10 @@ function renderDigitalCatalogLists() {
             <div class="bg-white p-2 rounded-xl border text-center space-y-1">
                 <img src="${c.image}" class="w-12 h-12 object-contain mx-auto rounded">
                 <div class="font-bold text-[11px] truncate">${c.name}</div>
-                <button onclick="deleteDigitalCategory('${c.id}')" class="text-[10px] text-red-600 bg-red-50 px-2 py-0.5 rounded w-full font-bold cursor-pointer">حذف</button>
+                <div class="flex gap-1">
+                    <button type="button" onclick="editDigitalCategory('${c.id}')" class="text-[10px] text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded flex-1 font-bold cursor-pointer">تعديل</button>
+                    <button type="button" onclick="deleteDigitalCategory('${c.id}')" class="text-[10px] text-red-600 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded flex-1 font-bold cursor-pointer">حذف</button>
+                </div>
             </div>`).join('') || '<p class="text-xs text-gray-400 col-span-full">لا توجد أقسام.</p>';
     }
 
@@ -462,8 +466,33 @@ export async function saveDigitalCategory(e) {
     const image = document.getElementById('dig-cat-img').value.trim();
     const bannerImage = document.getElementById('dig-cat-banner')?.value.trim() || '';
     const order = parseInt(document.getElementById('dig-cat-order').value) || 1;
-    await window.db.collection('digital_categories').add({ name, image, bannerImage, order, isActive: true, createdAt: new Date() });
-    showCustomAlert('تم الحفظ', 'تمت إضافة القسم بنجاح!', true);
+
+    if (admDigState.editingCatId) {
+        await window.db.collection('digital_categories').doc(admDigState.editingCatId).update({
+            name, image, bannerImage, order, updatedAt: new Date()
+        });
+        admDigState.editingCatId = '';
+        showCustomAlert('تم التحديث 🎉', 'تم تحديث بيانات وبانر القسم بنجاح!', true);
+    } else {
+        await window.db.collection('digital_categories').add({
+            name, image, bannerImage, order, isActive: true, createdAt: new Date()
+        });
+        showCustomAlert('تم الحفظ', 'تمت إضافة القسم بنجاح!', true);
+    }
+    e.target.reset();
+    await fetchDigitalAdminCatalog();
+}
+
+export function editDigitalCategory(id) {
+    const c = admDigState.categories.find(x => x.id === id);
+    if (!c) return;
+    admDigState.editingCatId = c.id;
+    document.getElementById('dig-cat-name').value = c.name || '';
+    document.getElementById('dig-cat-img').value = c.image || '';
+    if (document.getElementById('dig-cat-banner')) document.getElementById('dig-cat-banner').value = c.bannerImage || '';
+    document.getElementById('dig-cat-order').value = c.order || 1;
+    document.getElementById('dig-cat-name').focus();
+    showCustomAlert('وضع التعديل ✏️', `يمكنك الآن تغيير بانر أو بيانات قسم (${c.name}) ثم الضغط على "حفظ القسم".`, true);
 }
 
 export async function deleteDigitalCategory(id) {
@@ -652,6 +681,7 @@ window.updateDigitalOrderStatus = updateDigitalOrderStatus;
 window.deleteDigitalOrder = deleteDigitalOrder;
 window.uploadDigitalAdminImg = uploadDigitalAdminImg;
 window.saveDigitalCategory = saveDigitalCategory;
+window.editDigitalCategory = editDigitalCategory;
 window.deleteDigitalCategory = deleteDigitalCategory;
 window.saveDigitalService = saveDigitalService;
 window.deleteDigitalService = deleteDigitalService;
