@@ -111,6 +111,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 <button onclick="openCustomBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
                 </button>
+                <button onclick="openDigitalServices()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37] text-black hover:opacity-90 font-black text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap shadow-md">
+                    <i class="fa-solid fa-bolt"></i> شحن وخدمات
+                </button>
             </div>
 
             <!-- 2. الوسط: الشعار الفاخر (في المنتصف تماماً) -->
@@ -162,6 +165,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 <div class="space-y-2 mb-4">
                     <button onclick="showPage('tracking'); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-[#1e1e1e] text-[#D4AF37] font-bold flex items-center gap-2">
                         <i class="fa-solid fa-truck-fast"></i> تتبع حالة طلبك
+                    </button>
+                    <button onclick="openDigitalServices(); toggleMobileMenu();" class="w-full text-right p-3 rounded-xl bg-gradient-to-r from-[#B8860B] to-[#D4AF37] text-black font-black flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-bolt"></i> الشحن الفوري والخدمات الإلكترونية
                     </button>
                 </div>
                 <div id="mobile-drawer-categories" class="space-y-2"></div>
@@ -283,6 +289,19 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             <img id="promo-banner-workshop" src="https://via.placeholder.com/400x600/121212/D4AF37?text=ورشة+التخصيص" class="w-full h-auto object-contain block group-hover:opacity-95 transition-opacity" loading="lazy" alt="ورشة التخصيص">
                         </div>
 
+                    </div>
+                    <!-- 3. بانر الخدمات الإلكترونية والشحن الفوري -->
+                    <div id="promo-banner-digital-wrapper" onclick="openDigitalServices()" class="mt-4 sm:mt-6 cursor-pointer rounded-2xl overflow-hidden bg-gradient-to-r from-[#121212] via-[#1a1505] to-[#121212] border border-[#D4AF37]/50 shadow-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:scale-[1.01] transition-all group">
+                        <img id="promo-banner-digital-img" src="" class="hidden w-full h-auto max-h-60 object-cover block group-hover:opacity-95 transition" loading="lazy" alt="الشحن الفوري والخدمات الإلكترونية">
+                        <div id="promo-banner-digital-fallback" class="p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right">
+                            <div>
+                                <h3 class="text-lg sm:text-2xl font-black text-[#D4AF37] flex items-center justify-center sm:justify-start gap-2">
+                                    <i class="fa-solid fa-bolt animate-pulse"></i> الشحن الفوري والخدمات الإلكترونية
+                                </h3>
+                                <p class="text-xs sm:text-sm text-gray-300 mt-1">شحن الألعاب، بطاقات، اشتراكات التلفاز، الذكاء الاصطناعي، ودعم السوشيال ميديا</p>
+                            </div>
+                            <span class="gold-gradient text-black font-black text-xs sm:text-sm px-6 py-2.5 rounded-full shadow-lg whitespace-nowrap">تصفح الخدمات ⚡</span>
+                        </div>
                     </div>
                 </div>
 
@@ -646,6 +665,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     </button>
                     <button onclick="switchAdminTab('custom_services')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-custom_services">
                         <i class="fa-solid fa-pen-ruler text-[#D4AF37] ml-1"></i> الورشة والتخصيص
+                    </button>
+                    <button onclick="switchAdminTab('digital_services')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-digital_services">
+                        <i class="fa-solid fa-bolt text-[#D4AF37] ml-1"></i> الخدمات الإلكترونية
                     </button>
                     <button onclick="switchAdminTab('sub_admins')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-sub_admins">
                         <i class="fa-solid fa-user-shield text-[#D4AF37] ml-1"></i> المشرفين والصلاحيات
@@ -1339,6 +1361,10 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         </div>
                     </div>
                 </div>
+                <!-- التبويب الجديد: إدارة الخدمات الإلكترونية والشحن الفوري -->
+                <div id="admin-tab-digital_services" class="tab-content hidden space-y-6 text-gray-900">
+                    <div id="admin-digital-root"></div>
+                </div>
                <!-- التبويب 8: إدارة المشرفين والصلاحيات -->
                 <div id="admin-tab-sub_admins" class="tab-content hidden space-y-6 text-gray-900">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1393,6 +1419,11 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                                     <label class="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-pointer p-1.5 hover:bg-white rounded-lg transition">
                                         <input type="checkbox" value="custom_services" class="sub-admin-perm-cb accent-[#D4AF37] w-4 h-4 rounded">
                                         <span>🎨 إدارة الورشة والتخصيص</span>
+                                    </label>
+
+                                    <label class="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-pointer p-1.5 hover:bg-white rounded-lg transition">
+                                        <input type="checkbox" value="digital_orders" class="sub-admin-perm-cb accent-[#D4AF37] w-4 h-4 rounded">
+                                        <span>⚡ طلبات الشحن والخدمات الإلكترونية (الطلبات فقط)</span>
                                     </label>
 
                                     <label class="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-pointer p-1.5 hover:bg-white rounded-lg transition">
@@ -1927,6 +1958,8 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
 
     <!-- استدعاء الملف الرئيسي بنظام Modules (تم الترقية إلى v=9 لكسر الكاش) -->
     <script type="module" src="js/main.js?v=21"></script>
+    <script type="module" src="js/digital-services.js?v=1"></script>
+    <script type="module" src="js/admin-digital.js?v=1"></script>
     
     <!-- PWA Service Worker مع محرك التحديث التلقائي المحمي -->
     <script>
