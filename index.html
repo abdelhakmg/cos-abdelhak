@@ -111,9 +111,6 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                 <button onclick="openCustomBuilder()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black font-bold text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap">
                     <i class="fa-solid fa-pen-ruler"></i> صمم منتجك
                 </button>
-                <button onclick="openDigitalServices()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37] text-black hover:opacity-90 font-black text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap shadow-md">
-                    <i class="fa-solid fa-bolt"></i> شحن وخدمات
-                </button>
             </div>
 
             <!-- 2. الوسط: الشعار الفاخر (في المنتصف تماماً) -->
@@ -123,6 +120,9 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
 
             <!-- 3. اليسار: السلة والمفضلة (تظهر في الحاسوب فقط لأنها في الهاتف بالأسفل) -->
             <div class="flex items-center gap-2 justify-end">
+                <button onclick="openDigitalServices()" class="hidden lg:flex items-center gap-1.5 bg-[#D4AF37] text-black hover:opacity-90 font-black text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap shadow-md ml-2">
+                    <i class="fa-solid fa-bolt"></i> شحن وخدمات
+                </button>
                 <div class="hidden lg:flex flex-1 max-w-[250px] relative search-container ml-4">
                     <input type="text" id="customer-search-input" onfocus="window.loadSearchIndex()" oninput="window.performAdvancedSearch(this.value)" placeholder="ابحث عن منتج، ماركة..." class="w-full bg-[#121212] border border-[#D4AF37]/30 text-white text-xs rounded-full py-2 px-4 pr-9 outline-none focus:border-[#D4AF37] transition">
                     <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-2.5 text-[#D4AF37] text-xs"></i>
@@ -653,8 +653,12 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     <button onclick="adminSignOut()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-lg transition">تسجيل الخروج الآمن</button>
                 </div>
 
-                <!-- شريط التبويبات -->
-                <div class="flex gap-2 border-b border-gray-800 mb-8 overflow-x-auto pb-3 custom-scrollbar">
+                <!-- شريط التبويبات مع أسهم التمرير -->
+                <div class="relative flex items-center gap-2 border-b border-gray-800 mb-8 pb-3">
+                    <button type="button" onclick="document.getElementById('admin-tabs-scroll').scrollBy({left: 250, behavior: 'smooth'})" class="shrink-0 w-9 h-9 rounded-xl bg-[#1a1a1a] border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black flex items-center justify-center transition cursor-pointer shadow-md" title="التمرير لليمين">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                    <div id="admin-tabs-scroll" class="flex gap-2 overflow-x-auto custom-scrollbar scroll-smooth flex-1">
                     <button onclick="switchAdminTab('analytics')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-black text-white shadow-md border border-[#D4AF37]/30 whitespace-nowrap" id="tab-btn-analytics">📊 المبيعات والطلبات</button>
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-products">🛍️ المنتجات والمخزون</button>
                     <button onclick="switchAdminTab('categories_attributes')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-categories_attributes">⚙️ الأقسام والخصائص</button>
@@ -671,6 +675,10 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     </button>
                     <button onclick="switchAdminTab('sub_admins')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-sub_admins">
                         <i class="fa-solid fa-user-shield text-[#D4AF37] ml-1"></i> المشرفين والصلاحيات
+                    </button>
+                </div>
+                    <button type="button" onclick="document.getElementById('admin-tabs-scroll').scrollBy({left: -250, behavior: 'smooth'})" class="shrink-0 w-9 h-9 rounded-xl bg-[#1a1a1a] border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black flex items-center justify-center transition cursor-pointer shadow-md" title="التمرير لليسار">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
                     </button>
                 </div>
 
