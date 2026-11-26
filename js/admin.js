@@ -954,7 +954,12 @@ export function renderAdminDashboard() {
                     dateStr = d.toLocaleDateString('ar-DZ', { month: 'short', day: 'numeric' }) + ' - ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
                 }
                 const shortId = o.id ? o.id.substring(0, 6).toUpperCase() : '000000';
-
+                const esc = window.escapeHTML || (s => String(s ?? ''));
+                const safeCustomer = esc(o.customer || '');
+                const safePhone = esc(o.phone || '');
+                const safeWilaya = esc(o.wilaya || 'غير محدد');
+                const safeCommune = esc(o.commune || '');
+                const safeProduct = esc(o.product || 'لا توجد تفاصيل');
                 return `
                     <tr class="border-b hover:bg-gray-50 transition">
                         <td class="p-4 text-center">
@@ -966,7 +971,7 @@ export function renderAdminDashboard() {
                         </td>
                         <td class="p-4">
                             <div class="font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
-                                <span>${o.customer}</span>
+                                <span>${safeCustomer}</span>
                                 ${(() => {
                                     const cleanP = (o.phone || '').replace(/\s+/g, '');
                                     const rep = (state.customersReputation && state.customersReputation[cleanP]) || null;
@@ -980,7 +985,7 @@ export function renderAdminDashboard() {
                                     return '';
                                 })()}
                             </div>
-                            <div class="text-xs text-gray-500 font-mono mt-1">${o.phone}</div>
+                            <div class="text-xs text-gray-500 font-mono mt-1">${safePhone}</div>
                             
                             <!-- 🌟 عرض نوع الدفع وحالته -->
                             ${o.paymentMethod === 'in_store' ? 
@@ -993,11 +998,11 @@ export function renderAdminDashboard() {
                             ${(!o.paymentMethod || o.paymentMethod === 'cod') ? `<div class="mt-2 p-1.5 rounded-lg text-center font-bold text-[10px] bg-gray-100 text-gray-700 border border-gray-300"><i class="fa-solid fa-handshake"></i> الدفع: يد بيد</div>` : ''}
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-xs text-gray-800">${o.wilaya || 'غير محدد'}</div>
-                            <div class="text-[11px] text-gray-500 mt-1">${o.commune || ''}</div>
+                            <div class="font-bold text-xs text-gray-800">${safeWilaya}</div>
+                            <div class="text-[11px] text-gray-500 mt-1">${safeCommune}</div>
                         </td>
                         <td class="p-4">
-                            <div class="font-bold text-[11px] text-gray-800 leading-relaxed max-w-[250px] bg-gray-50 p-3 rounded-xl border border-gray-200 whitespace-pre-line text-right" style="direction: rtl;">${o.product || 'لا توجد تفاصيل'}</div>
+                            <div class="font-bold text-[11px] text-gray-800 leading-relaxed max-w-[250px] bg-gray-50 p-3 rounded-xl border border-gray-200 whitespace-pre-line text-right" style="direction: rtl;">${safeProduct}</div>
                             
                             ${(o.attachedImage1 || o.attachedImage2 || o.attachedImage3 || o.attachedImage) ? `
                             <div class="flex flex-wrap gap-2 mt-2 p-2 bg-yellow-50/50 rounded-xl border border-yellow-200/50 justify-start">
@@ -1546,22 +1551,28 @@ function isSpecialOrPrepaidOrder(order) {
 }
 
 function buildOrderPrintCardHtml(order) {
+    const esc = window.escapeHTML || (s => String(s ?? ''));
     const prodText = order.product || '';
     const isGift = prodText.includes('طلب هدية VIP') || prodText.includes('[هدية VIP]');
     const isSpecial = isSpecialOrPrepaidOrder(order);
     const qrMatch = prodText.match(/\[GIFT_QR:([^\]]+)\]/);
     const cleanProductText = prodText.replace(/\[GIFT_QR:[^\]]+\]/g, '').trim();
     const shortId = (order.id || '').slice(-6).toUpperCase();
-    const logoHtml = state.storeSettings?.logoUrl ? `<img src="${state.storeSettings.logoUrl}" class="print-logo">` : '';
-    const storeName = state.storeSettings?.name || 'COSMETIQUE ABDELHAK';
-    const cleanCommune = (order.commune || '').replace(/^البلدية:\s*/, '');
+    const logoHtml = state.storeSettings?.logoUrl ? `<img src="${esc(state.storeSettings.logoUrl)}" class="print-logo">` : '';
+    const storeName = esc(state.storeSettings?.name || 'COSMETIQUE ABDELHAK');
+    const cleanCommune = esc((order.commune || '').replace(/^البلدية:\s*/, ''));
+    const safeCustomer = esc(order.customer || '');
+    const safePhone = esc(order.phone || '');
+    const safeWilaya = esc(order.wilaya || '');
+    const safeDate = esc(order.date || '');
+    const safeProductText = esc(cleanProductText);
 
     // 1. تصميم النصف صفحة (2 في ورقة A4 واحدة) للهدايا والورشة والدفع المسبق
     if (isSpecial) {
         const senderMatch = cleanProductText.match(/المُرسل:\s*([^\n(]+)/);
         const msgMatch = cleanProductText.match(/الرسالة:\s*"([^"]+)"/);
-        const senderName = senderMatch ? senderMatch[1].trim() : 'شخص يعزك كثيراً';
-        const giftMessage = msgMatch ? msgMatch[1].trim() : '';
+        const senderName = esc(senderMatch ? senderMatch[1].trim() : 'شخص يعزك كثيراً');
+        const giftMessage = esc(msgMatch ? msgMatch[1].trim() : '');
 
         let qrImgSrc = '';
         if (qrMatch) {
@@ -1578,24 +1589,23 @@ function buildOrderPrintCardHtml(order) {
         return `
         <div class="half-sheet-card">
             <div class="half-grid">
-                <!-- القسم الأيمن: ملصق التوصيل الخارجي + بطاقة الإهداء -->
                 <div class="shipping-side">
                     <div class="card-head">
                         ${logoHtml}
                         <div>
                             <div class="store-title">${storeName}</div>
-                            <div class="order-meta">وصل #${shortId} | ${order.date || ''}</div>
+                            <div class="order-meta">وصل #${shortId} | ${safeDate}</div>
                         </div>
                     </div>
-                    <div class="info-line"><strong>المستلم:</strong> <span>${order.customer}</span></div>
-                    <div class="info-line"><strong>الهاتف:</strong> <span dir="ltr" class="phone-num">${order.phone}</span></div>
-                    <div class="info-line"><strong>الولاية:</strong> <span>${order.wilaya}</span></div>
+                    <div class="info-line"><strong>المستلم:</strong> <span>${safeCustomer}</span></div>
+                    <div class="info-line"><strong>الهاتف:</strong> <span dir="ltr" class="phone-num">${safePhone}</span></div>
+                    <div class="info-line"><strong>الولاية:</strong> <span>${safeWilaya}</span></div>
                     <div class="info-line"><strong>العنوان:</strong> <span>${cleanCommune}</span></div>
                     <div class="paid-stamp">${paymentBadge}</div>
 
                     ${isGift ? `
                         <div class="gift-mini-card">
-                            <div class="gift-mini-head">✨ بطاقة إهداء إلى: <b>${order.customer}</b> (من: ${senderName}) ✨</div>
+                            <div class="gift-mini-head">✨ بطاقة إهداء إلى: <b>${safeCustomer}</b> (من: ${senderName}) ✨</div>
                             ${qrImgSrc ? `
                                 <div class="qr-row">
                                     <img src="${qrImgSrc}" class="qr-img">
@@ -1608,10 +1618,9 @@ function buildOrderPrintCardHtml(order) {
                     ` : ''}
                 </div>
 
-                <!-- القسم الأيسر: ورقة التحضير الداخلية للمحل (تُقص وتبقى في الورشة) -->
                 <div class="workshop-side">
                     <div class="workshop-head">✂️ قسيمة تحضير داخلية للمحل (#${shortId}) — الإجمالي: ${(order.total || 0).toLocaleString()} دج</div>
-                    <div class="workshop-body">${cleanProductText}</div>
+                    <div class="workshop-body">${safeProductText}</div>
                 </div>
             </div>
         </div>`;
@@ -1625,15 +1634,15 @@ function buildOrderPrintCardHtml(order) {
                 ${logoHtml}
                 <div>
                     <div class="store-title">${storeName}</div>
-                    <div class="order-meta">وصل إرسال #${shortId} | ${order.date || ''}</div>
+                    <div class="order-meta">وصل إرسال #${shortId} | ${safeDate}</div>
                 </div>
             </div>
-            <div class="info-line"><strong>الزبون:</strong> <span>${order.customer}</span></div>
-            <div class="info-line"><strong>الهاتف:</strong> <span dir="ltr" class="phone-num">${order.phone}</span></div>
-            <div class="info-line"><strong>العنوان:</strong> <span>${order.wilaya} - ${cleanCommune}</span></div>
+            <div class="info-line"><strong>الزبون:</strong> <span>${safeCustomer}</span></div>
+            <div class="info-line"><strong>الهاتف:</strong> <span dir="ltr" class="phone-num">${safePhone}</span></div>
+            <div class="info-line"><strong>العنوان:</strong> <span>${safeWilaya} - ${cleanCommune}</span></div>
             <div class="prod-box">
                 <strong>المنتجات المطلوبة:</strong>
-                <div class="prod-list">${cleanProductText}</div>
+                <div class="prod-list">${safeProductText}</div>
             </div>
         </div>
         <div class="cod-total">المبلغ المطلوب: ${(order.total || 0).toLocaleString()} دج</div>
