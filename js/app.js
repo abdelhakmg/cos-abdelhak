@@ -503,6 +503,15 @@ export function submitCartCheckout() {
 
     if (!name || !wilayaCode || !baladiya) return showCustomAlert('تنبيه هام!', 'يرجى ملء المعلومات الأساسية!', false);
     if (!isValidDzPhone(rawPhone)) return showCustomAlert('رقم الهاتف غير صحيح 📞', 'يرجى إدخال رقم هاتف جزائري صحيح.', false);
+    const localWilaya = state.storeSettings?.localWilaya;
+    const minLocal = Number(state.storeSettings?.minOrderLocal) || 0;
+    const minNational = Number(state.storeSettings?.minOrderNational) || 0;
+    const requiredMin = (wilayaCode === localWilaya) ? minLocal : minNational;
+    const cartSubtotal = state.cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
+
+    if (requiredMin > 0 && cartSubtotal < requiredMin) {
+        return showCustomAlert('الحد الأدنى للطلب 🛍️', `عذراً، الحد الأدنى للطلب في هذه الولاية هو ${formatPrice(requiredMin)}. يرجى إضافة منتج آخر للسلة.`, false);
+    }
 
     const paymentMethod = document.querySelector('input[name="cart_payment_method"]:checked')?.value || 'cod';
 
@@ -595,7 +604,10 @@ export function finalizeOrderSubmit(paymentMethod, paymentStatus, receiptUrl) {
     };
 
     const checkoutBtn = document.getElementById('final-checkout-btn');
-    if (checkoutBtn) checkoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+    if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+    }
 
     fetch('/api/checkout', {
         method: 'POST',
@@ -603,17 +615,26 @@ export function finalizeOrderSubmit(paymentMethod, paymentStatus, receiptUrl) {
         body: JSON.stringify({ ...newOrder, purchasedItems: [...state.cart] })
     }).then(res => res.json()).then(data => {
         if (data.error) throw new Error(data.error);
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'Purchase', { currency: 'DZD', value: newOrder.total || 0 });
+        }
         state.cart = []; saveCartToLocal(); updateBadges(); renderCart();
         ['cart-cust-name', 'cart-cust-phone', 'cart-cust-wilaya', 'cart-cust-baladiya', 'cart-cust-address'].forEach(id => {
             const el = document.getElementById(id); if (el) el.value = '';
         });
         showCustomAlert('تم استلام الطلب! 🎉', 'تم تسجيل طلبك بنجاح وسنتصل بك قريباً.', true);
         showPage('home');
-        if (checkoutBtn) checkoutBtn.innerHTML = 'تأكيد طلب كافة السلة 🛍️';
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = 'تأكيد طلب كافة السلة 🛍️';
+        }
         currentBaridiMobReceipt = null;
     }).catch(err => {
         showCustomAlert('خطأ', err.message, false);
-        if (checkoutBtn) checkoutBtn.innerHTML = 'تأكيد طلب كافة السلة 🛍️';
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = 'تأكيد طلب كافة السلة 🛍️';
+        }
     });
 }
 // 🌟 حساب إجمالي عدد القطع في شارة السلة العلوية
@@ -703,16 +724,18 @@ export function initRealOrdersTicker() {
 export function updateStoreFooterLinks() {
     const s = state.storeSettings || {};
 
-    // 1. تحديث رقم الهاتف
+    // 1. تحديث رقم الهاتف (النص + رابط الاتصال)
     const phoneEl = document.getElementById('footer-phone');
     if (phoneEl && s.phone) {
+        phoneEl.href = `tel:${s.phone.replace(/\s+/g, '')}`;
         const span = phoneEl.querySelector('span');
         if (span) span.innerText = s.phone;
     }
 
-    // 2. تحديث البريد الإلكتروني
+    // 2. تحديث البريد الإلكتروني (النص + رابط الإيميل)
     const emailEl = document.getElementById('footer-email');
     if (emailEl && s.email) {
+        emailEl.href = `mailto:${s.email.trim()}`;
         const span = emailEl.querySelector('span');
         if (span) span.innerText = s.email;
     }
