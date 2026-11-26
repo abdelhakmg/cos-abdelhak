@@ -254,23 +254,18 @@ export function initFirebaseSync() {
     loadProducts(false, 'جميع المنتجات');
     loadSearchIndex();
 
-    // 🌟 جلب شامل وسريع في الخلفية لضمان ظهور أحدث المنتجات المضافة فوراً للزوار
-    window.db.collection("products").get().then(snap => {
-        const all = [];
-        snap.forEach(doc => all.push({ id: doc.id, ...doc.data() }));
-        if (all.length > 0) {
-            all.sort((a, b) => parseProductDate(b.createdAt) - parseProductDate(a.createdAt));
-            state.products = all;
-            window.totalStoreProductsCount = all.length;
-            safeCall('renderDynamicSidebarFilters');
-            safeCall('renderBrandsFilterSidebar');
-            safeCall('applyFilters', false);
-            if (localStorage.getItem('cosAdminLoggedIn') === 'true') {
-                safeCall('renderAdminProductsTable');
-                safeCall('populateAdminDropdowns');
-            }
-        }
-    }).catch(err => console.warn("Background products sync:", err));
+    // 🌟 جلب منتجات عروض الصاعقة النشطة فقط (بدلاً من جلب كامل منتجات المتجر لكل زائر)
+    window.db.collection("products").where("isFlashSale", "==", true).limit(12).get().then(snap => {
+        let updated = false;
+        snap.forEach(doc => {
+            const p = { id: doc.id, ...doc.data() };
+            const idx = state.products.findIndex(x => x.id === p.id);
+            if (idx === -1) state.products.push(p);
+            else state.products[idx] = p;
+            updated = true;
+        });
+        if (updated) safeCall('renderRealFlashSales');
+    }).catch(err => console.warn("Flash sales sync:", err));
 
     // 🌟 تحسين الولايات: الاعتماد على المصفوفة المحلية لتوفير 58 قراءة لكل زائر!
     state.WILAYAS = [...INITIAL_WILAYAS_58].sort((a, b) => parseInt(a.code) - parseInt(b.code));
@@ -424,26 +419,38 @@ export async function initVisitorTracking() {
         sessionStorage.setItem('cos_session_id', sessionId);
     }
 
+    const nowMs = Date.now();
     const todayKey = new Date().toISOString().slice(0, 10);
+    const monthKey = new Date().toISOString().slice(0, 7);
     const analyticsRef = window.db.collection("settings").doc("analytics");
 
-    // 🌟 تحديث الإحصائيات مرة واحدة فقط عند الدخول لمنع استنزاف الخطة
+    // 🌟 تحديث الإحصائيات مرة واحدة عند الدخول مع تنظيف الجلسات المنتهية (أكثر من 4 دقائق)
     if (isNewSession) {
         try {
             await window.db.runTransaction(async (transaction) => {
                 const doc = await transaction.get(analyticsRef);
-                let data = doc.exists ? doc.data() : {};
-                
-                let todayViews = (data.dayDate === todayKey) ? (Number(data.todayViews) || 0) : 0;
-                let activeSessions = data.activeSessions || {};
-                
-                activeSessions[sessionId] = Date.now();
-                
-                transaction.set(analyticsRef, {
+                if (!doc.exists) return;
+                const data = doc.data() || {};
+
+                const todayViews = (data.dayDate === todayKey) ? (Number(data.todayViews) || 0) : 0;
+                const monthViews = (data.monthDate === monthKey) ? (Number(data.monthViews) || 0) : 0;
+
+                const oldSessions = data.activeSessions || {};
+                const cleanedSessions = {};
+                for (const [k, ts] of Object.entries(oldSessions)) {
+                    if (typeof ts === 'number' && (nowMs - ts) <= 240000) {
+                        cleanedSessions[k] = ts;
+                    }
+                }
+                cleanedSessions[sessionId] = nowMs;
+
+                transaction.update(analyticsRef, {
                     dayDate: todayKey,
                     todayViews: todayViews + 1,
-                    activeSessions
-                }, { merge: true });
+                    monthDate: monthKey,
+                    monthViews: monthViews + 1,
+                    activeSessions: cleanedSessions
+                });
             });
         } catch (err) {
             console.warn("Analytics tracking skipped to save quota.");
