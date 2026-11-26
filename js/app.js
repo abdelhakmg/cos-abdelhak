@@ -180,6 +180,10 @@ export function checkDigitalGiftCardLink() {
     try {
         const encoded = hash.replace('#giftcard=', '').trim();
         const data = JSON.parse(decodeURIComponent(atob(encoded)));
+        const esc = window.escapeHTML || (s => String(s ?? ''));
+        const safeTo = esc(data.to || '');
+        const safeFrom = esc(data.from || '');
+        const safeMsg = esc(data.msg || '');
 
         const splash = document.getElementById('luxury-splash-screen');
         if (splash) splash.style.display = 'none';
@@ -193,8 +197,8 @@ export function checkDigitalGiftCardLink() {
                     <div class="w-28 h-28 mx-auto rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center animate-bounce shadow-[0_0_30px_rgba(212,175,55,0.3)]">
                         <i class="fa-solid fa-gift text-6xl text-[#D4AF37]"></i>
                     </div>
-                    <h2 class="text-2xl font-black text-white gold-text">لديك إهداء خاص يا ${data.to}! ✨</h2>
-                    <p class="text-xs text-gray-300 leading-relaxed">أرسل لك <b class="text-[#D4AF37]">${data.from}</b> هذه الهدية الفاخرة من متجر كوسمتيك عبد الحق وأرفق معها رسالة سرية لك.</p>
+                    <h2 class="text-2xl font-black text-white gold-text">لديك إهداء خاص يا ${safeTo}! ✨</h2>
+                    <p class="text-xs text-gray-300 leading-relaxed">أرسل لك <b class="text-[#D4AF37]">${safeFrom}</b> هذه الهدية الفاخرة من متجر كوسمتيك عبد الحق وأرفق معها رسالة سرية لك.</p>
                     <button type="button" onclick="document.getElementById('gift-closed-stage').classList.add('hidden'); document.getElementById('gift-opened-stage').classList.remove('hidden');" class="w-full py-4 gold-gradient text-black font-black rounded-2xl text-base shadow-xl hover:scale-105 transition cursor-pointer">
                         اضغط لفتح رسالتك 💌
                     </button>
@@ -202,11 +206,11 @@ export function checkDigitalGiftCardLink() {
 
                 <div id="gift-opened-stage" class="hidden space-y-6 py-2 animate-fade-in">
                     <div class="text-4xl">🎉🌹✨</div>
-                    <p class="text-xs font-bold text-[#D4AF37] tracking-widest">رسالة من القلب إلى ${data.to}</p>
+                    <p class="text-xs font-bold text-[#D4AF37] tracking-widest">رسالة من القلب إلى ${safeTo}</p>
                     <div class="bg-black/80 border border-[#D4AF37]/40 rounded-2xl p-6 text-white text-base leading-loose font-bold shadow-inner whitespace-pre-line font-['Amiri'] text-lg">
-                        "${data.msg}"
+                        "${safeMsg}"
                     </div>
-                    <p class="text-xs text-gray-400 font-bold">المُرسل: <span class="text-[#D4AF37]">${data.from}</span> ❤️</p>
+                    <p class="text-xs text-gray-400 font-bold">المُرسل: <span class="text-[#D4AF37]">${safeFrom}</span> ❤️</p>
                     <div class="pt-4 border-t border-gray-800">
                         <button type="button" onclick="document.getElementById('digital-gift-unbox-modal').remove(); window.location.hash='#home';" class="w-full py-3 bg-[#1a1a1a] hover:bg-[#D4AF37] text-[#D4AF37] hover:text-black border border-[#D4AF37]/40 font-black rounded-xl text-xs transition cursor-pointer">
                             تصفح متجر كوسمتيك عبد الحق 🛍️
