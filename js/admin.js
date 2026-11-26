@@ -121,8 +121,11 @@ export function switchAdminTab(tabName) {
         if (document.getElementById('set-min-order-national')) document.getElementById('set-min-order-national').value = s.minOrderNational ?? '';
         if (document.getElementById('set-msg-success')) document.getElementById('set-msg-success').value = s.msgSuccess || '';
         if (document.getElementById('set-msg-warning')) document.getElementById('set-msg-warning').value = s.msgWarning || '';
-        if (document.getElementById('shipping-api-key')) document.getElementById('shipping-api-key').value = s.shippingApiKey || '';
-        if (document.getElementById('shipping-api-token')) document.getElementById('shipping-api-token').value = s.shippingApiToken || '';
+        window.db.collection("settings").doc("shipping_api").get().then(doc => {
+            const apiData = doc.exists ? doc.data() : {};
+            if (document.getElementById('shipping-api-key')) document.getElementById('shipping-api-key').value = apiData.shippingApiKey || '';
+            if (document.getElementById('shipping-api-token')) document.getElementById('shipping-api-token').value = apiData.shippingApiToken || '';
+        }).catch(() => {});
     }
 
     if (tabName === 'categories_attributes') {
@@ -774,15 +777,32 @@ export async function handleImageUploadWrapper(event, targetId) {
 
 export function handleSaveWilaya(e) {
     if (e) e.preventDefault();
-    const code = document.getElementById('wilaya-code').value.trim();
+    const code = document.getElementById('wilaya-code').value.trim().padStart(2, '0');
     const name = document.getElementById('wilaya-name').value.trim();
     const officeCost = parseFloat(document.getElementById('wilaya-office-cost').value) || 0;
     const homeCost = parseFloat(document.getElementById('wilaya-home-cost').value) || 0;
     if (!code || !name) return;
-    window.db.collection("wilayas").doc(code).set({ code, name, officeCost, homeCost }).then(() => {
+
+    window.db.collection("settings").doc("main").set({
+        wilayasPricing: {
+            [code]: { name, officeCost, homeCost }
+        }
+    }, { merge: true }).then(() => {
+        const existing = state.WILAYAS.find(w => w.code === code);
+        if (existing) {
+            existing.name = name;
+            existing.officeCost = officeCost;
+            existing.homeCost = homeCost;
+        } else {
+            state.WILAYAS.push({ code, name, officeCost, homeCost });
+            state.WILAYAS.sort((a, b) => parseInt(a.code) - parseInt(b.code));
+        }
         resetWilayaForm();
-        showCustomAlert('تم الحفظ 🎉', 'تم حفظ التسعير بنجاح!', true);
-    });
+        renderAdminWilayasList();
+        safeCall('populateWilayas');
+        safeCall('populateCartWilayas');
+        showCustomAlert('تم الحفظ 🎉', 'تم تحديث تسعيرة الولاية وتطبيقها فوراً للزبائن!', true);
+    }).catch(err => showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false));
 }
 
 export function resetWilayaForm() {
@@ -844,9 +864,9 @@ export function renderAdminWilayasList() {
 export function saveShippingApiSettings() {
     const key = document.getElementById('shipping-api-key')?.value.trim() || '';
     const token = document.getElementById('shipping-api-token')?.value.trim() || '';
-    window.db.collection("settings").doc("main").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
-        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API!', true);
-    });
+    window.db.collection("settings").doc("shipping_api").set({ shippingApiKey: key, shippingApiToken: token }, { merge: true }).then(() => {
+        showCustomAlert('تم تفعيل الربط', 'تم حفظ بيانات الـ API بأمان!', true);
+    }).catch(err => showCustomAlert('خطأ', 'تعذر الحفظ: ' + err.message, false));
 }
 let previousOrdersCount = -1;
 let isFirstRealDataRender = true; // 🌟 إضافة متغير للتحكم في التحميل الأولي
