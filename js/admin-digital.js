@@ -302,11 +302,12 @@ export function renderDigitalOrdersTable() {
             dateStr = d.toLocaleDateString('ar-DZ', { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
         }
 
+        const esc = window.escapeHTML || (s => String(s ?? ''));
         const fieldsHtml = (Array.isArray(o.customFields) && o.customFields.length > 0)
             ? o.customFields.map(f => `
                 <div class="flex items-center justify-between gap-2 bg-gray-100 px-2.5 py-1 rounded-lg border border-gray-200 mb-1">
-                    <span class="truncate max-w-[160px]"><b>${f.label}:</b> <span class="font-mono text-blue-700">${f.value}</span></span>
-                    <button type="button" onclick="copyDigitalText('${String(f.value).replace(/'/g, "\\'")}')" class="text-[#B8860B] hover:text-black font-bold px-1.5 py-0.5 bg-white rounded border cursor-pointer" title="نسخ"><i class="fa-regular fa-copy"></i></button>
+                    <span class="truncate max-w-[160px]"><b>${esc(f.label)}:</b> <span class="font-mono text-blue-700">${esc(f.value)}</span></span>
+                    <button type="button" data-copy="${esc(f.value)}" onclick="copyDigitalText(this.dataset.copy)" class="text-[#B8860B] hover:text-black font-bold px-1.5 py-0.5 bg-white rounded border cursor-pointer" title="نسخ"><i class="fa-regular fa-copy"></i></button>
                 </div>`).join('')
             : '<span class="text-gray-400 italic">كود / حساب جاهز (يُرسل عبر واتساب)</span>';
 
@@ -317,13 +318,13 @@ export function renderDigitalOrdersTable() {
         return `
             <tr class="hover:bg-gray-50 transition">
                 <td class="p-3">
-                    <div class="font-bold text-gray-900">${o.customer}</div>
-                    <div class="text-[11px] font-mono text-gray-500">${o.phone}</div>
+                    <div class="font-bold text-gray-900">${esc(o.customer)}</div>
+                    <div class="text-[11px] font-mono text-gray-500">${esc(o.phone)}</div>
                     <div class="text-[10px] text-gray-400 mt-0.5">${dateStr}</div>
                 </td>
                 <td class="p-3">
-                    <div class="font-black text-gray-900">${o.packageName}</div>
-                    <div class="text-[10px] text-gray-500">${o.serviceName || ''} ${o.quantity > 1 ? `| العدد: <b>${o.quantity}</b>` : ''}</div>
+                    <div class="font-black text-gray-900">${esc(o.packageName)}</div>
+                    <div class="text-[10px] text-gray-500">${esc(o.serviceName || '')} ${o.quantity > 1 ? `| العدد: <b>${Number(o.quantity)}</b>` : ''}</div>
                     <div class="font-black text-[#B8860B] mt-1">${Number(o.total || 0).toLocaleString()} دج</div>
                 </td>
                 <td class="p-3 min-w-[200px]">${fieldsHtml}</td>
