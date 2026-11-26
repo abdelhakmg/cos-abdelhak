@@ -129,3 +129,12 @@ window.isValidDzPhone = isValidDzPhone;
 window.calculateShippingCost = calculateShippingCost; // تمت إضافتها للتصدير
 window.safeCall = safeCall;
 window.formatPrice = formatPrice;
+export function escapeHTML(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+window.escapeHTML = escapeHTML;
