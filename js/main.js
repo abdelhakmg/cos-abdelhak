@@ -167,8 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. إغلاق قائمة نتائج البحث تلقائياً عند النقر خارجها
     document.addEventListener('click', (e) => {
-        const desktopSearch = document.getElementById('live-search-input');
-        const mobileSearch = document.getElementById('mobile-search-input');
+        const desktopSearch = document.getElementById('customer-search-input');
+        const mobileSearch = document.getElementById('customer-search-input-mobile');
         const desktopDropdown = document.getElementById('search-results-dropdown');
         const mobileDropdown = document.getElementById('mobile-search-dropdown');
 
