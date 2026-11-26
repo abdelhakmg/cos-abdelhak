@@ -511,7 +511,7 @@ export async function handleDigitalReceiptUpload(event) {
     statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع وصل الدفع...';
 
     try {
-        const url = await window.compressAndUploadImage(file, 'digital_receipts', 900);
+        const url = await window.compressAndUploadImage(file, 'customer_uploads', 900);
         digitalState.uploadedReceiptUrl = url;
         statusEl.classList.replace('text-yellow-400', 'text-emerald-400');
         statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم رفع الوصل بنجاح! يمكنك تأكيد الطلب الآن.';
