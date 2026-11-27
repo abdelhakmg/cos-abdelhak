@@ -134,3 +134,12 @@ export function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 window.escapeHTML = escapeHTML;
+export async function uploadOriginalImage(file, folderName = 'banners_original') {
+    if (!file) throw new Error('لم يتم اختيار أي ملف.');
+    const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop().toLowerCase() : 'png';
+    const fileName = `${folderName}/orig_${Date.now()}_${Math.floor(Math.random() * 1000)}.${ext}`;
+    const storageRef = window.storage.ref().child(fileName);
+    const snapshot = await storageRef.put(file, { contentType: file.type || 'image/png' });
+    return await snapshot.ref.getDownloadURL();
+}
+window.uploadOriginalImage = uploadOriginalImage;
