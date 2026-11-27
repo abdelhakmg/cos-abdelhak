@@ -185,10 +185,10 @@ export function renderCustomStep() {
                             <div class="md:col-span-2">
                                 <label class="text-xs text-[#D4AF37] font-bold block mb-2">طريقة التوصيل *</label>
                                 <div class="flex gap-3">
-                                    <div id="btn-ship-office" onclick="setCustomShipping('office')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'office' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
+                                    <div id="btn-custom-ship-office" onclick="setCustomShipping('office')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'office' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
                                         <i class="fa-solid fa-store"></i> استلام من المكتب
                                     </div>
-                                    <div id="btn-ship-home" onclick="setCustomShipping('home')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'home' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
+                                    <div id="btn-custom-ship-home" onclick="setCustomShipping('home')" class="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition ${customOrderData.shippingType === 'home' ? 'border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]' : 'border-gray-700 bg-black text-gray-400'}">
                                         <i class="fa-solid fa-house"></i> توصيل للمنزل
                                     </div>
                                 </div>
@@ -647,8 +647,8 @@ export function removeCustomUploadedImage(imageIndex) {
 
 export function setCustomShipping(type) {
     customOrderData.shippingType = type;
-    const btnOffice = document.getElementById('btn-ship-office');
-    const btnHome = document.getElementById('btn-ship-home');
+    const btnOffice = document.getElementById('btn-custom-ship-office');
+    const btnHome = document.getElementById('btn-custom-ship-home');
     const activeClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-[#D4AF37] bg-[#D4AF37]/10 text-[#D4AF37]";
     const inactiveClass = "flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer text-xs font-bold transition border-gray-700 bg-black text-gray-400";
     if (btnOffice) btnOffice.className = type === 'office' ? activeClass : inactiveClass;
@@ -814,6 +814,7 @@ export function addCustomToCart() {
         id: 'custom_' + Date.now(),
         name: `[مخصص] ${customOrderData.selectedProduct}`,
         price: (Number(customOrderData.basePrice) || 0) + (Number(customOrderData.addonsPrice) || 0),
+        qty: 1,
         image: customOrderData.productImage || 'https://via.placeholder.com/100',
         customDetails: getCustomOrderFullDesc(),
         attachedImage1: customOrderData.uploadedImage1 || null,
