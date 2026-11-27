@@ -1442,13 +1442,17 @@ export function quickUpdateProductPrice(productId, inputEl) {
             state.products[productIndex].price = newPrice;
         }
 
-        // تحديث السعر في فهرس البحث الموحد بصمت دون إعادة تحميل كل المنتجات
+        // تحديث السعر في الجزء المخصص من الفهرس المقسّم بصمت
         if (window.localSearchIndex && window.localSearchIndex.length > 0) {
             const idx = window.localSearchIndex.findIndex(p => p.id === productId);
             if (idx !== -1) {
                 window.localSearchIndex[idx].price = newPrice;
-                window.db.collection('settings').doc('search_index').set({
-                    items: window.localSearchIndex,
+                const CHUNK_SIZE = 500;
+                const chunkIdx = Math.floor(idx / CHUNK_SIZE);
+                const chunkItems = window.localSearchIndex.slice(chunkIdx * CHUNK_SIZE, (chunkIdx + 1) * CHUNK_SIZE);
+                window.db.collection('settings').doc(`search_index_${chunkIdx}`).set({
+                    items: chunkItems,
+                    chunkIndex: chunkIdx,
                     lastUpdated: new Date()
                 }).catch(() => {});
             }
