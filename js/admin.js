@@ -698,6 +698,7 @@ export async function updateSearchIndex() {
         const lightweightIndex = allProducts.map(p => {
             const mainImg = p.image || (Array.isArray(p.images) && p.images[0]) || (Array.isArray(p.variants) && p.variants[0]?.image) || '';
             const variantsNames = Array.isArray(p.variants) ? p.variants.map(v => v?.name || '').join(' ') : '';
+            const shortDesc = (p.desc || '').trim().slice(0, 100);
             return {
                 id: p.id,
                 name: (p.name || '').trim(),
@@ -707,22 +708,41 @@ export async function updateSearchIndex() {
                 oldPrice: p.oldPrice ? Number(p.oldPrice) : null,
                 inStock: p.inStock !== false,
                 image: mainImg,
-                images: mainImg ? [mainImg] : [],
-                keywords: `${p.name || ''} ${p.desc || ''} ${p.category || ''} ${p.brand || ''} ${variantsNames}`.toLowerCase()
+                keywords: `${p.name || ''} ${p.category || ''} ${p.brand || ''} ${variantsNames} ${shortDesc}`.toLowerCase()
             };
         });
 
-        await window.db.collection('settings').doc('search_index').set({
-            items: lightweightIndex,
+        const CHUNK_SIZE = 500;
+        const chunksCount = Math.ceil(lightweightIndex.length / CHUNK_SIZE) || 1;
+        const batch = window.db.batch();
+
+        for (let i = 0; i < chunksCount; i++) {
+            const chunkItems = lightweightIndex.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+            const chunkRef = window.db.collection('settings').doc(`search_index_${i}`);
+            batch.set(chunkRef, {
+                items: chunkItems,
+                chunkIndex: i,
+                lastUpdated: new Date()
+            });
+        }
+
+        const mainRef = window.db.collection('settings').doc('search_index');
+        batch.set(mainRef, {
+            isSharded: true,
+            chunksCount: chunksCount,
+            totalCount: lightweightIndex.length,
             lastUpdated: new Date()
         });
-        
+
+        await batch.commit();
+
         window.totalStoreProductsCount = lightweightIndex.length;
         window.localSearchIndex = lightweightIndex;
         renderAdminProductsTable();
-        console.log('✅ تم تحديث فهرس البحث الذكي بنجاح لكافة المنتجات:', lightweightIndex.length);
+        console.log(`✅ تم تحديث فهرس البحث المقسّم بنجاح (${lightweightIndex.length} منتج في ${chunksCount} أجزاء)`);
     } catch (error) {
         console.error('❌ خطأ في تحديث الفهرس:', error);
+        throw error;
     }
 }
 window.updateSearchIndex = updateSearchIndex;
@@ -2265,7 +2285,6 @@ export async function loadUiAdminData() {
                 workInput.value = data.bannerWorkshop || '';
                 document.getElementById('admin-preview-banner-workshop').src = data.bannerWorkshop || 'https://via.placeholder.com/400x600/121212/D4AF37?text=لا+توجد+صورة';
             }
-            if (flashInput) flashInput.value = data.flashIds || '';
             if (document.getElementById('admin-splash-title')) document.getElementById('admin-splash-title').value = data.splashTitle || '';
         }
     } catch (error) {
