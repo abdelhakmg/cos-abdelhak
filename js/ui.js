@@ -507,10 +507,22 @@ export function renderCatalogProducts(isLoadMoreLocal = false, preserveCount = f
             toRender.map(renderSingleProductCard).join('');
     }
     
-    // عرض العدد الكلي الدقيق
+    // عرض العدد الكلي الدقيق (مع احترام الفلاتر الجانبية)
     if (badge) {
-        if (activeCat === 'جميع المنتجات' && window.totalStoreProductsCount && window.currentFilteredCatalog.length >= 30) {
-            badge.innerText = window.totalStoreProductsCount;
+        const priceEl = document.getElementById('filter-price-range');
+        const isPriceFiltered = priceEl && (parseFloat(priceEl.value) < (parseFloat(priceEl.max) || 20000));
+        const hasActiveFilters = Boolean(
+            document.getElementById('filter-in-stock-only')?.checked ||
+            isPriceFiltered ||
+            document.querySelectorAll('.brand-filter-cb:checked').length > 0 ||
+            document.querySelectorAll('.dynamic-customer-cb:checked').length > 0
+        );
+
+        if (!hasActiveFilters && activeCat === 'جميع المنتجات') {
+            badge.innerText = Math.max(window.totalStoreProductsCount || 0, window.currentFilteredCatalog.length);
+        } else if (!hasActiveFilters && activeCat !== 'جميع المنتجات') {
+            const catIndexCount = (window.localSearchIndex || []).filter(p => (p.category || '').trim() === activeCat).length;
+            badge.innerText = Math.max(catIndexCount, window.currentFilteredCatalog.length);
         } else {
             badge.innerText = window.currentFilteredCatalog.length;
         }
