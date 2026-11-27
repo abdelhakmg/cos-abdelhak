@@ -6,6 +6,7 @@ import { showCustomAlert, calculateShippingCost, safeCall, isValidDzPhone } from
 let currentGiftStep = 1;
 const TOTAL_STEPS = 6;
 let activeProductCategory = 'الكل';
+let giftSearchQuery = '';
 
 let giftData = {
     recipient: '',
@@ -23,6 +24,35 @@ let giftData = {
     commune: '',
     shippingType: 'office' // 🌟 تصحيح: جعل القيمة الافتراضية office لتتوافق مع helpers.js
 };
+window.giftData = giftData;
+
+// 🌟 تحديث آمن لحقول الهدية يمنع ReferenceError داخل ES Modules
+export function updateGiftField(field, value) {
+    giftData[field] = value;
+    window.giftData = giftData;
+}
+
+// 🌟 دمج جميع مصادر المنتجات محلياً (فهرس 1146 منتج + المسبح + الحالة) بدون تكرار وبصفر قراءات Firestore
+function getAllGiftCatalogProducts() {
+    const map = new Map();
+    const sources = [
+        ...(Array.isArray(window.localSearchIndex) ? window.localSearchIndex : []),
+        ...(Array.isArray(window.giftProductsPool) ? window.giftProductsPool : []),
+        ...(Array.isArray(state.products) ? state.products : [])
+    ];
+    for (const p of sources) {
+        if (p && p.id && !map.has(p.id)) {
+            map.set(p.id, p);
+        }
+    }
+    return Array.from(map.values());
+}
+
+function findGiftProductById(prodId) {
+    return (window.giftProductsPool || []).find(p => p.id === prodId)
+        || (window.localSearchIndex || []).find(p => p.id === prodId)
+        || (state.products || []).find(p => p.id === prodId);
+}
 // 🌟 ذاكرة التصفح الذكية لأقسام صانع الهدايا (Pagination)
 window.giftCategoryCursors = {};
 window.giftCategoryHasMore = {};
@@ -85,29 +115,48 @@ export async function openGiftBuilder() {
     }
 
     try {
+        // 🌟 التأكد من جاهزية فهرس البحث المحلي (1146 منتج) بدون قراءات مكررة
+        if ((!window.localSearchIndex || window.localSearchIndex.length === 0) && typeof window.loadSearchIndex === 'function') {
+            await window.loadSearchIndex();
+        }
+
         if (!window.giftProductsPool) {
             window.giftProductsPool = [];
             window.giftCategoryCache = {};
             window.giftCategoryCursors = {};
             window.giftCategoryHasMore = {};
 
-            // 1. جلب العلب للخطوة 2
-            const boxCategories = state.categories.map(c => c.name).filter(n => n.includes('علب') || n.includes('صندوق') || n.includes('صناديق'));
-            if (boxCategories.length > 0) {
-                const boxesSnap = await window.db.collection('products').where('category', 'in', boxCategories.slice(0, 10)).where('inStock', '==', true).get();
-                boxesSnap.forEach(doc => window.giftProductsPool.push({ id: doc.id, ...doc.data() }));
+            // 1. جلب العلب للخطوة 2 (أولاً من الفهرس المحلي، وإن لم توجد نجلبها من Firestore)
+            const localBoxes = getAllGiftCatalogProducts().filter(p => {
+                if (p.inStock === false) return false;
+                const cat = (p.category || '').toLowerCase().trim();
+                return cat === 'علب' || cat === 'علبة' || cat === 'صناديق' || cat.includes('علب') || cat.includes('صندوق');
+            });
+
+            if (localBoxes.length > 0) {
+                window.giftProductsPool.push(...localBoxes);
+            } else {
+                const boxCategories = state.categories.map(c => c.name).filter(n => n.includes('علب') || n.includes('صندوق') || n.includes('صناديق'));
+                if (boxCategories.length > 0) {
+                    const boxesSnap = await window.db.collection('products').where('category', 'in', boxCategories.slice(0, 10)).where('inStock', '==', true).get();
+                    boxesSnap.forEach(doc => window.giftProductsPool.push({ id: doc.id, ...doc.data() }));
+                }
             }
 
-            // 2. جلب أول 8 منتجات لقسم "الكل" 
-            const randomSnap = await window.db.collection('products').where('inStock', '==', true).limit(8).get();
-            if (!randomSnap.empty) {
-                window.giftCategoryCursors['الكل'] = randomSnap.docs[randomSnap.docs.length - 1];
-                window.giftCategoryHasMore['الكل'] = randomSnap.docs.length === 8;
-                randomSnap.forEach(doc => {
-                    if (!window.giftProductsPool.find(p => p.id === doc.id)) {
-                        window.giftProductsPool.push({ id: doc.id, ...doc.data() });
-                    }
-                });
+            // 2. إذا كان الفهرس المحلي فارغاً فقط، نستخدم الجلب الاحتياطي لـ 8 منتجات
+            if (!window.localSearchIndex || window.localSearchIndex.length === 0) {
+                const randomSnap = await window.db.collection('products').where('inStock', '==', true).limit(8).get();
+                if (!randomSnap.empty) {
+                    window.giftCategoryCursors['الكل'] = randomSnap.docs[randomSnap.docs.length - 1];
+                    window.giftCategoryHasMore['الكل'] = randomSnap.docs.length === 8;
+                    randomSnap.forEach(doc => {
+                        if (!window.giftProductsPool.find(p => p.id === doc.id)) {
+                            window.giftProductsPool.push({ id: doc.id, ...doc.data() });
+                        }
+                    });
+                } else {
+                    window.giftCategoryHasMore['الكل'] = false;
+                }
             } else {
                 window.giftCategoryHasMore['الكل'] = false;
             }
@@ -120,10 +169,14 @@ export async function openGiftBuilder() {
 
     currentGiftStep = 1;
     activeProductCategory = 'الكل';
+    giftSearchQuery = '';
     giftData = { recipient: '', selectedBox: null, selectedProducts: [], selectedWrapping: null, giftMessage: '', messageType: 'printed', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '', wilaya: '', baladiya: '', commune: '', shippingType: 'office' };
+    window.giftData = giftData;
     renderGiftStep();
 }
 export function closeGiftBuilder() {
+    document.getElementById('gift-preview-modal')?.remove();
+    document.getElementById('wrap-preview-modal')?.remove();
     const modal = document.getElementById('gift-builder-modal');
     if (modal) {
         modal.classList.add('hidden');
@@ -229,81 +282,62 @@ export function renderGiftStep() {
             break;
             
 case 3:
-            // 🌟 تصحيح: استبعاد المنتجات غير المتوفرة (inStock === false)
-            let availableProducts = (window.giftProductsPool || state.products).filter(p => {
-                if (p.inStock === false) return false;
-                const cat = (p.category || '').toLowerCase().trim();
-                return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف' && cat !== 'هدايا' && !cat.includes('هدية');
-            });
-            
             // 🌟 إظهار جميع أسماء الأقسام الموجودة في المتجر ليختار الزبون منها
             const allStoreCategories = state.categories.map(c => c.name).filter(cat => !cat.includes('علب') && !cat.includes('صندوق') && !cat.includes('تغليف'));
             const uniqueCategories = ['الكل', ...new Set(allStoreCategories)];
-
-            if (activeProductCategory !== 'الكل') {
-                availableProducts = availableProducts.filter(p => (p.category || 'أخرى') === activeProductCategory);
-            }
+            const safeSearchVal = (giftSearchQuery || '').replace(/"/g, '&quot;');
 
             html = `
-                <div class="space-y-4 animate-fade-in flex flex-col h-[65vh]">
-                    <div class="text-center mb-2">
+                <div class="space-y-3 animate-fade-in flex flex-col h-[68vh]">
+                    <div class="text-center">
                         <h4 class="font-black text-lg text-white">2. املأ العلبة بالمنتجات 🎁</h4>
                     </div>
                     
+                    <!-- شريط المجموع وعدد المنتجات -->
                     <div class="bg-gray-900 p-3 rounded-xl border border-[#D4AF37]/30 flex justify-between items-center shadow-md">
                         <div class="text-right">
-                            <p class="font-black text-lg text-[#D4AF37]">${currentTotal.toLocaleString()} دج</p>
+                            <p id="gift-step3-total" class="font-black text-lg text-[#D4AF37]">${currentTotal.toLocaleString()} دج</p>
                         </div>
-                        <span class="bg-[#D4AF37]/20 text-[#D4AF37] px-3 py-1 rounded-lg text-xs font-bold border border-[#D4AF37]/50">
+                        <span id="gift-step3-count" class="bg-[#D4AF37]/20 text-[#D4AF37] px-3 py-1 rounded-lg text-xs font-bold border border-[#D4AF37]/50">
                             ${giftData.selectedProducts.reduce((sum, item) => sum + item.qty, 0)} منتجات
                         </span>
                     </div>
 
-                    <div class="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-                        ${uniqueCategories.map(cat => {
-                            const safeCat = (cat || '').replace(/'/g, "\\'");
-                            return `
-                            <button type="button" onclick="setActiveGiftCategory('${safeCat}')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition border cursor-pointer ${activeProductCategory === cat ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-black text-gray-400 border-gray-800 hover:border-gray-600'}">
-                                ${cat}
-                            </button>
-                            `;
-                        }).join('')}
+                    <!-- ملخص المنتجات المختارة حالياً مع الحذف السريع -->
+                    <div id="gift-selected-summary">${buildGiftSelectedSummaryHtml()}</div>
+
+                    <!-- شريط البحث الفوري في جميع منتجات المتجر (بدون قراءات Firestore) -->
+                    <div class="relative">
+                        <input type="text" id="gift-product-search" value="${safeSearchVal}" oninput="handleGiftProductSearch(this.value)" placeholder="ابحث في جميع منتجات المتجر (عطر، مكياج، ماركة...)" class="w-full bg-black border border-[#D4AF37]/40 text-white text-xs rounded-xl py-2.5 pr-9 pl-9 outline-none focus:border-[#D4AF37] transition">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-[#D4AF37] text-xs"></i>
+                        <button type="button" id="gift-search-clear-btn" onclick="clearGiftProductSearch()" class="${giftSearchQuery ? '' : 'hidden'} absolute left-2.5 top-2 w-6 h-6 rounded-full bg-gray-800 hover:bg-red-600 text-gray-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer" title="مسح البحث">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
 
-                    <div class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                        ${availableProducts.map(p => {
-                            const existing = giftData.selectedProducts.find(item => item.id === p.id);
-                            const qty = existing ? existing.qty : 0;
-                            const isAdded = qty > 0;
-                            const safeId = (p.id || '').replace(/'/g, "\\'");
-                            return `
-                                <div class="flex items-center justify-between bg-black/60 p-3 rounded-2xl border transition ${isAdded ? 'border-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.2)]' : 'border-gray-800'}">
-                                    <div class="flex items-center gap-3 flex-1 relative">
-                                        <button type="button" onclick="previewGiftProduct('${safeId}')" class="absolute -top-2 -right-1 w-6 h-6 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-sm cursor-pointer"><i class="fa-solid fa-eye text-[10px]"></i></button>
-                                        <div class="w-12 h-12 bg-white rounded-xl flex-shrink-0 p-1 cursor-pointer" onclick="previewGiftProduct('${safeId}')">
-                                            <img src="${(p.images && p.images[0]) || p.image || ''}" class="w-full h-full object-contain rounded-lg" loading="lazy">
-                                        </div>
-                                        <div>
-                                            <p class="font-bold text-xs text-white line-clamp-1">${p.name}</p>
-                                            <p class="text-[#D4AF37] font-black text-xs mt-1">${(p.price || 0).toLocaleString()} دج</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800">
-                                        <button type="button" onclick="updateGiftProductQty('${safeId}', -1)" class="w-7 h-7 bg-gray-800 text-white rounded-md flex items-center justify-center font-bold cursor-pointer">-</button>
-                                        <span class="w-5 text-center font-bold text-xs text-white">${qty}</span>
-                                        <button type="button" onclick="updateGiftProductQty('${safeId}', 1)" class="w-7 h-7 bg-[#D4AF37] text-black rounded-md flex items-center justify-center font-bold cursor-pointer">+</button>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                        
-                        ${window.giftCategoryHasMore && window.giftCategoryHasMore[activeProductCategory] ? `
-                        <div class="flex justify-center mt-4 pb-2">
-                            <button id="gift-load-more-btn" onclick="loadMoreGiftProducts()" class="bg-black border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold py-2.5 px-6 rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
-                                المزيد من (${activeProductCategory}) <i class="fa-solid fa-angle-down"></i>
-                            </button>
+                    <!-- شريط فلترة الأقسام مع أسهم التمرير يمين/يسار -->
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="document.getElementById('gift-categories-scroll')?.scrollBy({left: 200, behavior: 'smooth'})" class="shrink-0 w-8 h-8 rounded-xl bg-black border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black flex items-center justify-center transition cursor-pointer" title="يمين">
+                            <i class="fa-solid fa-chevron-right text-[11px]"></i>
+                        </button>
+                        <div id="gift-categories-scroll" class="flex gap-2 overflow-x-auto custom-scrollbar scroll-smooth py-1 flex-1">
+                            ${uniqueCategories.map(cat => {
+                                const safeCat = (cat || '').replace(/'/g, "\\'");
+                                return `
+                                <button type="button" onclick="setActiveGiftCategory('${safeCat}')" class="whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-bold transition border cursor-pointer shrink-0 ${activeProductCategory === cat ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'bg-black text-gray-400 border-gray-800 hover:border-gray-600'}">
+                                    ${cat}
+                                </button>
+                                `;
+                            }).join('')}
                         </div>
-                        ` : ''}
+                        <button type="button" onclick="document.getElementById('gift-categories-scroll')?.scrollBy({left: -200, behavior: 'smooth'})" class="shrink-0 w-8 h-8 rounded-xl bg-black border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black flex items-center justify-center transition cursor-pointer" title="يسار">
+                            <i class="fa-solid fa-chevron-left text-[11px]"></i>
+                        </button>
+                    </div>
+
+                    <!-- قائمة المنتجات -->
+                    <div id="gift-products-list-container" class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                        ${buildGiftProductsListHtml()}
                     </div>
                 </div>
             `;
@@ -317,6 +351,8 @@ case 3:
                     { id: 'w2', name: 'تغليف أحمر فاخر', image: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?q=80&w=200&auto=format&fit=crop', price: 300 }
                 ];
 
+            const fallbackWrapImg = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=300&auto=format&fit=crop';
+
             html = `
                 <div class="space-y-6 animate-fade-in max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
                     <div class="text-center mb-4">
@@ -328,18 +364,21 @@ case 3:
                         <div class="grid grid-cols-2 gap-3">
                             ${wrappings.map(w => {
                                 const isSelected = giftData.selectedWrapping && giftData.selectedWrapping.id === w.id;
-                                const safeName = (w.name || '').replace(/'/g, "\\'");
-                                const safeImg = (w.image || '').replace(/'/g, "\\'");
+                                const wrapImg = w.image || w.img || w.imageUrl || fallbackWrapImg;
+                                const wrapPrice = Number(w.price) || 0;
+                                const safeName = (w.name || 'تغليف فاخر').replace(/'/g, "\\'");
+                                const safeImg = wrapImg.replace(/'/g, "\\'");
+                                const safeWrapId = String(w.id || '').replace(/'/g, "\\'");
                                 return `
                                 <div class="bg-black/50 p-2 rounded-2xl border transition text-center relative ${isSelected ? 'border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)] bg-[#D4AF37]/10' : 'border-gray-800 hover:border-gray-600'}">
-                                    <button type="button" onclick="previewWrapping('${safeImg}', '${safeName}',${w.price})" class="absolute top-3 left-3 w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-md border border-gray-700 cursor-pointer">
+                                    <button type="button" onclick="previewWrapping('${safeImg}', '${safeName}', ${wrapPrice})" class="absolute top-3 left-3 w-7 h-7 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-md border border-gray-700 cursor-pointer" title="تكبير صورة التغليف">
                                         <i class="fa-solid fa-expand text-[10px]"></i>
                                     </button>
 
-                                    <div onclick="selectWrapping('${w.id}', '${safeName}', ${w.price}, '${safeImg}')" class="cursor-pointer">
-                                        <img src="${w.image}" class="w-full h-24 object-cover rounded-xl mb-2 border border-gray-800" loading="lazy">
-                                        <p class="font-bold text-xs text-white">${w.name}</p>
-                                        <p class="text-[#D4AF37] text-[10px] font-bold">${w.price > 0 ? '+'+w.price+' دج' : 'مجاني'}</p>
+                                    <div onclick="selectWrapping('${safeWrapId}', '${safeName}', ${wrapPrice}, '${safeImg}')" class="cursor-pointer">
+                                        <img src="${wrapImg}" onerror="this.onerror=null;this.src='${fallbackWrapImg}'" class="w-full h-24 object-cover rounded-xl mb-2 border border-gray-800 bg-gray-900" loading="lazy" alt="${safeName}">
+                                        <p class="font-bold text-xs text-white">${w.name || 'تغليف فاخر'}</p>
+                                        <p class="text-[#D4AF37] text-[10px] font-bold">${wrapPrice > 0 ? '+' + wrapPrice.toLocaleString() + ' دج' : 'مجاني'}</p>
                                     </div>
                                 </div>
                                 `;
@@ -371,7 +410,7 @@ case 3:
                             </div>
                         ` : ''}
 
-                        <textarea id="g-gift-message" oninput="giftData.giftMessage=this.value" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
+                        <textarea id="g-gift-message" oninput="updateGiftField('giftMessage', this.value)" rows="3" placeholder="اكتب مشاعرك هنا... (مثال: كل عام وأنت بخير يا أجمل شخص...)" class="w-full bg-black border border-gray-700 p-4 rounded-xl text-sm text-white outline-none focus:border-[#D4AF37] transition">${giftData.giftMessage}</textarea>
                     </div>
                 </div>
             `;
@@ -387,16 +426,16 @@ case 3:
 
                     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800 space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b border-gray-800">
-                            <div><label class="text-[10px] text-gray-500 font-bold block mb-1">اسم المُرسل (أنت)</label><input type="text" id="g-sender-name" value="${giftData.senderName}" oninput="giftData.senderName=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
-                            <div><label class="text-[10px] text-gray-500 font-bold block mb-1">رقمك للتأكيد</label><input type="tel" id="g-sender-phone" maxlength="10" value="${giftData.senderPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,''); giftData.senderPhone=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
+                            <div><label class="text-[10px] text-gray-500 font-bold block mb-1">اسم المُرسل (أنت)</label><input type="text" id="g-sender-name" value="${giftData.senderName}" oninput="updateGiftField('senderName', this.value)" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
+                            <div><label class="text-[10px] text-gray-500 font-bold block mb-1">رقمك للتأكيد</label><input type="tel" id="g-sender-phone" maxlength="10" value="${giftData.senderPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,''); updateGiftField('senderPhone', this.value)" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">اسم المُستلم للهدية</label><input type="text" id="g-receiver-name" value="${giftData.receiverName}" oninput="giftData.receiverName=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
-                            <div><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">رقم المستلم</label><input type="tel" id="g-receiver-phone" maxlength="10" value="${giftData.receiverPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,''); giftData.receiverPhone=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
+                            <div><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">اسم المُستلم للهدية</label><input type="text" id="g-receiver-name" value="${giftData.receiverName}" oninput="updateGiftField('receiverName', this.value)" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
+                            <div><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">رقم المستلم</label><input type="tel" id="g-receiver-phone" maxlength="10" value="${giftData.receiverPhone}" oninput="this.value=this.value.replace(/[^0-9]/g,''); updateGiftField('receiverPhone', this.value)" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]"></div>
                             
                             <div class="md:col-span-2"><label class="text-[10px] text-[#D4AF37] font-bold block mb-1">ولاية المستلم *</label>
-                                <select id="g-wilaya" onchange="giftData.wilaya=this.value" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37] cursor-pointer">
+                                <select id="g-wilaya" onchange="updateGiftField('wilaya', this.value)" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37] cursor-pointer">
                                     <option value="">اختر الولاية لحساب التوصيل...</option>
                                     ${state.WILAYAS.map(w => `<option value="${w.code}" ${giftData.wilaya === w.code ? 'selected' : ''}>${w.code} -${w.name}</option>`).join('')}
                                 </select>
@@ -416,11 +455,11 @@ case 3:
 
                             <div class="md:col-span-2">
                                 <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">بلدية المستلم *</label>
-                                <input type="text" id="g-baladiya" value="${giftData.baladiya || ''}" oninput="giftData.baladiya=this.value" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                                <input type="text" id="g-baladiya" value="${giftData.baladiya || ''}" oninput="updateGiftField('baladiya', this.value)" placeholder="أدخل اسم البلدية" class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                             <div class="md:col-span-2">
-                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي *</label>
-                                <input type="text" id="g-commune" value="${giftData.commune || ''}" oninput="giftData.commune=this.value" placeholder="العنوان ورقم المنزل..." class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
+                                <label class="text-[10px] text-[#D4AF37] font-bold block mb-1">العنوان التفصيلي / الحي (اختياري)</label>
+                                <input type="text" id="g-commune" value="${giftData.commune || ''}" oninput="updateGiftField('commune', this.value)" placeholder="العنوان ورقم المنزل..." class="w-full bg-black border border-gray-700 p-3 rounded-xl text-white text-sm outline-none focus:border-[#D4AF37]">
                             </div>
                         </div>
                     </div>
@@ -535,67 +574,213 @@ case 3:
     container.innerHTML = html;
 }
 
+function buildGiftSelectedSummaryHtml() {
+    if (!giftData.selectedProducts || giftData.selectedProducts.length === 0) return '';
+    return `
+        <div class="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-xl p-2 space-y-1.5">
+            <p class="text-[10px] font-bold text-[#D4AF37] px-1">المنتجات المختارة داخل العلبة:</p>
+            <div class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto custom-scrollbar">
+                ${giftData.selectedProducts.map(item => {
+                    const safeId = String(item.id || '').replace(/'/g, "\\'");
+                    return `
+                    <span class="inline-flex items-center gap-1.5 bg-black/80 border border-[#D4AF37]/40 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                        <span class="max-w-[140px] truncate">${item.name}</span>
+                        <span class="text-[#D4AF37]">x${item.qty}</span>
+                        <button type="button" onclick="removeGiftProduct('${safeId}')" class="text-red-400 hover:text-red-300 mr-0.5 cursor-pointer" title="إزالة">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    </span>`;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function buildGiftProductsListHtml() {
+    let availableProducts = getAllGiftCatalogProducts().filter(p => {
+        if (p.inStock === false) return false;
+        const cat = (p.category || '').toLowerCase().trim();
+        return cat !== 'علب' && cat !== 'علبة' && cat !== 'تغليف' && cat !== 'هدايا' && !cat.includes('هدية');
+    });
+
+    const q = (giftSearchQuery || '').trim().toLowerCase();
+    if (q) {
+        const terms = q.split(/\s+/);
+        availableProducts = availableProducts.filter(p => {
+            const text = (p.keywords || `${p.name || ''} ${p.desc || ''} ${p.category || ''} ${p.brand || ''}`).toLowerCase();
+            return terms.every(t => text.includes(t));
+        });
+    } else if (activeProductCategory !== 'الكل') {
+        availableProducts = availableProducts.filter(p => (p.category || 'أخرى').trim() === activeProductCategory.trim());
+    }
+
+    const totalMatched = availableProducts.length;
+    const displayProducts = availableProducts.slice(0, 40);
+
+    if (displayProducts.length === 0) {
+        return `<div class="text-center text-gray-400 py-10 bg-black/40 rounded-2xl border border-gray-800 text-xs">
+            <i class="fa-solid fa-box-open text-2xl text-gray-600 mb-2 block"></i>
+            ${q ? `لا توجد منتجات مطابقة للبحث "${giftSearchQuery}"` : 'لا توجد منتجات متوفرة في هذا القسم حالياً.'}
+        </div>`;
+    }
+
+    const cardsHtml = displayProducts.map(p => {
+        const existing = giftData.selectedProducts.find(item => item.id === p.id);
+        const qty = existing ? existing.qty : 0;
+        const isAdded = qty > 0;
+        const safeId = String(p.id || '').replace(/'/g, "\\'");
+        const prodImg = (p.images && p.images[0]) || p.image || 'https://via.placeholder.com/80';
+        return `
+            <div class="flex items-center justify-between bg-black/60 p-3 rounded-2xl border transition ${isAdded ? 'border-[#D4AF37]/80 shadow-[0_0_10px_rgba(212,175,55,0.2)]' : 'border-gray-800'}">
+                <div class="flex items-center gap-3 flex-1 relative min-w-0">
+                    <button type="button" onclick="previewGiftProduct('${safeId}')" class="absolute -top-2 -right-1 w-6 h-6 bg-black/80 rounded-full flex items-center justify-center text-gray-300 hover:text-[#D4AF37] z-10 shadow-sm cursor-pointer"><i class="fa-solid fa-eye text-[10px]"></i></button>
+                    <div class="w-12 h-12 bg-white rounded-xl flex-shrink-0 p-1 cursor-pointer" onclick="previewGiftProduct('${safeId}')">
+                        <img src="${prodImg}" class="w-full h-full object-contain rounded-lg" loading="lazy">
+                    </div>
+                    <div class="min-w-0">
+                        <p class="font-bold text-xs text-white line-clamp-1">${p.name}</p>
+                        <p class="text-[#D4AF37] font-black text-xs mt-1">${(Number(p.price) || 0).toLocaleString()} دج</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 shrink-0">
+                    <button type="button" onclick="updateGiftProductQty('${safeId}', -1)" class="w-7 h-7 bg-gray-800 text-white rounded-md flex items-center justify-center font-bold cursor-pointer">-</button>
+                    <span class="w-5 text-center font-bold text-xs text-white">${qty}</span>
+                    <button type="button" onclick="updateGiftProductQty('${safeId}', 1)" class="w-7 h-7 bg-[#D4AF37] text-black rounded-md flex items-center justify-center font-bold cursor-pointer">+</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const moreHintHtml = totalMatched > 40
+        ? `<p class="text-center text-[11px] text-gray-400 py-2">يُعرض أول 40 نتيجة من أصل ${totalMatched} — اكتب كلمات أدق في شريط البحث أعلاه.</p>`
+        : '';
+
+    const loadMoreBtnHtml = (!q && (!window.localSearchIndex || window.localSearchIndex.length === 0) && window.giftCategoryHasMore && window.giftCategoryHasMore[activeProductCategory])
+        ? `<div class="flex justify-center mt-4 pb-2">
+            <button id="gift-load-more-btn" onclick="loadMoreGiftProducts()" class="bg-black border border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold py-2.5 px-6 rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
+                المزيد من (${activeProductCategory}) <i class="fa-solid fa-angle-down"></i>
+            </button>
+           </div>`
+        : '';
+
+    return cardsHtml + moreHintHtml + loadMoreBtnHtml;
+}
+
+function refreshGiftStep3UI() {
+    const currentTotal = giftData.selectedProducts.reduce((sum, item) => sum + ((Number(item.price) || 0) * item.qty), 0)
+        + (giftData.selectedBox ? Number(giftData.selectedBox.price) || 0 : 0)
+        + (giftData.selectedWrapping ? Number(giftData.selectedWrapping.price) || 0 : 0);
+
+    const totalEl = document.getElementById('gift-step3-total');
+    const countEl = document.getElementById('gift-step3-count');
+    const summaryEl = document.getElementById('gift-selected-summary');
+    const listEl = document.getElementById('gift-products-list-container');
+
+    if (totalEl) totalEl.innerText = `${currentTotal.toLocaleString()} دج`;
+    if (countEl) countEl.innerText = `${giftData.selectedProducts.reduce((sum, item) => sum + item.qty, 0)} منتجات`;
+    if (summaryEl) summaryEl.innerHTML = buildGiftSelectedSummaryHtml();
+    if (listEl) listEl.innerHTML = buildGiftProductsListHtml();
+}
+
+export function handleGiftProductSearch(query) {
+    giftSearchQuery = query || '';
+    const clearBtn = document.getElementById('gift-search-clear-btn');
+    if (clearBtn) clearBtn.classList.toggle('hidden', !giftSearchQuery);
+    const listEl = document.getElementById('gift-products-list-container');
+    if (listEl) listEl.innerHTML = buildGiftProductsListHtml();
+}
+
+export function clearGiftProductSearch() {
+    giftSearchQuery = '';
+    const input = document.getElementById('gift-product-search');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+    handleGiftProductSearch('');
+}
+
+export function removeGiftProduct(prodId) {
+    giftData.selectedProducts = giftData.selectedProducts.filter(item => item.id !== prodId);
+    if (currentGiftStep === 3) refreshGiftStep3UI();
+    else renderGiftStep();
+}
+
 export function previewGiftProduct(productId) {
-    const prod = (window.giftProductsPool || []).find(p => p.id === productId) || state.products.find(p => p.id === productId);
+    const prod = findGiftProductById(productId);
     if (!prod) return;
+
+    document.getElementById('gift-preview-modal')?.remove();
 
     const images = (prod.images && prod.images.length > 0) ? prod.images : (prod.image ? [prod.image] : []);
     const imagesHtml = images.map(img => `<img src="${img}" class="min-w-full h-48 object-contain bg-white rounded-xl snap-center p-1" loading="lazy">`).join('');
-    const isBox = (prod.category || '').toLowerCase().trim() === 'علب' || (prod.category || '').toLowerCase().trim() === 'علبة';
-    const safeId = (prod.id || '').replace(/'/g, "\\'");
+    const catLower = (prod.category || '').toLowerCase().trim();
+    const isBox = catLower === 'علب' || catLower === 'علبة' || catLower === 'صناديق';
+    const safeId = String(prod.id || '').replace(/'/g, "\\'");
     
     const modalHtml = `
-        <div id="gift-preview-modal" class="absolute inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col p-5 animate-fade-in rounded-3xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-[#D4AF37] font-black text-lg line-clamp-1">${prod.name}</h3>
-                <button type="button" onclick="document.getElementById('gift-preview-modal').remove()" class="w-8 h-8 bg-gray-800 text-white rounded-full hover:bg-red-600 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pb-4">
-                <div class="flex gap-2 overflow-x-auto snap-x custom-scrollbar pb-2">
-                    ${imagesHtml}
+        <div id="gift-preview-modal" class="fixed inset-0 z-[150] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" onclick="this.remove()">
+            <div class="w-full max-w-md max-h-[85vh] bg-[#111] border border-[#D4AF37]/40 rounded-3xl p-5 flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-[#D4AF37] font-black text-base line-clamp-1">${prod.name}</h3>
+                    <button type="button" onclick="document.getElementById('gift-preview-modal')?.remove()" class="w-8 h-8 bg-gray-800 text-white rounded-full hover:bg-red-600 transition flex items-center justify-center cursor-pointer shrink-0"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 
-                <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                    <p class="text-[#D4AF37] font-black text-2xl">${(prod.price || 0).toLocaleString()} دج</p>
-                    <span class="bg-gray-800 text-gray-300 text-xs px-3 py-1 rounded-full font-bold">${prod.category || 'عام'}</span>
+                <div class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pb-4">
+                    <div class="flex gap-2 overflow-x-auto snap-x custom-scrollbar pb-2">
+                        ${imagesHtml || '<div class="w-full h-40 bg-gray-900 rounded-xl flex items-center justify-center text-gray-500 text-xs">لا توجد صورة</div>'}
+                    </div>
+                    
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                        <p class="text-[#D4AF37] font-black text-2xl">${(Number(prod.price) || 0).toLocaleString()} دج</p>
+                        <span class="bg-gray-800 text-gray-300 text-xs px-3 py-1 rounded-full font-bold">${prod.category || 'عام'}</span>
+                    </div>
+                    
+                    <div class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                        ${prod.desc || 'لا توجد تفاصيل إضافية لهذا المنتج.'}
+                    </div>
                 </div>
                 
-                <div class="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap font-medium">
-                    ${prod.desc || 'لا توجد تفاصيل إضافية لهذا المنتج.'}
+                <div class="pt-3 border-t border-gray-800">
+                    ${isBox ? 
+                        `<button type="button" onclick="document.getElementById('gift-preview-modal')?.remove(); selectGiftBox('${safeId}')" class="w-full gold-gradient text-black font-black py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer">اختيار هذه العلبة <i class="fa-solid fa-box-open ml-1"></i></button>` 
+                        : 
+                        `<button type="button" onclick="document.getElementById('gift-preview-modal')?.remove(); updateGiftProductQty('${safeId}', 1)" class="w-full gold-gradient text-black font-black py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer">إضافة للهدية <i class="fa-solid fa-cart-plus ml-1"></i></button>`
+                    }
                 </div>
-            </div>
-            
-            <div class="pt-3 border-t border-gray-800">
-                ${isBox ? 
-                    `<button type="button" onclick="selectGiftBox('${safeId}'); document.getElementById('gift-preview-modal').remove()" class="w-full gold-gradient text-black font-black py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer">اختيار هذه العلبة <i class="fa-solid fa-box-open ml-1"></i></button>` 
-                    : 
-                    `<button type="button" onclick="updateGiftProductQty('${safeId}', 1); document.getElementById('gift-preview-modal').remove()" class="w-full gold-gradient text-black font-black py-3.5 rounded-xl text-sm shadow-[0_0_15px_rgba(212,175,55,0.4)] cursor-pointer">إضافة للهدية <i class="fa-solid fa-cart-plus ml-1"></i></button>`
-                }
             </div>
         </div>
     `;
-    document.getElementById('gift-wizard-content').insertAdjacentHTML('beforeend', modalHtml);
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
 export function previewWrapping(imgUrl, name, price) {
+    document.getElementById('wrap-preview-modal')?.remove();
+    const fallbackWrapImg = 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=300&auto=format&fit=crop';
+    const safePrice = Number(price) || 0;
     const modalHtml = `
-        <div id="wrap-preview-modal" class="absolute inset-0 z-[60] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-5 animate-fade-in rounded-3xl" onclick="this.remove()">
-            <div class="relative w-full max-w-xs bg-gray-900 border border-[#D4AF37]/30 rounded-3xl p-4 text-center shadow-2xl" onclick="event.stopPropagation()">
-                <button type="button" onclick="document.getElementById('wrap-preview-modal').remove()" class="absolute -top-3 -right-3 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition flex items-center justify-center shadow-lg border-2 border-gray-900 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+        <div id="wrap-preview-modal" class="fixed inset-0 z-[150] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-5 animate-fade-in" onclick="this.remove()">
+            <div class="relative w-full max-w-sm bg-gray-900 border border-[#D4AF37]/40 rounded-3xl p-4 text-center shadow-2xl" onclick="event.stopPropagation()">
+                <button type="button" onclick="document.getElementById('wrap-preview-modal')?.remove()" class="absolute -top-3 -right-3 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition flex items-center justify-center shadow-lg border-2 border-gray-900 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
                 
-                <img src="${imgUrl}" class="w-full h-64 object-cover rounded-xl mb-4 border border-gray-800" loading="lazy">
+                <img src="${imgUrl || fallbackWrapImg}" onerror="this.onerror=null;this.src='${fallbackWrapImg}'" class="w-full h-72 object-contain bg-black/60 rounded-xl mb-4 border border-gray-800" loading="lazy" alt="${name || 'تغليف'}">
                 
-                <h3 class="text-[#D4AF37] font-black text-lg mb-1">${name}</h3>
-                <p class="text-white font-bold text-sm bg-black/50 inline-block px-4 py-1 rounded-lg">${price > 0 ? price + ' دج' : 'مجاني'}</p>
+                <h3 class="text-[#D4AF37] font-black text-lg mb-1">${name || 'تغليف فاخر'}</h3>
+                <p class="text-white font-bold text-sm bg-black/50 inline-block px-4 py-1 rounded-lg">${safePrice > 0 ? safePrice.toLocaleString() + ' دج' : 'مجاني'}</p>
             </div>
         </div>
     `;
-    document.getElementById('gift-wizard-content').insertAdjacentHTML('beforeend', modalHtml);
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
 export async function setActiveGiftCategory(cat) { 
     activeProductCategory = cat; 
+
+    // 🌟 إذا كان الفهرس المحلي محملاً، نفلتر محلياً فوراً بصفر قراءات Firestore
+    if (window.localSearchIndex && window.localSearchIndex.length > 0) {
+        renderGiftStep();
+        return;
+    }
     
     if (cat !== 'الكل' && !window.giftCategoryCache[cat]) {
         const container = document.getElementById('gift-wizard-content');
@@ -607,7 +792,7 @@ export async function setActiveGiftCategory(cat) {
             const snap = await window.db.collection('products')
                 .where('category', '==', cat)
                 .where('inStock', '==', true)
-                .limit(8) // 🌟 8 منتجات فقط كبداية للقسم
+                .limit(8)
                 .get();
             
             if (!snap.empty) {
@@ -632,10 +817,10 @@ export async function setActiveGiftCategory(cat) {
 }
 export function setGiftRecipient(r) { giftData.recipient = r; nextGiftStep(); }
 export function selectGiftBox(boxId) { 
-    giftData.selectedBox = (window.giftProductsPool || []).find(p => p.id === boxId) || state.products.find(p => p.id === boxId); 
+    giftData.selectedBox = findGiftProductById(boxId); 
     nextGiftStep(); 
 }
-export function selectWrapping(id, name, price, image) { giftData.selectedWrapping = { id, name, price, image }; renderGiftStep(); }
+export function selectWrapping(id, name, price, image) { giftData.selectedWrapping = { id, name, price: Number(price) || 0, image }; renderGiftStep(); }
 
 export function setGiftShippingType(type) {
     giftData.shippingType = type;
@@ -648,17 +833,18 @@ export function setGiftShippingType(type) {
 }
 
 export function updateGiftProductQty(prodId, delta) {
-    const prod = (window.giftProductsPool || []).find(p => p.id === prodId) || state.products.find(p => p.id === prodId);
+    const prod = findGiftProductById(prodId);
     if (!prod) return;
     const existing = giftData.selectedProducts.find(item => item.id === prodId);
     if (delta > 0) {
         if (existing) existing.qty += 1;
-        else giftData.selectedProducts.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 });
+        else giftData.selectedProducts.push({ id: prod.id, name: prod.name, price: Number(prod.price) || 0, qty: 1 });
     } else if (delta < 0 && existing) {
         existing.qty -= 1;
         if (existing.qty <= 0) giftData.selectedProducts = giftData.selectedProducts.filter(item => item.id !== prodId);
     }
-    renderGiftStep();
+    if (currentGiftStep === 3) refreshGiftStep3UI();
+    else renderGiftStep();
 }
 
 export function nextGiftStep() {
@@ -862,3 +1048,7 @@ window.prevGiftStep = prevGiftStep;
 window.previewWrapping = previewWrapping;
 window.submitGiftOrder = submitGiftOrder; // 🌟 تمت إضافتها لضمان عمل زر الطلب المباشر
 window.addGiftToCart = addGiftToCart;
+window.updateGiftField = updateGiftField;
+window.handleGiftProductSearch = handleGiftProductSearch;
+window.clearGiftProductSearch = clearGiftProductSearch;
+window.removeGiftProduct = removeGiftProduct;
