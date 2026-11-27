@@ -94,6 +94,7 @@ export async function loadAllProductsForAdmin() {
         allProds.sort((a, b) => parseProductDate(b.createdAt) - parseProductDate(a.createdAt));
 
         state.products = allProds;
+        window.totalStoreProductsCount = allProds.length;
         safeCall('renderAdminProductsTable');
         safeCall('populateAdminDropdowns');
         safeCall('renderDynamicSidebarFilters');
@@ -508,13 +509,18 @@ export async function loadSearchIndex() {
             localSearchIndex = doc.data().items || [];
             window.localSearchIndex = localSearchIndex;
             isIndexLoaded = true;
-            window.totalStoreProductsCount = localSearchIndex.length;
+            window.totalStoreProductsCount = Math.max(localSearchIndex.length, state.products.length);
 
             // 🌟 إذا كانت state.products فارغة على الهاتف لسبب ما، نملؤها مبدئياً من الفهرس فوراً!
             if (state.products.length === 0 && localSearchIndex.length > 0) {
                 state.products = [...localSearchIndex.slice(0, 30)];
                 safeCall('renderProducts');
                 safeCall('applyFilters', false);
+            }
+
+            const badge = document.getElementById('products-count-badge');
+            if (badge && window.activeCategoryFilter === 'جميع المنتجات' && window.totalStoreProductsCount > (parseInt(badge.innerText) || 0)) {
+                badge.innerText = window.totalStoreProductsCount;
             }
         }
     } catch (error) {
