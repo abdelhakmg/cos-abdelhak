@@ -457,6 +457,10 @@ const discountAmount = getLandingDiscountAmount(prodSubtotal);
     .then(data => {
         if (data.error) throw new Error(data.error);
 
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'Purchase', { currency: 'DZD', value: newOrder.total || 0 });
+        }
+
         localStorage.setItem('last_order_timestamp', Date.now().toString());
 
         if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalBtnText; }
