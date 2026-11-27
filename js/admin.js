@@ -2086,7 +2086,7 @@ export function deleteCoupon(idx) {
 // 10. إعدادات الواجهة والتسويق (البانرات وعروض الصاعقة)
 // =====================================
 export async function saveUiSettings() {
-    const btn = document.querySelector('button[onclick="saveUiSettings()"]');
+    const btn = document.querySelector('button[onclick*="saveUiSettings"]');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
 
     const uiSettings = {
@@ -2337,7 +2337,6 @@ export async function handleSaveSubAdmin(e) {
             uid: newUid,
             username: rawUsername,
             email: email,
-            passwordHint: password,
             permissions: perms,
             createdAt: new Date()
         });
@@ -2391,7 +2390,7 @@ export async function renderSubAdminsList() {
                     <div class="space-y-1.5">
                         <div class="flex items-center gap-2">
                             <span class="font-black text-sm text-gray-900"><i class="fa-solid fa-user-check text-emerald-600 ml-1"></i> ${d.username}</span>
-                            <span class="text-[11px] bg-amber-50 text-[#B8860B] border border-amber-200 px-2 py-0.5 rounded font-mono font-bold">كلمة السر: ${d.passwordHint || '***'}</span>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded font-bold">حساب مشفر 🔒</span>
                         </div>
                         <div class="flex flex-wrap gap-1 pt-1">${badges}</div>
                     </div>
