@@ -117,12 +117,13 @@
             event.preventDefault(); // منع تحديث الصفحة
             
             // جلب البيانات من الحقول
-            const name = document.getElementById('contactName').value;
-            const phone = document.getElementById('contactPhone').value;
-            const msg = document.getElementById('contactMessage').value;
+            const name = document.getElementById('contactName').value.trim();
+            const phone = document.getElementById('contactPhone').value.trim();
+            const msg = document.getElementById('contactMessage').value.trim();
             
-            // تجهيز نص الرسالة ليظهر بشكل جميل في الواتساب
-            const whatsappMessage = `*رسالة جديدة من صفحة اتصل بنا*%0a%0a👤 *الاسم:* ${name}%0a📱 *الهاتف:* ${phone}%0a%0a💬 *الرسالة:*%0a${msg}`;
+            // تجهيز نص الرسالة وتشفيره بأمان لعدم انقطاع الرابط
+            const rawMessage = `*رسالة جديدة من صفحة اتصل بنا*\n\n👤 *الاسم:* ${name}\n📱 *الهاتف:* ${phone}\n\n💬 *الرسالة:*\n${msg}`;
+            const whatsappMessage = encodeURIComponent(rawMessage);
             
             // توجيه الزبون إلى واتساب الخاص بك مع الرسالة جاهزة
             window.open(`https://wa.me/213550875580?text=${whatsappMessage}`, '_blank');
