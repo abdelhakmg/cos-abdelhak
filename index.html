@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="site-title">كوسمتيك عبد الحق | المتجر الفاخر</title>
+    <meta name="description" content="متجر كوسمتيك عبد الحق للعطور، مستحضرات التجميل، العناية بالبشرة والشعر، صانع الهدايا VIP وورشة التخصيص مع التوصيل لـ 58 ولاية.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cosabdelhak.com/">
+    <meta property="og:title" content="كوسمتيك عبد الحق | المتجر الفاخر">
+    <meta property="og:description" content="يبدو أن أحدهم سيغدو سعيداً اليوم — عطور، تجميل، هدايا مخصصة وتوصيل لـ 58 ولاية والدفع عند الاستلام.">
+    <meta property="og:image" content="https://cosabdelhak.com/logo.png">
+    <meta name="twitter:card" content="summary_large_image">
 
     <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
@@ -191,7 +198,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
         <span class="absolute -top-3 -right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-bounce">👩‍⚕️عنايتك</span>
     </button>
     <!-- Floating WhatsApp Button -->
-    <a href="https://wa.me/213552556684" id="floating-whatsapp" target="_blank" class="fixed bottom-24 md:bottom-6 left-6 z-40 w-14 h-14 bg-[#25D366] hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:scale-110 transition p-3">
+    <a href="https://wa.me/213550875580" id="floating-whatsapp" target="_blank" class="fixed bottom-24 md:bottom-6 left-6 z-40 w-14 h-14 bg-[#25D366] hover:bg-green-600 text-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:scale-110 transition p-3">
         <i class="fa-brands fa-whatsapp text-3xl"></i>
     </a>
 
@@ -663,6 +670,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                     <button onclick="switchAdminTab('products')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-products">🛍️ المنتجات والمخزون</button>
                     <button onclick="switchAdminTab('categories_attributes')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-categories_attributes">⚙️ الأقسام والخصائص</button>
                     <button onclick="switchAdminTab('marketing_ui')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-marketing_ui">🎨 الواجهة والتسويق</button>
+                    <button onclick="switchAdminTab('marketing')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-marketing">🖼️ البانرات والعروض</button>
                     <button onclick="switchAdminTab('shipping_settings')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-shipping_settings">🚚 التوصيل والإعدادات</button>
                     <button onclick="switchAdminTab('gift')" class="admin-tab-btn px-5 py-3 rounded-xl font-bold text-sm bg-gray-800 text-gray-300 hover:text-white transition whitespace-nowrap" id="tab-btn-gift">
                         <i class="fa-solid fa-wand-magic-sparkles text-[#D4AF37] ml-1"></i> صانع الهدايا
@@ -828,7 +836,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             </select>
                             <div class="flex items-center gap-2 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
                                 <input type="checkbox" id="prod-is-flash" class="accent-red-600 w-5 h-5 cursor-pointer">
-                                <label for="prod-is-flash" class="text-xs font-bold text-gray-800 cursor-pointer">جعله ضمن "عروض الصاعقة ⚡" (لمدة 12 ساعة)</label>
+                                <label for="prod-is-flash" class="text-xs font-bold text-gray-800 cursor-pointer">جعله ضمن "عروض الصاعقة ⚡" (لمدة 24 ساعة)</label>
                             </div>
                             <div id="category-dynamic-fields-container" class="md:col-span-3"></div>
 
@@ -1132,9 +1140,7 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             </button>
                         </div>
                     </div>
-                    <button id="tab-btn-marketing" onclick="safeCall('switchAdminTab', 'marketing')" class="admin-tab-btn flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 hover:text-white rounded-xl transition font-bold text-xs cursor-pointer">
-    <i class="fa-solid fa-bullhorn text-[#D4AF37]"></i> <span>الواجهة والتسويق</span>
-</button>
+                    
 <!-- 🎟️ إدارة أكواد الخصم والكوبونات (عام أو لمنتج مخصص) -->
                     <div class="bg-white border border-[#D4AF37]/40 rounded-2xl p-6 shadow-sm space-y-5">
                         <div class="border-b border-gray-200 pb-3 flex justify-between items-center">
@@ -1785,18 +1791,18 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
         <div class="container mx-auto px-4 mb-8">
             <div class="flex flex-col md:flex-row items-center justify-between bg-[#D4AF37]/10 p-4 rounded-xl border border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]">
                 <div class="flex flex-wrap justify-center gap-5 text-sm font-bold text-white mb-4 md:mb-0">
-                    <a href="tel:0550875580" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-phone text-[#D4AF37]"></i> 0550875580</a>
-                    <a href="mailto:cos.abdelhak@gmail.com" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-envelope text-[#D4AF37]"></i> cos.abdelhak@gmail.com</a>
-                    <a href="https://maps.app.goo.gl/m9ZkWKQwSDD2WcFY6" id="footer-location-link" target="_blank" class="hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer">
-    <i class="fa-solid fa-location-dot text-[#D4AF37]"></i> <span id="footer-location-text">موقعنا على الخريطة</span>
-</a>
+                    <a href="tel:0550875580" id="footer-phone" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-phone text-[#D4AF37]"></i> <span>0550875580</span></a>
+                    <a href="mailto:cos.abdelhak@gmail.com" id="footer-email" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-envelope text-[#D4AF37]"></i> <span>cos.abdelhak@gmail.com</span></a>
+                    <a href="https://maps.app.goo.gl/m9ZkWKQwSDD2WcFY6" id="link-gps" target="_blank" class="hover:text-[#D4AF37] transition flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-location-dot text-[#D4AF37]"></i> <span id="footer-location-text">موقعنا على الخريطة</span>
+                    </a>
                 </div>
                 <!-- أيقونات التواصل الاجتماعي -->
                 <div class="flex gap-3">
-                    <a href="https://facebook.com/Cosabdelhak" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="https://instagram.com/Cosabdelhak17" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="https://wa.me/213550875580" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-whatsapp"></i></a>
-                    <a href="https://t.me/abdelhakgattaf" id="footer-telegram" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-telegram"></i></a>
+                    <a href="https://facebook.com/Cosabdelhak" id="link-facebook" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="https://instagram.com/Cosabdelhak17" id="link-instagram" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://wa.me/213550875580" id="link-whatsapp" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-whatsapp"></i></a>
+                    <a href="https://t.me/abdelhakgattaf" id="link-telegram" target="_blank" class="w-10 h-10 bg-black text-[#D4AF37] rounded-full flex items-center justify-center border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black transition shadow-md"><i class="fa-brands fa-telegram"></i></a>
                 </div>
             </div>
         </div>
@@ -1825,7 +1831,6 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             <li><a href="terms.html" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> شروط الاستخدام</a></li>
                             <li><a href="shipping.html" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> سياسة التوصيل والشحن</a></li>
                             <li><a href="refund.html" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> سياسة الاستبدال والاسترجاع</a></li>
-                            <li><a href="privacy.html" class="hover:text-[#D4AF37] transition flex items-center gap-2"><i class="fa-solid fa-angle-left text-[10px] text-[#D4AF37]"></i> سياسة الخصوصية</a></li>
                         </ul>
                     </details>
                 </div>
