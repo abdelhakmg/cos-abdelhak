@@ -505,11 +505,31 @@ export async function loadSearchIndex() {
     if (isIndexLoaded) return;
     try {
         const doc = await window.db.collection('settings').doc('search_index').get();
-        if (doc.exists && doc.data().items) {
-            localSearchIndex = doc.data().items || [];
+        if (!doc.exists) return;
+
+        const data = doc.data() || {};
+        let combinedItems = [];
+
+        if (data.isSharded && data.chunksCount > 0) {
+            const chunkPromises = [];
+            for (let i = 0; i < data.chunksCount; i++) {
+                chunkPromises.push(window.db.collection('settings').doc(`search_index_${i}`).get());
+            }
+            const chunkDocs = await Promise.all(chunkPromises);
+            chunkDocs.forEach(cDoc => {
+                if (cDoc.exists && Array.isArray(cDoc.data().items)) {
+                    combinedItems = combinedItems.concat(cDoc.data().items);
+                }
+            });
+        } else if (Array.isArray(data.items)) {
+            combinedItems = data.items;
+        }
+
+        if (combinedItems.length > 0) {
+            localSearchIndex = combinedItems;
             window.localSearchIndex = localSearchIndex;
             isIndexLoaded = true;
-            window.totalStoreProductsCount = Math.max(localSearchIndex.length, state.products.length);
+            window.totalStoreProductsCount = Math.max(localSearchIndex.length, Number(data.totalCount) || 0, state.products.length);
 
             // 🌟 إذا كانت state.products فارغة على الهاتف لسبب ما، نملؤها مبدئياً من الفهرس فوراً!
             if (state.products.length === 0 && localSearchIndex.length > 0) {
