@@ -3,7 +3,8 @@
 import { state } from './store/state.js';
 import { showCustomAlert, safeCall } from './utils/helpers.js';
 // 🌟 المتغير العالمي لحفظ خيارات المنتج أثناء التعديل/الإضافة
-window.currentProductVariants = [];
+window.currentProductVariants = 
+window.currentProductGallery = [];    
 let pendingDeleteOrderId = null;
 
 // =====================================
@@ -416,7 +417,7 @@ export function handleSaveProduct(e) {
             attributes: customAttributes,
             desc: document.getElementById('prod-desc')?.value.trim() || '',
             image: mainImageVal,
-            images: mainImageVal ? [mainImageVal] : [],
+            images: [...new Set([mainImageVal, ...(window.currentProductGallery || [])].filter(Boolean))],
             variants: variantsToSave,
             colors: '',
             numbers: '',
@@ -474,7 +475,14 @@ export function editProduct(id) {
     }
 
     document.getElementById('prod-desc').value = p.desc || '';
-    document.getElementById('prod-img-main').value = p.image || (Array.isArray(p.images) && p.images[0]) || '';
+    const mainImgVal = p.image || (Array.isArray(p.images) && p.images[0]) || '';
+    document.getElementById('prod-img-main').value = mainImgVal;
+    updateMainImgPreview(mainImgVal);
+
+    // 🌟 استرجاع الصور الفرعية الإضافية (المرفوعة من أداتك أو من اللوحة)
+    const rawGallery = Array.isArray(p.images) ? p.images : [];
+    window.currentProductGallery = [...new Set(rawGallery.filter(u => u && u !== mainImgVal))];
+    renderAdminGallery();
     
     // 🌟 استرجاع الخيارات الديناميكية بأمان
     window.currentProductVariants = Array.isArray(p.variants) ? JSON.parse(JSON.stringify(p.variants)) : [];
@@ -504,7 +512,10 @@ export function resetProductForm() {
     document.getElementById('prod-img-main').classList.remove('border-green-500', 'bg-green-50');
     if(document.getElementById('prod-is-flash')) document.getElementById('prod-is-flash').checked = false;
     window.currentProductVariants = [];
+    window.currentProductGallery = [];
     renderAdminVariants();
+    renderAdminGallery();
+    updateMainImgPreview('');
     renderCategorySpecificAdminFields();
 }
 
@@ -524,6 +535,67 @@ export function removeAdminVariant(id) {
     renderAdminVariants();
 }
 
+export function updateMainImgPreview(url) {
+    const wrap = document.getElementById('prod-img-main-preview-wrap');
+    const img = document.getElementById('prod-img-main-preview');
+    if (!wrap || !img) return;
+    const cleanUrl = (url || '').trim();
+    if (cleanUrl) {
+        img.src = cleanUrl;
+        wrap.classList.remove('hidden');
+    } else {
+        img.src = '';
+        wrap.classList.add('hidden');
+    }
+}
+
+export function renderAdminGallery() {
+    const container = document.getElementById('admin-product-gallery-container');
+    if (!container) return;
+
+    if (!window.currentProductGallery || window.currentProductGallery.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-400">لا توجد صور فرعية إضافية حالياً.</p>';
+        return;
+    }
+
+    container.innerHTML = window.currentProductGallery.map((url, idx) => `
+        <div class="relative group w-20 h-20 rounded-xl border border-gray-300 bg-white p-1 shadow-sm shrink-0">
+            <img src="${url}" onclick="openImageModal(this.src)" class="w-full h-full object-contain rounded-lg cursor-zoom-in" title="اضغط للتكبير">
+            <button type="button" onclick="removeAdminGalleryImage(${idx})" class="absolute -top-2 -left-2 w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full text-[10px] flex items-center justify-center shadow-md cursor-pointer" title="حذف الصورة">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+export function removeAdminGalleryImage(idx) {
+    window.currentProductGallery.splice(idx, 1);
+    renderAdminGallery();
+}
+
+export async function handleGalleryImagesUpload(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const container = document.getElementById('admin-product-gallery-container');
+    if (container) container.innerHTML += '<span id="gallery-uploading-badge" class="text-xs text-[#B8860B] font-bold"><i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الصور...</span>';
+
+    try {
+        for (const file of files) {
+            const url = await window.compressAndUploadImage(file, 'products_images', 900);
+            if (url && !window.currentProductGallery.includes(url)) {
+                window.currentProductGallery.push(url);
+            }
+        }
+        renderAdminGallery();
+    } catch (error) {
+        showCustomAlert('خطأ', 'تعذر رفع بعض الصور الفرعية.', false);
+        renderAdminGallery();
+    } finally {
+        event.target.value = '';
+    }
+}
+
 export function renderAdminVariants() {
     const container = document.getElementById('admin-product-variants-container');
     if (!container) return;
@@ -535,12 +607,13 @@ export function renderAdminVariants() {
 
     container.innerHTML = window.currentProductVariants.map(v => `
         <div class="bg-white border border-gray-200 p-3 rounded-xl flex flex-col md:flex-row gap-3 items-start md:items-center shadow-sm relative">
+            <img id="var-preview-${v.id}" src="${v.image || 'https://via.placeholder.com/60?text=صورة'}" onclick="if(this.src && !this.src.includes('placeholder')) openImageModal(this.src)" class="w-12 h-12 object-contain rounded-lg border border-gray-300 bg-white p-0.5 shrink-0 cursor-zoom-in" title="اضغط للتكبير">
             <div class="flex-1 w-full">
                 <input type="text" id="var-name-${v.id}" value="${v.name}" placeholder="اسم الخيار (مثال: أحمر، 50ml)..." class="w-full border p-2.5 rounded-lg text-xs outline-none focus:border-[#D4AF37] bg-gray-50" oninput="updateVariantData('${v.id}', 'name', this.value)">
             </div>
             <div class="flex-1 flex gap-2 w-full">
                 <input type="file" id="file-${v.id}" accept="image/*" class="hidden" onchange="handleVariantImageUpload(event, '${v.id}')">
-                <button type="button" onclick="document.getElementById('file-${v.id}').click()" class="bg-gray-800 text-white px-3 py-2.5 rounded-lg text-[10px] font-bold hover:bg-gray-700 transition whitespace-nowrap flex items-center gap-1">
+                <button type="button" onclick="document.getElementById('file-${v.id}').click()" class="bg-gray-800 text-white px-3 py-2.5 rounded-lg text-[10px] font-bold hover:bg-gray-700 transition whitespace-nowrap flex items-center gap-1 cursor-pointer">
                     <i class="fa-solid fa-image"></i> صورة الخيار
                 </button>
                 <input type="url" id="var-img-${v.id}" value="${v.image}" placeholder="URL الصورة" class="flex-1 border p-2.5 rounded-lg text-[10px] bg-gray-50" oninput="updateVariantData('${v.id}', 'image', this.value)">
@@ -550,7 +623,7 @@ export function renderAdminVariants() {
                     <input type="checkbox" id="var-stock-${v.id}" ${v.inStock ? 'checked' : ''} class="accent-emerald-600" onchange="updateVariantData('${v.id}', 'inStock', this.checked)">
                     متوفر
                 </label>
-                <button type="button" onclick="removeAdminVariant('${v.id}')" class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition border border-red-100">
+                <button type="button" onclick="removeAdminVariant('${v.id}')" class="text-red-500 hover:text-red-700 bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center transition border border-red-100 cursor-pointer">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
@@ -561,6 +634,10 @@ export function renderAdminVariants() {
 export function updateVariantData(id, field, value) {
     const variant = window.currentProductVariants.find(v => v.id === id);
     if (variant) variant[field] = value;
+    if (field === 'image') {
+        const prev = document.getElementById(`var-preview-${id}`);
+        if (prev) prev.src = (value || '').trim() || 'https://via.placeholder.com/60?text=صورة';
+    }
 }
 
 export async function handleVariantImageUpload(event, variantId) {
@@ -761,17 +838,65 @@ export async function handleImageUploadWrapper(event, targetId) {
     if (targetInput) targetInput.placeholder = "جاري الرفع إلى الخادم... ⏳";
 
     try {
-        // 👈 تم تغيير 600 إلى 900 للحفاظ على جودة التفاصيل
         const downloadURL = await window.compressAndUploadImage(file, 'products_images', 900);
         if (targetInput) {
             targetInput.value = downloadURL;
             targetInput.classList.add('border-green-500', 'bg-green-50');
             targetInput.placeholder = "أو رابط الصورة (URL) *";
+            if (targetId === 'prod-img-main') updateMainImgPreview(downloadURL);
         }
     } catch (error) {
         console.error("Upload error:", error);
         if (targetInput) targetInput.placeholder = "❌ فشل الرفع";
         showCustomAlert("خطأ", "فشل رفع الصورة، يرجى المحاولة مرة أخرى.", false);
+    }
+}
+
+// 🌟 رفع البانرات والبوسترات بجودتها وأبعادها الأصلية تماماً (بدون ضغط)
+export async function handleOriginalBannerUpload(event, targetId, previewId = null) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const targetInput = document.getElementById(targetId);
+    if (targetInput) targetInput.placeholder = "جاري رفع الصورة الأصلية... ⏳";
+
+    try {
+        const downloadURL = await window.uploadOriginalImage(file, 'banners_original');
+        if (targetInput) {
+            targetInput.value = downloadURL;
+            targetInput.classList.add('border-green-500', 'bg-green-50');
+        }
+        if (previewId) {
+            const previewEl = document.getElementById(previewId);
+            if (previewEl) previewEl.src = downloadURL;
+        }
+        showCustomAlert('تم الرفع بنجاح 🖼️', 'تم رفع الصورة بجودتها الأصلية الكاملة بدون ضغط.', true);
+    } catch (error) {
+        console.error("Original upload error:", error);
+        if (targetInput) targetInput.placeholder = "❌ فشل الرفع";
+        showCustomAlert("خطأ", "فشل رفع الصورة: " + error.message, false);
+    } finally {
+        event.target.value = '';
+    }
+}
+
+// 🌟 زر تحديث فهرس البحث ومطابقة العدد الكلي للمنتجات بضغطة واحدة
+export async function syncSearchIndexWithFeedback(btn) {
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري المزامنة...';
+    }
+    try {
+        await updateSearchIndex();
+        showCustomAlert('تمت المزامنة بنجاح ✅', `تم تحديث فهرس البحث ومطابقة العدد الكلي (${window.totalStoreProductsCount || state.products.length} منتج) للجميع!`, true);
+    } catch (err) {
+        showCustomAlert('خطأ', 'تعذر تحديث الفهرس: ' + err.message, false);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
     }
 }
 
@@ -1192,7 +1317,7 @@ export function renderAdminProductsTable() {
                 <td class="p-3 text-center">
                     <input type="checkbox" value="${p.id}" class="prod-cb accent-red-600 w-4 h-4 cursor-pointer" onchange="checkBulkProductDeleteStatus()">
                 </td>
-                <td class="p-3"><img src="${img}" class="w-12 h-12 object-contain rounded-lg border bg-black" loading="lazy"></td>
+                <td class="p-3"><img src="${img}" onclick="openImageModal(this.src)" class="w-12 h-12 object-contain rounded-lg border bg-white p-0.5 cursor-zoom-in shadow-sm" title="اضغط لتكبير الصورة" loading="lazy"></td>
                 <td class="p-3 font-bold text-xs">${p.name}</td>
                 <td class="p-3 text-xs">${p.category || 'عام'}</td>
                 <td class="p-3 text-[11px] text-gray-600 max-w-xs leading-relaxed">${p.brand || '-'}</td>
@@ -1213,7 +1338,8 @@ export function renderAdminProductsTable() {
                         ${isStock ? 'متوفر 🟢' : 'نفد 🔴'}
                     </button>
                 </td>
-                <td class="p-3 flex items-center justify-center gap-2">
+                <td class="p-3 flex items-center justify-center gap-1.5">
+                    <a href="#product=${p.id}" target="_blank" title="معاينة المنتج في المتجر" class="bg-amber-100 hover:bg-[#D4AF37] text-[#B8860B] hover:text-black font-bold text-xs px-2.5 py-1 rounded-lg transition cursor-pointer flex items-center gap-1"><i class="fa-solid fa-eye"></i> معاينة</a>
                     <button type="button" onclick="editProduct('${p.id}')" class="bg-blue-100 text-blue-700 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">تعديل</button>
                     <button type="button" onclick="deleteProduct('${p.id}')" class="bg-red-100 text-red-600 font-bold text-xs px-2.5 py-1 rounded-lg cursor-pointer">حذف</button>
                 </td>
@@ -2093,7 +2219,6 @@ export async function saveUiSettings() {
         bannerMain: document.getElementById('admin-input-banner-main')?.value.trim() || '',
         bannerGift: document.getElementById('admin-input-banner-gift')?.value.trim() || '',
         bannerWorkshop: document.getElementById('admin-input-banner-workshop')?.value.trim() || '',
-        flashIds: document.getElementById('admin-input-flash-ids')?.value.trim() || ''
     };
 
     try {
@@ -2127,7 +2252,6 @@ export async function loadUiAdminData() {
             const mainInput = document.getElementById('admin-input-banner-main');
             const giftInput = document.getElementById('admin-input-banner-gift');
             const workInput = document.getElementById('admin-input-banner-workshop');
-            const flashInput = document.getElementById('admin-input-flash-ids');
 
             if (mainInput) {
                 mainInput.value = data.bannerMain || '';
@@ -2143,7 +2267,6 @@ export async function loadUiAdminData() {
             }
             if (flashInput) flashInput.value = data.flashIds || '';
             if (document.getElementById('admin-splash-title')) document.getElementById('admin-splash-title').value = data.splashTitle || '';
-            if (document.getElementById('admin-splash-subtitle')) document.getElementById('admin-splash-subtitle').value = data.splashSubtitle || '';
         }
     } catch (error) {
         console.error("خطأ في جلب بيانات الواجهة:", error);
@@ -2418,3 +2541,9 @@ window.applyAdminPermissionsUI = applyAdminPermissionsUI;
 window.handleSaveSubAdmin = handleSaveSubAdmin;
 window.renderSubAdminsList = renderSubAdminsList;
 window.deleteSubAdmin = deleteSubAdmin;
+window.updateMainImgPreview = updateMainImgPreview;
+window.renderAdminGallery = renderAdminGallery;
+window.removeAdminGalleryImage = removeAdminGalleryImage;
+window.handleGalleryImagesUpload = handleGalleryImagesUpload;
+window.handleOriginalBannerUpload = handleOriginalBannerUpload;
+window.syncSearchIndexWithFeedback = syncSearchIndexWithFeedback;
