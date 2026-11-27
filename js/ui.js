@@ -384,7 +384,7 @@ export function renderDynamicSidebarFilters() {
         return `
         <div class="border border-gray-800 bg-black/50 rounded-xl overflow-hidden mb-2">
             <button type="button" onclick="window.toggleFilterAccordion('${bodyId}', '${iconId}')" class="w-full flex items-center justify-between p-3 text-xs font-bold text-[#D4AF37] hover:bg-[#1a1a1a] transition cursor-pointer">
-                <span class="flex items-center gap-2"><i class="fa-solid fa-Sliders text-[11px]"></i> ${title}</span>
+                <span class="flex items-center gap-2"><i class="fa-solid fa-sliders text-[11px]"></i> ${title}</span>
                 <i id="${iconId}" class="fa-solid fa-chevron-down text-[11px] text-gray-400 transition-transform duration-300"></i>
             </button>
             <div id="${bodyId}" class="hidden px-3 pb-3 pt-2 border-t border-gray-800/80 space-y-1.5 text-xs text-gray-300 max-h-40 overflow-y-auto custom-scrollbar">
