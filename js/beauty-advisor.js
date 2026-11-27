@@ -174,6 +174,7 @@ export function selectAdvisorAnswer(questionId, answerValue) {
 
 async function generateSmartRoutine() {
     const container = document.getElementById('advisor-content');
+    if (!container) return;
     const headerTitle = document.getElementById('advisor-header-title');
     if (headerTitle) headerTitle.innerText = "النتيجة والتوصيات";
 
@@ -393,7 +394,7 @@ async function generateSmartRoutine() {
 }
 // دالة إضافة منتج واحد من القائمة للسلة بتأثير بصري
 export function addSingleRoutineItem(productId, btnElement) {
-    const prod = window.currentGeneratedRoutine.find(p => p.id === productId);
+    const prod = (window.currentGeneratedRoutine || []).find(p => p.id === productId);
     if (!prod) return;
 
     const existingItem = state.cart.find(item => item.id === prod.id && !item.selectedOptionsText);
@@ -406,15 +407,17 @@ export function addSingleRoutineItem(productId, btnElement) {
     saveCartToLocal();
     safeCall('updateBadges');
 
-    // تأثير بصري للزر
-    const originalHtml = btnElement.innerHTML;
-    btnElement.innerHTML = '<i class="fa-solid fa-check"></i> تمت الإضافة';
-    btnElement.className = 'w-full bg-green-600 text-white border border-green-500 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5';
+    // تأثير بصري آمن للزر يحافظ على مقاسه الأصلي داخل البطاقة
+    if (!btnElement) return;
+    const defaultHtml = '<i class="fa-solid fa-cart-plus"></i>';
+    const defaultClass = 'px-3 bg-[#1a1a1a] text-white border border-gray-700 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] text-xs font-bold py-2 rounded-xl transition flex items-center justify-center cursor-pointer';
+    btnElement.innerHTML = '<i class="fa-solid fa-check"></i>';
+    btnElement.className = 'px-3 bg-green-600 text-white border border-green-500 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center cursor-pointer';
     
     setTimeout(() => {
-        btnElement.innerHTML = originalHtml;
-        btnElement.className = 'w-full bg-[#1a1a1a] text-white border border-gray-700 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] text-xs font-bold py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer';
-    }, 2000);
+        btnElement.innerHTML = defaultHtml;
+        btnElement.className = defaultClass;
+    }, 1500);
 }
 
 // Window Bindings
