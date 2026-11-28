@@ -1067,12 +1067,12 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                             <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-pen-ruler text-[#D4AF37] mr-2"></i> إدارة الورشة وخدمات التخصيص</h3>
                             <p class="text-xs text-gray-500 mt-1">تحكم في أسعار حفر الليزر، طباعة الكؤوس، الكادرات، وخدمات الكاميو.</p>
                         </div>
-                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
-                            <span class="font-bold text-sm text-gray-700">حالة الورشة:</span>
-                            <label class="relative inline-flex items-center cursor-pointer">
+                        <div class="flex items-center gap-3 bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-200 shrink-0">
+                            <span class="font-bold text-sm text-gray-700 whitespace-nowrap">حالة الورشة:</span>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
                                 <input type="checkbox" id="custom-master-switch" class="sr-only peer" onchange="toggleCustomSystem(this.checked)">
-                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                                <span id="custom-status-text" class="mr-3 text-xs font-bold text-gray-500">مغلقة</span>
+                                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 shrink-0"></div>
+                                <span id="custom-status-text" class="mr-3 text-xs font-bold text-gray-500 whitespace-nowrap">مغلقة</span>
                             </label>
                         </div>
                     </div>
@@ -1737,8 +1737,8 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         <input type="text" id="cp-colors" placeholder="مثال: أسود, بني داكن (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">المقاسات (مثال: S,M,L أو A4,A5)</label>
-                        <input type="text" id="cp-sizes" placeholder="افصل بفاصلة (فارغ إن لم يوجد)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
+                        <label class="block text-xs font-bold text-gray-600 mb-1">المقاسات (مع سعر اختياري: A5:600, A4:900)</label>
+                        <input type="text" id="cp-sizes" placeholder="مثال: A5:600, A4:900 أو S, M, L" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-gray-50">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">أنواع الخطوط (مثال: ديواني,رقعة)</label>
@@ -1782,6 +1782,22 @@ src="https://www.facebook.com/tr?id=2140679980659060&ev=PageView&noscript=1"
                         <label class="block text-xs font-bold text-gray-600 mb-1">عنوان حقل الملاحظات</label>
                         <input type="text" id="cp-label-notes" placeholder="مثال: ملاحظات إضافية (مثال: الخط عربي، حجم الكاميو)" class="w-full border border-gray-300 p-2.5 rounded-xl text-sm outline-none focus:border-[#D4AF37] bg-white">
                     </div>
+                </div>
+
+                <!-- 🌟 معرض التصاميم والنماذج الجاهزة (للكادرات، الكؤوس، السجادات...) -->
+                <div class="bg-amber-50/70 p-4 rounded-xl border border-[#D4AF37]/40 space-y-3">
+                    <div>
+                        <h4 class="font-bold text-sm text-gray-800"><i class="fa-solid fa-images text-[#B8860B] ml-1"></i> معرض التصاميم والنماذج الجاهزة (اختياري)</h4>
+                        <p class="text-[11px] text-gray-500 mt-0.5">أضف صوراً لتصاميمك الجاهزة ليختار الزبون منها (مثلاً: عيد زواج #1، تخرج #2). اتركه فارغاً إذا لم يحتج المنتج لنماذج.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="cp-template-name" placeholder="اسم أو رقم التصميم (مثال: نموذج عيد زواج #1)" class="flex-1 border border-gray-300 p-2.5 rounded-xl text-xs bg-white outline-none focus:border-[#D4AF37]">
+                        <input type="file" id="cp-template-file" accept="image/*" class="hidden" onchange="handleAdminTemplateUpload(event)">
+                        <button type="button" id="cp-template-upload-btn" onclick="document.getElementById('cp-template-file').click()" class="bg-[#D4AF37] text-black font-bold px-4 py-2.5 rounded-xl text-xs hover:opacity-90 transition whitespace-nowrap cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> رفع صورة نموذج
+                        </button>
+                    </div>
+                    <div id="cp-templates-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1"></div>
                 </div>
 
                 <div class="flex items-center gap-2 mt-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
