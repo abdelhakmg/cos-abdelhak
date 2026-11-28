@@ -1,6 +1,6 @@
 // --- ملف sw.js (الإصدار الذكي v6 مع حماية امتلاء الكاش وتحديد سقف الصور) ---
 
-const CACHE_NAME = 'cosmetic-abdelhak-v15';
+const CACHE_NAME = 'cosmetic-abdelhak-v16';
 const IMAGE_CACHE_NAME = 'firebase-images-cache';
 const MAX_CACHED_IMAGES = 80;
 
